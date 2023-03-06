@@ -5,16 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LICENSE.MD" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/CertTools.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/KeyStoreUtils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/objects/KeyStoreFileContent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/log4j2.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/CertTools.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/CertTools.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/KeyStoreUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/KeyStoreUtils.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,13 +42,17 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true"
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "configurable.group.build"
   }
 }]]></component>
   <component name="RunManager">
     <configuration name="Unnamed" type="Application" factoryName="Application" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="de.morihofi.acmeserver.Main" />
-      <module name="AcmeServer" />
+      <module name="acmeserver" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -82,9 +84,9 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/CertTools.java</url>
-          <line>60</line>
-          <option name="timeStamp" value="4" />
+          <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java</url>
+          <line>109</line>
+          <option name="timeStamp" value="7" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
