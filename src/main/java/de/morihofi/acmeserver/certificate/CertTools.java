@@ -159,7 +159,7 @@ public class CertTools {
 
         // Create our virtual "CSR"
 
-        X500Name issuerName = X509.getX500NameFromX509Certificate(convertToX509Cert(intermediateCertificateBytes)); // new X500Name("CN=YourCA");
+        X500Name issuerName = X509.getX500NameFromX509Certificate(convertToX509Cert(intermediateCertificateBytes));
         BigInteger serialNumber = BigInteger.valueOf(System.currentTimeMillis());
 
         Date startDate = new Date(); // Starts now

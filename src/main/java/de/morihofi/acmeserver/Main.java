@@ -30,16 +30,18 @@ public class Main {
 
         Path acmeServerKeyStorePath = filesDir.resolve("acmeserver.p12");
         String acmeServerKeyStorePassword = "";
+        String caKeyStorePassword = "";
+        String caCommonName = "MHO Test CA 1 - Do not use in Production";
+        int caRSAKeyPairSize = 4096;
 
         Path intermediateKeyStorePath = filesDir.resolve("intermediate.p12");
+        String intermediateKeyStorePassword = "";
+        String intermediateCommonName = "MHO Test CA 1 - Intermediate - Do not use in Production";
+        int intermediateRSAKeyPairSize = 4096;
 
         //Register Bouncy Castle Provider
         log.info("Register Bouncy Castle Security Provider");
         Security.addProvider(new BouncyCastleProvider());
-
-
-        //Detect first run
-        System.out.println(filesDir);
 
         /*
         try {
@@ -51,18 +53,18 @@ public class Main {
         }catch (Exception ex){
 
         }
-*/
+        */
 
+        //Detect first run
         if (!Files.exists(filesDir)) {
             log.info("First run detected, settings things up");
-
             Files.createDirectories(filesDir);
 
             // Create CA
-            log.info("Generating RSA Key Pair for CA");
-            KeyPair caKeyPair = CertTools.generateRSAKeyPair(4096);
+            log.info("Generating RSA " + caRSAKeyPairSize + "bit Key Pair for CA");
+            KeyPair caKeyPair = CertTools.generateRSAKeyPair(caRSAKeyPairSize);
             log.info("Creating CA");
-            byte[] caCertificateBytes = CertTools.generateCertificateAuthorityCertificate("MHO Test CA 1", 100, caKeyPair);
+            byte[] caCertificateBytes = CertTools.generateCertificateAuthorityCertificate(caCommonName, 100, caKeyPair);
 
             // Dumping CA Certificate to HDD, so other clients can install it
             log.info("Writing CA to disk");
@@ -71,18 +73,18 @@ public class Main {
             Files.write(filesDir.resolve(caPath), CertTools.certificateToPEM(caCertificateBytes).getBytes());
             // Save CA in Keystore
             log.info("Writing CA to Key Store");
-            KeyStoreUtils.saveAsPKCS12(caKeyPair, "", "ca", caCertificateBytes, filesDir.resolve("ca.p12"));
+            KeyStoreUtils.saveAsPKCS12(caKeyPair, caKeyStorePassword, "ca", caCertificateBytes, filesDir.resolve("ca.p12"));
 
 
 
             // *****************************************
             // Create Intermediate Certificate
-            log.info("Generating RSA Key Pair for Intermediate CA");
-            intermediateKeyPair = CertTools.generateRSAKeyPair(4096);
+            log.info("Generating RSA " + intermediateRSAKeyPairSize + "bit Key Pair for Intermediate CA");
+            intermediateKeyPair = CertTools.generateRSAKeyPair(intermediateRSAKeyPairSize);
             log.info("Creating Intermediate CA");
-            intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair,caCertificateBytes,intermediateKeyPair,"MHO Test CA Intermediate",30,0,0);
+            intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair,caCertificateBytes,intermediateKeyPair,intermediateCommonName,30,0,0);
             log.info("Writing Intermediate CA to Key Store");
-            KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, "", "intermediate", intermediateCertificate.getEncoded(), intermediateKeyStorePath);
+            KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, "intermediate", intermediateCertificate.getEncoded(), intermediateKeyStorePath);
 
             //Unset, we doesn't need it anymore. Why should we keep it in memory?#
             log.debug("Unset CA Key Pair");
@@ -93,9 +95,9 @@ public class Main {
             log.info("Generating RSA Key Pair for ACME Web Server API");
             KeyPair acmeAPIKeyPair = CertTools.generateRSAKeyPair(4096);
             log.info("Creating Server Certificate");
-            X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair,intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{"example.com","www.example.com","git.example.com"},0,1,0);
-            log.info("Writing Server Certificate to Key Store");
-            KeyStoreUtils.saveAsPKCS12(acmeAPIKeyPair, acmeServerKeyStorePassword, "server", acmeAPICertificate.getEncoded(), acmeServerKeyStorePath);
+            X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair,intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{"example.com","www.example.com","git.example.com", "mo-nb-gb-mint"},0,1,0);
+            log.info("Writing Server Certificate (as key chain) to Key Store");
+            KeyStoreUtils.saveAsPKCS12KeyChain(acmeAPIKeyPair, acmeServerKeyStorePassword, "server", new byte[][]{acmeAPICertificate.getEncoded(), intermediateCertificate.getEncoded()}, acmeServerKeyStorePath);
 
 
 
