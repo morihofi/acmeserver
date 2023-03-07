@@ -80,9 +80,16 @@ public class CertTools {
         byte[] pk = kp.getPublic().getEncoded();
         SubjectPublicKeyInfo bcPk = SubjectPublicKeyInfo.getInstance(pk);
 
-        X509v1CertificateBuilder certGen = new X509v1CertificateBuilder(new X500Name("CN=" + commonName), BigInteger.ONE, new Date(), cal.getTime(), new X500Name("CN=" + commonName), bcPk);
+        X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(new X500Name("CN=" + commonName), BigInteger.ONE, new Date(), cal.getTime(), new X500Name("CN=" + commonName), bcPk);
 
-        X509CertificateHolder certHolder = certGen.build(new JcaContentSignerBuilder("SHA256withRSA").build(kp.getPrivate()));
+        certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
+        certBuilder.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
+
+
+
+        X509CertificateHolder certHolder = certBuilder.build(new JcaContentSignerBuilder("SHA256withRSA").build(kp.getPrivate()));
+
+
 
         return certHolder.getEncoded();
 
@@ -122,6 +129,9 @@ public class CertTools {
 
         // BasicConstraints Extension, um das Intermediate Certificate als CA zu kennzeichnen
         certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
+        certBuilder.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
+
+
 
         // KeyUsage Extension, um das Intermediate Certificate als Zertifikatssignatur zu kennzeichnen
         certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign));
