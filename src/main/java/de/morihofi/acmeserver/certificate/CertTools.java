@@ -129,12 +129,14 @@ public class CertTools {
 
         // BasicConstraints Extension, um das Intermediate Certificate als CA zu kennzeichnen
         certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
+        // KeyUsage Extension, um das Intermediate Certificate als Zertifikatssignatur zu kennzeichnen
+        //certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign));
         certBuilder.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
 
 
 
-        // KeyUsage Extension, um das Intermediate Certificate als Zertifikatssignatur zu kennzeichnen
-        certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign));
+
+
 
 
         // ******************************************
