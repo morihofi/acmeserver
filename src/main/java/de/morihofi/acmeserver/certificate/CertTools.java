@@ -132,13 +132,6 @@ public class CertTools {
         // KeyUsage Extension, um das Intermediate Certificate als Zertifikatssignatur zu kennzeichnen
         //certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign));
         certBuilder.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
-
-
-
-
-
-
-
         // ******************************************
 
         // Sign this "CSR" with our CA
@@ -158,7 +151,7 @@ public class CertTools {
      * @param intermediateKeyPair KeyPair from Intermediate Certificate
      * @param intermediateCertificateBytes Certificate byte array of the intermediate certificate
      * @param serverPublicKeyBytes Public Key byte array, that the web server uses
-     * @param dnsNames
+     * @param dnsNames Array of DNS Names for the Certificate
      * @param days How many days in the future is it valid
      * @param months How many months in the future is it valid
      * @param years How many years in the future is it valid

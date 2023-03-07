@@ -4,11 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="Add logging, Generate Certificate Chain">
+    <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="Fix cash">
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/Base64Tools.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/Crypto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acmeapi/AcmeAPI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/CertTools.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/CertTools.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/KeyStoreUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/KeyStoreUtils.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,16 +37,16 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "configurable.group.build"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.build&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="Unnamed" type="Application" factoryName="Application" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="de.morihofi.acmeserver.Main" />
@@ -69,7 +72,28 @@
       <option name="project" value="LOCAL" />
       <updated>1678132895630</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Send certificate chain to browser works">
+      <created>1678135633563</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1678135633563</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Add extensions to CA">
+      <created>1678171708977</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1678171708977</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Fix cash">
+      <created>1678171773733</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1678171773733</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -85,6 +109,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Add logging, Generate Certificate Chain" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add logging, Generate Certificate Chain" />
+    <MESSAGE value="Send certificate chain to browser works" />
+    <MESSAGE value="Add extensions to CA" />
+    <MESSAGE value="Fix cash" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix cash" />
   </component>
 </project>

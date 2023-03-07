@@ -2,42 +2,65 @@ package de.morihofi.acmeserver;
 
 import de.morihofi.acmeserver.certificate.CertTools;
 import de.morihofi.acmeserver.certificate.KeyStoreUtils;
+import de.morihofi.acmeserver.certificate.acmeapi.AcmeAPI;
 import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import spark.Spark;
-
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509Certificate;
-import java.util.Comparator;
 
 public class Main {
 
-    static Logger log = LogManager.getLogger(Main.class);
+    public static Logger log = LogManager.getLogger(Main.class);
 
-    static KeyPair intermediateKeyPair;
-    static X509Certificate intermediateCertificate;
+    public static KeyPair intermediateKeyPair;
+    public static X509Certificate intermediateCertificate;
+
+    static enum STARTUP_MODE {
+        SERVER, FIRSTRUN
+    }
+
+    public static Path filesDir = Paths.get("serverdata").toAbsolutePath();
+
+    //ACME SERVER Certificate
+    public static Path acmeServerKeyStorePath = filesDir.resolve("acmeserver.p12");
+    public static String acmeServerKeyStorePassword = "";
+
+    //CA Certificate
+    public static String caKeyStorePassword = "";
+    public static String caCommonName = "MHO Test CA 1 - Do not use in Production";
+    public static int caRSAKeyPairSize = 4096;
+
+    //Intermediate CA Certificate
+    public static Path intermediateKeyStorePath = filesDir.resolve("intermediate.p12");
+    public static String intermediateKeyStorePassword = "";
+    public static String intermediateCommonName = "MHO Test CA 1 - Intermediate - Do not use in Production";
+    public static int intermediateRSAKeyPairSize = 4096;
+
+    //ACME Directory Information
+    public static String acmeMetaWebsite = "https://morihofi.de";
+    public static String acmeMetaTermsOfService = "https://morihofi.de/tos.php";
+    public static String acmeThisServerDNSName = "mo-nb-gb-mint";
+    public static int acmeThisServerAPIPort = 7443;
+
 
     public static void main(String[] args) throws Exception {
 
-        Path filesDir = Paths.get("serverdata").toAbsolutePath();
+        System.out.println("    _                       ____                           \n" +
+                "   / \\   ___ _ __ ___   ___/ ___|  ___ _ ____   _____ _ __ \n" +
+                "  / _ \\ / __| '_ ` _ \\ / _ \\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|\n" +
+                " / ___ \\ (__| | | | | |  __/___) |  __/ |   \\ V /  __/ |   \n" +
+                "/_/   \\_\\___|_| |_| |_|\\___|____/ \\___|_|    \\_/ \\___|_|   \n");
 
-        Path acmeServerKeyStorePath = filesDir.resolve("acmeserver.p12");
-        String acmeServerKeyStorePassword = "";
-        String caKeyStorePassword = "";
-        String caCommonName = "MHO Test CA 1 - Do not use in Production";
-        int caRSAKeyPairSize = 4096;
 
-        Path intermediateKeyStorePath = filesDir.resolve("intermediate.p12");
-        String intermediateKeyStorePassword = "";
-        String intermediateCommonName = "MHO Test CA 1 - Intermediate - Do not use in Production";
-        int intermediateRSAKeyPairSize = 4096;
+
+
 
         //Register Bouncy Castle Provider
         log.info("Register Bouncy Castle Security Provider");
@@ -110,12 +133,26 @@ public class Main {
             intermediateCertificate = keyStoreContents.getCert();
         }
 
-        log.info("Starting API WebServer using HTTPS");
+
+        log.info("Starting ACME API WebServer using HTTPS");
         String keyStoreLocation = acmeServerKeyStorePath.toAbsolutePath().toString();
         String keyStorePassword = "";
         Spark.secure(keyStoreLocation, keyStorePassword, null, null);
-        Spark.port(7443);
-        Spark.get("/hello", (req, res) -> "Hello World");
+        Spark.port(acmeThisServerAPIPort);
+        Spark.staticFileLocation("/webstatic/gethttpsforfree");
+
+
+        Spark.before((request, response) -> {
+           response.header("Access-Control-Allow-Origin","*");
+           response.header("Access-Control-Allow-Methods","*");
+        });
+
+        Spark.get("/directory", AcmeAPI.directoryEndpoint);
+        Spark.post("/acme/new-acct", AcmeAPI.newAccount);
+
+        //Supports (in the RFC) only HEAD, but GET is needed for Dev GUI
+        Spark.head("/acme/new-nonce", AcmeAPI.newNonce);
+        Spark.get("/acme/new-nonce", AcmeAPI.newNonce);
 
 
 
