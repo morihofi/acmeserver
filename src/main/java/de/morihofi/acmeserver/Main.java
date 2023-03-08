@@ -8,12 +8,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import spark.Spark;
+
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509Certificate;
+import java.util.Comparator;
 
 public class Main {
 
@@ -46,8 +49,12 @@ public class Main {
     //ACME Directory Information
     public static String acmeMetaWebsite = "https://morihofi.de";
     public static String acmeMetaTermsOfService = "https://morihofi.de/tos.php";
-    public static String acmeThisServerDNSName = "mo-nb-gb-mint";
-    public static int acmeThisServerAPIPort = 7443;
+    public static String acmeThisServerDNSName = "mho-nb.hq.ifd-gmbh.com";
+    public static int acmeThisServerAPIPort = 443;
+
+    //ACME Signature
+    public static KeyPair acmeSignatureKeyPair;
+    public static Path acmeSignatureKeyPairPath = filesDir.resolve("acme-signature");
 
 
     public static void main(String[] args) throws Exception {
@@ -66,7 +73,7 @@ public class Main {
         log.info("Register Bouncy Castle Security Provider");
         Security.addProvider(new BouncyCastleProvider());
 
-        /*
+/*
         try {
             Files.walk(filesDir)
                     .sorted(Comparator.reverseOrder())
@@ -76,7 +83,7 @@ public class Main {
         }catch (Exception ex){
 
         }
-        */
+*/
 
         //Detect first run
         if (!Files.exists(filesDir)) {
@@ -105,7 +112,7 @@ public class Main {
             log.info("Generating RSA " + intermediateRSAKeyPairSize + "bit Key Pair for Intermediate CA");
             intermediateKeyPair = CertTools.generateRSAKeyPair(intermediateRSAKeyPairSize);
             log.info("Creating Intermediate CA");
-            intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair,caCertificateBytes,intermediateKeyPair,intermediateCommonName,30,0,0);
+            intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair,caCertificateBytes,intermediateKeyPair,intermediateCommonName,90,0,0);
             log.info("Writing Intermediate CA to Key Store");
             KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, "intermediate", intermediateCertificate.getEncoded(), intermediateKeyStorePath);
 
@@ -115,13 +122,20 @@ public class Main {
 
             // *****************************************
             // Create Certificate for our ACME Web Server API (Client Certificate)
-            log.info("Generating RSA Key Pair for ACME Web Server API");
+            log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
             KeyPair acmeAPIKeyPair = CertTools.generateRSAKeyPair(4096);
             log.info("Creating Server Certificate");
-            X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair,intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{"example.com","www.example.com","git.example.com", "mo-nb-gb-mint"},0,1,0);
+            X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair,intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{"example.com","www.example.com","git.example.com", acmeThisServerDNSName},0,1,0);
             log.info("Writing Server Certificate (as key chain) to Key Store");
             KeyStoreUtils.saveAsPKCS12KeyChain(acmeAPIKeyPair, acmeServerKeyStorePassword, "server", new byte[][]{acmeAPICertificate.getEncoded(), intermediateCertificate.getEncoded()}, acmeServerKeyStorePath);
 
+
+            // *****************************************
+            log.info("Generating RSA Keypair for ACME Signature");
+            acmeSignatureKeyPair = CertTools.generateRSAKeyPair(4096);
+            log.info("Saving ACME Signature Keypair to Disk");
+
+            KeyStoreUtils.saveRSAKeyPairToDirectory(acmeSignatureKeyPair,acmeSignatureKeyPairPath);
 
 
         } else {
@@ -131,6 +145,9 @@ public class Main {
             intermediateKeyPair =keyStoreContents.getKeyPair();
             log.info("Loading intermediate Certificate");
             intermediateCertificate = keyStoreContents.getCert();
+
+            log.info("Loading ACME Signature Keypair");
+            acmeSignatureKeyPair = KeyStoreUtils.openRSAKeyPairFromDirectory(acmeSignatureKeyPairPath);
         }
 
 
@@ -148,11 +165,22 @@ public class Main {
         });
 
         Spark.get("/directory", AcmeAPI.directoryEndpoint);
+
+        // New account
         Spark.post("/acme/new-acct", AcmeAPI.newAccount);
 
-        //Supports (in the RFC) only HEAD, but GET is needed for GetHTTPSForFree GUI
+        // New Nonce -> Supports (in the RFC) only HEAD (Status 200) and GET (Status 204)
         Spark.head("/acme/new-nonce", AcmeAPI.newNonce);
         Spark.get("/acme/new-nonce", AcmeAPI.newNonce);
+
+        // Account Update
+        Spark.post("/acme/acct/:id", AcmeAPI.account);
+
+        // Create new Order
+        Spark.post("/acme/new-order", AcmeAPI.newOrder);
+
+        // Challenge / Ownership verification
+        Spark.post("/acme/authz/:authorizationId", AcmeAPI.authz);
 
 
 

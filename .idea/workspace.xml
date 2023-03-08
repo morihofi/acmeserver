@@ -4,16 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="Add Web GUi from GetHTTPSForFree">
-      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/JWSTools.java" afterDir="false" />
+    <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/JWSTestSignExample.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/JWSTestVerifyExample.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/objects/ACMEIdentifier.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/DateTools.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/Base64Tools.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/Base64Tools.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/CertTools.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/CertTools.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/Crypto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/Crypto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/KeyStoreUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/KeyStoreUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/X509.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/X509.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/JWSTools.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acmeapi/AcmeAPI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acmeapi/AcmeAPI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/Crypto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/Crypto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/KeyStoreUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/KeyStoreUtils.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,14 +50,25 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.build&quot;
   }
 }</component>
-  <component name="RunManager">
-    <configuration name="Unnamed" type="Application" factoryName="Application" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="de.morihofi.acmeserver.Main" />
-      <module name="acmeserver" />
+  <component name="RunManager" selected="Application.Unnamed">
+    <configuration name="Test Signing" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="de.morihofi.acmeserver.certificate.JWSTestSignExample" />
+      <module name="AcmeServer" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Unnamed" type="Application" factoryName="Application" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="de.morihofi.acmeserver.Main" />
+      <module name="AcmeServer" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.Unnamed" />
+      <item itemvalue="Application.Test Signing" />
+    </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -123,5 +135,31 @@
     <MESSAGE value="Fix cash" />
     <MESSAGE value="Add Web GUi from GetHTTPSForFree" />
     <option name="LAST_COMMIT_MESSAGE" value="Add Web GUi from GetHTTPSForFree" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/JWSTestVerifyExample.java</url>
+          <line>18</line>
+          <option name="timeStamp" value="13" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/JWSTestVerifyExample.java</url>
+          <line>29</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acmeapi/AcmeAPI.java</url>
+          <line>65</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="Application">
+        <watch expression="respAuthorizationsArr.myArrayList.get(1)" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>
