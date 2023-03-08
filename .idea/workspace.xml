@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="Some fixes">
+    <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="Remove unnecessary imports, Add MariaDB Database driver">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acmeapi/AcmeAPI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acmeapi/AcmeAPI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/Database.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/Database.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -108,7 +106,14 @@
       <option name="project" value="LOCAL" />
       <updated>1678188948261</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Remove unnecessary imports, Add MariaDB Database driver">
+      <created>1678297346398</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1678297346398</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -128,7 +133,8 @@
     <MESSAGE value="Add extensions to CA" />
     <MESSAGE value="Fix cash" />
     <MESSAGE value="Add Web GUi from GetHTTPSForFree" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add Web GUi from GetHTTPSForFree" />
+    <MESSAGE value="Remove unnecessary imports, Add MariaDB Database driver" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove unnecessary imports, Add MariaDB Database driver" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
