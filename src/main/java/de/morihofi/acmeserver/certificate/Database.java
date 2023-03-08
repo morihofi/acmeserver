@@ -1,8 +1,6 @@
 package de.morihofi.acmeserver.certificate;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class Database {
 
@@ -15,6 +13,31 @@ public class Database {
         return DriverManager.getConnection(
                 "jdbc:mariadb://" + host + "/" + database, user, password);
     }
+
+    public static String getDatabaseVersion() throws SQLException {
+
+        String dbVersion = "";
+        Connection conn = getDatabaseConnection();
+
+        PreparedStatement ps = conn.prepareStatement("SELECT @@version AS version; ");
+
+        // process the results
+        ResultSet rs = ps.executeQuery();
+        while ( rs.next() ) {
+            dbVersion = rs.getString("version");
+        }
+
+        return dbVersion;
+
+    }
+
+    public static void createAccount(){
+
+    }
+
+
+
+
 
 
 

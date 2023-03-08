@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver;
 
+import de.morihofi.acmeserver.certificate.Database;
 import de.morihofi.acmeserver.certificate.tools.CertTools;
 import de.morihofi.acmeserver.certificate.tools.KeyStoreUtils;
 import de.morihofi.acmeserver.certificate.acmeapi.AcmeAPI;
@@ -73,6 +74,9 @@ public class Main {
         //Loading MariaDB Database driver
         log.info("Loading MariaDB JDBC driver");
         Class.forName("org.mariadb.jdbc.Driver");
+
+        String dbVersion = Database.getDatabaseVersion();
+        log.info("Server uses Database: " + dbVersion);
 
 /*
         try {
