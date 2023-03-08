@@ -1,9 +1,8 @@
-package de.morihofi.acmeserver.certificate;
+package de.morihofi.acmeserver.certificate.tools;
 
 import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;
+import de.morihofi.acmeserver.certificate.tools.CertTools;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -12,7 +11,6 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.List;
 
 public class KeyStoreUtils {
     public static void saveAsPKCS12(KeyPair keyPair, String password, String alias, byte[] certificate, Path targetLocation) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {

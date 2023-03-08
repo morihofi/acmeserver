@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver;
 
-import de.morihofi.acmeserver.certificate.CertTools;
-import de.morihofi.acmeserver.certificate.KeyStoreUtils;
+import de.morihofi.acmeserver.certificate.tools.CertTools;
+import de.morihofi.acmeserver.certificate.tools.KeyStoreUtils;
 import de.morihofi.acmeserver.certificate.acmeapi.AcmeAPI;
 import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;
 import org.apache.logging.log4j.LogManager;
@@ -141,7 +141,7 @@ public class Main {
         Spark.port(acmeThisServerAPIPort);
         Spark.staticFileLocation("/webstatic/gethttpsforfree");
 
-
+        log.info("Configure Routes");
         Spark.before((request, response) -> {
            response.header("Access-Control-Allow-Origin","*");
            response.header("Access-Control-Allow-Methods","*");
@@ -150,7 +150,7 @@ public class Main {
         Spark.get("/directory", AcmeAPI.directoryEndpoint);
         Spark.post("/acme/new-acct", AcmeAPI.newAccount);
 
-        //Supports (in the RFC) only HEAD, but GET is needed for Dev GUI
+        //Supports (in the RFC) only HEAD, but GET is needed for GetHTTPSForFree GUI
         Spark.head("/acme/new-nonce", AcmeAPI.newNonce);
         Spark.get("/acme/new-nonce", AcmeAPI.newNonce);
 

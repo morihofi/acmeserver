@@ -1,8 +1,8 @@
 package de.morihofi.acmeserver.certificate.acmeapi;
 
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.Base64Tools;
-import de.morihofi.acmeserver.certificate.Crypto;
+import de.morihofi.acmeserver.certificate.tools.Base64Tools;
+import de.morihofi.acmeserver.certificate.tools.Crypto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -121,6 +121,7 @@ Payload:
 
 
         // Create a JWT object with an empty signature
+        /*
         Claims claims = Jwts.claims();
         String jwt = Jwts.builder()
                 .setHeaderParam("nonce", nonce)
@@ -128,12 +129,13 @@ Payload:
                 .setClaims(claims)
                 .signWith(Main.intermediateKeyPair.getPublic(), SignatureAlgorithm.RS256)
                 .compact();
+*/
 
 
-        keyObj.put("kty","RSA"); //RSA Key
-        keyObj.put("n", jwt); //Nonce?
-        keyObj.put("e","AQAB"); //?
-        keyObj.put("kid", getApiURL() + "/acme/acct/" + accountId);
+    //    keyObj.put("kty","RSA"); //RSA Key
+    //    keyObj.put("n", jwt); //Nonce?
+    //    keyObj.put("e","AQAB"); //?
+    //    keyObj.put("kid", getApiURL() + "/acme/acct/" + accountId);
 
 
         responseJSON.put("status","valid");

@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate;
+package de.morihofi.acmeserver.certificate.tools;
 
 import java.util.Base64;
 
@@ -11,7 +11,11 @@ public class Base64Tools {
     }
 
     public static String encodeBase64(String originalInput){
-        String encodedString = Base64.getEncoder().encodeToString(originalInput.getBytes());
+        return encodeBase64(originalInput);
+    }
+
+    public static String encodeBase64(byte[] originalInput){
+        String encodedString = Base64.getEncoder().encodeToString(originalInput);
         return encodedString;
     }
 }

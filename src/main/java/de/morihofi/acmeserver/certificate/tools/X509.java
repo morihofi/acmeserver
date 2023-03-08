@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate;
+package de.morihofi.acmeserver.certificate.tools;
 
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;

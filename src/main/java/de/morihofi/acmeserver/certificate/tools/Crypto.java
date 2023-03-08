@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate;
+package de.morihofi.acmeserver.certificate.tools;
 
 import java.security.MessageDigest;
 import java.security.SecureRandom;
