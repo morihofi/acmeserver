@@ -5,9 +5,6 @@ import de.morihofi.acmeserver.certificate.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.certificate.tools.Base64Tools;
 import de.morihofi.acmeserver.certificate.tools.Crypto;
 import de.morihofi.acmeserver.certificate.tools.DateTools;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import spark.Route;
@@ -159,7 +156,6 @@ public class AcmeAPI {
         returnObj.put("status", "pending");
         returnObj.put("expires", DateTools.formatDateForACME(new Date()));
         returnObj.put("identifier", identifierObj);
-
         returnObj.put("challenges", challengeArr);
 
 

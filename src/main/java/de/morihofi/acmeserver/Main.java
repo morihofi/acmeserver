@@ -49,8 +49,8 @@ public class Main {
     //ACME Directory Information
     public static String acmeMetaWebsite = "https://morihofi.de";
     public static String acmeMetaTermsOfService = "https://morihofi.de/tos.php";
-    public static String acmeThisServerDNSName = "mho-nb.hq.ifd-gmbh.com";
-    public static int acmeThisServerAPIPort = 443;
+    public static String acmeThisServerDNSName = "mo-nb-gb-mint"; //"mho-nb.hq.ifd-gmbh.com";
+    public static int acmeThisServerAPIPort = 7443;
 
     //ACME Signature
     public static KeyPair acmeSignatureKeyPair;
@@ -66,12 +66,13 @@ public class Main {
                 "/_/   \\_\\___|_| |_| |_|\\___|____/ \\___|_|    \\_/ \\___|_|   \n");
 
 
-
-
-
         //Register Bouncy Castle Provider
         log.info("Register Bouncy Castle Security Provider");
         Security.addProvider(new BouncyCastleProvider());
+
+        //Loading MariaDB Database driver
+        log.info("Loading MariaDB JDBC driver");
+        Class.forName("org.mariadb.jdbc.Driver");
 
 /*
         try {
@@ -116,7 +117,7 @@ public class Main {
             log.info("Writing Intermediate CA to Key Store");
             KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, "intermediate", intermediateCertificate.getEncoded(), intermediateKeyStorePath);
 
-            //Unset, we doesn't need it anymore. Why should we keep it in memory?#
+            //Unset, we don't need it anymore. Why should we keep it in memory?#
             log.debug("Unset CA Key Pair");
             caKeyPair = null;
 
@@ -181,6 +182,7 @@ public class Main {
 
         // Challenge / Ownership verification
         Spark.post("/acme/authz/:authorizationId", AcmeAPI.authz);
+
 
 
 

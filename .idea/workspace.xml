@@ -4,17 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/JWSTestSignExample.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/JWSTestVerifyExample.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/objects/ACMEIdentifier.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/DateTools.java" afterDir="false" />
+    <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="Some fixes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/JWSTools.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acmeapi/AcmeAPI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acmeapi/AcmeAPI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/Crypto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/Crypto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/KeyStoreUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/tools/KeyStoreUtils.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,7 +54,7 @@
     </configuration>
     <configuration name="Unnamed" type="Application" factoryName="Application" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="de.morihofi.acmeserver.Main" />
-      <module name="AcmeServer" />
+      <module name="acmeserver" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -151,7 +145,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acmeapi/AcmeAPI.java</url>
-          <line>65</line>
+          <line>62</line>
           <option name="timeStamp" value="16" />
         </line-breakpoint>
       </breakpoints>
