@@ -86,6 +86,7 @@ public class AcmeAPI {
 
         response.status(201);
         response.header("Link", "<" + getApiURL() + "/directory" + ">;rel=\"index\"");
+        response.header("Replay-Nonce", Crypto.createNonce());
 
         //Parse request body
         JSONObject reqBodyObj = new JSONObject(request.body());
@@ -132,11 +133,11 @@ public class AcmeAPI {
             // Unique value for each domain
             String authorizationId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + DateTools.formatDateForACME(new Date()));
             // Random authorization token
-            String authorizationToken = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + System.nanoTime() + "--token").substring(0, 15);
+            String authorizationToken = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + System.nanoTime() + "--token");
             // Unique challenge id
-            String challengeId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / 100 * 1.557) + "--challenge").substring(0, 15);
+            String challengeId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / 100 * 1.557) + "--challenge");
             // Unique certificate id
-            String certificateId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / 100 * 5.579) + "--cert").substring(0, 15);
+            String certificateId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / 100 * 5.579) + "--cert");
 
 
             identifier.setAuthorizationToken(authorizationToken);
@@ -176,6 +177,7 @@ public class AcmeAPI {
         String authorizationId = request.params("authorizationId");
 
         response.header("Content-Type", "application/jose+json");
+        response.header("Replay-Nonce", Crypto.createNonce());
         response.status(200);
 
         //TODO: Not found response if identifier is null
@@ -223,7 +225,7 @@ public class AcmeAPI {
         String challengeId = request.params("challengeId");
 
         response.header("Content-Type", "application/json");
-
+        response.header("Replay-Nonce", Crypto.createNonce());
 
         //TODO: Check if challenge is valid
 
