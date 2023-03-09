@@ -227,6 +227,7 @@ public class AcmeAPI {
         response.header("Content-Type", "application/json");
         response.header("Replay-Nonce", Crypto.createNonce());
 
+
         //TODO: Check if challenge is valid
 
         //mark challenge has passed
@@ -238,12 +239,15 @@ public class AcmeAPI {
         JSONObject responseJSON = new JSONObject();
         responseJSON.put("type", "http-01");
         if (identifier.isVerified()) {
-            responseJSON.put("status", "verified");
+            responseJSON.put("status", "valid");
             responseJSON.put("verified", DateTools.formatDateForACME(identifier.getVerifiedDate()));
         } else {
             responseJSON.put("status", "pending");
         }
 
+
+        //"Up"-Link header is required for certbot
+        response.header("Link", "<" + getApiURL() + "/acme/authz/" + identifier.getAuthorizationId() + ">;rel=\"up\"");
         responseJSON.put("url", getApiURL() + "/acme/chall/" + challengeId);
         responseJSON.put("token", identifier.getAuthorizationToken());
 
@@ -294,6 +298,9 @@ public class AcmeAPI {
 
         Database.storeCertificateInDatabase(orderId, identifier.getValue(),csr, pemCertificate, issueDate, expireDate);
 
+
+        response.header("Content-Type", "application/json");
+        response.header("Replay-Nonce", Crypto.createNonce());
 
         JSONObject responseJSON = new JSONObject();
 
