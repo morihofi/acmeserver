@@ -77,9 +77,8 @@ public class JWSTestSignExample {
 
 
         // Print the resulting JWS
-        System.out.println(finalObj);
+        System.out.println(jws);
 
-        JWSTestVerifyExample.checkSignature(finalObj);
     }
 
 

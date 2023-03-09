@@ -1,12 +1,64 @@
 package de.morihofi.acmeserver.certificate.objects;
 
+import java.util.Date;
+
 public class ACMEIdentifier {
     private String type;
     private String value;
 
+    private String authorizationId;
+    private String authorizationToken;
+
+    private String challengeId;
+
+    private boolean verified;
+    private Date verifiedDate;
+
+    public boolean isVerified() {
+        return verified;
+    }
+
+    public void setVerified(boolean verified) {
+        this.verified = verified;
+    }
+
+    public Date getVerifiedDate() {
+        return verifiedDate;
+    }
+
+    public void setVerifiedDate(Date verifiedDate) {
+        this.verifiedDate = verifiedDate;
+    }
+
+    public String getChallengeId() {
+        return challengeId;
+    }
+
+    public void setChallengeId(String challengeId) {
+        this.challengeId = challengeId;
+    }
+
     public ACMEIdentifier(String type, String value) {
         this.type = type;
         this.value = value;
+    }
+
+    public ACMEIdentifier(String type, String value, String authorizationId, String authorizationToken, String challengeId) {
+        this.type = type;
+        this.value = value;
+        this.authorizationId = authorizationId;
+        this.authorizationToken = authorizationToken;
+        this.challengeId = challengeId;
+    }
+
+    public ACMEIdentifier(String type, String value, String authorizationId, String authorizationToken, String challengeId, boolean verified, Date verifiedDate) {
+        this.type = type;
+        this.value = value;
+        this.authorizationId = authorizationId;
+        this.authorizationToken = authorizationToken;
+        this.challengeId = challengeId;
+        this.verified = verified;
+        this.verifiedDate = verifiedDate;
     }
 
     public String getType() {
@@ -23,5 +75,21 @@ public class ACMEIdentifier {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String getAuthorizationId() {
+        return authorizationId;
+    }
+
+    public void setAuthorizationId(String authorizationId) {
+        this.authorizationId = authorizationId;
+    }
+
+    public String getAuthorizationToken() {
+        return authorizationToken;
+    }
+
+    public void setAuthorizationToken(String authorizationToken) {
+        this.authorizationToken = authorizationToken;
     }
 }

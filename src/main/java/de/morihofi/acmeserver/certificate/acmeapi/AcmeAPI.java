@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.acmeapi;
 
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.certificate.Database;
 import de.morihofi.acmeserver.certificate.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.certificate.tools.Base64Tools;
 import de.morihofi.acmeserver.certificate.tools.Crypto;
@@ -41,12 +42,27 @@ public class AcmeAPI {
     public static Route account = (request, response) -> {
         String accountId = request.params("id");
 
+        JSONObject reqBodyObj = new JSONObject(request.body());
 
-        JSONObject responseJSON = new JSONObject();
+        //Payload is Base64 Encoded
+        JSONObject reqBodyPayloadObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("payload")));
+        JSONObject reqBodyProtectedObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("protected")));
+
+        //TODO: Check signature
+
 
         // TODO: Update Account Settings, e.g. E-Mail change
 
+        if (reqBodyPayloadObj.has("contact")) {
+            String contactEmail = reqBodyPayloadObj.getJSONArray("contact").getString(0);
+            contactEmail = contactEmail.replace("mailto:", "");
 
+            //Update Contact Email
+            Database.updateAccountEmail(accountId, contactEmail);
+        }
+
+
+        JSONObject responseJSON = new JSONObject();
         response.header("Content-Type", "application/jose+json");
         response.status(200);
 
@@ -61,15 +77,16 @@ public class AcmeAPI {
     public static Route newOrder = (request, response) -> {
 
         response.status(201);
+        response.header("Link", "<" + getApiURL() + "/directory" + ">;rel=\"index\"");
 
         //Parse request body
         JSONObject reqBodyObj = new JSONObject(request.body());
+        JSONObject reqBodyPayloadObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("payload")));
+        JSONObject reqBodyProtectedObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("protected")));
+
 
         //TODO: Validate Client Signature
 
-
-
-        JSONObject reqBodyPayloadObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("payload")));
 
         JSONArray identifiersArr = reqBodyPayloadObj.getJSONArray("identifiers");
 
@@ -86,37 +103,54 @@ public class AcmeAPI {
         }
 
 
-
         JSONObject returnObj = new JSONObject();
 
         // TODO: Create order in Database
         String orderId = UUID.randomUUID().toString();
+        String accountId = getAccountIdFromProtected(reqBodyProtectedObj);
+
 
         JSONArray respIdentifiersArr = new JSONArray();
         JSONArray respAuthorizationsArr = new JSONArray();
 
-        for(ACMEIdentifier identifier: acmeIdentifiers){
+        ArrayList<ACMEIdentifier> acmeIdentifiersWithAuthorizationData = new ArrayList<>();
+
+        for (ACMEIdentifier identifier : acmeIdentifiers) {
             JSONObject identifierObj = new JSONObject();
             identifierObj.put("type", identifier.getType());
             identifierObj.put("value", identifier.getValue());
             respIdentifiersArr.put(identifierObj);
 
-            //Unique value for each domain
+            // Unique value for each domain
             String authorizationId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + DateTools.formatDateForACME(new Date()));
 
-            //TODO: Add authorizations to Database
+            // Random authorization token
+            String authorizationToken = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + System.nanoTime() + "--token").substring(0, 15);
+
+            // Unique challenge id
+            String challengeId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / 100 * 1.557) + "--token").substring(0, 15);
+
+
+            identifier.setAuthorizationToken(authorizationToken);
+            identifier.setAuthorizationId(authorizationId);
+            identifier.setChallengeId(challengeId);
+
+            acmeIdentifiersWithAuthorizationData.add(identifier);
 
             respAuthorizationsArr.put(getApiURL() + "/acme/authz/" + authorizationId);
+
+
         }
+        // Add authorizations to Database
+        Database.createOrder(accountId, orderId, acmeIdentifiersWithAuthorizationData);
 
 
-
-        returnObj.put("status","pending");
+        returnObj.put("status", "pending");
         returnObj.put("expires", DateTools.formatDateForACME(new Date()));
         returnObj.put("notBefore", DateTools.formatDateForACME(new Date()));
         returnObj.put("notAfter", DateTools.formatDateForACME(new Date()));
-        returnObj.put("identifiers",respIdentifiersArr);
-        returnObj.put("authorizations",respAuthorizationsArr);
+        returnObj.put("identifiers", respIdentifiersArr);
+        returnObj.put("authorizations", respAuthorizationsArr);
         returnObj.put("finalize", getApiURL() + "/acme/order/" + orderId + "/finalize");
 
 
@@ -125,43 +159,86 @@ public class AcmeAPI {
     };
     /**
      * Ownership verification endpoint
-     *
+     * <p>
      * URL: /acme/authz/5429d8d61a406 ...
      */
     public static Route authz = (request, response) -> {
         String authorizationId = request.params("authorizationId");
 
-        response.header("Content-Type","application/jose+json");
+        response.header("Content-Type", "application/jose+json");
         response.status(200);
 
-
-
-        ACMEIdentifier identifier = new ACMEIdentifier("dns","www.example.org");
-
+        //TODO: Not found response if identifier is null
+        ACMEIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
         JSONObject identifierObj = new JSONObject();
-        identifierObj.put("type",identifier.getType());
-        identifierObj.put("value",identifier.getType());
+        identifierObj.put("type", identifier.getType());
+        identifierObj.put("value", identifier.getValue());
+
 
         JSONArray challengeArr = new JSONArray();
 
         JSONObject challengeHTTP = new JSONObject();
-        challengeHTTP.put("type","http-01"); //
-        challengeHTTP.put("url",getApiURL() + "/acme/chall/prV_B7yEyA4");
-        challengeHTTP.put("token","DGyRejmCefe7v4NfDGDKfA"); // This URL has to be placed on the server
+        challengeHTTP.put("type", "http-01"); //
+        challengeHTTP.put("url", getApiURL() + "/acme/chall/" + identifier.getChallengeId()); //Challenge callback URL, called after created token on server
+        challengeHTTP.put("token", identifier.getAuthorizationToken());
+        if(identifier.isVerified()) {
+            challengeHTTP.put("status", "valid");
+            challengeHTTP.put("validated", DateTools.formatDateForACME(identifier.getVerifiedDate()));
+        }
         challengeArr.put(challengeHTTP);
 
 
         JSONObject returnObj = new JSONObject();
 
-        returnObj.put("status", "pending");
+        if(identifier.isVerified()){
+            returnObj.put("status", "valid");
+        }else {
+            returnObj.put("status", "pending");
+        }
+
         returnObj.put("expires", DateTools.formatDateForACME(new Date()));
         returnObj.put("identifier", identifierObj);
         returnObj.put("challenges", challengeArr);
 
 
-
-
         return returnObj.toString();
+    };
+
+    /**
+     * Verify ACME Challenge Callback
+     * <p>
+     * URL: /acme/chall/ktjlr ...
+     */
+    public static Route challengeCallback = (request, response) -> {
+        String challengeId = request.params("challengeId");
+
+        response.header("Content-Type", "application/json");
+
+
+        //TODO: Check if challenge is valid
+
+        //mark challenge has passed
+        Database.passChallenge(challengeId);
+
+        ACMEIdentifier identifier = Database.getACMEIdentifierByChallengeId(challengeId);
+
+
+
+        JSONObject responseJSON = new JSONObject();
+        responseJSON.put("type", "http-01");
+        if(identifier.isVerified()){
+            responseJSON.put("status", "verified");
+            responseJSON.put("verified", DateTools.formatDateForACME(identifier.getVerifiedDate()));
+        }else {
+            responseJSON.put("status", "pending");
+        }
+
+        responseJSON.put("url", getApiURL() + "/acme/chall/" + challengeId);
+        responseJSON.put("token", identifier.getAuthorizationToken());
+
+
+        return responseJSON;
+
     };
 
     /**
@@ -171,6 +248,14 @@ public class AcmeAPI {
      */
     public static String getApiURL() {
         return "https://" + Main.acmeThisServerDNSName + ":" + Main.acmeThisServerAPIPort;
+    }
+
+    private static String getAccountIdFromProtected(JSONObject protectedObj) {
+
+        String kid = protectedObj.getString("kid");
+
+        //Cut the url, starts from account id
+        return kid.substring((getApiURL() + "/acme/acct/").length());
     }
 
     /**
@@ -221,6 +306,7 @@ Payload:
 
         //Payload is Base64 Encoded
         JSONObject reqBodyPayloadObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("payload")));
+        JSONObject reqBodyProtectedObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("protected")));
 
         boolean reqPayloadTermsOfServiceAgreed = reqBodyPayloadObj.getBoolean("termsOfServiceAgreed");
         String reqPayloadContactEmail = "";
@@ -231,12 +317,11 @@ Payload:
         }
 
 
-        // TODO: Create new account in database
+        // Create new account in database
         // https://ietf-wg-acme.github.io/acme/draft-ietf-acme-acme.html#rfc.section.7.3
 
-
-        String accountId = "1";
-
+        String accountId = UUID.randomUUID().toString();
+        Database.createAccount(accountId, reqBodyProtectedObj.getJSONObject("jwk").toString(), reqPayloadContactEmail);
 
         String nonce = Crypto.createNonce();
         // Response is JSON

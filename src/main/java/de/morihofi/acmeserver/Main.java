@@ -50,7 +50,7 @@ public class Main {
     //ACME Directory Information
     public static String acmeMetaWebsite = "https://morihofi.de";
     public static String acmeMetaTermsOfService = "https://morihofi.de/tos.php";
-    public static String acmeThisServerDNSName = "mo-nb-gb-mint"; //"mho-nb.hq.ifd-gmbh.com";
+    public static String acmeThisServerDNSName = "mho-nb.hq.ifd-gmbh.com"; //"mo-nb-gb-mint";
     public static int acmeThisServerAPIPort = 7443;
 
     //ACME Signature
@@ -169,6 +169,9 @@ public class Main {
            response.header("Access-Control-Allow-Methods","*");
         });
 
+        // TODO: Download CA Endpoint
+        //Spark.get("/ca.pem", AcmeAPI.downloadCA);
+
         Spark.get("/directory", AcmeAPI.directoryEndpoint);
 
         // New account
@@ -186,6 +189,8 @@ public class Main {
 
         // Challenge / Ownership verification
         Spark.post("/acme/authz/:authorizationId", AcmeAPI.authz);
+
+        Spark.post("/acme/chall/:challengeId", AcmeAPI.challengeCallback);
 
 
 
