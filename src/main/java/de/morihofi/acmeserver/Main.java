@@ -189,10 +189,10 @@ public class Main {
 
         // Challenge / Ownership verification
         Spark.post("/acme/authz/:authorizationId", AcmeAPI.authz);
-
+        // Challenge Callback
         Spark.post("/acme/chall/:challengeId", AcmeAPI.challengeCallback);
-
-
+        // Finalize endpoint
+        Spark.post("/acme/order/:orderId/finalize", AcmeAPI.finalizeOrder);
 
 
     }

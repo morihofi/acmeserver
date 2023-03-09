@@ -12,7 +12,7 @@ import java.util.List;
 
 public class Database {
 
-    public static Logger log = LogManager.getLogger(Main.class);
+    public static Logger log = LogManager.getLogger(Database.class);
 
     public static Connection getDatabaseConnection() throws SQLException {
         String host = "138.201.116.45:3306";
@@ -63,6 +63,10 @@ public class Database {
 
     }
 
+    /**
+     * This function marks a ACME challenge as passed
+     * @param challengeId Id of the Challenge, provided in URL
+     */
     public static void passChallenge(String challengeId){
         try (Connection conn = getDatabaseConnection()) {
 
@@ -81,12 +85,12 @@ public class Database {
         }
     }
 
-    public static ACMEIdentifier getACMEIdentifierByChallengeId(String authorizationId) {
+    public static ACMEIdentifier getACMEIdentifierByChallengeId(String challengeId) {
         ACMEIdentifier identifier = null;
 
         try (Connection conn = getDatabaseConnection()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM `orderidentifiers` WHERE challengeid = ? LIMIT 1");
-            ps.setString(1,authorizationId);
+            ps.setString(1,challengeId);
 
 
             // process the results
@@ -96,24 +100,30 @@ public class Database {
                 String type = rs.getString("type");
                 String value = rs.getString("value");
                 String authorizationToken = rs.getString("authorizationtoken");
-                String challengeId = rs.getString("challengeid");
                 // String challengeType = rs.getString("challengetype");
-
+                String authorizationId = rs.getString("authorizationid");
                 Boolean verified = rs.getBoolean("verified");
                 Date validationDate = rs.getTimestamp("verifiedtime");
 
+                String certificateId = rs.getString("certificateid");
+                String certificateCSR = rs.getString("certificatecsr");
+                Date certificateIssued = rs.getTimestamp("certificateissued");
+                Date certificateExpires = rs.getTimestamp("certificateexpires");
 
-                log.info("(Challenge ID: \"" + authorizationId + "\") Got ACME identifier of type \"" + type + "\" with value \"" + value + "\"");
 
-                identifier = new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate);
+                log.info("(Challenge ID: \"" + challengeId + "\") Got ACME identifier of type \"" + type + "\" with value \"" + value + "\"");
+
+                identifier = new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR,certificateIssued,certificateExpires);
+
             }
 
         } catch (SQLException e) {
-            log.error("Unable get ACME identifiers for challenge id \"" + authorizationId + "\"",e);
+            log.error("Unable get ACME identifiers for challenge id \"" + challengeId + "\"",e);
         }
 
         return identifier;
     }
+
     public static ACMEIdentifier getACMEIdentifierByAuthorizationId(String authorizationId) {
 
         ACMEIdentifier identifier = null;
@@ -135,9 +145,14 @@ public class Database {
                 Date validationDate = rs.getTimestamp("verifiedtime");
                 // String challengeType = rs.getString("challengetype");
 
+                String certificateId = rs.getString("certificateid");
+                String certificateCSR = rs.getString("certificatecsr");
+                Date certificateIssued = rs.getTimestamp("certificateissued");
+                Date certificateExpires = rs.getTimestamp("certificateexpires");
+
                 log.info("(Authorization ID: \"" + authorizationId + "\") Got ACME identifier of type \"" + type + "\" with value \"" + value + "\"");
 
-                identifier = new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate);
+                identifier = new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR,certificateIssued,certificateExpires);
             }
 
         } catch (SQLException e) {
@@ -146,6 +161,47 @@ public class Database {
 
         return identifier;
     }
+
+
+    public static ACMEIdentifier getACMEIdentifierByOrderId(String orderId) {
+        ACMEIdentifier identifier = null;
+
+        try (Connection conn = getDatabaseConnection()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM `orderidentifiers` WHERE orderid = ? LIMIT 1");
+            ps.setString(1,orderId);
+
+
+            // process the results
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+
+                String type = rs.getString("type");
+                String value = rs.getString("value");
+                String authorizationToken = rs.getString("authorizationtoken");
+                String authorizationId = rs.getString("authorizationid");
+                String challengeId = rs.getString("challengeid");
+                Boolean verified = rs.getBoolean("verified");
+                Date validationDate = rs.getTimestamp("verifiedtime");
+                // String challengeType = rs.getString("challengetype");
+
+                String certificateId = rs.getString("certificateid");
+                String certificateCSR = rs.getString("certificatecsr");
+                Date certificateIssued = rs.getTimestamp("certificateissued");
+                Date certificateExpires = rs.getTimestamp("certificateexpires");
+
+
+                log.info("(Order ID: \"" + orderId + "\") Got ACME identifier of type \"" + type + "\" with value \"" + value + "\"");
+
+                identifier = new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR,certificateIssued,certificateExpires);
+            }
+
+        } catch (SQLException e) {
+            log.error("Unable get ACME identifiers for order id \"" + orderId + "\"",e);
+        }
+
+        return identifier;
+    }
+
 
     public static void createOrder(String accountId, String orderId, List<ACMEIdentifier> identifierList) {
 
@@ -167,7 +223,7 @@ public class Database {
                     throw new RuntimeException("Authorization Id or Token is null");
                 }
 
-                PreparedStatement psOrderIdentifiers = conn.prepareStatement("INSERT INTO `orderidentifiers` (`id`, `orderid`, `type`, `value`, `verified`, `verifiedtime`, `authorizationId`, `authorizationtoken`, `challengeid`) VALUES (NULL, ?, ?, ?, ?, NULL, ?, ?, ?) ");
+                PreparedStatement psOrderIdentifiers = conn.prepareStatement("INSERT INTO `orderidentifiers` (`id`, `orderid`, `type`, `value`, `verified`, `verifiedtime`, `authorizationId`, `authorizationtoken`, `challengeid`,`certificateid`) VALUES (NULL, ?, ?, ?, ?, NULL, ?, ?, ?, ?) ");
                 psOrderIdentifiers.setString(1, orderId);
                 psOrderIdentifiers.setString(2, identifier.getType());
                 psOrderIdentifiers.setString(3, identifier.getValue());
@@ -175,6 +231,7 @@ public class Database {
                 psOrderIdentifiers.setString(5, identifier.getAuthorizationId());
                 psOrderIdentifiers.setString(6, identifier.getAuthorizationToken());
                 psOrderIdentifiers.setString(7, identifier.getChallengeId());
+                psOrderIdentifiers.setString(8, identifier.getCertificateId());
                 psOrderIdentifiers.execute();
                 log.info("Added identifier \"" + identifier.getValue() + "\" of type \"" + identifier.getType() + "\" to order \"" + orderId + "\"");
 
@@ -213,4 +270,30 @@ public class Database {
     }
 
 
+    public static void storeCertificateInDatabase(String orderId,String dnsValue, String csr, String pemCertificate, Date issueDate, Date expireDate) {
+
+        //TODO: Check if orderId exists
+
+
+        try (Connection conn = getDatabaseConnection()) {
+
+
+            PreparedStatement ps = conn.prepareStatement("UPDATE `orderidentifiers` SET `certificatecsr` = ?, `certificateissued` = ?, `certificateexpires` = ?, `certificatepem` = ? WHERE `orderidentifiers`.`orderid` = ? AND `orderidentifiers`.`value` = ?");
+
+            ps.setString(1, csr);
+            ps.setTimestamp(2, dateToTimestamp(issueDate));
+            ps.setTimestamp(3, dateToTimestamp(expireDate));
+            ps.setString(4,pemCertificate);
+            ps.setString(5,orderId);
+            ps.setString(6,dnsValue);
+
+            ps.execute();
+            log.info("Stored certificate successful");
+
+        } catch (SQLException e) {
+            log.error("Unable to store certificate", e);
+        }
+
+
+    }
 }

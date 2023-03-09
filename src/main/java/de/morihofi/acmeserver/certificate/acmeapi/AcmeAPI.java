@@ -4,18 +4,26 @@ import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.Database;
 import de.morihofi.acmeserver.certificate.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.certificate.tools.Base64Tools;
+import de.morihofi.acmeserver.certificate.tools.CertTools;
 import de.morihofi.acmeserver.certificate.tools.Crypto;
 import de.morihofi.acmeserver.certificate.tools.DateTools;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.bouncycastle.crypto.params.RSAKeyParameters;
+import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.util.io.pem.PemObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import spark.Route;
 
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
 public class AcmeAPI {
-
+    public static Logger log = LogManager.getLogger(Database.class);
 
     public static Route newNonce = (request, response) -> {
 
@@ -51,7 +59,7 @@ public class AcmeAPI {
         //TODO: Check signature
 
 
-        // TODO: Update Account Settings, e.g. E-Mail change
+        // Update Account Settings, e.g. E-Mail change
 
         if (reqBodyPayloadObj.has("contact")) {
             String contactEmail = reqBodyPayloadObj.getJSONArray("contact").getString(0);
@@ -105,7 +113,7 @@ public class AcmeAPI {
 
         JSONObject returnObj = new JSONObject();
 
-        // TODO: Create order in Database
+        // Create order in Database
         String orderId = UUID.randomUUID().toString();
         String accountId = getAccountIdFromProtected(reqBodyProtectedObj);
 
@@ -123,17 +131,18 @@ public class AcmeAPI {
 
             // Unique value for each domain
             String authorizationId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + DateTools.formatDateForACME(new Date()));
-
             // Random authorization token
             String authorizationToken = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + System.nanoTime() + "--token").substring(0, 15);
-
             // Unique challenge id
-            String challengeId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / 100 * 1.557) + "--token").substring(0, 15);
+            String challengeId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / 100 * 1.557) + "--challenge").substring(0, 15);
+            // Unique certificate id
+            String certificateId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / 100 * 5.579) + "--cert").substring(0, 15);
 
 
             identifier.setAuthorizationToken(authorizationToken);
             identifier.setAuthorizationId(authorizationId);
             identifier.setChallengeId(challengeId);
+            identifier.setCertificateId(certificateId);
 
             acmeIdentifiersWithAuthorizationData.add(identifier);
 
@@ -144,6 +153,7 @@ public class AcmeAPI {
         // Add authorizations to Database
         Database.createOrder(accountId, orderId, acmeIdentifiersWithAuthorizationData);
 
+        //TODO: Set better Date/Time
 
         returnObj.put("status", "pending");
         returnObj.put("expires", DateTools.formatDateForACME(new Date()));
@@ -181,7 +191,7 @@ public class AcmeAPI {
         challengeHTTP.put("type", "http-01"); //
         challengeHTTP.put("url", getApiURL() + "/acme/chall/" + identifier.getChallengeId()); //Challenge callback URL, called after created token on server
         challengeHTTP.put("token", identifier.getAuthorizationToken());
-        if(identifier.isVerified()) {
+        if (identifier.isVerified()) {
             challengeHTTP.put("status", "valid");
             challengeHTTP.put("validated", DateTools.formatDateForACME(identifier.getVerifiedDate()));
         }
@@ -190,9 +200,9 @@ public class AcmeAPI {
 
         JSONObject returnObj = new JSONObject();
 
-        if(identifier.isVerified()){
+        if (identifier.isVerified()) {
             returnObj.put("status", "valid");
-        }else {
+        } else {
             returnObj.put("status", "pending");
         }
 
@@ -223,13 +233,12 @@ public class AcmeAPI {
         ACMEIdentifier identifier = Database.getACMEIdentifierByChallengeId(challengeId);
 
 
-
         JSONObject responseJSON = new JSONObject();
         responseJSON.put("type", "http-01");
-        if(identifier.isVerified()){
+        if (identifier.isVerified()) {
             responseJSON.put("status", "verified");
             responseJSON.put("verified", DateTools.formatDateForACME(identifier.getVerifiedDate()));
-        }else {
+        } else {
             responseJSON.put("status", "pending");
         }
 
@@ -239,6 +248,60 @@ public class AcmeAPI {
 
         return responseJSON;
 
+    };
+
+    /**
+     * Sign CSR (Finalizing ACME)
+     * <p>
+     * URL: /acme/order/thisisanorderid/finalize
+     */
+    public static Route finalizeOrder = (request, response) -> {
+        String orderId = request.params("orderid");
+
+        JSONObject reqBodyObj = new JSONObject(request.body());
+        JSONObject reqBodyPayloadObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("payload")));
+
+        String csr = reqBodyPayloadObj.getString("csr");
+
+
+        //TODO: Check if CSR Domain-names are matching with requested and checked Domain-names
+
+        ACMEIdentifier identifier = Database.getACMEIdentifierByOrderId(orderId);
+
+        JSONObject identifiersObj = new JSONObject();
+        identifiersObj.put("type", identifier.getType());
+        identifiersObj.put("value", identifier.getValue());
+
+        JSONArray authorizationsArr = new JSONArray();
+        authorizationsArr.put(getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
+
+
+        byte[] csrBytes = CertTools.decodeBase64URLAsBytes(csr);
+        PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
+        PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
+        RSAKeyParameters pubKey = (RSAKeyParameters) PublicKeyFactory.createKey(csrObj.getSubjectPublicKeyInfo());
+
+        log.info("Creating Certificate for order \"" + orderId + "\" with DNS Name \"" + identifier.getValue() + "\"");
+        X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(Main.intermediateKeyPair, Main.intermediateCertificate.getEncoded(), pkPemObject.getContent(), new String[]{identifier.getValue()}, 14, 0, 0);
+
+        String pemCertificate = CertTools.certificateToPEM(acmeGeneratedCertificate.getEncoded());
+
+        Date expireDate = acmeGeneratedCertificate.getNotAfter();
+        Date issueDate = acmeGeneratedCertificate.getNotBefore();
+
+
+        Database.storeCertificateInDatabase(orderId, identifier.getValue(),csr, pemCertificate, issueDate, expireDate);
+
+
+        JSONObject responseJSON = new JSONObject();
+
+        responseJSON.put("status", "valid");
+        responseJSON.put("expires", DateTools.formatDateForACME(expireDate));
+        responseJSON.put("finalize", getApiURL() + "/acme/order/" + orderId + "/finalize");
+        responseJSON.put("certificate", getApiURL() + "/acme/cert/" + identifier.getCertificateId());
+        responseJSON.put("authorizations", authorizationsArr);
+
+        return responseJSON.toString();
     };
 
     /**
@@ -291,17 +354,6 @@ public class AcmeAPI {
      */
     public static Route newAccount = (request, response) -> {
 
-        /*
-Payload:
-        {
-          "termsOfServiceAgreed": true,
-          "contact": [
-            "mailto:user@example.com"
-          ]
-         }
-
-
-         */
         JSONObject reqBodyObj = new JSONObject(request.body());
 
         //Payload is Base64 Encoded

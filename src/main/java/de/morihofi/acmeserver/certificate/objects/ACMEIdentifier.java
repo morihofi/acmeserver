@@ -14,6 +14,44 @@ public class ACMEIdentifier {
     private boolean verified;
     private Date verifiedDate;
 
+
+    private String certificateId;
+    private String certificateCSR;
+    private Date certificateIssued;
+    private Date certificateExpires;
+
+    public String getCertificateId() {
+        return certificateId;
+    }
+
+    public void setCertificateId(String certificateId) {
+        this.certificateId = certificateId;
+    }
+
+    public String getCertificateCSR() {
+        return certificateCSR;
+    }
+
+    public void setCertificateCSR(String certificateCSR) {
+        this.certificateCSR = certificateCSR;
+    }
+
+    public Date getCertificateIssued() {
+        return certificateIssued;
+    }
+
+    public void setCertificateIssued(Date certificateIssued) {
+        this.certificateIssued = certificateIssued;
+    }
+
+    public Date getCertificateExpires() {
+        return certificateExpires;
+    }
+
+    public void setCertificateExpires(Date certificateExpires) {
+        this.certificateExpires = certificateExpires;
+    }
+
     public boolean isVerified() {
         return verified;
     }
@@ -43,15 +81,9 @@ public class ACMEIdentifier {
         this.value = value;
     }
 
-    public ACMEIdentifier(String type, String value, String authorizationId, String authorizationToken, String challengeId) {
-        this.type = type;
-        this.value = value;
-        this.authorizationId = authorizationId;
-        this.authorizationToken = authorizationToken;
-        this.challengeId = challengeId;
-    }
 
-    public ACMEIdentifier(String type, String value, String authorizationId, String authorizationToken, String challengeId, boolean verified, Date verifiedDate) {
+
+    public ACMEIdentifier(String type, String value, String authorizationId, String authorizationToken, String challengeId, boolean verified, Date verifiedDate, String certificateId, String certificateCSR, Date certificateIssued, Date certificateExpires) {
         this.type = type;
         this.value = value;
         this.authorizationId = authorizationId;
@@ -59,6 +91,10 @@ public class ACMEIdentifier {
         this.challengeId = challengeId;
         this.verified = verified;
         this.verifiedDate = verifiedDate;
+        this.certificateId = certificateId;
+        this.certificateCSR = certificateCSR;
+        this.certificateIssued = certificateIssued;
+        this.certificateExpires = certificateExpires;
     }
 
     public String getType() {

@@ -1,22 +1,37 @@
 package de.morihofi.acmeserver.certificate.tools;
 
+import de.morihofi.acmeserver.certificate.JWSTestSignExample;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cms.CMSProcessableByteArray;
+import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.cms.CMSSignedDataGenerator;
+import org.bouncycastle.cms.CMSTypedData;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.jce.PrincipalUtil;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import sun.misc.BASE64Encoder;
 import sun.security.provider.X509Factory;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -35,7 +50,6 @@ public class CertTools {
 
         return kp;
     }
-
 
 
     public static X509Certificate convertToX509Cert(String certificateString) throws CertificateException {
@@ -69,6 +83,89 @@ public class CertTools {
         return certificate;
     }
 
+    /**
+     * Given a Keystore containing a private key and certificate and a Reader containing a PEM-encoded
+     * Certificiate Signing Request (CSR), sign the CSR with that private key and return the signed
+     * certificate as a PEM-encoded PKCS#7 signedData object.
+     *
+     * @param csrBase64                    Base64 encoded CSR
+     * @param expireDate                   Expiration Date for the certificate
+     * @param intermediateKeypair          KeyPair of the signing ca (can also be root ca, but not recommended)
+     * @param intermediateCertificateBytes Certificate of the intermediate CA (or Root CA)
+     * @return a String containing the PEM-encoded signed Certificate (begins "-----BEGIN PKCS #7 SIGNED DATA-----")
+     */
+    public static String signCSR(String csrBase64, Date expireDate, KeyPair intermediateKeypair, X509Certificate intermediateCertificateBytes) throws Exception {
+
+        byte[] csrBytes = decodeBase64URLAsBytes(csrBase64);
+        PKCS10CertificationRequest csr = new PKCS10CertificationRequest(csrBytes);
+        X509Certificate caCert = intermediateCertificateBytes;
+
+        X500Name issuer = X509.getX500NameFromX509Certificate(caCert);
+        BigInteger serial = new BigInteger(32, new SecureRandom());
+
+
+        /*
+
+        AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
+        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
+
+        Date from = new Date();
+
+
+
+
+        X509v3CertificateBuilder certgen = new X509v3CertificateBuilder(issuer, serial, from, expireDate, csr.getSubject(), csr.getSubjectPublicKeyInfo());
+        certgen.addExtension(Extension.basicConstraints, false, new BasicConstraints(false));
+        certgen.addExtension(Extension.subjectKeyIdentifier, false, new SubjectKeyIdentifier(csr.getSubjectPublicKeyInfo().getEncoded()));
+        certgen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment));
+
+        //       certgen.addExtension(Extension.authorityKeyIdentifier, false, new AuthorityKeyIdentifier(new GeneralNames(new GeneralName(new X509Name(cacert.getSubjectX500Principal().getName()))), cacert.getSerialNumber()));
+
+        ContentSigner signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(PrivateKeyFactory.createKey(intermediateKeypair.getPrivate().getEncoded()));
+        X509CertificateHolder holder = certgen.build(signer);
+        byte[] certencoded = holder.toASN1Structure().getEncoded();
+
+        CMSSignedDataGenerator generator = new CMSSignedDataGenerator();
+        signer = new JcaContentSignerBuilder("SHA1withRSA").build(intermediateKeypair.getPrivate());
+        generator.addSignerInfoGenerator(new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().build()).build(signer, caCert));
+        generator.addCertificate(new X509CertificateHolder(certencoded));
+        generator.addCertificate(new X509CertificateHolder(caCert.getEncoded()));
+        CMSTypedData content = new CMSProcessableByteArray(certencoded);
+        CMSSignedData signeddata = generator.generate(content, true);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write("-----BEGIN PKCS #7 SIGNED DATA-----\n".getBytes("ISO-8859-1"));
+        out.write(Base64Tools.encodeBase64(signeddata.getEncoded()).getBytes("ISO-8859-1"));
+        out.write("\n-----END PKCS #7 SIGNED DATA-----\n".getBytes("ISO-8859-1"));
+        out.close();
+        return new String(out.toByteArray(), "ISO-8859-1");
+
+         */
+
+/*
+        SubjectPublicKeyInfo spi = csr.getSubjectPublicKeyInfo();
+
+        X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(
+                issuer,
+                serial,
+                new java.util.Date(),
+                expireDate,
+                csr.getSubject(),
+                csr.getSubjectPublicKeyInfo());
+
+        certBuilder.addExtension(Extension.subjectKeyIdentifier,false, spi);
+
+        PrivateKey issuerPK = intermediateKeypair.getPrivate();
+        ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256withRSA").setProvider(BouncyCastleProvider.PROVIDER_NAME).build(issuerPK);
+        X509Certificate x509 = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getCertificate(certBuilder.build(contentSigner));
+
+        return certificateToPEM(x509.getEncoded());
+*/
+
+
+        return "CURRENTLY NOT IMPLEMENTED";
+    }
+
     public static byte[] generateCertificateAuthorityCertificate(String commonName, int years, KeyPair kp) throws IOException, NoSuchAlgorithmException, OperatorCreationException {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.YEAR, years);
@@ -82,9 +179,7 @@ public class CertTools {
         certBuilder.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
 
 
-
         X509CertificateHolder certHolder = certBuilder.build(new JcaContentSignerBuilder("SHA256withRSA").build(kp.getPrivate()));
-
 
 
         return certHolder.getEncoded();
@@ -144,13 +239,13 @@ public class CertTools {
     /**
      * Creates a SSL/TLS Certificate for a webserver
      *
-     * @param intermediateKeyPair KeyPair from Intermediate Certificate
+     * @param intermediateKeyPair          KeyPair from Intermediate Certificate
      * @param intermediateCertificateBytes Certificate byte array of the intermediate certificate
-     * @param serverPublicKeyBytes Public Key byte array, that the web server uses
-     * @param dnsNames Array of DNS Names for the Certificate
-     * @param days How many days in the future is it valid
-     * @param months How many months in the future is it valid
-     * @param years How many years in the future is it valid
+     * @param serverPublicKeyBytes         Public Key byte array, that the web server uses
+     * @param dnsNames                     Array of DNS Names for the Certificate
+     * @param days                         How many days in the future is it valid
+     * @param months                       How many months in the future is it valid
+     * @param years                        How many years in the future is it valid
      * @return Certificate for the Server
      * @throws CertificateException
      * @throws CertIOException
@@ -180,12 +275,12 @@ public class CertTools {
 
         // Client Certificate -> This is no CA
         certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
-        certBuilder.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment));
+        certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment));
 
         // Add a entry DNS Name requested
         ArrayList<GeneralName> dnsGeneralNameList = new ArrayList<>();
 
-        for (String dnsName: dnsNames) {
+        for (String dnsName : dnsNames) {
             dnsGeneralNameList.add(new GeneralName(GeneralName.dNSName, dnsName));
         }
         GeneralNames subjectAltNames = new GeneralNames(dnsGeneralNameList.toArray(new GeneralName[0]));
@@ -205,4 +300,40 @@ public class CertTools {
 
         return serverCert;
     }
+
+
+    public static String decodeBase64URL(String stringToDecode) {
+
+        // Decoding URl
+        String dStr = new String(decodeBase64URLAsBytes(stringToDecode));
+        return dStr;
+
+    }
+
+    public static byte[] decodeBase64URLAsBytes(String stringToDecode) {
+
+
+        // Getting decoder
+        java.util.Base64.Decoder decoder = java.util.Base64.getUrlDecoder();
+        return decoder.decode(stringToDecode);
+
+    }
+
+
+    public static String encodedBase64URL(String stringToEncode) {
+
+
+        // Getting encoder
+        java.util.Base64.Encoder encoder = java.util.Base64.getUrlEncoder();
+
+        // Encoding URL
+        String eStr = encoder.encodeToString(stringToEncode.getBytes());
+
+        System.out.println("Encoded URL: " + eStr);
+
+
+        return eStr;
+
+    }
+
 }
