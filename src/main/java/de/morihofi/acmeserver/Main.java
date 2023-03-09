@@ -167,6 +167,8 @@ public class Main {
         Spark.before((request, response) -> {
            response.header("Access-Control-Allow-Origin","*");
            response.header("Access-Control-Allow-Methods","*");
+
+           log.info("API Call [" + request.requestMethod() + "] " + request.raw().getPathInfo());
         });
 
         // TODO: Download CA Endpoint
