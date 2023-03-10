@@ -84,9 +84,7 @@ public class AcmeAPI {
      */
     public static Route newOrder = (request, response) -> {
 
-        response.status(201);
-        response.header("Link", "<" + getApiURL() + "/directory" + ">;rel=\"index\"");
-        response.header("Replay-Nonce", Crypto.createNonce());
+
 
         //Parse request body
         JSONObject reqBodyObj = new JSONObject(request.body());
@@ -164,6 +162,11 @@ public class AcmeAPI {
         returnObj.put("authorizations", respAuthorizationsArr);
         returnObj.put("finalize", getApiURL() + "/acme/order/" + orderId + "/finalize");
 
+        response.status(201);
+        response.header("Link", "<" + getApiURL() + "/directory" + ">;rel=\"index\"");
+        response.header("Replay-Nonce", Crypto.createNonce());
+        response.header("Content-Type", "application/jose+json");
+        response.header("Location", getApiURL() + "/acme/order/" + orderId);
 
         return returnObj.toString();
 
@@ -285,7 +288,7 @@ public class AcmeAPI {
         byte[] csrBytes = CertTools.decodeBase64URLAsBytes(csr);
         PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
         PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
-        RSAKeyParameters pubKey = (RSAKeyParameters) PublicKeyFactory.createKey(csrObj.getSubjectPublicKeyInfo());
+        //RSAKeyParameters pubKey = (RSAKeyParameters) PublicKeyFactory.createKey(csrObj.getSubjectPublicKeyInfo());
 
         log.info("Creating Certificate for order \"" + orderId + "\" with DNS Name \"" + identifier.getValue() + "\"");
         X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(Main.intermediateKeyPair, Main.intermediateCertificate.getEncoded(), pkPemObject.getContent(), new String[]{identifier.getValue()}, 14, 0, 0);
@@ -301,6 +304,7 @@ public class AcmeAPI {
 
         response.header("Content-Type", "application/json");
         response.header("Replay-Nonce", Crypto.createNonce());
+        response.header("Location", getApiURL() + "/acme/order/" + orderId);
 
         JSONObject responseJSON = new JSONObject();
 
@@ -309,6 +313,8 @@ public class AcmeAPI {
         responseJSON.put("finalize", getApiURL() + "/acme/order/" + orderId + "/finalize");
         responseJSON.put("certificate", getApiURL() + "/acme/cert/" + identifier.getCertificateId());
         responseJSON.put("authorizations", authorizationsArr);
+
+        System.out.println(responseJSON.toString(4));
 
         return responseJSON.toString();
     };
@@ -321,6 +327,7 @@ public class AcmeAPI {
     public static String getApiURL() {
         return "https://" + Main.acmeThisServerDNSName + ":" + Main.acmeThisServerAPIPort;
     }
+
 
     private static String getAccountIdFromProtected(JSONObject protectedObj) {
 
