@@ -206,7 +206,19 @@ public class AcmeAPI {
         response.status(200);
 
         //TODO: Not found response if identifier is null
+
         ACMEIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
+
+        //Not found
+        if(identifier == null){
+            log.error("Throwing API error: Host verification failed");
+            response.header("Content-Type", "application/problem+json");
+            JSONObject resObj = new JSONObject();
+            resObj.put("type", "urn:ietf:params:acme:error:malformed");
+            resObj.put("detail", "The requested authorization id was not found");
+            Spark.halt(HttpURLConnection.HTTP_NOT_FOUND, resObj.toString());
+        }
+
         JSONObject identifierObj = new JSONObject();
         identifierObj.put("type", identifier.getType());
         identifierObj.put("value", identifier.getValue());
