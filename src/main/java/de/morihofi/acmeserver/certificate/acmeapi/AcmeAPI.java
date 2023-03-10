@@ -218,7 +218,9 @@ public class AcmeAPI {
     };
 
     /**
-     * Verify ACME Challenge Callback
+     * Verify ACME Challenge Callback (I've placed it on the server, can you check it now?)
+     * <p>
+     * This is called once
      * <p>
      * URL: /acme/chall/ktjlr ...
      */
@@ -229,12 +231,20 @@ public class AcmeAPI {
         response.header("Replay-Nonce", Crypto.createNonce());
 
 
-        //TODO: Check if challenge is valid
-
-        //mark challenge has passed
-        Database.passChallenge(challengeId);
-
+        //heck if challenge is valid
         ACMEIdentifier identifier = Database.getACMEIdentifierByChallengeId(challengeId);
+        log.info("Validating ownership of host \"" + identifier.getValue() + "\"");
+        if(HTTPChallenge.check(challengeId, identifier.getAuthorizationToken(), identifier.getValue())){
+            //mark challenge has passed
+            Database.passChallenge(challengeId);
+        }else {
+            // TODO: Fail challenge
+            // Database.failChallenge(challengeId);
+        }
+
+
+        //Reload identifier, e.g. host has validated
+        identifier = Database.getACMEIdentifierByChallengeId(challengeId);
 
 
         JSONObject responseJSON = new JSONObject();
@@ -309,7 +319,8 @@ public class AcmeAPI {
         responseJSON.put("status", "valid");
         responseJSON.put("expires", DateTools.formatDateForACME(expireDate));
         responseJSON.put("finalize", getApiURL() + "/acme/order/" + orderId + "/finalize");
-        responseJSON.put("certificate", getApiURL() + "/acme/cert/" + identifier.getCertificateId());
+        responseJSON.put("certificate", getApiURL() + "/acme/order/" + orderId + "/cert"); //Temporary fix
+        //responseJSON.put("certificate", getApiURL() + "/acme/cert/" + identifier.getCertificateId());
         responseJSON.put("authorizations", authorizationsArr);
 
 
@@ -397,6 +408,8 @@ public class AcmeAPI {
         return responseCertificateChain;
 
     };
+
+
 
     /**
      * Get the ACME Server URL, reachable from other Hosts

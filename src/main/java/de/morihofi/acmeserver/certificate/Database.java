@@ -363,9 +363,6 @@ public class Database {
         }
 
 
-
-        System.out.println(pemBuilder.toString());
-
         return pemBuilder.toString();
     }
 

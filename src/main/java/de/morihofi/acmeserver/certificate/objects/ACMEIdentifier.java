@@ -3,6 +3,30 @@ package de.morihofi.acmeserver.certificate.objects;
 import java.util.Date;
 
 public class ACMEIdentifier {
+
+    public enum VERIFIED_TYPE {
+        NOT_VERIFIED(0), VERIFIED(1), VERIFY_FAILED(2);
+
+        private int dbValue;
+        VERIFIED_TYPE(int i) {
+            dbValue = 1;
+        }
+    }
+
+    public static int verifyTypeToDatabaseValue(VERIFIED_TYPE verifiedType) throws IllegalAccessException {
+        switch (verifiedType){
+            case VERIFIED:
+                return 1;
+            case NOT_VERIFIED:
+                return 0;
+            case VERIFY_FAILED:
+                return 2;
+            default:
+                throw new IllegalAccessException("Unknown verify type");
+        }
+    }
+
+
     private String type;
     private String value;
 
