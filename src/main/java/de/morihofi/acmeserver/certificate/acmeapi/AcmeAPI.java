@@ -109,6 +109,18 @@ public class AcmeAPI {
 
         ArrayList<ACMEIdentifier> acmeIdentifiers = new ArrayList<>();
 
+        //Currently only one DNS entry is supported
+        if (identifiersArr.length() != 1){
+            //Throw unsupported error
+            log.error("Too many domains requested. Only one per order is currently supported");
+            response.header("Content-Type", "application/problem+json");
+            JSONObject resObj = new JSONObject();
+            resObj.put("type", "urn:ietf:params:acme:error:malformed");
+            resObj.put("detail", "Too many domains requested. Only one per order is currently supported");
+            Spark.halt(HttpURLConnection.HTTP_BAD_REQUEST, resObj.toString());
+        }
+
+
         for (int i = 0; i < identifiersArr.length(); i++) {
             JSONObject identifier = identifiersArr.getJSONObject(i);
 
@@ -249,8 +261,18 @@ public class AcmeAPI {
             //mark challenge has passed
             Database.passChallenge(challengeId);
         }else {
-            // TODO: Fail challenge
+            log.error("Throwing API error: Host verification failed");
+            response.header("Content-Type", "application/problem+json");
+            JSONObject resObj = new JSONObject();
+            resObj.put("type", "urn:ietf:params:acme:error:connection");
+            resObj.put("detail", "Unable to reach host or invalid token. Is the host reachable? Is the http server on port 80 running? If it is running, check your access logs");
+            Spark.halt(HttpURLConnection.HTTP_FORBIDDEN, resObj.toString());
+
+
+            // TODO: Fail challenge in database
             // Database.failChallenge(challengeId);
+
+
         }
 
 
@@ -289,6 +311,8 @@ public class AcmeAPI {
         JSONObject reqBodyObj = new JSONObject(request.body());
         JSONObject reqBodyPayloadObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("payload")));
 
+        JSONObject responseJSON = new JSONObject();
+
         String csr = reqBodyPayloadObj.getString("csr");
 
         //TODO: Check signature
@@ -303,39 +327,55 @@ public class AcmeAPI {
         JSONArray authorizationsArr = new JSONArray();
         authorizationsArr.put(getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
 
-
-        byte[] csrBytes = CertTools.decodeBase64URLAsBytes(csr);
-        PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
-        PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
-        //RSAKeyParameters pubKey = (RSAKeyParameters) PublicKeyFactory.createKey(csrObj.getSubjectPublicKeyInfo());
-
-        log.info("Creating Certificate for order \"" + orderId + "\" with DNS Name \"" + identifier.getValue() + "\"");
-        X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(Main.intermediateKeyPair, Main.intermediateCertificate.getEncoded(), pkPemObject.getContent(), new String[]{identifier.getValue()}, 14, 0, 0);
-
-        String pemCertificate = CertTools.certificateToPEM(acmeGeneratedCertificate.getEncoded());
-
-        Date expireDate = acmeGeneratedCertificate.getNotAfter();
-        Date issueDate = acmeGeneratedCertificate.getNotBefore();
+        try {
 
 
-        Database.storeCertificateInDatabase(orderId, identifier.getValue(), csr, pemCertificate, issueDate, expireDate);
+                byte[] csrBytes = CertTools.decodeBase64URLAsBytes(csr);
+                PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
+                PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
+                //RSAKeyParameters pubKey = (RSAKeyParameters) PublicKeyFactory.createKey(csrObj.getSubjectPublicKeyInfo());
+
+                log.info("Creating Certificate for order \"" + orderId + "\" with DNS Name \"" + identifier.getValue() + "\"");
+                X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(Main.intermediateKeyPair, Main.intermediateCertificate.getEncoded(), pkPemObject.getContent(), new String[]{identifier.getValue()}, 14, 0, 0);
+
+                String pemCertificate = CertTools.certificateToPEM(acmeGeneratedCertificate.getEncoded());
+
+                Date expireDate = acmeGeneratedCertificate.getNotAfter();
+                Date issueDate = acmeGeneratedCertificate.getNotBefore();
 
 
-        response.header("Content-Type", "application/json");
-        response.header("Replay-Nonce", Crypto.createNonce());
-        response.header("Location", getApiURL() + "/acme/order/" + orderId);
-
-        JSONObject responseJSON = new JSONObject();
-
-        responseJSON.put("status", "valid");
-        responseJSON.put("expires", DateTools.formatDateForACME(expireDate));
-        responseJSON.put("finalize", getApiURL() + "/acme/order/" + orderId + "/finalize");
-        responseJSON.put("certificate", getApiURL() + "/acme/order/" + orderId + "/cert"); //Temporary fix
-        //responseJSON.put("certificate", getApiURL() + "/acme/cert/" + identifier.getCertificateId());
-        responseJSON.put("authorizations", authorizationsArr);
+                Database.storeCertificateInDatabase(orderId, identifier.getValue(), csr, pemCertificate, issueDate, expireDate);
 
 
-        return responseJSON.toString();
+                response.header("Content-Type", "application/json");
+                response.header("Replay-Nonce", Crypto.createNonce());
+                response.header("Location", getApiURL() + "/acme/order/" + orderId);
+
+
+
+                responseJSON.put("status", "valid");
+                responseJSON.put("expires", DateTools.formatDateForACME(expireDate));
+                responseJSON.put("finalize", getApiURL() + "/acme/order/" + orderId + "/finalize");
+                responseJSON.put("certificate", getApiURL() + "/acme/order/" + orderId + "/cert"); //Temporary fix
+                //responseJSON.put("certificate", getApiURL() + "/acme/cert/" + identifier.getCertificateId());
+                responseJSON.put("authorizations", authorizationsArr);
+
+
+                return responseJSON.toString();
+
+        }catch (Exception ex){
+
+            log.error("Throwing API error: CSR processing error",ex);
+            response.header("Content-Type", "application/problem+json");
+            JSONObject resObj = new JSONObject();
+            resObj.put("type", "urn:ietf:params:acme:error:badCSR");
+            resObj.put("detail", "Unable process requested CSR. Is the CSR valid? Otherwise try again later, if the problem persists contact support.");
+            Spark.halt(HttpURLConnection.HTTP_FORBIDDEN, resObj.toString());
+
+            //It halts before, so this is never executed
+            return "";
+        }
+
     };
 
     /**
