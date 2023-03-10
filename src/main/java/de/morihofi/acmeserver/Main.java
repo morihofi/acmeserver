@@ -40,6 +40,7 @@ public class Main {
     public static String caKeyStorePassword = "";
     public static String caCommonName = "MHO Test CA 1 - Do not use in Production";
     public static int caRSAKeyPairSize = 4096;
+    public static Path caPath;
 
     //Intermediate CA Certificate
     public static Path intermediateKeyStorePath = filesDir.resolve("intermediate.p12");
@@ -50,7 +51,7 @@ public class Main {
     //ACME Directory Information
     public static String acmeMetaWebsite = "https://morihofi.de";
     public static String acmeMetaTermsOfService = "https://morihofi.de/tos.php";
-    public static String acmeThisServerDNSName = "mo-nb-gb-mint"; //"mho-nb.hq.ifd-gmbh.com";
+    public static String acmeThisServerDNSName = "mho-nb.hq.ifd-gmbh.com"; // "mo-nb-gb-mint";
     public static int acmeThisServerAPIPort = 7443;
 
     //ACME Signature
@@ -89,6 +90,7 @@ public class Main {
 
         }
 */
+        caPath = filesDir.resolve("ca.crt");
 
         //Detect first run
         if (!Files.exists(filesDir)) {
@@ -103,7 +105,6 @@ public class Main {
 
             // Dumping CA Certificate to HDD, so other clients can install it
             log.info("Writing CA to disk");
-            Path caPath = filesDir.resolve("ca.crt");
             Files.createFile(caPath);
             Files.write(filesDir.resolve(caPath), CertTools.certificateToPEM(caCertificateBytes).getBytes());
             // Save CA in Keystore
@@ -195,6 +196,10 @@ public class Main {
         Spark.post("/acme/chall/:challengeId", AcmeAPI.challengeCallback);
         // Finalize endpoint
         Spark.post("/acme/order/:orderId/finalize", AcmeAPI.finalizeOrder);
+        // Order info Endpoint
+        Spark.post("/acme/order/:orderId", AcmeAPI.order);
+        // Get Order Certificate
+        Spark.post("/acme/order/:orderId/cert", AcmeAPI.orderCert);
 
 
     }

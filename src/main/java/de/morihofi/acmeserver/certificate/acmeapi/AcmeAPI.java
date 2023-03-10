@@ -85,7 +85,6 @@ public class AcmeAPI {
     public static Route newOrder = (request, response) -> {
 
 
-
         //Parse request body
         JSONObject reqBodyObj = new JSONObject(request.body());
         JSONObject reqBodyPayloadObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("payload")));
@@ -210,7 +209,6 @@ public class AcmeAPI {
         } else {
             returnObj.put("status", "pending");
         }
-
         returnObj.put("expires", DateTools.formatDateForACME(new Date()));
         returnObj.put("identifier", identifierObj);
         returnObj.put("challenges", challengeArr);
@@ -299,7 +297,7 @@ public class AcmeAPI {
         Date issueDate = acmeGeneratedCertificate.getNotBefore();
 
 
-        Database.storeCertificateInDatabase(orderId, identifier.getValue(),csr, pemCertificate, issueDate, expireDate);
+        Database.storeCertificateInDatabase(orderId, identifier.getValue(), csr, pemCertificate, issueDate, expireDate);
 
 
         response.header("Content-Type", "application/json");
@@ -315,8 +313,89 @@ public class AcmeAPI {
         responseJSON.put("authorizations", authorizationsArr);
 
 
-
         return responseJSON.toString();
+    };
+
+    /**
+     * Order info Endpoint
+     * <p>
+     * URL: /order/orderid123
+     */
+    public static Route order = (request, response) -> {
+
+        String orderId = request.params("orderid");
+
+        response.header("Content-Type", "application/json");
+        response.header("Replay-Nonce", Crypto.createNonce());
+
+        JSONObject reqBodyObj = new JSONObject(request.body());
+        //Payload is Base64 Encoded
+        // Payload is empty here
+        //JSONObject reqBodyPayloadObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("payload")));
+        JSONObject reqBodyProtectedObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("protected")));
+
+        JSONObject responseObj = new JSONObject();
+
+
+
+        // TODO: Valid Expires Date
+        responseObj.put("expires", DateTools.formatDateForACME(new Date()));
+
+
+
+        JSONArray identifiersArr = new JSONArray();
+        JSONArray authorizationsArr = new JSONArray();
+
+        boolean allVerified = true;
+        for (ACMEIdentifier identifier: Database.getACMEIdentifiersByOrderId(orderId)) {
+
+            if(!identifier.isVerified()){
+                allVerified = false;
+            }
+
+            JSONObject identifierObj = new JSONObject();
+            identifierObj.put("type",identifier.getType());
+            identifierObj.put("value",identifier.getValue());
+
+            authorizationsArr.put(getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
+
+        }
+
+
+        responseObj.put("identifiers", identifiersArr);
+        if (allVerified) {
+            responseObj.put("status", "valid");
+        } else {
+            responseObj.put("status", "pending");
+        }
+
+
+        responseObj.put("finalize", getApiURL() + "/acme/order/" + orderId + "/finalize");
+        // Get certificate for order
+        //responseObj.put("certificate", getApiURL() + "/acme/cert/" + "fixme");
+        responseObj.put("certificate", getApiURL() + "/acme/order/" + orderId + "/cert");
+
+
+        return responseObj.toString();
+    };
+
+    /**
+     * Certificate of order (last step in certbot)
+     * URL: /order/orderid123/cert
+     */
+    public static Route orderCert = (request, response) -> {
+        String orderId = request.params("orderid");
+
+        response.header("Content-Type", "application/pem-certificate-chain");
+        response.header("Replay-Nonce", Crypto.createNonce());
+        response.header("Link", "<" + getApiURL() + "/directory" + ">;rel=\"index\"");
+
+        ACMEIdentifier identifier = Database.getACMEIdentifierByOrderId(orderId);
+
+        String responseCertificateChain = Database.getCertificateChainPEMofACMEbyAuthorizationId(identifier.getCertificateId());
+
+        return responseCertificateChain;
+
     };
 
     /**

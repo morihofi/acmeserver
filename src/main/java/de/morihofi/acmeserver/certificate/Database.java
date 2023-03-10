@@ -1,11 +1,18 @@
 package de.morihofi.acmeserver.certificate;
 
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.certificate.acmeapi.AcmeAPI;
 import de.morihofi.acmeserver.certificate.objects.ACMEIdentifier;
+import de.morihofi.acmeserver.certificate.tools.CertTools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.checkerframework.checker.units.qual.A;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.security.cert.CertificateEncodingException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -163,8 +170,9 @@ public class Database {
     }
 
 
-    public static ACMEIdentifier getACMEIdentifierByOrderId(String orderId) {
-        ACMEIdentifier identifier = null;
+    public static List<ACMEIdentifier> getACMEIdentifiersByOrderId(String orderId) {
+
+        ArrayList<ACMEIdentifier> identifiers = new ArrayList<>();
 
         try (Connection conn = getDatabaseConnection()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM `orderidentifiers` WHERE orderid = ? LIMIT 1");
@@ -192,14 +200,20 @@ public class Database {
 
                 log.info("(Order ID: \"" + orderId + "\") Got ACME identifier of type \"" + type + "\" with value \"" + value + "\"");
 
-                identifier = new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR,certificateIssued,certificateExpires);
+                identifiers.add(new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR,certificateIssued,certificateExpires));
             }
 
         } catch (SQLException e) {
             log.error("Unable get ACME identifiers for order id \"" + orderId + "\"",e);
         }
 
-        return identifier;
+        return identifiers;
+
+    }
+
+    public static ACMEIdentifier getACMEIdentifierByOrderId(String orderId) {
+        //FIXME
+        return getACMEIdentifiersByOrderId(orderId).get(0);
     }
 
 
@@ -296,4 +310,47 @@ public class Database {
 
 
     }
+
+    public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId) throws CertificateEncodingException, IOException {
+        StringBuilder pemBuilder = new StringBuilder();
+
+        // Get Issued certificate
+        try (Connection conn = getDatabaseConnection()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM `orderidentifiers` WHERE authorizationId = ? LIMIT 1");
+            ps.setString(1, authorizationId);
+
+
+            // process the results
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+
+
+                String certificateId = rs.getString("certificateid");
+                String certificateCSR = rs.getString("certificatecsr");
+                Date certificateIssued = rs.getTimestamp("certificateissued");
+                Date certificateExpires = rs.getTimestamp("certificateexpires");
+                Date certificatePEM = rs.getTimestamp("certificatepem");
+
+
+                log.info("Getting Certificate for authorization Id \"" + authorizationId + "\"");
+
+                pemBuilder.append(certificatePEM);
+
+            }
+
+        } catch (SQLException e) {
+            log.error("Unable get Certificate for authorization id \"" + authorizationId + "\"",e);
+        }
+
+        //Intermediate Certificate
+        pemBuilder.append(CertTools.certificateToPEM(Main.intermediateCertificate.getEncoded()) + "\n");
+
+        //CA Certificate
+        pemBuilder.append(Files.readAllLines(Main.caPath) + "\n");
+
+
+        return pemBuilder.toString();
+    }
+
+
 }
