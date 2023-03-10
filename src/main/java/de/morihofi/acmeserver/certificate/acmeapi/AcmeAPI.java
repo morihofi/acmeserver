@@ -269,7 +269,7 @@ public class AcmeAPI {
 
         String csr = reqBodyPayloadObj.getString("csr");
 
-
+        //TODO: Check signature
         //TODO: Check if CSR Domain-names are matching with requested and checked Domain-names
 
         ACMEIdentifier identifier = Database.getACMEIdentifierByOrderId(orderId);
