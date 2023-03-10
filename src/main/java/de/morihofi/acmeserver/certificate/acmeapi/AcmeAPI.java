@@ -314,7 +314,7 @@ public class AcmeAPI {
         responseJSON.put("certificate", getApiURL() + "/acme/cert/" + identifier.getCertificateId());
         responseJSON.put("authorizations", authorizationsArr);
 
-        System.out.println(responseJSON.toString(4));
+
 
         return responseJSON.toString();
     };
