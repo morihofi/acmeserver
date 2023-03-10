@@ -392,7 +392,7 @@ public class AcmeAPI {
 
         ACMEIdentifier identifier = Database.getACMEIdentifierByOrderId(orderId);
 
-        String responseCertificateChain = Database.getCertificateChainPEMofACMEbyAuthorizationId(identifier.getCertificateId());
+        String responseCertificateChain = Database.getCertificateChainPEMofACMEbyAuthorizationId(identifier.getAuthorizationId());
 
         return responseCertificateChain;
 

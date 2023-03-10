@@ -9,13 +9,16 @@ import org.apache.logging.log4j.Logger;
 import org.checkerframework.checker.units.qual.A;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.cert.CertificateEncodingException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class Database {
 
@@ -313,7 +316,7 @@ public class Database {
 
     public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId) throws CertificateEncodingException, IOException {
         StringBuilder pemBuilder = new StringBuilder();
-
+        boolean certFound = false;
         // Get Issued certificate
         try (Connection conn = getDatabaseConnection()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM `orderidentifiers` WHERE authorizationId = ? LIMIT 1");
@@ -323,13 +326,13 @@ public class Database {
             // process the results
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-
+                certFound = true;
 
                 String certificateId = rs.getString("certificateid");
                 String certificateCSR = rs.getString("certificatecsr");
                 Date certificateIssued = rs.getTimestamp("certificateissued");
                 Date certificateExpires = rs.getTimestamp("certificateexpires");
-                Date certificatePEM = rs.getTimestamp("certificatepem");
+                String certificatePEM = rs.getString("certificatepem");
 
 
                 log.info("Getting Certificate for authorization Id \"" + authorizationId + "\"");
@@ -342,12 +345,26 @@ public class Database {
             log.error("Unable get Certificate for authorization id \"" + authorizationId + "\"",e);
         }
 
+        if(!certFound){
+            throw new IllegalArgumentException("No certificate was found for authorization id \"" + authorizationId + "\"");
+        }
+
         //Intermediate Certificate
+        log.info("Adding Intermediate certificate");
         pemBuilder.append(CertTools.certificateToPEM(Main.intermediateCertificate.getEncoded()) + "\n");
 
         //CA Certificate
-        pemBuilder.append(Files.readAllLines(Main.caPath) + "\n");
+        log.info("Adding CA certificate");
+        try (Stream<String> stream = Files.lines(Main.caPath, StandardCharsets.UTF_8)) {
+            stream.forEach(s -> pemBuilder.append(s).append("\n"));
+        } catch (IOException e) {
+            //handle exception
+            log.error("Unable to load CA Certificate", e);
+        }
 
+
+
+        System.out.println(pemBuilder.toString());
 
         return pemBuilder.toString();
     }
