@@ -3,10 +3,7 @@ package de.morihofi.acmeserver.certificate.acmeapi;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.Database;
 import de.morihofi.acmeserver.certificate.objects.ACMEIdentifier;
-import de.morihofi.acmeserver.certificate.tools.Base64Tools;
-import de.morihofi.acmeserver.certificate.tools.CertTools;
-import de.morihofi.acmeserver.certificate.tools.Crypto;
-import de.morihofi.acmeserver.certificate.tools.DateTools;
+import de.morihofi.acmeserver.certificate.tools.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
@@ -16,7 +13,9 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import spark.Route;
+import spark.Spark;
 
+import java.net.HttpURLConnection;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -64,6 +63,18 @@ public class AcmeAPI {
         if (reqBodyPayloadObj.has("contact")) {
             String contactEmail = reqBodyPayloadObj.getJSONArray("contact").getString(0);
             contactEmail = contactEmail.replace("mailto:", "");
+
+
+
+            if (!RegexTools.isValidEmail(contactEmail) || contactEmail.split("\\@")[1].equals("localhost")){
+                log.error("E-Mail validation failed for email \"" + contactEmail + "\n");
+                response.header("Content-Type", "application/problem+json");
+                JSONObject resObj = new JSONObject();
+                resObj.put("type", "urn:ietf:params:acme:error:invalidContact");
+                resObj.put("detail", "E-Mail address is invalid");
+                Spark.halt(HttpURLConnection.HTTP_FORBIDDEN, resObj.toString());
+            }
+            log.info("E-Mail validation successful for email \"" + contactEmail + "\n");
 
             //Update Contact Email
             Database.updateAccountEmail(accountId, contactEmail);
@@ -455,6 +466,8 @@ public class AcmeAPI {
         return responseJSON.toString();
     };
 
+
+
     /**
      * Create a new ACME Account Endpoint
      * <p>
@@ -474,6 +487,17 @@ public class AcmeAPI {
         if (reqBodyPayloadObj.has("contact")) {
             reqPayloadContactEmail = reqBodyPayloadObj.getJSONArray("contact").getString(0);
             reqPayloadContactEmail = reqPayloadContactEmail.replace("mailto:", "");
+
+            if (!RegexTools.isValidEmail(reqPayloadContactEmail) || reqPayloadContactEmail.split("\\@")[0].equals("localhost")){
+                log.error("E-Mail validation failed for email \"" + reqPayloadContactEmail + "\n");
+                response.header("Content-Type", "application/problem+json");
+                JSONObject resObj = new JSONObject();
+                resObj.put("type", "urn:ietf:params:acme:error:invalidContact");
+                resObj.put("detail", "E-Mail address is invalid");
+                Spark.halt(HttpURLConnection.HTTP_FORBIDDEN, resObj.toString());
+            }
+            log.info("E-Mail validation successful for email \"" + reqPayloadContactEmail + "\n");
+
         }
 
 
