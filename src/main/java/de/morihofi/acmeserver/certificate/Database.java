@@ -31,7 +31,7 @@ public class Database {
         String password = "empty";
 
         return DriverManager.getConnection(
-                "jdbc:mariadb://" + host + "/" + database, user, password);
+                "jdbc:mariadb://" + Main.db_host + "/" + Main.db_name, Main.db_user, Main.db_password);
     }
 
     public static String getDatabaseVersion() throws SQLException {

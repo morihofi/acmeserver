@@ -1,0 +1,46 @@
+# DNS Name of this server (IMPORTANT!) (Required for ACME API and server certificate)
+acme.server.dnsname = mycomputer
+acme.server.sslport = 7443
+
+# E-Mail settings to send notifications, i.e. intermediate CA 
+# is before expiration and CA certificate is needed
+# SMTP Settings
+email.smtp.port = 587
+email.smtp.encryption = starttls
+email.smtp.server = mail.server.com
+email.smtp.username = noreply@server.com
+email.smtp.password = insecurepassword
+# E-Mail to send the notifications
+email.targetemail = acmeadmin@server.com
+
+# Root CA Settings
+acme.certificate.root.metadata.cn = Root CA
+acme.certificate.root.rsasize = 4096
+acme.certificate.root.certfile = ca.crt
+acme.certificate.root.keystore.filename = ca.p12
+acme.certificate.root.keystore.password = changeme
+acme.certificate.root.keystore.alias = ca
+acme.certificate.root.expire.years = 30
+
+# Intermediate CA Settings
+acme.certificate.intermediate.metadata.cn = Intermediate CA
+acme.certificate.intermediate.rsasize = 4096
+acme.certificate.intermediate.keystore.filename = intermediate.p12
+acme.certificate.intermediate.keystore.password = changeme
+acme.certificate.intermediate.keystore.alias = intermediate
+acme.certificate.intermediate.expire.days = 0
+acme.certificate.intermediate.expire.months = 6
+acme.certificate.intermediate.expire.years = 0
+
+# ACME API Settings
+acme.api.meta.website = https://example.com
+acme.api.meta.termsofservice = https://example.com/ca-tos.html
+acme.api.keystore.filename = acmeserver.p12
+acme.api.keystore.password = changeme
+acme.api.rsakeysize = 4096
+
+# Database settings (MariaDB)
+database.host = 127.0.0.1:3306
+database.user = root
+database.password = password
+database.name = acmeserverdb
