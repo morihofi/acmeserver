@@ -2,6 +2,7 @@ package de.morihofi.acmeserver;
 
 import de.morihofi.acmeserver.certificate.Database;
 import de.morihofi.acmeserver.certificate.JWSTestSignExample;
+import de.morihofi.acmeserver.certificate.SendMail;
 import de.morihofi.acmeserver.certificate.tools.Base64Tools;
 import de.morihofi.acmeserver.certificate.tools.CertTools;
 import de.morihofi.acmeserver.certificate.tools.KeyStoreUtils;
@@ -78,6 +79,14 @@ public class Main {
     public static KeyPair acmeSignatureKeyPair;
     public static Path acmeSignatureKeyPairPath = filesDir.resolve("acme-signature");
 
+    //E-Mail SMTP
+    public static int emailSMTPPort = 587;
+    public static String emailSMTPEncryption = "starttls";
+    public static String emailSMTPServer = "";
+    public static String emailSMTPUsername = "";
+    public static String emailSMTPPassword = "";
+    public static String acmeAdminEmail = "";
+
 
     public static Properties properties = new Properties();
 
@@ -126,6 +135,15 @@ public class Main {
         acmeServerKeyStorePassword = properties.getProperty("acme.api.keystore.password");
         acmeServerKeyStorePath = filesDir.resolve(properties.getProperty("acme.api.keystore.filename"));
         acmeServerRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.api.rsakeysize"));
+        // E-Mail Settings
+        emailSMTPPort = Integer.parseInt(properties.getProperty("email.smtp.port"));
+        emailSMTPUsername = properties.getProperty("email.smtp.username");
+        emailSMTPPassword = properties.getProperty("email.smtp.password");
+        emailSMTPServer = properties.getProperty("email.smtp.server");
+        emailSMTPEncryption = properties.getProperty("email.smtp.encryption");
+        acmeAdminEmail = properties.getProperty("email.targetemail");
+
+
 
         log.info("Settings have been successfully loaded");
 
