@@ -247,7 +247,7 @@ public class Main {
         String keyStoreLocation = acmeServerKeyStorePath.toAbsolutePath().toString();
         Spark.secure(keyStoreLocation, acmeServerKeyStorePassword, null, null);
         Spark.port(acmeThisServerAPIPort);
-        Spark.staticFileLocation("/webstatic/gethttpsforfree");
+        Spark.staticFileLocation("/webstatic");
 
         log.info("Configure Routes");
         Spark.before((request, response) -> {
@@ -258,7 +258,7 @@ public class Main {
         });
 
         // TODO: Download CA Endpoint
-        //Spark.get("/ca.pem", AcmeAPI.downloadCA);
+        Spark.get("/ca.crt", AcmeAPI.downloadCA);
 
         Spark.get("/directory", AcmeAPI.directoryEndpoint);
 

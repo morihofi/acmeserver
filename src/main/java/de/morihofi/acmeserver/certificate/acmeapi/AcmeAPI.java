@@ -16,6 +16,7 @@ import spark.Route;
 import spark.Spark;
 
 import java.net.HttpURLConnection;
+import java.nio.file.Files;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -471,7 +472,11 @@ public class AcmeAPI {
         return responseCertificateChain;
 
     };
+    public static Route downloadCA = (request, response) -> {
+        response.header("Content-Type", "application/x-x509-ca-cert");
 
+        return new String(Files.readAllBytes(Main.caPath));
+    };
 
 
     /**
