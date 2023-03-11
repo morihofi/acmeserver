@@ -201,6 +201,6 @@ public class Main {
         // Get Order Certificate
         Spark.post("/acme/order/:orderId/cert", AcmeAPI.orderCert);
 
-
+        log.info("Configure Routes completed. Ready for incoming requests");
     }
 }
