@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver;
 
 import de.morihofi.acmeserver.certificate.Database;
+import de.morihofi.acmeserver.certificate.JWSTestSignExample;
+import de.morihofi.acmeserver.certificate.tools.Base64Tools;
 import de.morihofi.acmeserver.certificate.tools.CertTools;
 import de.morihofi.acmeserver.certificate.tools.KeyStoreUtils;
 import de.morihofi.acmeserver.certificate.acmeapi.AcmeAPI;
@@ -17,6 +19,7 @@ import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.Properties;
 
@@ -161,7 +164,7 @@ public class Main {
             log.info("Generating RSA " + caRSAKeyPairSize + "bit Key Pair for CA");
             KeyPair caKeyPair = CertTools.generateRSAKeyPair(caRSAKeyPairSize);
             log.info("Creating CA");
-            byte[] caCertificateBytes = CertTools.generateCertificateAuthorityCertificate(caCommonName, caDefaultExpireYears, caKeyPair);
+            caCertificateBytes = CertTools.generateCertificateAuthorityCertificate(caCommonName, caDefaultExpireYears, caKeyPair);
 
             // Dumping CA Certificate to HDD, so other clients can install it
             log.info("Writing CA to disk");
@@ -180,6 +183,11 @@ public class Main {
         if (!Files.exists(intermediateKeyStorePath)){
             log.info("Loading Root CA Keypair");
             caKeyPair = KeyStoreUtils.loadFromPKCS12(caKeyStorePath,caKeyStorePassword,caKeyStoreAlias).getKeyPair();
+            String caPEM = new String(Files.readAllBytes(caPath));
+            caPEM = caPEM.replaceAll("-----(BEGIN|END) CERTIFICATE-----", "").replaceAll("\n", "");
+            caCertificateBytes = Base64.getDecoder().decode(caPEM.getBytes("UTF-8"));
+
+
 
             // *****************************************
             // Create Intermediate Certificate
@@ -227,11 +235,11 @@ public class Main {
 
 
        log.info("Loading certificates");
-       KeyStoreFileContent keyStoreContents = KeyStoreUtils.loadFromPKCS12(intermediateKeyStorePath,acmeServerKeyStorePassword, intermediateKeyStoreAlias);
+       KeyStoreFileContent intermediateKeyStoreContents = KeyStoreUtils.loadFromPKCS12(intermediateKeyStorePath,intermediateKeyStorePassword, intermediateKeyStoreAlias);
        log.info("Loading intermediate Key Pair");
-       intermediateKeyPair =keyStoreContents.getKeyPair();
+       intermediateKeyPair =intermediateKeyStoreContents.getKeyPair();
        log.info("Loading intermediate Certificate");
-       intermediateCertificate = keyStoreContents.getCert();
+       intermediateCertificate = intermediateKeyStoreContents.getCert();
 
 
 
