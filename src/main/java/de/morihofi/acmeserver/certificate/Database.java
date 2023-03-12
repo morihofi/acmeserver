@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 
 public class Database {
 
-    public static Logger log = LogManager.getLogger(Database.class);
+    public static final Logger log = LogManager.getLogger(Database.class);
 
     public static Connection getDatabaseConnection() throws SQLException {
         return DriverManager.getConnection(
@@ -149,7 +149,7 @@ public class Database {
                 String value = rs.getString("value");
                 String authorizationToken = rs.getString("authorizationtoken");
                 String challengeId = rs.getString("challengeid");
-                Boolean verified = rs.getBoolean("verified");
+                boolean verified = rs.getBoolean("verified");
                 Date validationDate = rs.getTimestamp("verifiedtime");
                 // String challengeType = rs.getString("challengetype");
 
@@ -191,7 +191,7 @@ public class Database {
                 String authorizationToken = rs.getString("authorizationtoken");
                 String authorizationId = rs.getString("authorizationid");
                 String challengeId = rs.getString("challengeid");
-                Boolean verified = rs.getBoolean("verified");
+                boolean verified = rs.getBoolean("verified");
                 Date validationDate = rs.getTimestamp("verifiedtime");
                 // String challengeType = rs.getString("challengetype");
 
@@ -343,7 +343,7 @@ public class Database {
                 String certificatePEM = rs.getString("certificatepem");
 
 
-                log.info("Getting Certificate for authorization Id \"" + authorizationId + "\"");
+                log.info("Getting Certificate for authorization Id \"" + authorizationId + "\" -> Expires at " + certificateExpires.toString());
 
                 pemBuilder.append(certificatePEM);
 

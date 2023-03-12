@@ -23,7 +23,7 @@ import java.util.Properties;
 
 public class Main {
 
-    public static Logger log = LogManager.getLogger(Main.class);
+    public static final Logger log = LogManager.getLogger(Main.class);
 
     public static KeyPair intermediateKeyPair;
     public static X509Certificate intermediateCertificate;

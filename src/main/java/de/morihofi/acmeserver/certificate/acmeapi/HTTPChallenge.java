@@ -11,7 +11,7 @@ import java.net.HttpURLConnection;
 
 public class HTTPChallenge {
 
-    public static Logger log = LogManager.getLogger(HTTPChallenge.class);
+    public static final Logger log = LogManager.getLogger(HTTPChallenge.class);
     private static final OkHttpClient httpClient = new OkHttpClient();
 
     private static final String USER_AGENT = "Mozilla/5.0 ACMEServer Java/" + System.getProperty("java.version");

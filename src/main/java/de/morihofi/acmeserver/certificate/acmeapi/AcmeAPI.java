@@ -23,7 +23,7 @@ import java.util.Date;
 import java.util.UUID;
 
 public class AcmeAPI {
-    public static Logger log = LogManager.getLogger(Database.class);
+    public static final Logger log = LogManager.getLogger(Database.class);
 
     public static Route newNonce = (request, response) -> {
 

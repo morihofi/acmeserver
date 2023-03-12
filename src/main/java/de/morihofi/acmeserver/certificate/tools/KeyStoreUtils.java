@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 public class KeyStoreUtils {
 
-    public static Logger log = LogManager.getLogger(KeyStoreUtils.class);
+    public static final Logger log = LogManager.getLogger(KeyStoreUtils.class);
 
 
     public static void saveAsPKCS12(KeyPair keyPair, String password, String alias, byte[] certificate, Path targetLocation) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
