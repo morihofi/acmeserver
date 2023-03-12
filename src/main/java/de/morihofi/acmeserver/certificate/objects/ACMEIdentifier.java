@@ -7,7 +7,7 @@ public class ACMEIdentifier {
     public enum VERIFIED_TYPE {
         NOT_VERIFIED(0), VERIFIED(1), VERIFY_FAILED(2);
 
-        private int dbValue;
+        private final int dbValue;
         VERIFIED_TYPE(int i) {
             dbValue = 1;
         }

@@ -54,9 +54,9 @@ public class JWSTestSignExample {
         String headerJson = header.toString();
 
         // Encode the header and payload as Base64Url strings
-        String encodedHeader = Base64.toBase64String(headerJson.getBytes("UTF-8"))
+        String encodedHeader = Base64.toBase64String(headerJson.getBytes(StandardCharsets.UTF_8))
                 .replace("+", "-").replace("/", "_").replace("=", "");
-        String encodedPayload = Base64.toBase64String(payloadJson.getBytes("UTF-8"))
+        String encodedPayload = Base64.toBase64String(payloadJson.getBytes(StandardCharsets.UTF_8))
                 .replace("+", "-").replace("/", "_").replace("=", "");
 
         // Compute the JWS signature
@@ -85,7 +85,7 @@ public class JWSTestSignExample {
     private static byte[] computeRSASignature(PrivateKey privateKey, String message) throws Exception {
         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.ENCRYPT_MODE, privateKey);
-        byte[] messageBytes = message.getBytes("UTF-8");
+        byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
         byte[] signatureBytes = cipher.doFinal(messageBytes);
         return signatureBytes;
     }

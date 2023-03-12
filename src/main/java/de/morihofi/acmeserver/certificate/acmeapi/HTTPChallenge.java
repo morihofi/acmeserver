@@ -18,7 +18,7 @@ import java.net.URL;
 public class HTTPChallenge {
 
     public static Logger log = LogManager.getLogger(HTTPChallenge.class);
-    private static OkHttpClient httpClient = new OkHttpClient();
+    private static final OkHttpClient httpClient = new OkHttpClient();
 
     private static final String USER_AGENT = "Mozilla/5.0 ACMEServer Java/" + System.getProperty("java.version");
     public static boolean check(String expectedAuthTokenId, String expectedAuthTokenValue, String host){

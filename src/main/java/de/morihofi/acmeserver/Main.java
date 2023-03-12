@@ -14,6 +14,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import spark.Spark;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,7 +38,7 @@ public class Main {
     public static String db_name;
     public static String db_host;
 
-    static enum STARTUP_MODE {
+    enum STARTUP_MODE {
         SERVER, FIRSTRUN
     }
 
@@ -111,7 +112,7 @@ public class Main {
         }
         Path configPath = filesDir.resolve("settings.properties");
         if (!Files.exists(configPath)) {
-            log.fatal("No configuration was found. Please create a file called \"settings.properties\" in \"" + filesDir.toAbsolutePath().toString() + "\". Then try again");
+            log.fatal("No configuration was found. Please create a file called \"settings.properties\" in \"" + filesDir.toAbsolutePath() + "\". Then try again");
             System.exit(1);
         }
 
@@ -219,7 +220,7 @@ public class Main {
             caKeyPair = KeyStoreUtils.loadFromPKCS12(caKeyStorePath,caKeyStorePassword,caKeyStoreAlias).getKeyPair();
             String caPEM = new String(Files.readAllBytes(caPath));
             caPEM = caPEM.replaceAll("-----(BEGIN|END) CERTIFICATE-----", "").replaceAll("\n", "");
-            caCertificateBytes = Base64.getDecoder().decode(caPEM.getBytes("UTF-8"));
+            caCertificateBytes = Base64.getDecoder().decode(caPEM.getBytes(StandardCharsets.UTF_8));
 
 
 

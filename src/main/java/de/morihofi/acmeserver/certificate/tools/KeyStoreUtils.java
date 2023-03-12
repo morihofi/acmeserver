@@ -45,7 +45,7 @@ public class KeyStoreUtils {
         X509Certificate[] certificateChain = chain.toArray(new X509Certificate[0]);
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
         keyStore.load(null, keystorePassword); // Neuen, leeren KeyStore erstellen
-        keyStore.setKeyEntry(keyAlias, (Key) keyPair.getPrivate(), keystorePassword, certificateChain);
+        keyStore.setKeyEntry(keyAlias, keyPair.getPrivate(), keystorePassword, certificateChain);
         keyStore.store(Files.newOutputStream(targetLocation), keystorePassword);
     }
 
