@@ -1,7 +1,9 @@
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" href="css/water.css">
+        <title>ACME Server</title>
     </head>
     <body>
         <h1>🥳 ACME Server is running!</h1>
@@ -11,5 +13,34 @@
         ➡️ <a href="/gethttpsforfree/">Create a ACME Certificate through GetHTTPSForFree UI</a><br>
         ➡️ <a href="/directory">Go to ACME /directory Endpoint</a><br>
 
+        <hr>
+        <h2>💡 Server Info</h2>
+        <b>ℹ️ Version: </b><label id="version">...</label><br>
+        <b>⌚ Build at: </b><label id="buildtime">...</label><br>
+        <b>📝 Git Commit: </b><label id="gitcommit">...</label><br>
+
+        <script>
+          var xhttp = new XMLHttpRequest();
+          xhttp.onload = function() {
+
+            if(this.readyState == 4){
+
+                //Parse JSON
+                var responseJSON = JSON.parse(this.responseText);
+
+                document.getElementById("version").innerHTML    = responseJSON.version;
+                document.getElementById("buildtime").innerHTML  = responseJSON.buildtime;
+                document.getElementById("gitcommit").innerHTML  = responseJSON.gitcommit;
+            }
+
+
+          }
+          xhttp.open("GET", "/serverinfo");
+          xhttp.send();
+        </script>
+        <noscript>
+            <b>JavaScript is disabled</b><br>
+            Please activate JavaScript to display server information!
+        </noscript>
     </body>
 </html>

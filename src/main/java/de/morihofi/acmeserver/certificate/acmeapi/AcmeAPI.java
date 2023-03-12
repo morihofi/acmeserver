@@ -10,6 +10,7 @@ import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.util.PublicKeyFactory;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.util.io.pem.PemObject;
+import org.eclipse.jetty.util.ajax.JSON;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import spark.Route;
@@ -472,10 +473,32 @@ public class AcmeAPI {
         return responseCertificateChain;
 
     };
+
+    /**
+     * Download CA Certificate Endpoint
+     * <p>
+     * URL: /ca.crt
+     */
     public static Route downloadCA = (request, response) -> {
         response.header("Content-Type", "application/x-x509-ca-cert");
 
         return new String(Files.readAllBytes(Main.caPath));
+    };
+    /**
+     * Return Server Info Endpoint
+     * <p>
+     * URL: /serverinfo
+     */
+    public static Route serverInfo = (request, response) -> {
+
+        response.header("Content-Type","application/json");
+
+        JSONObject returnObj = new JSONObject();
+        returnObj.put("version",Main.buildMetadataVersion);
+        returnObj.put("buildtime",Main.buildMetadataBuildTime);
+        returnObj.put("gitcommit",Main.buildMetadataGitCommit);
+
+        return returnObj.toString();
     };
 
 

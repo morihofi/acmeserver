@@ -81,8 +81,13 @@ public class Main {
     public static int acmeCertificatesExpireMonths = 1;
     public static int acmeCertificatesExpireYears = 1;
 
-
     public static Properties properties = new Properties();
+
+    //Build Metadata
+    public static String buildMetadataVersion = null;
+    public static String buildMetadataBuildTime = null;
+    public static String buildMetadataGitCommit = null;
+
 
     public static void main(String[] args) throws Exception {
 
@@ -152,8 +157,25 @@ public class Main {
         acmeCertificatesExpireDays = Integer.parseInt(properties.getProperty("acme.clientcert.expire.days"));
         acmeCertificatesExpireMonths = Integer.parseInt(properties.getProperty("acme.clientcert.expire.months"));
         acmeCertificatesExpireYears = Integer.parseInt(properties.getProperty("acme.clientcert.expire.years"));
-
         log.info("Settings have been successfully loaded");
+
+        //Loading Build Metadata
+
+        try {
+            Properties buildMetadataProperties = new Properties();
+            buildMetadataProperties.load(Main.class.getResourceAsStream("/build.properties"));
+            buildMetadataVersion = buildMetadataProperties.getProperty("build.version");
+            buildMetadataBuildTime = buildMetadataProperties.getProperty("build.date") + " UTC";
+        }catch (Exception e){
+            log.error("Unable to load build metadata",e);
+        }
+        try {
+            Properties gitMetadataProperties = new Properties();
+            gitMetadataProperties.load(Main.class.getResourceAsStream("/git.properties"));
+            buildMetadataGitCommit = gitMetadataProperties.getProperty("git.commit.id.full");
+        }catch (Exception e){
+            log.error("Unable to load git metadata",e);
+        }
 
 
         //Register Bouncy Castle Provider
@@ -277,8 +299,9 @@ public class Main {
            log.info("API Call [" + request.requestMethod() + "] " + request.raw().getPathInfo());
         });
 
-        // TODO: Download CA Endpoint
+        // Download CA Endpoint
         Spark.get("/ca.crt", AcmeAPI.downloadCA);
+        Spark.get("/serverinfo", AcmeAPI.serverInfo);
 
         Spark.get("/directory", AcmeAPI.directoryEndpoint);
 
