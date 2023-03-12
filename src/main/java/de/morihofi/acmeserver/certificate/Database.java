@@ -25,11 +25,6 @@ public class Database {
     public static Logger log = LogManager.getLogger(Database.class);
 
     public static Connection getDatabaseConnection() throws SQLException {
-        String host = "138.201.116.45:3306";
-        String database = "acmeserver";
-        String user = "root";
-        String password = "empty";
-
         return DriverManager.getConnection(
                 "jdbc:mariadb://" + Main.db_host + "/" + Main.db_name, Main.db_user, Main.db_password);
     }
