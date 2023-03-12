@@ -233,8 +233,11 @@ public class Main {
             KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, intermediateKeyStoreAlias, intermediateCertificate.getEncoded(), intermediateKeyStorePath);
 
             //Unset, we don't need it anymore. Why should we keep it in memory?
-            log.debug("Unset Root CA Key Pair");
+            log.debug("Unset Root CA informations");
             caKeyPair = null;
+            caKeyStorePassword = null;
+            caRSAKeyPairSize = 0;
+            caKeyStoreAlias = null;
 
             //(Old) ACME API Server Certificate is no longer valid, due to new Intermediate CA
             if (Files.exists(acmeServerKeyStorePath)){
