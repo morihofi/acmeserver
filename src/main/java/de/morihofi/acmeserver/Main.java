@@ -1,9 +1,6 @@
 package de.morihofi.acmeserver;
 
 import de.morihofi.acmeserver.certificate.Database;
-import de.morihofi.acmeserver.certificate.JWSTestSignExample;
-import de.morihofi.acmeserver.certificate.SendMail;
-import de.morihofi.acmeserver.certificate.tools.Base64Tools;
 import de.morihofi.acmeserver.certificate.tools.CertTools;
 import de.morihofi.acmeserver.certificate.tools.KeyStoreUtils;
 import de.morihofi.acmeserver.certificate.acmeapi.AcmeAPI;
@@ -22,7 +19,6 @@ import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
-import java.util.Comparator;
 import java.util.Properties;
 
 public class Main {
