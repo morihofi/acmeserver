@@ -1,19 +1,13 @@
 package de.morihofi.acmeserver.certificate.acmeapi;
 
-import de.morihofi.acmeserver.certificate.Database;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
 
 public class HTTPChallenge {
 
@@ -33,7 +27,9 @@ public class HTTPChallenge {
                     .url("http://" + host + "/.well-known/acme-challenge/" + expectedAuthTokenId)
                     .header("User-Agent", USER_AGENT)
                     .build();
-            log.debug("Performing GET request to \"" + request.url() + "\"");
+            if(log.isDebugEnabled()){
+                log.debug("Performing GET request to \"" + request.url() + "\"");
+            }
 
             Response response = httpClient.newCall(request).execute();
 

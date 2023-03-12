@@ -19,7 +19,7 @@ public class Crypto {
             SecureRandom prng = SecureRandom.getInstance("SHA1PRNG");
             String randomNum = String.valueOf(prng.nextInt());
 
-            MessageDigest sha = MessageDigest.getInstance("SHA-1");
+            MessageDigest sha = MessageDigest.getInstance("SHA-256");
             byte[] result = sha.digest(randomNum.getBytes());
             nonce = hexEncode(result);
         } catch (Exception e) {

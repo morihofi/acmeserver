@@ -109,9 +109,11 @@ public class CertTools {
 
         StringBuilder builder = new StringBuilder();
 
-        builder.append(X509Factory.BEGIN_CERT + "\n");
+        builder.append(X509Factory.BEGIN_CERT);
+        builder.append("\n");
         builder.append(encoder.encodeBuffer(certificate).replace("\r\n", "\n"));
-        builder.append(X509Factory.END_CERT + "\n");
+        builder.append(X509Factory.END_CERT);
+        builder.append("\n");
 
         return builder.toString();
     }

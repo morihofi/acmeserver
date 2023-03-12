@@ -1,7 +1,8 @@
 package de.morihofi.acmeserver.certificate.tools;
 
 import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;
-import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -15,6 +16,10 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 
 public class KeyStoreUtils {
+
+    public static Logger log = LogManager.getLogger(KeyStoreUtils.class);
+
+
     public static void saveAsPKCS12(KeyPair keyPair, String password, String alias, byte[] certificate, Path targetLocation) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         // Erzeuge ein KeyStore-Objekt und füge das KeyPair und das Zertifikat hinzu
         char[] passwordCharArr = password.toCharArray();
@@ -80,13 +85,13 @@ public class KeyStoreUtils {
             dos.write(publicKey.getEncoded());
             dos.flush();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("An exception was thrown",e);
         } finally {
             if (dos != null) {
                 try {
                     dos.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("Unable to close DataOutputStream",e);
                 }
             }
 
@@ -97,13 +102,13 @@ public class KeyStoreUtils {
             dos.write(privateKey.getEncoded());
             dos.flush();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("An exception was thrown",e);
         } finally {
             if (dos != null)
                 try {
                     dos.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("Unable to close DataOutputStream",e);
                 }
         }
     }

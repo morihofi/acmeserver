@@ -1,22 +1,18 @@
 package de.morihofi.acmeserver.certificate;
 
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.acmeapi.AcmeAPI;
 import de.morihofi.acmeserver.certificate.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.certificate.tools.CertTools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.checkerframework.checker.units.qual.A;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.cert.CertificateEncodingException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -41,6 +37,9 @@ public class Database {
         while (rs.next()) {
             dbVersion = rs.getString("version");
         }
+
+        ps.close();
+        conn.close();
 
         return dbVersion;
 
