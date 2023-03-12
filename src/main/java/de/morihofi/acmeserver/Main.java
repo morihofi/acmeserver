@@ -233,7 +233,7 @@ public class Main {
             KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, intermediateKeyStoreAlias, intermediateCertificate.getEncoded(), intermediateKeyStorePath);
 
             //Unset, we don't need it anymore. Why should we keep it in memory?
-            log.debug("Unset Root CA informations");
+            log.debug("Unset Root CA information");
             caKeyPair = null;
             caKeyStorePassword = null;
             caRSAKeyPairSize = 0;
