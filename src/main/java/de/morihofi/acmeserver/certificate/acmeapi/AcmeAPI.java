@@ -116,7 +116,7 @@ public class AcmeAPI {
             log.error("Too many domains requested. Only one per order is currently supported");
             response.header("Content-Type", "application/problem+json");
             JSONObject resObj = new JSONObject();
-            resObj.put("type", "urn:ietf:params:acme:error:malformed");
+            resObj.put("type", "urn:ietf:params:acme:error:rejectedIdentifier");
             resObj.put("detail", "Too many domains requested. Only one per order is currently supported");
             Spark.halt(HttpURLConnection.HTTP_BAD_REQUEST, resObj.toString());
         }
@@ -539,6 +539,15 @@ public class AcmeAPI {
         JSONObject reqBodyProtectedObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("protected")));
 
         boolean reqPayloadTermsOfServiceAgreed = reqBodyPayloadObj.getBoolean("termsOfServiceAgreed");
+
+        if(!reqPayloadTermsOfServiceAgreed){
+            log.error("Throwing API error: Terms of Service not accepted");
+            response.header("Content-Type", "application/problem+json");
+            JSONObject resObj = new JSONObject();
+            resObj.put("type", "urn:ietf:params:acme:error:malformed");
+            resObj.put("detail", "Terms of Service not accepted. Unable to create account.");
+            Spark.halt(HttpURLConnection.HTTP_FORBIDDEN, resObj.toString());
+        }
         String reqPayloadContactEmail = "";
         // Has email? (This can be updated later)
         if (reqBodyPayloadObj.has("contact")) {
