@@ -58,6 +58,7 @@ public class Database {
             ps.setString(5, email);
 
             ps.execute();
+            ps.close();
             log.info("New ACME account created with account id \"" + accountId + "\"");
 
         } catch (SQLException e) {
@@ -82,6 +83,7 @@ public class Database {
             ps.setString(3, challengeId);
 
             ps.execute();
+            ps.close();
             log.info("ACME challenge with id \"" + challengeId + "\" was marked as passed");
 
         } catch (SQLException e) {
@@ -120,6 +122,8 @@ public class Database {
                 identifier = new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR,certificateIssued,certificateExpires);
 
             }
+            rs.close();
+            ps.close();
 
         } catch (SQLException e) {
             log.error("Unable get ACME identifiers for challenge id \"" + challengeId + "\"",e);
@@ -158,6 +162,8 @@ public class Database {
 
                 identifier = new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR,certificateIssued,certificateExpires);
             }
+            rs.close();
+            ps.close();
 
         } catch (SQLException e) {
             log.error("Unable get ACME identifiers for autorization id \"" + authorizationId + "\"",e);
@@ -199,6 +205,8 @@ public class Database {
 
                 identifiers.add(new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR,certificateIssued,certificateExpires));
             }
+            rs.close();
+            ps.close();
 
         } catch (SQLException e) {
             log.error("Unable get ACME identifiers for order id \"" + orderId + "\"",e);
@@ -246,8 +254,11 @@ public class Database {
                 psOrderIdentifiers.execute();
                 log.info("Added identifier \"" + identifier.getValue() + "\" of type \"" + identifier.getType() + "\" to order \"" + orderId + "\"");
 
+                psOrderIdentifiers.close();
 
             }
+
+            psOrder.close();
 
 
         } catch (SQLException e) {
@@ -268,6 +279,8 @@ public class Database {
 
             ps.execute();
             log.info("ACME account \"" + accountId + "\" updated email to \"" + email + "\"");
+
+            ps.close();
 
         } catch (SQLException e) {
             log.error("Unable to update email for account \"" + accountId + "\"", e);
@@ -299,6 +312,7 @@ public class Database {
             ps.setString(6,dnsValue);
 
             ps.execute();
+            ps.close();
             log.info("Stored certificate successful");
 
         } catch (SQLException e) {
@@ -334,6 +348,8 @@ public class Database {
                 pemBuilder.append(certificatePEM);
 
             }
+            rs.close();
+            ps.close();
 
         } catch (SQLException e) {
             log.error("Unable get Certificate for authorization id \"" + authorizationId + "\"",e);
