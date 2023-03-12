@@ -349,7 +349,7 @@ public class AcmeAPI {
                 //RSAKeyParameters pubKey = (RSAKeyParameters) PublicKeyFactory.createKey(csrObj.getSubjectPublicKeyInfo());
 
                 log.info("Creating Certificate for order \"" + orderId + "\" with DNS Name \"" + identifier.getValue() + "\"");
-                X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(Main.intermediateKeyPair, Main.intermediateCertificate.getEncoded(), pkPemObject.getContent(), new String[]{identifier.getValue()}, 14, 0, 0);
+                X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(Main.intermediateKeyPair, Main.intermediateCertificate.getEncoded(), pkPemObject.getContent(), new String[]{identifier.getValue()}, Main.acmeCertificatesExpireDays, Main.acmeCertificatesExpireMonths, Main.acmeCertificatesExpireYears);
 
                 String pemCertificate = CertTools.certificateToPEM(acmeGeneratedCertificate.getEncoded());
 
@@ -455,7 +455,7 @@ public class AcmeAPI {
     };
 
     /**
-     * Certificate of order (last step in certbot)
+     * Get certificate of order (last step in certbot)
      * URL: /order/orderid123/cert
      */
     public static Route orderCert = (request, response) -> {

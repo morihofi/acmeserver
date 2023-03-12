@@ -87,6 +87,11 @@ public class Main {
     public static String emailSMTPPassword = "";
     public static String acmeAdminEmail = "";
 
+    //ACME client created certificates
+    public static int acmeCertificatesExpireDays = 1;
+    public static int acmeCertificatesExpireMonths = 1;
+    public static int acmeCertificatesExpireYears = 1;
+
 
     public static Properties properties = new Properties();
 
@@ -99,8 +104,20 @@ public class Main {
                 "/_/   \\_\\___|_| |_| |_|\\___|____/ \\___|_|    \\_/ \\___|_|   \n");
 
 
+        //Detect first run
+        if (!Files.exists(filesDir)) {
+            log.info("First run detected, creating settings directory");
+            Files.createDirectories(filesDir);
+        }
+        Path configPath = filesDir.resolve("settings.properties");
+        if (!Files.exists(configPath)) {
+            log.fatal("No configuration was found. Please create a file called \"settings.properties\" in \"" + filesDir.toAbsolutePath().toString() + "\". Then try again");
+            System.exit(1);
+        }
+
+
         log.info("Loading settings config into memory");
-        properties.load(Files.newInputStream(filesDir.resolve("settings.properties")));
+        properties.load(Files.newInputStream(configPath));
         log.info("Apply settings config");
         //Set DNS Name of this Server
         acmeThisServerDNSName = properties.getProperty("acme.server.dnsname");
@@ -142,8 +159,10 @@ public class Main {
         emailSMTPServer = properties.getProperty("email.smtp.server");
         emailSMTPEncryption = properties.getProperty("email.smtp.encryption");
         acmeAdminEmail = properties.getProperty("email.targetemail");
-
-
+        // ACME created Certificates
+        acmeCertificatesExpireDays = Integer.parseInt(properties.getProperty("acme.clientcert.expire.days"));
+        acmeCertificatesExpireMonths = Integer.parseInt(properties.getProperty("acme.clientcert.expire.months"));
+        acmeCertificatesExpireYears = Integer.parseInt(properties.getProperty("acme.clientcert.expire.years"));
 
         log.info("Settings have been successfully loaded");
 
@@ -171,12 +190,9 @@ public class Main {
         }
 */
 
-        //Detect first run
-        if (!Files.exists(filesDir)) {
-            log.info("First run detected, settings things up");
-            Files.createDirectories(filesDir);
 
-        }
+
+
         if(!Files.exists(caPath) || !Files.exists(caKeyStorePath)){
             // Create CA
             log.info("Generating RSA " + caRSAKeyPairSize + "bit Key Pair for CA");
