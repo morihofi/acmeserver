@@ -15,9 +15,10 @@
 
         <hr>
         <h2>💡 Server Info</h2>
-        <b>ℹ️ Version: </b><label id="version">...</label><br>
+        <b>ℹ️ Server Version: </b><label id="version">...</label><br>
         <b>⌚ Build at: </b><label id="buildtime">...</label><br>
         <b>📝 Git Commit: </b><label id="gitcommit">...</label><br>
+        <b>☕ Java Version: </b><label id="javaversion">...</label><br>
 
         <script>
           var xhttp = new XMLHttpRequest();
@@ -31,6 +32,7 @@
                 document.getElementById("version").innerHTML    = responseJSON.version;
                 document.getElementById("buildtime").innerHTML  = responseJSON.buildtime;
                 document.getElementById("gitcommit").innerHTML  = responseJSON.gitcommit;
+                document.getElementById("javaversion").innerHTML  = responseJSON.javaversion;
             }
 
 
