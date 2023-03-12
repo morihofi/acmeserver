@@ -548,6 +548,7 @@ public class AcmeAPI {
             resObj.put("detail", "Terms of Service not accepted. Unable to create account.");
             Spark.halt(HttpURLConnection.HTTP_FORBIDDEN, resObj.toString());
         }
+
         String reqPayloadContactEmail = "";
         // Has email? (This can be updated later)
         if (reqBodyPayloadObj.has("contact")) {

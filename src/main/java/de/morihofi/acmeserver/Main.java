@@ -34,10 +34,6 @@ public class Main {
     public static String db_name;
     public static String db_host;
 
-    enum STARTUP_MODE {
-        SERVER, FIRSTRUN
-    }
-
     public static Path filesDir = Paths.get("serverdata").toAbsolutePath();
 
     //ACME SERVER Certificate
@@ -71,10 +67,6 @@ public class Main {
     public static String acmeMetaTermsOfService = "";
     public static String acmeThisServerDNSName = "";
     public static int acmeThisServerAPIPort = 7443;
-
-    //ACME Signature
-    public static KeyPair acmeSignatureKeyPair;
-    public static Path acmeSignatureKeyPairPath = filesDir.resolve("acme-signature");
 
     //E-Mail SMTP
     public static int emailSMTPPort = 587;
@@ -254,12 +246,6 @@ public class Main {
             KeyStoreUtils.saveAsPKCS12KeyChain(acmeAPIKeyPair, acmeServerKeyStorePassword, "server", new byte[][]{acmeAPICertificate.getEncoded(), intermediateCertificate.getEncoded()}, acmeServerKeyStorePath);
 
 
-           // *****************************************
-           log.info("Generating RSA Keypair for ACME Signature");
-           acmeSignatureKeyPair = CertTools.generateRSAKeyPair(acmeServerRSAKeyPairSize);
-           log.info("Saving ACME Signature Keypair to Disk");
-
-           KeyStoreUtils.saveRSAKeyPairToDirectory(acmeSignatureKeyPair,acmeSignatureKeyPairPath);
 
        }
 
