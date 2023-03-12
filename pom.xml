@@ -65,7 +65,7 @@
 
                 </executions>
                 <configuration>
-                    <dotGitDirectory>${project.basedir}/../.git</dotGitDirectory>
+                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
                     <!--
                     <prefix>git</prefix>
 
@@ -81,7 +81,27 @@
                     <commitIdGenerationMode>full</commitIdGenerationMode>
                 </configuration>
             </plugin>
+
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>de.morihofi.acmeserver.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+
         </plugins>
+
     </build>
 
     <dependencies>
@@ -102,6 +122,12 @@
             <artifactId>bcpkix-jdk15on</artifactId>
             <version>1.69</version>
         </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.69</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
