@@ -61,27 +61,42 @@ public class AcmeAPI {
 
         //TODO: Check signature
 
+        //Check if account exists
+        ACMEAccount account = Database.getAccount(accountId);
+        if (account == null) {
+            log.error("Throwing API error: Account \"" + accountId + "\" not found found");
+            response.header("Content-Type", "application/problem+json");
+            JSONObject resObj = new JSONObject();
+            resObj.put("type", "urn:ietf:params:acme:error:accountDoesNotExist");
+            resObj.put("detail", "The account id was not found");
+            Spark.halt(HttpURLConnection.HTTP_NOT_FOUND, resObj.toString());
+        }
+
 
         // Update Account Settings, e.g. E-Mail change
-
+        log.error("Update account settings for account \"" + accountId + "\n");
         if (reqBodyPayloadObj.has("contact")) {
-            String contactEmail = reqBodyPayloadObj.getJSONArray("contact").getString(0);
-            contactEmail = contactEmail.replace("mailto:", "");
+
+            if (reqBodyPayloadObj.getJSONArray("contact").length() != 0) {
+
+                String contactEmail = reqBodyPayloadObj.getJSONArray("contact").getString(0);
+                contactEmail = contactEmail.replace("mailto:", "");
 
 
+                if (!RegexTools.isValidEmail(contactEmail) || contactEmail.split("\\@")[1].equals("localhost")) {
+                    log.error("E-Mail validation failed for email \"" + contactEmail + "\n");
+                    response.header("Content-Type", "application/problem+json");
+                    JSONObject resObj = new JSONObject();
+                    resObj.put("type", "urn:ietf:params:acme:error:invalidContact");
+                    resObj.put("detail", "E-Mail address is invalid");
+                    Spark.halt(HttpURLConnection.HTTP_FORBIDDEN, resObj.toString());
+                }
+                log.info("E-Mail validation successful for email \"" + contactEmail + "\n");
 
-            if (!RegexTools.isValidEmail(contactEmail) || contactEmail.split("\\@")[1].equals("localhost")){
-                log.error("E-Mail validation failed for email \"" + contactEmail + "\n");
-                response.header("Content-Type", "application/problem+json");
-                JSONObject resObj = new JSONObject();
-                resObj.put("type", "urn:ietf:params:acme:error:invalidContact");
-                resObj.put("detail", "E-Mail address is invalid");
-                Spark.halt(HttpURLConnection.HTTP_FORBIDDEN, resObj.toString());
+                //Update Contact Email
+                Database.updateAccountEmail(accountId, contactEmail);
+
             }
-            log.info("E-Mail validation successful for email \"" + contactEmail + "\n");
-
-            //Update Contact Email
-            Database.updateAccountEmail(accountId, contactEmail);
         }
 
 
@@ -114,7 +129,7 @@ public class AcmeAPI {
         ArrayList<ACMEIdentifier> acmeIdentifiers = new ArrayList<>();
 
         //Currently only one DNS entry is supported
-        if (identifiersArr.length() != 1){
+        if (identifiersArr.length() != 1) {
             //Throw unsupported error
             log.error("Too many domains requested. Only one per order is currently supported");
             response.header("Content-Type", "application/problem+json");
@@ -144,8 +159,8 @@ public class AcmeAPI {
 
         //Check if account exists
         ACMEAccount account = Database.getAccount(accountId);
-        if(account == null){
-            log.error("Throwing API error: Account not \"" + accountId + "\" found");
+        if (account == null) {
+            log.error("Throwing API error: Account \"" + accountId + "\" not found");
             response.header("Content-Type", "application/problem+json");
             JSONObject resObj = new JSONObject();
             resObj.put("type", "urn:ietf:params:acme:error:accountDoesNotExist");
@@ -153,6 +168,14 @@ public class AcmeAPI {
             Spark.halt(HttpURLConnection.HTTP_NOT_FOUND, resObj.toString());
         }
 
+        if (account.getEmail().equals("") || !RegexTools.isValidEmail(account.getEmail())) {
+            log.error("Throwing API error: Account \"" + accountId + "\" doesn't have an valid E-Mail address");
+            response.header("Content-Type", "application/problem+json");
+            JSONObject resObj = new JSONObject();
+            resObj.put("type", "urn:ietf:params:acme:error:invalidContact");
+            resObj.put("detail", "The account doesn't have an valid E-Mail address. Please set an E-Mail address and try again.");
+            Spark.halt(HttpURLConnection.HTTP_NOT_FOUND, resObj.toString());
+        }
 
 
         JSONArray respIdentifiersArr = new JSONArray();
@@ -161,9 +184,21 @@ public class AcmeAPI {
         ArrayList<ACMEIdentifier> acmeIdentifiersWithAuthorizationData = new ArrayList<>();
 
         for (ACMEIdentifier identifier : acmeIdentifiers) {
+
+            if (!identifier.getType().equals("dns")) {
+                log.error("Throwing API error: Unknown identifier type \"" + accountId + "\" for value \"" + identifier.getValue() + "\"");
+                response.header("Content-Type", "application/problem+json");
+                JSONObject resObj = new JSONObject();
+                resObj.put("type", "urn:ietf:params:acme:error:invalidContact");
+                resObj.put("detail", "Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getValue() + "\"");
+                Spark.halt(HttpURLConnection.HTTP_NOT_FOUND, resObj.toString());
+            }
+
             JSONObject identifierObj = new JSONObject();
             identifierObj.put("type", identifier.getType());
             identifierObj.put("value", identifier.getValue());
+
+
             respIdentifiersArr.put(identifierObj);
 
             // Unique value for each domain
@@ -192,11 +227,10 @@ public class AcmeAPI {
 
         //Send E-Mail if order was created
         try {
-            SendMail.sendMail(account.getEmail(),"New ACME order created","Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeIdentifiers.get(0).getValue() + "</i> was created.");
-        }catch (Exception ex){
+            SendMail.sendMail(account.getEmail(), "New ACME order created", "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeIdentifiers.get(0).getValue() + "</i> was created.");
+        } catch (Exception ex) {
             log.error("Unable to send email", ex);
         }
-
 
 
         //TODO: Set better Date/Time
@@ -235,7 +269,7 @@ public class AcmeAPI {
         ACMEIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
 
         //Not found
-        if(identifier == null){
+        if (identifier == null) {
             log.error("Throwing API error: Host verification failed");
             response.header("Content-Type", "application/problem+json");
             JSONObject resObj = new JSONObject();
@@ -294,10 +328,10 @@ public class AcmeAPI {
         //heck if challenge is valid
         ACMEIdentifier identifier = Database.getACMEIdentifierByChallengeId(challengeId);
         log.info("Validating ownership of host \"" + identifier.getValue() + "\"");
-        if(HTTPChallenge.check(challengeId, identifier.getAuthorizationToken(), identifier.getValue())){
+        if (HTTPChallenge.check(challengeId, identifier.getAuthorizationToken(), identifier.getValue())) {
             //mark challenge has passed
             Database.passChallenge(challengeId);
-        }else {
+        } else {
             log.error("Throwing API error: Host verification failed");
             response.header("Content-Type", "application/problem+json");
             JSONObject resObj = new JSONObject();
@@ -367,42 +401,41 @@ public class AcmeAPI {
         try {
 
 
-                byte[] csrBytes = CertTools.decodeBase64URLAsBytes(csr);
-                PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
-                PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
-                //RSAKeyParameters pubKey = (RSAKeyParameters) PublicKeyFactory.createKey(csrObj.getSubjectPublicKeyInfo());
+            byte[] csrBytes = CertTools.decodeBase64URLAsBytes(csr);
+            PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
+            PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
+            //RSAKeyParameters pubKey = (RSAKeyParameters) PublicKeyFactory.createKey(csrObj.getSubjectPublicKeyInfo());
 
-                log.info("Creating Certificate for order \"" + orderId + "\" with DNS Name \"" + identifier.getValue() + "\"");
-                X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(Main.intermediateKeyPair, Main.intermediateCertificate.getEncoded(), pkPemObject.getContent(), new String[]{identifier.getValue()}, Main.acmeCertificatesExpireDays, Main.acmeCertificatesExpireMonths, Main.acmeCertificatesExpireYears);
+            log.info("Creating Certificate for order \"" + orderId + "\" with DNS Name \"" + identifier.getValue() + "\"");
+            X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(Main.intermediateKeyPair, Main.intermediateCertificate.getEncoded(), pkPemObject.getContent(), new String[]{identifier.getValue()}, Main.acmeCertificatesExpireDays, Main.acmeCertificatesExpireMonths, Main.acmeCertificatesExpireYears);
 
-                String pemCertificate = CertTools.certificateToPEM(acmeGeneratedCertificate.getEncoded());
+            String pemCertificate = CertTools.certificateToPEM(acmeGeneratedCertificate.getEncoded());
 
-                Date expireDate = acmeGeneratedCertificate.getNotAfter();
-                Date issueDate = acmeGeneratedCertificate.getNotBefore();
-
-
-                Database.storeCertificateInDatabase(orderId, identifier.getValue(), csr, pemCertificate, issueDate, expireDate);
+            Date expireDate = acmeGeneratedCertificate.getNotAfter();
+            Date issueDate = acmeGeneratedCertificate.getNotBefore();
 
 
-                response.header("Content-Type", "application/json");
-                response.header("Replay-Nonce", Crypto.createNonce());
-                response.header("Location", getApiURL() + "/acme/order/" + orderId);
+            Database.storeCertificateInDatabase(orderId, identifier.getValue(), csr, pemCertificate, issueDate, expireDate);
 
 
-
-                responseJSON.put("status", "valid");
-                responseJSON.put("expires", DateTools.formatDateForACME(expireDate));
-                responseJSON.put("finalize", getApiURL() + "/acme/order/" + orderId + "/finalize");
-                responseJSON.put("certificate", getApiURL() + "/acme/order/" + orderId + "/cert"); //Temporary fix
-                //responseJSON.put("certificate", getApiURL() + "/acme/cert/" + identifier.getCertificateId());
-                responseJSON.put("authorizations", authorizationsArr);
+            response.header("Content-Type", "application/json");
+            response.header("Replay-Nonce", Crypto.createNonce());
+            response.header("Location", getApiURL() + "/acme/order/" + orderId);
 
 
-                return responseJSON.toString();
+            responseJSON.put("status", "valid");
+            responseJSON.put("expires", DateTools.formatDateForACME(expireDate));
+            responseJSON.put("finalize", getApiURL() + "/acme/order/" + orderId + "/finalize");
+            responseJSON.put("certificate", getApiURL() + "/acme/order/" + orderId + "/cert"); //Temporary fix
+            //responseJSON.put("certificate", getApiURL() + "/acme/cert/" + identifier.getCertificateId());
+            responseJSON.put("authorizations", authorizationsArr);
 
-        }catch (Exception ex){
 
-            log.error("Throwing API error: CSR processing error",ex);
+            return responseJSON.toString();
+
+        } catch (Exception ex) {
+
+            log.error("Throwing API error: CSR processing error", ex);
             response.header("Content-Type", "application/problem+json");
             JSONObject resObj = new JSONObject();
             resObj.put("type", "urn:ietf:params:acme:error:badCSR");
@@ -436,25 +469,23 @@ public class AcmeAPI {
         JSONObject responseObj = new JSONObject();
 
 
-
         // TODO: Valid Expires Date
         responseObj.put("expires", DateTools.formatDateForACME(new Date()));
-
 
 
         JSONArray identifiersArr = new JSONArray();
         JSONArray authorizationsArr = new JSONArray();
 
         boolean allVerified = true;
-        for (ACMEIdentifier identifier: Database.getACMEIdentifiersByOrderId(orderId)) {
+        for (ACMEIdentifier identifier : Database.getACMEIdentifiersByOrderId(orderId)) {
 
-            if(!identifier.isVerified()){
+            if (!identifier.isVerified()) {
                 allVerified = false;
             }
 
             JSONObject identifierObj = new JSONObject();
-            identifierObj.put("type",identifier.getType());
-            identifierObj.put("value",identifier.getValue());
+            identifierObj.put("type", identifier.getType());
+            identifierObj.put("value", identifier.getValue());
 
             authorizationsArr.put(getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
 
@@ -514,13 +545,13 @@ public class AcmeAPI {
      */
     public static Route serverInfo = (request, response) -> {
 
-        response.header("Content-Type","application/json");
+        response.header("Content-Type", "application/json");
 
         JSONObject returnObj = new JSONObject();
-        returnObj.put("version",Main.buildMetadataVersion);
-        returnObj.put("buildtime",Main.buildMetadataBuildTime);
-        returnObj.put("gitcommit",Main.buildMetadataGitCommit);
-        returnObj.put("javaversion",System.getProperty("java.version"));
+        returnObj.put("version", Main.buildMetadataVersion);
+        returnObj.put("buildtime", Main.buildMetadataBuildTime);
+        returnObj.put("gitcommit", Main.buildMetadataGitCommit);
+        returnObj.put("javaversion", System.getProperty("java.version"));
 
         return returnObj.toString();
     };
@@ -571,7 +602,6 @@ public class AcmeAPI {
     };
 
 
-
     /**
      * Create a new ACME Account Endpoint
      * <p>
@@ -587,7 +617,7 @@ public class AcmeAPI {
 
         boolean reqPayloadTermsOfServiceAgreed = reqBodyPayloadObj.getBoolean("termsOfServiceAgreed");
 
-        if(!reqPayloadTermsOfServiceAgreed){
+        if (!reqPayloadTermsOfServiceAgreed) {
             log.error("Throwing API error: Terms of Service not accepted");
             response.header("Content-Type", "application/problem+json");
             JSONObject resObj = new JSONObject();
@@ -602,15 +632,15 @@ public class AcmeAPI {
             reqPayloadContactEmail = reqBodyPayloadObj.getJSONArray("contact").getString(0);
             reqPayloadContactEmail = reqPayloadContactEmail.replace("mailto:", "");
 
-            if (!RegexTools.isValidEmail(reqPayloadContactEmail) || reqPayloadContactEmail.split("\\@")[0].equals("localhost")){
-                log.error("E-Mail validation failed for email \"" + reqPayloadContactEmail + "\n");
+            if (!RegexTools.isValidEmail(reqPayloadContactEmail) || reqPayloadContactEmail.split("\\@")[0].equals("localhost")) {
+                log.error("E-Mail validation failed for email \"" + reqPayloadContactEmail + "\"");
                 response.header("Content-Type", "application/problem+json");
                 JSONObject resObj = new JSONObject();
                 resObj.put("type", "urn:ietf:params:acme:error:invalidContact");
                 resObj.put("detail", "E-Mail address is invalid");
                 Spark.halt(HttpURLConnection.HTTP_FORBIDDEN, resObj.toString());
             }
-            log.info("E-Mail validation successful for email \"" + reqPayloadContactEmail + "\n");
+            log.info("E-Mail validation successful for email \"" + reqPayloadContactEmail + "\"");
 
         }
 
