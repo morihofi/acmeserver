@@ -1,5 +1,5 @@
 # DNS Name of this server (IMPORTANT!) (Required for ACME API and server certificate)
-# You SHOULD not change this values later. Otherwise you have to regenerate the CA
+# You SHOULD not change this values later. Otherwise, you have to regenerate the CA
 acme.server.dnsname = mycomputer
 acme.server.sslport = 7443
 
