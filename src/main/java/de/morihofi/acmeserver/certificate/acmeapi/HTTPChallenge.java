@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver.certificate.acmeapi;
 
+import de.morihofi.acmeserver.Main;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -14,7 +15,7 @@ public class HTTPChallenge {
     public static final Logger log = LogManager.getLogger(HTTPChallenge.class);
     private static final OkHttpClient httpClient = new OkHttpClient();
 
-    private static final String USER_AGENT = "Mozilla/5.0 ACMEServer Java/" + System.getProperty("java.version");
+    private static final String USER_AGENT = "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + " Java/" + System.getProperty("java.version");
     public static boolean check(String expectedAuthTokenId, String expectedAuthTokenValue, String host){
         boolean passed = false;
 
