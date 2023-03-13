@@ -41,13 +41,13 @@ public class HTTPChallenge {
             proxyPort = Integer.parseInt(Main.properties.getProperty("acme.challenge.proxy.port"));
             proxyHost = Main.properties.getProperty("acme.challenge.proxy.host");
 
-            InetSocketAddress inetSocketAddress = new InetSocketAddress(proxyHost, proxyPort);
+            SocketAddress socketAddress = new InetSocketAddress(proxyHost, proxyPort);
             if (Main.properties.getProperty("acme.challenge.proxy.enabled").equals("false")) {
                 // Set to direct if there is no proxy enabled
                 proxyType = Proxy.Type.DIRECT;
-                inetSocketAddress = null;
+                socketAddress = null;
             }
-            proxy = new Proxy(proxyType, inetSocketAddress);
+            proxy = new Proxy(proxyType, socketAddress);
 
             if (Main.properties.getProperty("acme.challenge.proxy.auth.enabled").equals("true")) {
                 proxyUser = Main.properties.getProperty("acme.challenge.proxy.auth.user");
