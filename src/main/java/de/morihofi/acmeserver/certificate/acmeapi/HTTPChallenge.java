@@ -24,9 +24,9 @@ public class HTTPChallenge {
     private static Proxy proxy;
 
 
-    public static Proxy getHTTPChallengeProxy(){
+    public static Proxy getHTTPChallengeProxy() {
 
-        switch (Main.properties.getProperty("acme.challenge.proxy.type")){
+        switch (Main.properties.getProperty("acme.challenge.proxy.type")) {
             case "socks":
                 proxyType = Proxy.Type.SOCKS;
                 break;
@@ -41,13 +41,15 @@ public class HTTPChallenge {
             proxyPort = Integer.parseInt(Main.properties.getProperty("acme.challenge.proxy.port"));
             proxyHost = Main.properties.getProperty("acme.challenge.proxy.host");
 
-            if(Main.properties.getProperty("acme.challenge.proxy.enabled").equals("false")){
+            InetSocketAddress inetSocketAddress = new InetSocketAddress(proxyHost, proxyPort);
+            if (Main.properties.getProperty("acme.challenge.proxy.enabled").equals("false")) {
                 // Set to direct if there is no proxy enabled
                 proxyType = Proxy.Type.DIRECT;
+                inetSocketAddress = null;
             }
-            proxy = new Proxy(proxyType, new InetSocketAddress(proxyHost, proxyPort));
+            proxy = new Proxy(proxyType, inetSocketAddress);
 
-            if(Main.properties.getProperty("acme.challenge.proxy.auth.enabled").equals("true")){
+            if (Main.properties.getProperty("acme.challenge.proxy.auth.enabled").equals("true")) {
                 proxyUser = Main.properties.getProperty("acme.challenge.proxy.auth.user");
                 proxyPassword = Main.properties.getProperty("acme.challenge.proxy.auth.password");
 
@@ -66,17 +68,17 @@ public class HTTPChallenge {
             }
 
 
-
-        }catch (Exception ex){
+        } catch (Exception ex) {
             log.error("Failed to initialize proxy configuration", ex);
         }
 
 
-
         return proxy;
     }
+
     private static final String USER_AGENT = "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + " Java/" + System.getProperty("java.version");
-    public static boolean check(String expectedAuthTokenId, String expectedAuthTokenValue, String host){
+
+    public static boolean check(String expectedAuthTokenId, String expectedAuthTokenValue, String host) {
         boolean passed = false;
 
         try {
@@ -88,7 +90,7 @@ public class HTTPChallenge {
                     .url("http://" + host + "/.well-known/acme-challenge/" + expectedAuthTokenId)
                     .header("User-Agent", USER_AGENT)
                     .build();
-            if(log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug("Performing GET request to \"" + request.url() + "\"");
             }
 
@@ -101,10 +103,10 @@ public class HTTPChallenge {
                 log.debug("Got response, checking token in response");
                 String acmeTokenFromHost = response.body().string().split("\\.")[0];
 
-                if (acmeTokenFromHost.equals(expectedAuthTokenValue)){
+                if (acmeTokenFromHost.equals(expectedAuthTokenValue)) {
                     passed = true;
                     log.info("HTTP Challenge has validated for host \"" + host + "\"");
-                }else {
+                } else {
                     log.info("HTTP Challenge validation failed for host \"" + host + "\". Content doesn't match. Expected: " + expectedAuthTokenValue + "; Got: " + acmeTokenFromHost);
                 }
 
@@ -113,7 +115,7 @@ public class HTTPChallenge {
 
             }
         } catch (IOException e) {
-           log.error("HTTP Challenge failed for host \"" + host + "\". Is it reachable?", e);
+            log.error("HTTP Challenge failed for host \"" + host + "\". Is it reachable?", e);
         }
 
         return passed;
