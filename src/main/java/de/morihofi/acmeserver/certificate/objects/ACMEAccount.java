@@ -1,15 +1,17 @@
 package de.morihofi.acmeserver.certificate.objects;
 
+import java.util.ArrayList;
+
 public class ACMEAccount {
 
     private String accountId;
-    private String email;
+    private ArrayList<String> emails;
     private boolean deactivated;
     private String jwt;
 
-    public ACMEAccount(String accountId, String email, boolean deactivated, String jwt) {
+    public ACMEAccount(String accountId, ArrayList<String> email, boolean deactivated, String jwt) {
         this.accountId = accountId;
-        this.email = email;
+        this.emails = email;
         this.deactivated = deactivated;
         this.jwt = jwt;
     }
@@ -22,12 +24,12 @@ public class ACMEAccount {
         this.accountId = accountId;
     }
 
-    public String getEmail() {
-        return email;
+    public ArrayList<String> getEmails() {
+        return emails;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setEmails(ArrayList<String> email) {
+        this.emails = email;
     }
 
     public boolean isDeactivated() {

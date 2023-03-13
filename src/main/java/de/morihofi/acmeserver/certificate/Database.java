@@ -6,6 +6,7 @@ import de.morihofi.acmeserver.certificate.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.certificate.tools.CertTools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.security.cert.CertificateEncodingException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
@@ -46,7 +48,15 @@ public class Database {
 
     }
 
-    public static void createAccount(String accountId, String jwt, String email) {
+    public static void createAccount(String accountId, String jwt, List<String> emails) {
+
+        JSONArray emailArr = new JSONArray();
+
+        for (String email: emails){
+            emailArr.put(email);
+        }
+
+
         try (Connection conn = getDatabaseConnection()) {
 
 
@@ -56,7 +66,7 @@ public class Database {
             ps.setString(2, jwt);
             ps.setTimestamp(3, dateToTimestamp(new Date())); //Current Date and Time
             ps.setBoolean(4, false);
-            ps.setString(5, email);
+            ps.setString(5, emailArr.toString());
 
             ps.execute();
             ps.close();
@@ -270,22 +280,28 @@ public class Database {
 
     }
 
-    public static void updateAccountEmail(String accountId, String email) {
+    public static void updateAccountEmail(String accountId, List<String> emails) {
+
+        JSONArray emailArr = new JSONArray();
+
+        for (String email: emails){
+            emailArr.put(email);
+        }
+
         try (Connection conn = getDatabaseConnection()) {
 
 
             PreparedStatement ps = conn.prepareStatement("UPDATE `accounts` SET `email` = ? WHERE `accounts`.`account` = ? ");
-
-            ps.setString(1, email);
+            ps.setString(1, emailArr.toString());
             ps.setString(2, accountId);
 
             ps.execute();
-            log.info("ACME account \"" + accountId + "\" updated email to \"" + email + "\"");
+            log.info("ACME account \"" + accountId + "\" updated emails to \"" + String.join(",", emails) + "\"");
 
             ps.close();
 
         } catch (SQLException e) {
-            log.error("Unable to update email for account \"" + accountId + "\"", e);
+            log.error("Unable to update emails for account \"" + accountId + "\"", e);
         }
 
 
@@ -363,7 +379,8 @@ public class Database {
 
         //Intermediate Certificate
         log.info("Adding Intermediate certificate");
-        pemBuilder.append(CertTools.certificateToPEM(Main.intermediateCertificate.getEncoded()) + "\n");
+        pemBuilder.append(CertTools.certificateToPEM(Main.intermediateCertificate.getEncoded()));
+        pemBuilder.append("\n");
 
         //CA Certificate
         log.info("Adding CA certificate");
@@ -393,8 +410,16 @@ public class Database {
                 boolean deactivated = rs.getBoolean("deactivated");
                 String jwt = rs.getString("jwt");
 
+                JSONArray emailsArr = new JSONArray(email);
+                ArrayList<String> emails = new ArrayList<>();
 
-                return new ACMEAccount(accountId,email,deactivated,jwt);
+                for (int i=0; i < emailsArr.length(); i++) {
+                    String emailFromArr = emailsArr.getString(i);
+
+                    emails.add(emailFromArr);
+                }
+
+                return new ACMEAccount(accountId,emails,deactivated,jwt);
 
             }
             rs.close();
