@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate;
 
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.certificate.objects.ACMEAccount;
 import de.morihofi.acmeserver.certificate.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.certificate.tools.CertTools;
 import org.apache.logging.log4j.LogManager;
@@ -70,9 +71,10 @@ public class Database {
 
     /**
      * This function marks a ACME challenge as passed
+     *
      * @param challengeId Id of the Challenge, provided in URL
      */
-    public static void passChallenge(String challengeId){
+    public static void passChallenge(String challengeId) {
         try (Connection conn = getDatabaseConnection()) {
 
 
@@ -96,7 +98,7 @@ public class Database {
 
         try (Connection conn = getDatabaseConnection()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM `orderidentifiers` WHERE challengeid = ? LIMIT 1");
-            ps.setString(1,challengeId);
+            ps.setString(1, challengeId);
 
 
             // process the results
@@ -119,14 +121,14 @@ public class Database {
 
                 log.info("(Challenge ID: \"" + challengeId + "\") Got ACME identifier of type \"" + type + "\" with value \"" + value + "\"");
 
-                identifier = new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR,certificateIssued,certificateExpires);
+                identifier = new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR, certificateIssued, certificateExpires);
 
             }
             rs.close();
             ps.close();
 
         } catch (SQLException e) {
-            log.error("Unable get ACME identifiers for challenge id \"" + challengeId + "\"",e);
+            log.error("Unable get ACME identifiers for challenge id \"" + challengeId + "\"", e);
         }
 
         return identifier;
@@ -138,7 +140,7 @@ public class Database {
 
         try (Connection conn = getDatabaseConnection()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM `orderidentifiers` WHERE authorizationid = ? LIMIT 1");
-            ps.setString(1,authorizationId);
+            ps.setString(1, authorizationId);
 
 
             // process the results
@@ -160,13 +162,13 @@ public class Database {
 
                 log.info("(Authorization ID: \"" + authorizationId + "\") Got ACME identifier of type \"" + type + "\" with value \"" + value + "\"");
 
-                identifier = new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR,certificateIssued,certificateExpires);
+                identifier = new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR, certificateIssued, certificateExpires);
             }
             rs.close();
             ps.close();
 
         } catch (SQLException e) {
-            log.error("Unable get ACME identifiers for autorization id \"" + authorizationId + "\"",e);
+            log.error("Unable get ACME identifiers for autorization id \"" + authorizationId + "\"", e);
         }
 
         return identifier;
@@ -179,7 +181,7 @@ public class Database {
 
         try (Connection conn = getDatabaseConnection()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM `orderidentifiers` WHERE orderid = ? LIMIT 1");
-            ps.setString(1,orderId);
+            ps.setString(1, orderId);
 
 
             // process the results
@@ -203,13 +205,13 @@ public class Database {
 
                 log.info("(Order ID: \"" + orderId + "\") Got ACME identifier of type \"" + type + "\" with value \"" + value + "\"");
 
-                identifiers.add(new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR,certificateIssued,certificateExpires));
+                identifiers.add(new ACMEIdentifier(type, value, authorizationId, authorizationToken, challengeId, verified, validationDate, certificateId, certificateCSR, certificateIssued, certificateExpires));
             }
             rs.close();
             ps.close();
 
         } catch (SQLException e) {
-            log.error("Unable get ACME identifiers for order id \"" + orderId + "\"",e);
+            log.error("Unable get ACME identifiers for order id \"" + orderId + "\"", e);
         }
 
         return identifiers;
@@ -294,7 +296,7 @@ public class Database {
     }
 
 
-    public static void storeCertificateInDatabase(String orderId,String dnsValue, String csr, String pemCertificate, Date issueDate, Date expireDate) {
+    public static void storeCertificateInDatabase(String orderId, String dnsValue, String csr, String pemCertificate, Date issueDate, Date expireDate) {
 
         //TODO: Check if orderId exists
 
@@ -307,9 +309,9 @@ public class Database {
             ps.setString(1, csr);
             ps.setTimestamp(2, dateToTimestamp(issueDate));
             ps.setTimestamp(3, dateToTimestamp(expireDate));
-            ps.setString(4,pemCertificate);
-            ps.setString(5,orderId);
-            ps.setString(6,dnsValue);
+            ps.setString(4, pemCertificate);
+            ps.setString(5, orderId);
+            ps.setString(6, dnsValue);
 
             ps.execute();
             ps.close();
@@ -352,10 +354,10 @@ public class Database {
             ps.close();
 
         } catch (SQLException e) {
-            log.error("Unable get Certificate for authorization id \"" + authorizationId + "\"",e);
+            log.error("Unable get Certificate for authorization id \"" + authorizationId + "\"", e);
         }
 
-        if(!certFound){
+        if (!certFound) {
             throw new IllegalArgumentException("No certificate was found for authorization id \"" + authorizationId + "\"");
         }
 
@@ -377,4 +379,32 @@ public class Database {
     }
 
 
+    public static ACMEAccount getAccount(String accountId) {
+
+        try (Connection conn = getDatabaseConnection()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM `accounts` WHERE account = ? LIMIT 1");
+            ps.setString(1, accountId);
+
+            // process the results
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+
+                String email = rs.getString("email");
+                boolean deactivated = rs.getBoolean("deactivated");
+                String jwt = rs.getString("jwt");
+
+
+                return new ACMEAccount(accountId,email,deactivated,jwt);
+
+            }
+            rs.close();
+            ps.close();
+
+        } catch (SQLException e) {
+            log.error("Unable get ACME Account \"" + accountId + "\"", e);
+        }
+
+        return null;
+
+    }
 }

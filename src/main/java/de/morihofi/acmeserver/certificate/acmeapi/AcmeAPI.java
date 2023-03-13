@@ -2,6 +2,8 @@ package de.morihofi.acmeserver.certificate.acmeapi;
 
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.Database;
+import de.morihofi.acmeserver.certificate.SendMail;
+import de.morihofi.acmeserver.certificate.objects.ACMEAccount;
 import de.morihofi.acmeserver.certificate.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.certificate.tools.*;
 import org.apache.logging.log4j.LogManager;
@@ -140,6 +142,18 @@ public class AcmeAPI {
         String orderId = UUID.randomUUID().toString();
         String accountId = getAccountIdFromProtected(reqBodyProtectedObj);
 
+        //Check if account exists
+        ACMEAccount account = Database.getAccount(accountId);
+        if(account == null){
+            log.error("Throwing API error: Account not \"" + accountId + "\" found");
+            response.header("Content-Type", "application/problem+json");
+            JSONObject resObj = new JSONObject();
+            resObj.put("type", "urn:ietf:params:acme:error:accountDoesNotExist");
+            resObj.put("detail", "The account id was not found");
+            Spark.halt(HttpURLConnection.HTTP_NOT_FOUND, resObj.toString());
+        }
+
+
 
         JSONArray respIdentifiersArr = new JSONArray();
         JSONArray respAuthorizationsArr = new JSONArray();
@@ -175,6 +189,15 @@ public class AcmeAPI {
         }
         // Add authorizations to Database
         Database.createOrder(accountId, orderId, acmeIdentifiersWithAuthorizationData);
+
+        //Send E-Mail if order was created
+        try {
+            SendMail.sendMail(account.getEmail(),"New ACME order created","Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeIdentifiers.get(0).getValue() + "</i> was created.");
+        }catch (Exception ex){
+            log.error("Unable to send email", ex);
+        }
+
+
 
         //TODO: Set better Date/Time
 
