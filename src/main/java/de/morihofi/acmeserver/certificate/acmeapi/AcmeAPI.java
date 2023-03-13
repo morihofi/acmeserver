@@ -84,14 +84,14 @@ public class AcmeAPI {
 
 
                 if (!RegexTools.isValidEmail(contactEmail) || contactEmail.split("\\@")[1].equals("localhost")) {
-                    log.error("E-Mail validation failed for email \"" + contactEmail + "\n");
+                    log.error("E-Mail validation failed for email \"" + contactEmail + "\"");
                     response.header("Content-Type", "application/problem+json");
                     JSONObject resObj = new JSONObject();
                     resObj.put("type", "urn:ietf:params:acme:error:invalidContact");
                     resObj.put("detail", "E-Mail address is invalid");
                     Spark.halt(HttpURLConnection.HTTP_FORBIDDEN, resObj.toString());
                 }
-                log.info("E-Mail validation successful for email \"" + contactEmail + "\n");
+                log.info("E-Mail validation successful for email \"" + contactEmail + "\"");
 
                 //Update Contact Email
                 Database.updateAccountEmail(accountId, contactEmail);
@@ -552,6 +552,44 @@ public class AcmeAPI {
         returnObj.put("buildtime", Main.buildMetadataBuildTime);
         returnObj.put("gitcommit", Main.buildMetadataGitCommit);
         returnObj.put("javaversion", System.getProperty("java.version"));
+
+        return returnObj.toString();
+    };
+
+    /**
+     * Revoke a certificate
+     * <p>
+     * URL: /acme/revoke-cert
+     */
+    public static Route revokeCert = (request, response) -> {
+
+        JSONObject reqBodyObj = new JSONObject(request.body());
+
+        //Payload is Base64 Encoded
+        JSONObject reqBodyPayloadObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("payload")));
+        JSONObject reqBodyProtectedObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("protected")));
+
+        String accountId = getAccountIdFromProtected(reqBodyProtectedObj);
+        String certificate = reqBodyPayloadObj.getString("certificate");
+
+        /*
+        Reas
+            0: Unspecified - Kein spezifischer Grund angegeben.
+            1: Key Compromise - Der private Schlüssel des Zertifikats wurde kompromittiert.
+            2: CA Compromise - Die CA, die das Zertifikat ausgestellt hat, wurde kompromittiert.
+            3: Affiliation Changed - Die Zertifikatsinhaberin hat ihre Verbindung zur Organisation, die das Zertifikat ausgestellt hat, aufgegeben.
+            4: Superseded - Das Zertifikat wurde durch ein anderes Zertifikat ersetzt.
+            5: Cessation Of Operation - Der Zertifikatsinhaber hat seine Geschäftstätigkeit eingestellt.
+            6: Certificate Hold - Das Zertifikat wird vorübergehend zurückgehalten.
+            8: Remove From CRL - Das Zertifikat wurde irrtümlich auf die Sperrliste gesetzt.
+         */
+        int reason = reqBodyPayloadObj.getInt("reason");
+
+        log.info("Revoke certificate for reason " + reason);
+
+        JSONObject returnObj = new JSONObject();
+
+        response.status(404);
 
         return returnObj.toString();
     };
