@@ -50,3 +50,12 @@ database.name = acmeserverdb
 acme.clientcert.expire.days = 14
 acme.clientcert.expire.months = 0
 acme.clientcert.expire.years = 0
+
+# ACME HTTP Challenge Proxy
+acme.challenge.proxy.enabled = false
+acme.challenge.proxy.type = socks
+acme.challenge.proxy.host = 127.0.0.1
+acme.challenge.proxy.port = 9050
+acme.challenge.proxy.auth.enabled = false
+acme.challenge.proxy.auth.user = user
+acme.challenge.proxy.auth.password = password

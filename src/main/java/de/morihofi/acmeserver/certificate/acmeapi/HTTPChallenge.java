@@ -8,13 +8,73 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
+import java.net.*;
 
 public class HTTPChallenge {
 
     public static final Logger log = LogManager.getLogger(HTTPChallenge.class);
-    private static final OkHttpClient httpClient = new OkHttpClient();
+    private static final OkHttpClient httpClient = new OkHttpClient.Builder().proxy(getHTTPChallengeProxy()).build();
 
+    private static Proxy.Type proxyType;
+    private static String proxyHost = "";
+    private static int proxyPort = 0;
+    private static String proxyUser = "";
+    private static String proxyPassword = "";
+
+    private static Proxy proxy;
+
+
+    public static Proxy getHTTPChallengeProxy(){
+
+        switch (Main.properties.getProperty("acme.challenge.proxy.type")){
+            case "socks":
+                proxyType = Proxy.Type.SOCKS;
+                break;
+            case "http":
+                proxyType = Proxy.Type.HTTP;
+                break;
+            default:
+                proxyType = Proxy.Type.DIRECT;
+        }
+
+        try {
+            proxyPort = Integer.parseInt(Main.properties.getProperty("acme.challenge.proxy.port"));
+            proxyHost = Main.properties.getProperty("acme.challenge.proxy.host");
+
+            if(Main.properties.getProperty("acme.challenge.proxy.enabled").equals("false")){
+                // Set to direct if there is no proxy enabled
+                proxyType = Proxy.Type.DIRECT;
+            }
+            proxy = new Proxy(proxyType, new InetSocketAddress(proxyHost, proxyPort));
+
+            if(Main.properties.getProperty("acme.challenge.proxy.auth.enabled").equals("true")){
+                proxyUser = Main.properties.getProperty("acme.challenge.proxy.auth.user");
+                proxyPassword = Main.properties.getProperty("acme.challenge.proxy.auth.password");
+
+                Authenticator.setDefault(new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        if (getRequestingHost().equalsIgnoreCase(proxyHost)) {
+                            if (proxyPort == getRequestingPort()) {
+                                return new PasswordAuthentication(proxyUser, proxyPassword.toCharArray());
+                            }
+                        }
+                        return null;
+                    }
+                });
+
+            }
+
+
+
+        }catch (Exception ex){
+            log.error("Failed to initialize proxy configuration", ex);
+        }
+
+
+
+        return proxy;
+    }
     private static final String USER_AGENT = "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + " Java/" + System.getProperty("java.version");
     public static boolean check(String expectedAuthTokenId, String expectedAuthTokenValue, String host){
         boolean passed = false;
