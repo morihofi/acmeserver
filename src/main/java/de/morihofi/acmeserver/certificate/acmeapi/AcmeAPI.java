@@ -556,6 +556,7 @@ public class AcmeAPI {
         returnObj.put("buildtime", Main.buildMetadataBuildTime);
         returnObj.put("gitcommit", Main.buildMetadataGitCommit);
         returnObj.put("javaversion", System.getProperty("java.version"));
+        returnObj.put("os", System.getProperty("os.name"));
 
         return returnObj.toString();
     };

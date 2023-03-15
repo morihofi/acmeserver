@@ -20,6 +20,7 @@
         <b>⌚ Build at: </b><label id="buildtime">...</label><br>
         <b>📝 Git Commit: </b><label id="gitcommit">...</label><br>
         <b>☕ Java Version: </b><label id="javaversion">...</label><br>
+        <b>🖥️ Operating System: </b><label id="os">...</label><br>
 
         <script>
           var xhttp = new XMLHttpRequest();
@@ -34,6 +35,7 @@
                 document.getElementById("buildtime").innerHTML  = responseJSON.buildtime;
                 document.getElementById("gitcommit").innerHTML  = responseJSON.gitcommit;
                 document.getElementById("javaversion").innerHTML  = responseJSON.javaversion;
+                document.getElementById("os").innerHTML  = responseJSON.os;
             }
 
 
