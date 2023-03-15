@@ -577,8 +577,10 @@ public class AcmeAPI {
         String accountId = getAccountIdFromProtected(reqBodyProtectedObj);
         String certificate = reqBodyPayloadObj.getString("certificate");
 
+
+        //TODO: Implement revoking
         /*
-        Reas
+        Reasons:
             0: Unspecified - Kein spezifischer Grund angegeben.
             1: Key Compromise - Der private Schlüssel des Zertifikats wurde kompromittiert.
             2: CA Compromise - Die CA, die das Zertifikat ausgestellt hat, wurde kompromittiert.
