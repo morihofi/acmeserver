@@ -269,7 +269,6 @@ public class AcmeAPI {
         response.header("Replay-Nonce", Crypto.createNonce());
         response.status(200);
 
-        //TODO: Not found response if identifier is null
 
         ACMEIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
 
