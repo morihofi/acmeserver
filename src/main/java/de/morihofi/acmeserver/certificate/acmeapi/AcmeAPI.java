@@ -8,11 +8,8 @@ import de.morihofi.acmeserver.certificate.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.certificate.tools.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bouncycastle.crypto.params.RSAKeyParameters;
-import org.bouncycastle.crypto.util.PublicKeyFactory;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.util.io.pem.PemObject;
-import org.eclipse.jetty.util.ajax.JSON;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import spark.Route;
@@ -561,6 +558,53 @@ public class AcmeAPI {
         return returnObj.toString();
     };
 
+
+    public enum REVOKE_REASONS {
+        /**
+         * Kein spezifischer Grund angegeben.
+         */
+        Unspecified(0),
+        /**
+         * Der private Schlüssel des Zertifikats wurde kompromittiert.
+         */
+        KeyCompromise(1),
+        /**
+         * Die CA, die das Zertifikat ausgestellt hat, wurde kompromittiert.
+         */
+        CACompromise(2),
+        /**
+         * Die Zertifikatsinhaberin hat ihre Verbindung zur Organisation, die das Zertifikat ausgestellt hat, aufgegeben.
+         */
+        AffiliationChanged(3),
+        /**
+         * Das Zertifikat wurde durch ein anderes Zertifikat ersetzt.
+         */
+        Superseded(4),
+        /**
+         * Der Zertifikatsinhaber hat seine Geschäftstätigkeit eingestellt.
+         */
+        CessationOfOperation(5),
+        /**
+         * Das Zertifikat wird vorübergehend zurückgehalten.
+         */
+        CertificateHold(6),
+        /**
+         * Das Zertifikat wurde irrtümlich auf die Sperrliste gesetzt.
+         */
+        RemoveFromCRL(8);
+
+
+
+        private final int reason;
+        private REVOKE_REASONS(int reason) {
+            this.reason = reason;
+        }
+
+        public int getReasonCode() {
+            return reason;
+        }
+    }
+
     /**
      * Revoke a certificate
      * <p>
@@ -574,7 +618,28 @@ public class AcmeAPI {
         JSONObject reqBodyPayloadObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("payload")));
         JSONObject reqBodyProtectedObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("protected")));
 
-        String accountId = getAccountIdFromProtected(reqBodyProtectedObj);
+        //Check which method our server uses:
+        String accountId = null;
+        if(reqBodyProtectedObj.has("kid")){
+            //Account Key Method
+            accountId = getAccountIdFromProtected(reqBodyProtectedObj);
+        }else {
+            //if(reqBodyPayloadObj.has("jwk"))
+            //Domain Key Method
+            //Currently unsupported
+            log.error("Throwing API error: Domain Key Method currently unsupported");
+            response.header("Content-Type", "application/problem+json");
+            JSONObject resObj = new JSONObject();
+            resObj.put("type", "urn:ietf:params:acme:error:malformed");
+            resObj.put("detail", "Method currently unsupported. Please use Account Key Method (kid)");
+            Spark.halt(HttpURLConnection.HTTP_BAD_REQUEST, resObj.toString());
+        }
+
+        
+        log.info("Account ID \"" + accountId +  "\" wants to revoke a certificate");
+        
+        System.out.println(reqBodyProtectedObj.toString(4));
+
         String certificate = reqBodyPayloadObj.getString("certificate");
 
 
