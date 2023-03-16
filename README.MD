@@ -15,3 +15,9 @@ This version is not fully RFC compliant, but should work with most clients. Curr
 ## Tested ACME Clients
 - acme.sh (works)
 - Certbot (works, but not in standalone mode)
+
+## Tested Operating Systems
+- Linux Mint 21
+- Debian 11
+- Windows 10
+- FreeBSD
