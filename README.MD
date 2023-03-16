@@ -30,4 +30,4 @@ This version is not fully RFC compliant, but should work with most clients. Curr
 - Linux Mint 21
 - Debian 11
 - Windows 10
-- FreeBSD
+- FreeBSD 13 (openjdk8)
