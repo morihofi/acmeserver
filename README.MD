@@ -5,6 +5,16 @@ This is a proof-of-concept Automatic Certificate Management Environment Server (
 - MariaDB as Database
 - Proxy support for HTTP Challenge
 
+## Building
+Run the following command to build this Application
+```bash
+mvn clean assembly:assembly
+```
+then start it with
+```bash
+java -jar acmeserver-VERSION.jar
+```
+
 ## Note
 This version is not fully RFC compliant, but should work with most clients. Currently, there is no signature check of the client. Please notice that.
 
