@@ -1,13 +1,11 @@
 package de.morihofi.acmeserver.database.objects;
 
-import org.bouncycastle.util.Times;
-
 import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
 @Table(name = "orderidentifiers")
-public class OrderIdentifier {
+public class ACMEOrderIdentifier {
 
     @Id
     @Column(name = "challengeId")

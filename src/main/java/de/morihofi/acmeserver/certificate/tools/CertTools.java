@@ -10,11 +10,14 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 import sun.misc.BASE64Encoder;
 import sun.security.provider.X509Factory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -89,18 +92,23 @@ public class CertTools {
 
     }
 
-    public static String certificateToPEM(byte[] certificate) {
-        BASE64Encoder encoder = new BASE64Encoder();
+    public static String certificateToPEM(byte[] certificateBytes) {
+        try {
+            // Erstellen eines PemObject mit dem Zertifikat
+            PemObject pemObject = new PemObject("CERTIFICATE", certificateBytes);
 
-        StringBuilder builder = new StringBuilder();
+            // Erstellen eines StringWriter und eines PemWriter
+            StringWriter stringWriter = new StringWriter();
+            try (PemWriter pemWriter = new PemWriter(stringWriter)) {
+                // Schreiben des PemObject in den PemWriter
+                pemWriter.writeObject(pemObject);
+            }
 
-        builder.append(X509Factory.BEGIN_CERT);
-        builder.append("\n");
-        builder.append(encoder.encodeBuffer(certificate).replace("\r\n", "\n"));
-        builder.append(X509Factory.END_CERT);
-        builder.append("\n");
-
-        return builder.toString();
+            // Rückgabe der PEM-Repräsentation des Zertifikats
+            return stringWriter.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Fehler beim Konvertieren des Zertifikats in PEM-Format", e);
+        }
     }
 
     public static X509Certificate createIntermediateCertificate(KeyPair caKeyPair, byte[] caCertificateBytes, KeyPair intermediateKeyPair, String intermediateCommonName, int days, int months, int years) throws CertIOException, CertificateException, OperatorCreationException {

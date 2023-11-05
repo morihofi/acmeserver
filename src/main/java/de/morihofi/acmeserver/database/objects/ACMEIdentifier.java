@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.database.objects;
 
 
+import org.hibernate.annotations.Type;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 
@@ -34,9 +36,11 @@ public class ACMEIdentifier {
     private Timestamp verifiedTime;
 
     @Column(name = "certificateId")
+    @Type(type="text")
     private String certificateId;
 
     @Column(name = "certificateCSR")
+    @Type(type="text")
     private String certificateCSR;
 
     @Column(name = "certificateIssued")
@@ -47,6 +51,7 @@ public class ACMEIdentifier {
 
 
     @Column(name = "certificatePem")
+    @Type(type="text")
     private String certificatePem;
     public ACMEIdentifier(String type, String value) {
         this.type = type;

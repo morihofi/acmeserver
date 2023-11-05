@@ -6,11 +6,10 @@ import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
-import de.morihofi.acmeserver.database.objects.OrderIdentifier;
+import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.exception.ACMEException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bouncycastle.util.Times;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -21,7 +20,6 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.cert.CertificateEncodingException;
 import java.sql.*;
 import java.time.Instant;
@@ -97,7 +95,7 @@ public class Database {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
 
-            OrderIdentifier orderIdentifier = session.get(OrderIdentifier.class, challengeId);
+            ACMEOrderIdentifier orderIdentifier = session.get(ACMEOrderIdentifier.class, challengeId);
             if (orderIdentifier != null) {
                 orderIdentifier.setVerified(true);
                 orderIdentifier.setVerifiedTime(Timestamp.from(Instant.now()));

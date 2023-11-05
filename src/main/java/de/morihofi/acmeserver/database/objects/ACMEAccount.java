@@ -1,5 +1,7 @@
 package de.morihofi.acmeserver.database.objects;
 
+import org.hibernate.annotations.Type;
+
 import javax.persistence.*;
 import java.util.List;
 
