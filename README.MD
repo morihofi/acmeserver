@@ -2,7 +2,7 @@
 This is a proof-of-concept Automatic Certificate Management Environment Server (ACME), fully written in Java
 
 - Java 8 and up
-- MariaDB as Database
+- Any JDBC (and Hibernate compatible) database
 - Proxy support for HTTP Challenge
 
 ## Building
