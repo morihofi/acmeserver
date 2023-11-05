@@ -3,9 +3,9 @@ package de.morihofi.acmeserver.certificate.acmeapi;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.Database;
 import de.morihofi.acmeserver.certificate.SendMail;
-import de.morihofi.acmeserver.certificate.objects.ACMEAccount;
-import de.morihofi.acmeserver.certificate.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.certificate.tools.*;
+import de.morihofi.acmeserver.database.objects.ACMEAccount;
+import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -15,9 +15,11 @@ import org.json.JSONObject;
 import spark.Route;
 import spark.Spark;
 
+import javax.xml.crypto.Data;
 import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.security.cert.X509Certificate;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
@@ -77,7 +79,7 @@ public class AcmeAPI {
         ArrayList<String> emailsFromPayload = new ArrayList<>();
         // Has email? (This can be updated later)
         if (reqBodyPayloadObj.has("contact")) {
-            for (int i=0; i < reqBodyPayloadObj.getJSONArray("contact").length(); i++) {
+            for (int i = 0; i < reqBodyPayloadObj.getJSONArray("contact").length(); i++) {
                 String email = reqBodyPayloadObj.getJSONArray("contact").getString(i);
                 email = email.replace("mailto:", "");
 
@@ -99,7 +101,7 @@ public class AcmeAPI {
         }
 
         //Update Contact Emails
-        Database.updateAccountEmail(accountId, emailsFromPayload);
+        Database.updateAccountEmail(account, emailsFromPayload);
 
 
         JSONObject responseJSON = new JSONObject();
@@ -225,7 +227,7 @@ public class AcmeAPI {
 
         }
         // Add authorizations to Database
-        Database.createOrder(accountId, orderId, acmeIdentifiersWithAuthorizationData);
+        Database.createOrder(account, orderId, acmeIdentifiersWithAuthorizationData);
 
         //Send E-Mail if order was created
         try {
@@ -292,7 +294,7 @@ public class AcmeAPI {
         challengeHTTP.put("token", identifier.getAuthorizationToken());
         if (identifier.isVerified()) {
             challengeHTTP.put("status", "valid");
-            challengeHTTP.put("validated", DateTools.formatDateForACME(identifier.getVerifiedDate()));
+            challengeHTTP.put("validated", DateTools.formatDateForACME(identifier.getVerifiedTime()));
         }
         challengeArr.put(challengeHTTP);
 
@@ -356,7 +358,7 @@ public class AcmeAPI {
         responseJSON.put("type", "http-01");
         if (identifier.isVerified()) {
             responseJSON.put("status", "valid");
-            responseJSON.put("verified", DateTools.formatDateForACME(identifier.getVerifiedDate()));
+            responseJSON.put("verified", DateTools.formatDateForACME(identifier.getVerifiedTime()));
         } else {
             responseJSON.put("status", "pending");
         }
@@ -412,11 +414,10 @@ public class AcmeAPI {
 
             String pemCertificate = CertTools.certificateToPEM(acmeGeneratedCertificate.getEncoded());
 
-            Date expireDate = acmeGeneratedCertificate.getNotAfter();
-            Date issueDate = acmeGeneratedCertificate.getNotBefore();
+            Timestamp expiresAt = new Timestamp(acmeGeneratedCertificate.getNotAfter().getTime());
+            Timestamp issuedAt = new Timestamp(acmeGeneratedCertificate.getNotBefore().getTime());
 
-
-            Database.storeCertificateInDatabase(orderId, identifier.getValue(), csr, pemCertificate, issueDate, expireDate);
+            Database.storeCertificateInDatabase(orderId, identifier.getValue(), csr, pemCertificate, issuedAt, expiresAt);
 
 
             response.header("Content-Type", "application/json");
@@ -425,7 +426,7 @@ public class AcmeAPI {
 
 
             responseJSON.put("status", "valid");
-            responseJSON.put("expires", DateTools.formatDateForACME(expireDate));
+            responseJSON.put("expires", DateTools.formatDateForACME(expiresAt));
             responseJSON.put("finalize", getApiURL() + "/acme/order/" + orderId + "/finalize");
             responseJSON.put("certificate", getApiURL() + "/acme/order/" + orderId + "/cert"); //Temporary fix
             //responseJSON.put("certificate", getApiURL() + "/acme/cert/" + identifier.getCertificateId());
@@ -594,8 +595,8 @@ public class AcmeAPI {
         RemoveFromCRL(8);
 
 
-
         private final int reason;
+
         private REVOKE_REASONS(int reason) {
             this.reason = reason;
         }
@@ -620,10 +621,10 @@ public class AcmeAPI {
 
         //Check which method our server uses:
         String accountId = null;
-        if(reqBodyProtectedObj.has("kid")){
+        if (reqBodyProtectedObj.has("kid")) {
             //Account Key Method
             accountId = getAccountIdFromProtected(reqBodyProtectedObj);
-        }else {
+        } else {
             //if(reqBodyPayloadObj.has("jwk"))
             //Domain Key Method
             //Currently unsupported
@@ -635,9 +636,9 @@ public class AcmeAPI {
             Spark.halt(HttpURLConnection.HTTP_BAD_REQUEST, resObj.toString());
         }
 
-        
-        log.info("Account ID \"" + accountId +  "\" wants to revoke a certificate");
-        
+
+        log.info("Account ID \"" + accountId + "\" wants to revoke a certificate");
+
         System.out.println(reqBodyProtectedObj.toString(4));
 
         String certificate = reqBodyPayloadObj.getString("certificate");
@@ -742,8 +743,7 @@ public class AcmeAPI {
         if (reqBodyPayloadObj.has("contact")) {
 
 
-
-            for (int i=0; i < reqBodyPayloadObj.getJSONArray("contact").length(); i++) {
+            for (int i = 0; i < reqBodyPayloadObj.getJSONArray("contact").length(); i++) {
                 String email = reqBodyPayloadObj.getJSONArray("contact").getString(i);
                 email = email.replace("mailto:", "");
 
@@ -763,12 +763,7 @@ public class AcmeAPI {
             //reqPayloadContactEmail = reqPayloadContactEmail.replace("mailto:", "");
 
 
-
         }
-
-
-
-
 
 
         // Create new account in database
@@ -789,7 +784,7 @@ public class AcmeAPI {
 
         //Contact information
         JSONArray contactEmailsArr = new JSONArray();
-        for (String email: emailsFromPayload) {
+        for (String email : emailsFromPayload) {
             contactEmailsArr.put(email);
         }
 

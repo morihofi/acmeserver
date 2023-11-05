@@ -15,6 +15,8 @@
 
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>dd-MM-yyyy HH:mm</maven.build.timestamp.format>
+
+        <bouncycastle.version>1.70</bouncycastle.version>
     </properties>
 
     <build>
@@ -120,12 +122,12 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.69</version>
+            <version>${bouncycastle.version}</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.69</version>
+            <version>${bouncycastle.version}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
@@ -152,7 +154,6 @@
             <artifactId>mariadb-java-client</artifactId>
             <version>3.1.2</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
@@ -163,6 +164,19 @@
             <artifactId>angus-mail</artifactId>
             <version>2.0.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-java8</artifactId>
+            <version>5.6.15.Final</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
+        </dependency>
+
 
 
     </dependencies>

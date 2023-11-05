@@ -1,6 +1,5 @@
 package de.morihofi.acmeserver;
 
-import de.morihofi.acmeserver.certificate.Database;
 import de.morihofi.acmeserver.certificate.tools.CertTools;
 import de.morihofi.acmeserver.certificate.tools.KeyStoreUtils;
 import de.morihofi.acmeserver.certificate.acmeapi.AcmeAPI;
@@ -8,16 +7,18 @@ import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.OperatorCreationException;
 import spark.Spark;
 
-import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyPair;
-import java.security.Security;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.sql.SQLException;
 import java.util.Base64;
 import java.util.Properties;
 
@@ -34,7 +35,7 @@ public class Main {
     public static String db_name;
     public static String db_host;
 
-    public static Path filesDir = Paths.get("serverdata").toAbsolutePath();
+    public static final Path FILES_DIR = Paths.get("serverdata").toAbsolutePath();
 
     //ACME SERVER Certificate
     public static Path acmeServerKeyStorePath;
@@ -91,25 +92,101 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
+        printBanner();
+
+        //Register Bouncy Castle Provider
+        log.info("Register Bouncy Castle Security Provider");
+        Security.addProvider(new BouncyCastleProvider());
+
+
+        ensureFilesDirectoryExists();
+        Path configPath = FILES_DIR.resolve("settings.properties");
+        loadConfiguration(configPath);
+        loadBuildAndGitMetadata();
+        initializeDatabaseDrivers();
+        initializeCA();
+
+
+
+       log.info("Loading certificates");
+       KeyStoreFileContent intermediateKeyStoreContents = KeyStoreUtils.loadFromPKCS12(intermediateKeyStorePath,intermediateKeyStorePassword, intermediateKeyStoreAlias);
+       log.info("Loading intermediate Key Pair");
+       intermediateKeyPair =intermediateKeyStoreContents.getKeyPair();
+       log.info("Loading intermediate Certificate");
+       intermediateCertificate = intermediateKeyStoreContents.getCert();
+
+
+        log.info("Starting ACME API WebServer using HTTPS");
+        String keyStoreLocation = acmeServerKeyStorePath.toAbsolutePath().toString();
+        Spark.secure(keyStoreLocation, acmeServerKeyStorePassword, null, null);
+        Spark.port(acmeThisServerAPIPort);
+        Spark.staticFileLocation("/webstatic");
+
+        log.info("Configure Routes");
+        Spark.before((request, response) -> {
+           response.header("Access-Control-Allow-Origin","*");
+           response.header("Access-Control-Allow-Methods","*");
+
+           log.info("API Call [" + request.requestMethod() + "] " + request.raw().getPathInfo());
+        });
+
+        // Download CA Endpoint
+        Spark.get("/ca.crt", AcmeAPI.downloadCA);
+        Spark.get("/serverinfo", AcmeAPI.serverInfo);
+
+        Spark.get("/directory", AcmeAPI.directoryEndpoint);
+
+        // New account
+        Spark.post("/acme/new-acct", AcmeAPI.newAccount);
+
+        // New Nonce -> Supports (in the RFC) only HEAD (Status 200) and GET (Status 204)
+        Spark.head("/acme/new-nonce", AcmeAPI.newNonce);
+        Spark.get("/acme/new-nonce", AcmeAPI.newNonce);
+
+        // Account Update
+        Spark.post("/acme/acct/:id", AcmeAPI.account);
+
+        // Create new Order
+        Spark.post("/acme/new-order", AcmeAPI.newOrder);
+
+        // Challenge / Ownership verification
+        Spark.post("/acme/authz/:authorizationId", AcmeAPI.authz);
+        // Challenge Callback
+        Spark.post("/acme/chall/:challengeId", AcmeAPI.challengeCallback);
+        // Finalize endpoint
+        Spark.post("/acme/order/:orderId/finalize", AcmeAPI.finalizeOrder);
+        // Order info Endpoint
+        Spark.post("/acme/order/:orderId", AcmeAPI.order);
+        // Get Order Certificate
+        Spark.post("/acme/order/:orderId/cert", AcmeAPI.orderCert);
+
+        log.info("Configure Routes completed. Ready for incoming requests");
+    }
+
+
+
+
+    private static void printBanner() {
         System.out.println("    _                       ____                           \n" +
                 "   / \\   ___ _ __ ___   ___/ ___|  ___ _ ____   _____ _ __ \n" +
                 "  / _ \\ / __| '_ ` _ \\ / _ \\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|\n" +
                 " / ___ \\ (__| | | | | |  __/___) |  __/ |   \\ V /  __/ |   \n" +
                 "/_/   \\_\\___|_| |_| |_|\\___|____/ \\___|_|    \\_/ \\___|_|   \n");
+    }
 
-
-        //Detect first run
-        if (!Files.exists(filesDir)) {
+    private static void ensureFilesDirectoryExists() throws IOException {
+        if (!Files.exists(FILES_DIR)) {
             log.info("First run detected, creating settings directory");
-            Files.createDirectories(filesDir);
+            Files.createDirectories(FILES_DIR);
         }
-        Path configPath = filesDir.resolve("settings.properties");
+        Path configPath = FILES_DIR.resolve("settings.properties");
         if (!Files.exists(configPath)) {
-            log.fatal("No configuration was found. Please create a file called \"settings.properties\" in \"" + filesDir.toAbsolutePath() + "\". Then try again");
+            log.fatal("No configuration was found. Please create a file called \"settings.properties\" in \"" + FILES_DIR.toAbsolutePath() + "\". Then try again");
             System.exit(1);
         }
+    }
 
-
+    private static void loadConfiguration(Path configPath) throws IOException {
         log.info("Loading settings config into memory");
         properties.load(Files.newInputStream(configPath));
         log.info("Apply settings config");
@@ -118,7 +195,7 @@ public class Main {
         // Set Intermediate CA Settings
         intermediateCommonName = properties.getProperty("acme.certificate.intermediate.metadata.cn");
         caRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.rsasize"));
-        intermediateKeyStorePath = filesDir.resolve(properties.getProperty("acme.certificate.intermediate.keystore.filename"));
+        intermediateKeyStorePath = FILES_DIR.resolve(properties.getProperty("acme.certificate.intermediate.keystore.filename"));
         intermediateKeyStorePassword = properties.getProperty("acme.certificate.intermediate.keystore.password");
         intermediateKeyStoreAlias = properties.getProperty("acme.certificate.intermediate.keystore.alias");
         intermediateDefaultExpireDays = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.expire.days"));
@@ -137,14 +214,14 @@ public class Main {
         // Root CA Settings
         caCommonName = properties.getProperty("acme.certificate.root.metadata.cn");
         caRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.certificate.root.rsasize"));
-        caPath = filesDir.resolve(properties.getProperty("acme.certificate.root.certfile"));
+        caPath = FILES_DIR.resolve(properties.getProperty("acme.certificate.root.certfile"));
         caKeyStorePassword = properties.getProperty("acme.certificate.root.keystore.password");
         caKeyStoreAlias = properties.getProperty("acme.certificate.root.keystore.alias");
         caDefaultExpireYears = Integer.parseInt(properties.getProperty("acme.certificate.root.expire.years"));
-        caKeyStorePath = filesDir.resolve(properties.getProperty("acme.certificate.root.keystore.filename"));
+        caKeyStorePath = FILES_DIR.resolve(properties.getProperty("acme.certificate.root.keystore.filename"));
         // ACME API Server Settings
         acmeServerKeyStorePassword = properties.getProperty("acme.api.keystore.password");
-        acmeServerKeyStorePath = filesDir.resolve(properties.getProperty("acme.api.keystore.filename"));
+        acmeServerKeyStorePath = FILES_DIR.resolve(properties.getProperty("acme.api.keystore.filename"));
         acmeServerRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.api.rsakeysize"));
         // E-Mail Settings
         emailSMTPPort = Integer.parseInt(properties.getProperty("email.smtp.port"));
@@ -158,9 +235,8 @@ public class Main {
         acmeCertificatesExpireMonths = Integer.parseInt(properties.getProperty("acme.clientcert.expire.months"));
         acmeCertificatesExpireYears = Integer.parseInt(properties.getProperty("acme.clientcert.expire.years"));
         log.info("Settings have been successfully loaded");
-
-        //Loading Build Metadata
-
+    }
+    private static void loadBuildAndGitMetadata() {
         try {
             Properties buildMetadataProperties = new Properties();
             buildMetadataProperties.load(Main.class.getResourceAsStream("/build.properties"));
@@ -176,34 +252,14 @@ public class Main {
         }catch (Exception e){
             log.error("Unable to load git metadata",e);
         }
+    }
 
-
-        //Register Bouncy Castle Provider
-        log.info("Register Bouncy Castle Security Provider");
-        Security.addProvider(new BouncyCastleProvider());
-
-        //Loading MariaDB Database driver
+    private static void initializeDatabaseDrivers() throws ClassNotFoundException, SQLException {
         log.info("Loading MariaDB JDBC driver");
         Class.forName("org.mariadb.jdbc.Driver");
+    }
 
-        String dbVersion = Database.getDatabaseVersion();
-        log.info("Server uses Database: " + dbVersion);
-
-/*
-        try {
-            Files.walk(filesDir)
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-
-        }catch (Exception ex){
-
-        }
-*/
-
-
-
-
+    private static void initializeCA() throws NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, OperatorCreationException {
         if(!Files.exists(caPath) || !Files.exists(caKeyStorePath)){
             // Create CA
             log.info("Generating RSA " + caRSAKeyPairSize + "bit Key Pair for CA");
@@ -214,7 +270,7 @@ public class Main {
             // Dumping CA Certificate to HDD, so other clients can install it
             log.info("Writing CA to disk");
             Files.createFile(caPath);
-            Files.write(filesDir.resolve(caPath), CertTools.certificateToPEM(caCertificateBytes).getBytes());
+            Files.write(FILES_DIR.resolve(caPath), CertTools.certificateToPEM(caCertificateBytes).getBytes());
             // Save CA in Keystore
             log.info("Writing CA to Key Store");
             KeyStoreUtils.saveAsPKCS12(caKeyPair, caKeyStorePassword, caKeyStoreAlias, caCertificateBytes, caKeyStorePath);
@@ -267,68 +323,7 @@ public class Main {
             log.info("Writing Server Certificate (as key chain) to Key Store");
             KeyStoreUtils.saveAsPKCS12KeyChain(acmeAPIKeyPair, acmeServerKeyStorePassword, "server", new byte[][]{acmeAPICertificate.getEncoded(), intermediateCertificate.getEncoded()}, acmeServerKeyStorePath);
 
-
-
-       }
-
-
-
-
-
-
-       log.info("Loading certificates");
-       KeyStoreFileContent intermediateKeyStoreContents = KeyStoreUtils.loadFromPKCS12(intermediateKeyStorePath,intermediateKeyStorePassword, intermediateKeyStoreAlias);
-       log.info("Loading intermediate Key Pair");
-       intermediateKeyPair =intermediateKeyStoreContents.getKeyPair();
-       log.info("Loading intermediate Certificate");
-       intermediateCertificate = intermediateKeyStoreContents.getCert();
-
-
-
-        log.info("Starting ACME API WebServer using HTTPS");
-        String keyStoreLocation = acmeServerKeyStorePath.toAbsolutePath().toString();
-        Spark.secure(keyStoreLocation, acmeServerKeyStorePassword, null, null);
-        Spark.port(acmeThisServerAPIPort);
-        Spark.staticFileLocation("/webstatic");
-
-        log.info("Configure Routes");
-        Spark.before((request, response) -> {
-           response.header("Access-Control-Allow-Origin","*");
-           response.header("Access-Control-Allow-Methods","*");
-
-           log.info("API Call [" + request.requestMethod() + "] " + request.raw().getPathInfo());
-        });
-
-        // Download CA Endpoint
-        Spark.get("/ca.crt", AcmeAPI.downloadCA);
-        Spark.get("/serverinfo", AcmeAPI.serverInfo);
-
-        Spark.get("/directory", AcmeAPI.directoryEndpoint);
-
-        // New account
-        Spark.post("/acme/new-acct", AcmeAPI.newAccount);
-
-        // New Nonce -> Supports (in the RFC) only HEAD (Status 200) and GET (Status 204)
-        Spark.head("/acme/new-nonce", AcmeAPI.newNonce);
-        Spark.get("/acme/new-nonce", AcmeAPI.newNonce);
-
-        // Account Update
-        Spark.post("/acme/acct/:id", AcmeAPI.account);
-
-        // Create new Order
-        Spark.post("/acme/new-order", AcmeAPI.newOrder);
-
-        // Challenge / Ownership verification
-        Spark.post("/acme/authz/:authorizationId", AcmeAPI.authz);
-        // Challenge Callback
-        Spark.post("/acme/chall/:challengeId", AcmeAPI.challengeCallback);
-        // Finalize endpoint
-        Spark.post("/acme/order/:orderId/finalize", AcmeAPI.finalizeOrder);
-        // Order info Endpoint
-        Spark.post("/acme/order/:orderId", AcmeAPI.order);
-        // Get Order Certificate
-        Spark.post("/acme/order/:orderId/cert", AcmeAPI.orderCert);
-
-        log.info("Configure Routes completed. Ready for incoming requests");
+        }
     }
+
 }
