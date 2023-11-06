@@ -16,6 +16,7 @@ import spark.Route;
 import spark.Spark;
 
 import javax.xml.crypto.Data;
+import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.security.cert.X509Certificate;
@@ -127,6 +128,22 @@ public class AcmeAPI {
         JSONObject reqBodyProtectedObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("protected")));
 
 
+        String accountId = SignatureCheck.getAccountIdFromProtectedKID(reqBodyProtectedObj);
+        ACMEAccount account = Database.getAccount(accountId);
+        //Check if account exists
+        if (account == null) {
+            log.error("Throwing API error: Account \"" + accountId + "\" not found");
+            response.header("Content-Type", "application/problem+json");
+            JSONObject resObj = new JSONObject();
+            resObj.put("type", "urn:ietf:params:acme:error:accountDoesNotExist");
+            resObj.put("detail", "The account id was not found");
+            Spark.halt(HttpURLConnection.HTTP_NOT_FOUND, resObj.toString());
+        }
+
+        //Check signature
+        SignatureCheck.checkSignature(request, response, account);
+
+
         JSONArray identifiersArr = reqBodyPayloadObj.getJSONArray("identifiers");
 
         ArrayList<ACMEIdentifier> acmeIdentifiers = new ArrayList<>();
@@ -141,9 +158,6 @@ public class AcmeAPI {
             resObj.put("detail", "Too many domains requested. Only one per order is currently supported");
             Spark.halt(HttpURLConnection.HTTP_BAD_REQUEST, resObj.toString());
         }
-
-        //Check signature
-        SignatureCheck.checkSignature(request,response,acmeIdentifiers.get(0).getOrder().getAccount());
 
 
         for (int i = 0; i < identifiersArr.length(); i++) {
@@ -161,18 +175,6 @@ public class AcmeAPI {
 
         // Create order in Database
         String orderId = UUID.randomUUID().toString();
-        String accountId = getAccountIdFromProtected(reqBodyProtectedObj);
-
-        //Check if account exists
-        ACMEAccount account = Database.getAccount(accountId);
-        if (account == null) {
-            log.error("Throwing API error: Account \"" + accountId + "\" not found");
-            response.header("Content-Type", "application/problem+json");
-            JSONObject resObj = new JSONObject();
-            resObj.put("type", "urn:ietf:params:acme:error:accountDoesNotExist");
-            resObj.put("detail", "The account id was not found");
-            Spark.halt(HttpURLConnection.HTTP_NOT_FOUND, resObj.toString());
-        }
 
         if (account.getEmails().size() == 0) {
             log.error("Throwing API error: Account \"" + accountId + "\" doesn't have any E-Mail addresses");
@@ -273,11 +275,11 @@ public class AcmeAPI {
 
         ACMEIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
 
-        SignatureCheck.checkSignature(request,response,identifier.getOrder().getAccount());
+        SignatureCheck.checkSignature(request, response, identifier.getOrder().getAccount());
 
         //Not found
         if (identifier == null) {
-            log.error("Throwing API error: Host verification failed");
+            log.error("Throwing API error: The requested authorization id was not found");
             response.header("Content-Type", "application/problem+json");
             JSONObject resObj = new JSONObject();
             resObj.put("type", "urn:ietf:params:acme:error:malformed");
@@ -423,12 +425,13 @@ public class AcmeAPI {
             log.info("Creating Certificate for order \"" + orderId + "\" with DNS Name \"" + identifier.getValue() + "\"");
             X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(Main.intermediateKeyPair, Main.intermediateCertificate.getEncoded(), pkPemObject.getContent(), new String[]{identifier.getValue()}, Main.acmeCertificatesExpireDays, Main.acmeCertificatesExpireMonths, Main.acmeCertificatesExpireYears);
 
+            BigInteger serialNumber = acmeGeneratedCertificate.getSerialNumber();
             String pemCertificate = CertTools.certificateToPEM(acmeGeneratedCertificate.getEncoded());
 
             Timestamp expiresAt = new Timestamp(acmeGeneratedCertificate.getNotAfter().getTime());
             Timestamp issuedAt = new Timestamp(acmeGeneratedCertificate.getNotBefore().getTime());
 
-            Database.storeCertificateInDatabase(orderId, identifier.getValue(), csr, pemCertificate, issuedAt, expiresAt);
+            Database.storeCertificateInDatabase(orderId, identifier.getValue(), csr, pemCertificate, issuedAt, expiresAt, serialNumber);
 
 
             response.header("Content-Type", "application/json");
@@ -474,7 +477,7 @@ public class AcmeAPI {
         response.header("Replay-Nonce", Crypto.createNonce());
 
         List<ACMEIdentifier> identifiers = Database.getACMEIdentifiersByOrderId(orderId);
-        if(identifiers.isEmpty()){
+        if (identifiers.isEmpty()) {
             throw new IllegalArgumentException("Identifiers empty, FIXME");
         }
         SignatureCheck.checkSignature(request, response, identifiers.get(0).getOrder().getAccount());

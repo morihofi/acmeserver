@@ -91,6 +91,20 @@ public class SignatureCheck {
 
     }
 
+    public static String getAccountIdFromProtectedKID(JSONObject protectedHeader){
+        String prefix = "/acme/acct/";
+        String kid = protectedHeader.getString("kid");
+
+
+        int startIndex = kid.indexOf(prefix);
+        if (startIndex != -1) {
+            // Add the length of the prefix to the start index to find the start of the UUID.
+            String uuid = kid.substring(startIndex + prefix.length());
+            return uuid;
+        } else {
+            return null;
+        }
+    }
 
     public static PublicKey convertJWKToPublicKey(JSONObject jwkObj) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidParameterSpecException, NoSuchProviderException {
         String kty = jwkObj.getString("kty");
