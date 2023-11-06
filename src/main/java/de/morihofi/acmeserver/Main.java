@@ -259,6 +259,8 @@ public class Main {
     private static void initializeDatabaseDrivers() throws ClassNotFoundException, SQLException {
         log.info("Loading MariaDB JDBC driver");
         Class.forName("org.mariadb.jdbc.Driver");
+        log.info("Loading H2 JDBC driver");
+        Class.forName("org.h2.Driver");
     }
 
     private static void initializeCA() throws NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, OperatorCreationException, CertificateEncodingException {
