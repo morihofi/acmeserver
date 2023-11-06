@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate.tools;
+package de.morihofi.acmeserver.tools;
 
 import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;
 import org.apache.logging.log4j.LogManager;

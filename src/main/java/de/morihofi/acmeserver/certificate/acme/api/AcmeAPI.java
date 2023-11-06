@@ -1,9 +1,11 @@
-package de.morihofi.acmeserver.certificate.acmeapi;
+package de.morihofi.acmeserver.certificate.acme.api;
 
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.Database;
-import de.morihofi.acmeserver.certificate.SendMail;
-import de.morihofi.acmeserver.certificate.tools.*;
+import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
+import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
+import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.tools.SendMail;
+import de.morihofi.acmeserver.tools.*;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import org.apache.logging.log4j.LogManager;
@@ -15,7 +17,6 @@ import org.json.JSONObject;
 import spark.Route;
 import spark.Spark;
 
-import javax.xml.crypto.Data;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.nio.file.Files;

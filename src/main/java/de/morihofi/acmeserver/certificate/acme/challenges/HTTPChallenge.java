@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate.acmeapi;
+package de.morihofi.acmeserver.certificate.acme.challenges;
 
 import de.morihofi.acmeserver.Main;
 import okhttp3.OkHttpClient;

@@ -1,9 +1,8 @@
-package de.morihofi.acmeserver.certificate;
+package de.morihofi.acmeserver.database;
 
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.acmeapi.SignatureCheck;
-import de.morihofi.acmeserver.certificate.tools.CertTools;
-import de.morihofi.acmeserver.database.HibernateUtil;
+import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
+import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;

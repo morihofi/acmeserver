@@ -1,9 +1,9 @@
-package de.morihofi.acmeserver.certificate.acmeapi;
+package de.morihofi.acmeserver.certificate.acme.security;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.Database;
+import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.certificate.tools.CertTools;
+import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

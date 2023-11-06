@@ -1,8 +1,6 @@
-package de.morihofi.acmeserver.certificate.tools;
+package de.morihofi.acmeserver.tools;
 
-import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 
 import java.security.cert.CertificateEncodingException;

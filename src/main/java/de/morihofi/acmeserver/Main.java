@@ -1,9 +1,8 @@
 package de.morihofi.acmeserver;
 
-import de.morihofi.acmeserver.certificate.tools.CertTools;
-import de.morihofi.acmeserver.certificate.tools.Crypto;
-import de.morihofi.acmeserver.certificate.tools.KeyStoreUtils;
-import de.morihofi.acmeserver.certificate.acmeapi.AcmeAPI;
+import de.morihofi.acmeserver.tools.CertTools;
+import de.morihofi.acmeserver.tools.KeyStoreUtils;
+import de.morihofi.acmeserver.certificate.acme.api.AcmeAPI;
 import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,7 +12,6 @@ import spark.Spark;
 
 import javax.security.cert.CertificateEncodingException;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,7 +19,6 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.sql.SQLException;
-import java.util.Base64;
 import java.util.Properties;
 
 public class Main {
@@ -128,8 +125,18 @@ public class Main {
         Spark.before((request, response) -> {
            response.header("Access-Control-Allow-Origin","*");
            response.header("Access-Control-Allow-Methods","*");
+           response.header("Access-Control-Allow-Headers","*");
+           response.header("Access-Control-Max-Age","3600");
 
            log.info("API Call [" + request.requestMethod() + "] " + request.raw().getPathInfo());
+        });
+        Spark.options("/*",(request, response) -> {
+            response.status(204); //No Content
+            response.header("Access-Control-Allow-Origin","*");
+            response.header("Access-Control-Allow-Methods","*");
+            response.header("Access-Control-Allow-Headers","*");
+            response.header("Access-Control-Max-Age","3600");
+            return "";
         });
 
         // Download CA Endpoint

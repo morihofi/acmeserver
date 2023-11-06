@@ -1,6 +1,5 @@
-package de.morihofi.acmeserver.certificate.acmeapi;
+package de.morihofi.acmeserver.certificate.revoke;
 
-import org.bouncycastle.asn1.x509.CertificateList;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509v2CRLBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CRLConverter;

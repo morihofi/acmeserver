@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate.tools;
+package de.morihofi.acmeserver.tools;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

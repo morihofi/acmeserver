@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate;
+package de.morihofi.acmeserver.tools;
 
 import de.morihofi.acmeserver.Main;
 import jakarta.mail.*;
