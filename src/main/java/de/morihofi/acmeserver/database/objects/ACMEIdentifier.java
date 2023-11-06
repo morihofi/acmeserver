@@ -5,6 +5,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 
 @Entity
@@ -28,7 +29,7 @@ public class ACMEIdentifier implements Serializable {
     private String authorizationId;
 
     @Column(name = "verified")
-    private Boolean verified;
+    private boolean verified;
 
     @Column(name = "verifiedTime")
     private Timestamp verifiedTime;
@@ -50,6 +51,12 @@ public class ACMEIdentifier implements Serializable {
     @Column(name = "certificatePem")
     @Type(type="text")
     private String certificatePem;
+
+    @Column(name = "certificateSerialNumber", precision = 50, scale = 0)
+    private BigInteger certificateSerialNumber;
+
+    @Column(name = "revokeStatusCode", nullable = true)
+    private Integer revokeStatusCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "orderId", referencedColumnName = "orderId")
@@ -167,5 +174,18 @@ public class ACMEIdentifier implements Serializable {
     public void setCertificatePem(String certificatePem) {
         this.certificatePem = certificatePem;
     }
+    public BigInteger getCertificateSerialNumber() {
+        return certificateSerialNumber;
+    }
+    public void setCertificateSerialNumber(BigInteger certificateSerialNumber) {
+        this.certificateSerialNumber = certificateSerialNumber;
+    }
 
+    public Integer getRevokeStatusCode() {
+        return revokeStatusCode;
+    }
+
+    public void setRevokeStatusCode(Integer revokeStatusCode) {
+        this.revokeStatusCode = revokeStatusCode;
+    }
 }

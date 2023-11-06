@@ -2,7 +2,6 @@ package de.morihofi.acmeserver.certificate;
 
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.acmeapi.SignatureCheck;
-import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.certificate.tools.CertTools;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
@@ -12,7 +11,6 @@ import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.exception.ACMEException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.json.JSONArray;
@@ -21,6 +19,7 @@ import org.json.JSONObject;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.cert.CertificateEncodingException;
@@ -58,7 +57,7 @@ public class Database {
     }
 
 
-    public static void storeCertificateInDatabase(String orderId, String dnsValue, String csr, String pemCertificate, Timestamp issueDate, Timestamp expireDate) {
+    public static void storeCertificateInDatabase(String orderId, String dnsValue, String csr, String pemCertificate, Timestamp issueDate, Timestamp expireDate, BigInteger serialNumber) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Transaction transaction = session.beginTransaction();
 
@@ -74,6 +73,7 @@ public class Database {
                 acmeIdentifier.setCertificateIssued(issueDate);
                 acmeIdentifier.setCertificateExpires(expireDate);
                 acmeIdentifier.setCertificatePem(pemCertificate);
+                acmeIdentifier.setCertificateSerialNumber(serialNumber);
 
                 session.update(acmeIdentifier);
                 transaction.commit();
