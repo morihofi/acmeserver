@@ -2,13 +2,25 @@ package de.morihofi.acmeserver.certificate.tools;
 
 import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
 import org.bouncycastle.asn1.pkcs.RSAPublicKey;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.util.encoders.Base64;
 
+import javax.security.cert.CertificateEncodingException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 public class Crypto {
 
@@ -91,6 +103,40 @@ public class Crypto {
             hexString.append(hex);
         }
         return hexString.toString();
+    }
+
+    /**
+     * Liest ein Zertifikat aus einer PEM-Datei und gibt die Zertifikatsbytes zurück.
+     * @param certificatePath Der Pfad zur PEM-Datei.
+     * @param keyPair Das KeyPair, für das das Zertifikat ausgelesen werden soll.
+     * @return Ein Byte-Array, das das Zertifikat darstellt.
+     * @throws IOException Wenn ein I/O-Fehler auftritt.
+     * @throws CertificateEncodingException Wenn ein Fehler beim Encodieren des Zertifikats auftritt.
+     */
+    public static byte[] getCertificateBytes(Path certificatePath, KeyPair keyPair) throws IOException, CertificateEncodingException, CertificateException {
+        // Lesen Sie die Datei mit dem PEMParser
+        try (PEMParser pemParser = new PEMParser(Files.newBufferedReader(certificatePath))) {
+            Object pemObject = pemParser.readObject();
+            if (pemObject instanceof X509CertificateHolder) {
+                // Erstellen Sie eine CertificateFactory für X.509
+                CertificateFactory factory = CertificateFactory.getInstance("X.509");
+
+                // Konvertieren Sie das gelesene Objekt in ein X509Certificate
+                X509CertificateHolder certificateHolder = (X509CertificateHolder) pemObject;
+                X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(certificateHolder); //(X509Certificate) factory.generateCertificate(
+                        //new java.io.ByteArrayInputStream(certificateHolder.getEncoded()));
+
+                // Prüfen Sie, ob das Zertifikat zum öffentlichen Schlüssel passt
+                if (!certificate.getPublicKey().equals(keyPair.getPublic())) {
+                    throw new IllegalArgumentException("The public certificate does not match the specified public key.");
+                }
+
+                // Geben Sie die Zertifikatsbytes zurück
+                return certificate.getEncoded();
+            } else {
+                throw new IllegalArgumentException("The specified file does not contain a valid certificate.");
+            }
+        }
     }
 
 }

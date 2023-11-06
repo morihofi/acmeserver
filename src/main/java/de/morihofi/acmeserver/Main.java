@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver;
 
 import de.morihofi.acmeserver.certificate.tools.CertTools;
+import de.morihofi.acmeserver.certificate.tools.Crypto;
 import de.morihofi.acmeserver.certificate.tools.KeyStoreUtils;
 import de.morihofi.acmeserver.certificate.acmeapi.AcmeAPI;
 import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;
@@ -10,6 +11,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import spark.Spark;
 
+import javax.security.cert.CertificateEncodingException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -259,7 +261,7 @@ public class Main {
         Class.forName("org.mariadb.jdbc.Driver");
     }
 
-    private static void initializeCA() throws NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, OperatorCreationException {
+    private static void initializeCA() throws NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, OperatorCreationException, CertificateEncodingException {
         if(!Files.exists(caPath) || !Files.exists(caKeyStorePath)){
             // Create CA
             log.info("Generating RSA " + caRSAKeyPairSize + "bit Key Pair for CA");
@@ -284,10 +286,9 @@ public class Main {
         if (!Files.exists(intermediateKeyStorePath)){
             log.info("Loading Root CA Keypair");
             caKeyPair = KeyStoreUtils.loadFromPKCS12(caKeyStorePath,caKeyStorePassword,caKeyStoreAlias).getKeyPair();
-            String caPEM = new String(Files.readAllBytes(caPath));
-            caPEM = caPEM.replaceAll("-----(BEGIN|END) CERTIFICATE-----", "").replaceAll("\n", "");
-            caCertificateBytes = Base64.getDecoder().decode(caPEM.getBytes(StandardCharsets.UTF_8));
-
+            //String caPEM = new String(Files.readAllBytes(caPath));
+            //caPEM = caPEM.replaceAll("-----(BEGIN|END) CERTIFICATE-----", "").replaceAll("\n", "");
+            caCertificateBytes = Crypto.getCertificateBytes(caPath, caKeyPair);
 
 
             // *****************************************
