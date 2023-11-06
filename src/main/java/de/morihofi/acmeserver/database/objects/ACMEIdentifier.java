@@ -4,11 +4,12 @@ package de.morihofi.acmeserver.database.objects;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Entity
 @Table(name = "orderidentifiers")
-public class ACMEIdentifier {
+public class ACMEIdentifier implements Serializable {
 
     @Id
     @Column(name = "challengeId")
@@ -16,9 +17,6 @@ public class ACMEIdentifier {
 
     @Column(name = "type")
     private String type;
-
-    @Column(name = "orderId")
-    private String orderId;
 
     @Column(name = "value")
     private String value;
@@ -49,10 +47,23 @@ public class ACMEIdentifier {
     @Column(name = "certificateExpires")
     private Timestamp certificateExpires;
 
-
     @Column(name = "certificatePem")
     @Type(type="text")
     private String certificatePem;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "orderId", referencedColumnName = "orderId")
+    private ACMEOrder order;
+
+
+    public ACMEOrder getOrder() {
+        return order;
+    }
+
+    public void setOrder(ACMEOrder order) {
+        this.order = order;
+    }
+
     public ACMEIdentifier(String type, String value) {
         this.type = type;
         this.value = value;
@@ -147,14 +158,6 @@ public class ACMEIdentifier {
 
     public void setCertificateExpires(Timestamp certificateExpires) {
         this.certificateExpires = certificateExpires;
-    }
-
-    public String getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
     }
 
     public String getCertificatePem() {

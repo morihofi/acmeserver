@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.certificate;
 
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.certificate.acmeapi.SignatureCheck;
+import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.certificate.tools.CertTools;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
@@ -14,6 +16,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.persistence.Query;
 import javax.transaction.Transactional;
@@ -33,22 +36,22 @@ public class Database {
     public static final Logger log = LogManager.getLogger(Database.class);
 
 
-    public static void createAccount(String accountId, String jwt, List<String> emails) {
+    public static void createAccount(String accountId, String jwk, List<String> emails) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction transaction = null;
         try {
             transaction = session.beginTransaction();
             ACMEAccount account = new ACMEAccount();
             account.setAccountId(accountId);
-            account.setJwt(jwt);
+            account.setPublicKeyPEM(CertTools.convertToPem(SignatureCheck.convertJWKToPublicKey(new JSONObject(jwk))));
             account.setEmails(emails);
             account.setDeactivated(false);
             session.save(account);
             transaction.commit();
             log.info("New ACME account created with account id \"" + accountId + "\"");
-        } catch (HibernateException e) {
-            if (transaction != null) transaction.rollback();
+        } catch (Exception e) {
             log.error("Unable to create new ACME account", e);
+            throw new ACMEException(e.getMessage());
         } finally {
             session.close();
         }
@@ -60,9 +63,10 @@ public class Database {
             Transaction transaction = session.beginTransaction();
 
             // Using ACMEIdentifier class
-            Query query = session.createQuery("FROM ACMEIdentifier a WHERE a.orderId = :orderId AND a.value = :dnsValue", ACMEIdentifier.class);
+            Query query = session.createQuery("FROM ACMEIdentifier a WHERE a.order.orderId = :orderId AND a.value = :dnsValue", ACMEIdentifier.class);
             query.setParameter("orderId", orderId);
             query.setParameter("dnsValue", dnsValue);
+
             ACMEIdentifier acmeIdentifier = (ACMEIdentifier) query.getSingleResult();
 
             if (acmeIdentifier != null) {
@@ -146,7 +150,7 @@ public class Database {
             identifier = session.createQuery("FROM ACMEIdentifier WHERE authorizationId = :authorizationId", ACMEIdentifier.class)
                     .setParameter("authorizationId", authorizationId)
                     .setMaxResults(1)
-                    .uniqueResult();
+                    .getSingleResult();
 
             if (identifier != null) {
                 log.info("(Authorization ID: \"" + authorizationId + "\") Got ACME identifier of type \"" +
@@ -154,9 +158,6 @@ public class Database {
             }
             transaction.commit();
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
             log.error("Unable get ACME identifiers for authorization id \"" + authorizationId + "\"", e);
         }
         return identifier;
@@ -214,7 +215,7 @@ public class Database {
                     throw new RuntimeException("Authorization Id or Token is null");
                 }
 
-                identifier.setOrderId(orderId);
+                identifier.setOrder(order);
                 identifier.setVerified(false);
                 session.save(identifier);
 
@@ -376,19 +377,7 @@ public class Database {
             if (result != null) {
                 // Assuming you have a class Account with these fields
                 ACMEAccount account = (ACMEAccount) result;
-                /*
-                String email = account.getEmail();
-                boolean deactivated = account.isDeactivated();
-                String jwt = account.getJwt();
 
-                JSONArray emailsArr = new JSONArray(email);
-                List<String> emails = new ArrayList<>();
-
-                for (int i = 0; i < emailsArr.length(); i++) {
-                    String emailFromArr = emailsArr.getString(i);
-                    emails.add(emailFromArr);
-                }
-                */
                 acmeAccount = account;
             }
 
@@ -398,5 +387,27 @@ public class Database {
         }
 
         return acmeAccount;
+    }
+
+    public static ACMEAccount getAccountByOrderId(String orderId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Transaction transaction = session.beginTransaction();
+
+            Query query = session.createQuery("SELECT o.account FROM ACMEOrder o WHERE o.orderId = :orderId");
+            query.setParameter("orderId", orderId);
+            Object result = query.getSingleResult();
+
+            if (result != null) {
+                // Assuming you have a class Account with these fields
+                ACMEAccount account = (ACMEAccount) result;
+                return account;
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            log.error("Unable to get ACME Account for order \"" + orderId + "\"", e);
+        }
+
+        return null;
     }
 }

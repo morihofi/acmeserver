@@ -22,6 +22,7 @@ import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 public class AcmeAPI {
@@ -58,7 +59,8 @@ public class AcmeAPI {
         JSONObject reqBodyPayloadObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("payload")));
         JSONObject reqBodyProtectedObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("protected")));
 
-        //TODO: Check signature
+        //Check signature
+        SignatureCheck.checkSignature(request, response, accountId);
 
         //Check if account exists
         ACMEAccount account = Database.getAccount(accountId);
@@ -125,9 +127,6 @@ public class AcmeAPI {
         JSONObject reqBodyProtectedObj = new JSONObject(Base64Tools.decodeBase64(reqBodyObj.getString("protected")));
 
 
-        //TODO: Validate Client Signature
-
-
         JSONArray identifiersArr = reqBodyPayloadObj.getJSONArray("identifiers");
 
         ArrayList<ACMEIdentifier> acmeIdentifiers = new ArrayList<>();
@@ -142,6 +141,9 @@ public class AcmeAPI {
             resObj.put("detail", "Too many domains requested. Only one per order is currently supported");
             Spark.halt(HttpURLConnection.HTTP_BAD_REQUEST, resObj.toString());
         }
+
+        //Check signature
+        SignatureCheck.checkSignature(request,response,acmeIdentifiers.get(0).getOrder().getAccount());
 
 
         for (int i = 0; i < identifiersArr.length(); i++) {
@@ -271,6 +273,8 @@ public class AcmeAPI {
 
         ACMEIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
 
+        SignatureCheck.checkSignature(request,response,identifier.getOrder().getAccount());
+
         //Not found
         if (identifier == null) {
             log.error("Throwing API error: Host verification failed");
@@ -327,9 +331,13 @@ public class AcmeAPI {
         response.header("Content-Type", "application/json");
         response.header("Replay-Nonce", Crypto.createNonce());
 
-
-        //heck if challenge is valid
+        // check if challenge is valid
         ACMEIdentifier identifier = Database.getACMEIdentifierByChallengeId(challengeId);
+
+        //Check signature
+        SignatureCheck.checkSignature(request, response, identifier.getOrder().getAccount());
+
+
         log.info("Validating ownership of host \"" + identifier.getValue() + "\"");
         if (HTTPChallenge.check(challengeId, identifier.getAuthorizationToken(), identifier.getValue())) {
             //mark challenge has passed
@@ -389,7 +397,10 @@ public class AcmeAPI {
 
         String csr = reqBodyPayloadObj.getString("csr");
 
-        //TODO: Check signature
+        //Check signature
+        ACMEAccount account = Database.getAccountByOrderId(orderId);
+        SignatureCheck.checkSignature(request, response, account);
+
         //TODO: Check if CSR Domain-names are matching with requested and checked Domain-names
 
         ACMEIdentifier identifier = Database.getACMEIdentifierByOrderId(orderId);
@@ -461,6 +472,13 @@ public class AcmeAPI {
 
         response.header("Content-Type", "application/json");
         response.header("Replay-Nonce", Crypto.createNonce());
+
+        List<ACMEIdentifier> identifiers = Database.getACMEIdentifiersByOrderId(orderId);
+        if(identifiers.isEmpty()){
+            throw new IllegalArgumentException("Identifiers empty, FIXME");
+        }
+        SignatureCheck.checkSignature(request, response, identifiers.get(0).getOrder().getAccount());
+
 
         JSONObject reqBodyObj = new JSONObject(request.body());
         //Payload is Base64 Encoded

@@ -1,5 +1,9 @@
 package de.morihofi.acmeserver.certificate.tools;
 
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.CertIOException;
@@ -7,22 +11,28 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
-import sun.misc.BASE64Encoder;
-import sun.security.provider.X509Factory;
 
+import javax.security.cert.CertificateEncodingException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
@@ -224,8 +234,6 @@ public class CertTools {
     }
 
     public static byte[] decodeBase64URLAsBytes(String stringToDecode) {
-
-
         // Getting decoder
         java.util.Base64.Decoder decoder = java.util.Base64.getUrlDecoder();
         return decoder.decode(stringToDecode);
@@ -235,7 +243,6 @@ public class CertTools {
 
     public static String encodedBase64URL(String stringToEncode) {
 
-
         // Getting encoder
         java.util.Base64.Encoder encoder = java.util.Base64.getUrlEncoder();
 
@@ -244,9 +251,108 @@ public class CertTools {
 
         System.out.println("Encoded URL: " + eStr);
 
-
         return eStr;
+    }
 
+
+    /**
+     * Liest ein Zertifikat aus einer PEM-Datei und gibt die Zertifikatsbytes zurück.
+     * @param certificatePath Der Pfad zur PEM-Datei.
+     * @param keyPair Das KeyPair, für das das Zertifikat ausgelesen werden soll.
+     * @return Ein Byte-Array, das das Zertifikat darstellt.
+     * @throws IOException Wenn ein I/O-Fehler auftritt.
+     * @throws CertificateEncodingException Wenn ein Fehler beim Encodieren des Zertifikats auftritt.
+     */
+    public static byte[] getCertificateBytes(Path certificatePath, KeyPair keyPair) throws IOException, CertificateEncodingException, CertificateException {
+        // Lesen Sie die Datei mit dem PEMParser
+        try (PEMParser pemParser = new PEMParser(Files.newBufferedReader(certificatePath))) {
+            Object pemObject = pemParser.readObject();
+            if (pemObject instanceof X509CertificateHolder) {
+                // Erstellen Sie eine CertificateFactory für X.509
+                CertificateFactory factory = CertificateFactory.getInstance("X.509");
+
+                // Konvertieren Sie das gelesene Objekt in ein X509Certificate
+                X509CertificateHolder certificateHolder = (X509CertificateHolder) pemObject;
+                X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(certificateHolder);
+
+                // Prüfen Sie, ob das Zertifikat zum öffentlichen Schlüssel passt
+                if (!certificate.getPublicKey().equals(keyPair.getPublic())) {
+                    throw new IllegalArgumentException("The public certificate does not match the specified public key.");
+                }
+
+                // Geben Sie die Zertifikatsbytes zurück
+                return certificate.getEncoded();
+            } else {
+                throw new IllegalArgumentException("The specified file does not contain a valid certificate.");
+            }
+        }
+    }
+
+
+    public static String convertToPem(PublicKey publicKey) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        PemWriter pemWriter = new PemWriter(stringWriter);
+
+        try {
+            pemWriter.writeObject(new PemObject("PUBLIC KEY", publicKey.getEncoded()));
+        } finally {
+            pemWriter.close();
+        }
+
+        return stringWriter.toString();
+    }
+
+    public static PublicKey convertToPublicKey(String pemString) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        PemReader pemReader = new PemReader(new StringReader(pemString));
+        byte[] content = pemReader.readPemObject().getContent();
+        pemReader.close();
+
+        // Umwandeln in ein SubjectPublicKeyInfo Objekt
+        SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(content);
+
+        // Ermitteln des Algorithmus OIDs
+        AlgorithmIdentifier algorithmIdentifier = subjectPublicKeyInfo.getAlgorithm();
+        ASN1ObjectIdentifier algorithmOid = algorithmIdentifier.getAlgorithm();
+
+        // Entsprechenden KeyFactory erzeugen
+        String keyAlgorithm;
+        if (algorithmOid.on(new ASN1ObjectIdentifier("1.2.840.10045"))) { // OID für elliptische Kurven
+            keyAlgorithm = "EC";
+        } else if (algorithmOid.on(new ASN1ObjectIdentifier("1.2.840.113549.1.1"))) { // OID für RSA
+            keyAlgorithm = "RSA";
+        } else {
+            throw new IllegalArgumentException("Unsupported Key Type");
+        }
+
+        // Erzeugen des PublicKey
+        KeyFactory keyFactory = KeyFactory.getInstance(keyAlgorithm);
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(subjectPublicKeyInfo.getEncoded());
+        return keyFactory.generatePublic(spec);
+    }
+
+
+
+    public static byte[] convertRawToDerSignatureECDSA(byte[] rawSignature) throws IOException {
+        if (rawSignature.length % 2 != 0) {
+            throw new IllegalArgumentException("Invalid raw signature length");
+        }
+
+        int sLength = rawSignature.length / 2;
+        byte[] rBytes = new byte[sLength];
+        byte[] sBytes = new byte[sLength];
+
+        System.arraycopy(rawSignature, 0, rBytes, 0, sLength);
+        System.arraycopy(rawSignature, sLength, sBytes, 0, sLength);
+
+        BigInteger r = new BigInteger(1, rBytes);
+        BigInteger s = new BigInteger(1, sBytes);
+
+        ASN1EncodableVector v = new ASN1EncodableVector();
+        v.add(new ASN1Integer(r));
+        v.add(new ASN1Integer(s));
+
+        DERSequence derSignature = new DERSequence(v);
+        return derSignature.getEncoded("DER");
     }
 
 }

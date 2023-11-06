@@ -286,7 +286,7 @@ public class Main {
         if (!Files.exists(intermediateKeyStorePath)){
             log.info("Loading Root CA Keypair");
             caKeyPair = KeyStoreUtils.loadFromPKCS12(caKeyStorePath,caKeyStorePassword,caKeyStoreAlias).getKeyPair();
-            caCertificateBytes = Crypto.getCertificateBytes(caPath, caKeyPair);
+            caCertificateBytes = CertTools.getCertificateBytes(caPath, caKeyPair);
 
 
             // *****************************************

@@ -105,38 +105,6 @@ public class Crypto {
         return hexString.toString();
     }
 
-    /**
-     * Liest ein Zertifikat aus einer PEM-Datei und gibt die Zertifikatsbytes zurück.
-     * @param certificatePath Der Pfad zur PEM-Datei.
-     * @param keyPair Das KeyPair, für das das Zertifikat ausgelesen werden soll.
-     * @return Ein Byte-Array, das das Zertifikat darstellt.
-     * @throws IOException Wenn ein I/O-Fehler auftritt.
-     * @throws CertificateEncodingException Wenn ein Fehler beim Encodieren des Zertifikats auftritt.
-     */
-    public static byte[] getCertificateBytes(Path certificatePath, KeyPair keyPair) throws IOException, CertificateEncodingException, CertificateException {
-        // Lesen Sie die Datei mit dem PEMParser
-        try (PEMParser pemParser = new PEMParser(Files.newBufferedReader(certificatePath))) {
-            Object pemObject = pemParser.readObject();
-            if (pemObject instanceof X509CertificateHolder) {
-                // Erstellen Sie eine CertificateFactory für X.509
-                CertificateFactory factory = CertificateFactory.getInstance("X.509");
 
-                // Konvertieren Sie das gelesene Objekt in ein X509Certificate
-                X509CertificateHolder certificateHolder = (X509CertificateHolder) pemObject;
-                X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(certificateHolder); //(X509Certificate) factory.generateCertificate(
-                        //new java.io.ByteArrayInputStream(certificateHolder.getEncoded()));
-
-                // Prüfen Sie, ob das Zertifikat zum öffentlichen Schlüssel passt
-                if (!certificate.getPublicKey().equals(keyPair.getPublic())) {
-                    throw new IllegalArgumentException("The public certificate does not match the specified public key.");
-                }
-
-                // Geben Sie die Zertifikatsbytes zurück
-                return certificate.getEncoded();
-            } else {
-                throw new IllegalArgumentException("The specified file does not contain a valid certificate.");
-            }
-        }
-    }
 
 }

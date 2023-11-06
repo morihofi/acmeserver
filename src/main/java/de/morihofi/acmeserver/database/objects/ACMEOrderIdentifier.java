@@ -1,11 +1,12 @@
 package de.morihofi.acmeserver.database.objects;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Entity
 @Table(name = "orderidentifiers")
-public class ACMEOrderIdentifier {
+public class ACMEOrderIdentifier implements Serializable {
 
     @Id
     @Column(name = "challengeId")

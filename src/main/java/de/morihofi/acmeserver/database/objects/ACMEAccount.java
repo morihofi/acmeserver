@@ -3,11 +3,12 @@ package de.morihofi.acmeserver.database.objects;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
 @Table(name = "accounts")
-public class ACMEAccount {
+public class ACMEAccount implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,8 +17,9 @@ public class ACMEAccount {
     @Column(name = "accountId")
     private String accountId;
 
-    @Column(name = "jwt")
-    private String jwt;
+    @Column(name = "publicKeyPEM")
+    @Type(type="text")
+    private String publicKeyPEM;
 
     @ElementCollection
     @CollectionTable(name = "account_emails", joinColumns = @JoinColumn(name = "account_id"))
@@ -45,14 +47,6 @@ public class ACMEAccount {
         this.accountId = accountId;
     }
 
-    public String getJwt() {
-        return jwt;
-    }
-
-    public void setJwt(String jwt) {
-        this.jwt = jwt;
-    }
-
 
     public Boolean isDeactivated() {
         return deactivated;
@@ -72,5 +66,13 @@ public class ACMEAccount {
 
     public Boolean getDeactivated() {
         return deactivated;
+    }
+
+    public String getPublicKeyPEM() {
+        return publicKeyPEM;
+    }
+
+    public void setPublicKeyPEM(String publicKeyPEM) {
+        this.publicKeyPEM = publicKeyPEM;
     }
 }
