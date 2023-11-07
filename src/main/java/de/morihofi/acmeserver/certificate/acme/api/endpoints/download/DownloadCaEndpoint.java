@@ -12,11 +12,9 @@ import java.nio.file.Files;
 
 public class DownloadCaEndpoint implements Handler {
 
-    private Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
 
-    public DownloadCaEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
+    public DownloadCaEndpoint() {
     }
     @Override
     public void handle(@NotNull Context ctx) throws Exception {

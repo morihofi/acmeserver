@@ -33,6 +33,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Properties;
 
 public class Main {
@@ -143,8 +144,6 @@ public class Main {
 
         }).start();
 
-        Provisioner provisioner = new Provisioner();
-
 
         app.before(ctx -> {
             ctx.header("Access-Control-Allow-Origin", "*");
@@ -154,7 +153,6 @@ public class Main {
 
             log.info("API Call [" + ctx.method() + "] " + ctx.path());
         });
-
         app.options("/*", ctx -> {
             ctx.status(204); // No Content
             ctx.header("Access-Control-Allow-Origin", "*");
@@ -162,7 +160,8 @@ public class Main {
             ctx.header("Access-Control-Allow-Headers", "*");
             ctx.header("Access-Control-Max-Age", "3600");
         });
-
+        /*
+        TODO: Implement Exception
         app.exception(ACMEException.class, (exception, ctx) -> {
             Gson gson = new Gson();
 
@@ -171,42 +170,58 @@ public class Main {
             ctx.header("Link", "<" + provisioner.getApiURL() + "/directory>;rel=\"index\"");
             ctx.result(gson.toJson(exception.getErrorResponse()));
         });
+        */
+
 
         // Global routes
         app.get("/serverinfo", new ServerInfoEndpoint());
-        app.get("/ca.crt", new DownloadCaEndpoint(provisioner));
-        app.get("/revokation.crl", new CRLEndpoint(provisioner, crlGenerator));
+        app.get("/ca.crt", new DownloadCaEndpoint());
 
-        // ACME Directory
-        app.get("/directory", new DirectoryEndpoint(provisioner));
+        List<String> provisionerNames = List.of("prod", "testing");
+        for (String provisionerName : provisionerNames) {
 
-        // New account
-        app.post("/acme/new-acct", new NewAccountEndpoint(provisioner));
 
-        // New Nonce
-        app.head("/acme/new-nonce", new NewNonceEndpoint(provisioner));
-        app.get("/acme/new-nonce", new NewNonceEndpoint(provisioner));
+            String prefix = "/" + provisionerName;
+            String crlLocation = "/crl/" + provisionerName + ".crl";
 
-        // Account Update
-        app.post("/acme/acct/{id}", new AccountEndpoint(provisioner));
+            Provisioner provisioner = new Provisioner(provisionerName);
 
-        // Create new Order
-        app.post("/acme/new-order", new NewOrderEndpoint(provisioner));
 
-        // Challenge / Ownership verification
-        app.post("/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(provisioner));
+            app.get(crlLocation, new CRLEndpoint(provisioner, crlGenerator));
 
-        // Challenge Callback
-        app.post("/acme/chall/{challengeId}", new ChallengeCallbackEndpoint(provisioner));
+            // ACME Directory
+            app.get(prefix + "/directory", new DirectoryEndpoint(provisioner));
 
-        // Finalize endpoint
-        app.post("/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(provisioner));
+            // New account
+            app.post(prefix + "/acme/new-acct", new NewAccountEndpoint(provisioner));
 
-        // Order info Endpoint
-        app.post("/acme/order/{orderId}", new OrderInfoEndpoint(provisioner));
+            // New Nonce
+            app.head(prefix + "/acme/new-nonce", new NewNonceEndpoint(provisioner));
+            app.get(prefix + "/acme/new-nonce", new NewNonceEndpoint(provisioner));
 
-        // Get Order Certificate
-        app.post("/acme/order/{orderId}/cert", new OrderCertEndpoint(provisioner));
+            // Account Update
+            app.post(prefix + "/acme/acct/{id}", new AccountEndpoint(provisioner));
+
+            // Create new Order
+            app.post(prefix + "/acme/new-order", new NewOrderEndpoint(provisioner));
+
+            // Challenge / Ownership verification
+            app.post(prefix + "/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(provisioner));
+
+            // Challenge Callback
+            app.post(prefix + "/acme/chall/{challengeId}", new ChallengeCallbackEndpoint(provisioner));
+
+            // Finalize endpoint
+            app.post(prefix + "/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(provisioner));
+
+            // Order info Endpoint
+            app.post(prefix + "/acme/order/{orderId}", new OrderInfoEndpoint(provisioner));
+
+            // Get Order Certificate
+            app.post(prefix + "/acme/order/{orderId}/cert", new OrderCertEndpoint(provisioner));
+
+            log.info("Provisioner " + provisioner.getProvisionerName() + " registered");
+        }
 
         log.info("Configure Routes completed. Ready for incoming requests");
     }
