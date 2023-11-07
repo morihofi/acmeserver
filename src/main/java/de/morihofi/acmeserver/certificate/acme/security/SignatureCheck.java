@@ -3,19 +3,16 @@ package de.morihofi.acmeserver.certificate.acme.security;
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.exception.exceptions.ACMEBadSignatureAlgorithmException;
 import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
+import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.json.JSONObject;
-import spark.Request;
-import spark.Response;
-import spark.Spark;
-
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.*;
@@ -25,13 +22,12 @@ public class SignatureCheck {
 
     public static final Logger log = LogManager.getLogger(SignatureCheck.class);
 
-    public static void checkSignature(Request request, Response response, ACMEAccount account) throws NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, InvalidKeyException, NoSuchProviderException {
-        checkSignature(request, response, account.getAccountId());
+    public static void checkSignature(Context ctx, ACMEAccount account, Gson gson) throws NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, InvalidKeyException, NoSuchProviderException {
+        checkSignature(ctx, account.getAccountId(), gson);
     }
 
-    public static void checkSignature(Request request, Response response, String accountId) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, NoSuchProviderException {
-        Gson gson = new Gson();
-        ACMERequestBody requestBody = gson.fromJson(request.body(), ACMERequestBody.class);
+    public static void checkSignature(Context ctx, String accountId, Gson gson) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, NoSuchProviderException {
+        ACMERequestBody requestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
         String protectedHeader = requestBody.getProtected();
         String payload = requestBody.getPayload();
@@ -82,11 +78,7 @@ public class SignatureCheck {
         if (!isSignatureValid) {
             // Signature verification failed
             log.error("Signature verification failed for account \"" + accountId + "\"");
-            response.header("Content-Type", "application/problem+json");
-            JSONObject resObj = new JSONObject();
-            resObj.put("type", "urn:ietf:params:acme:error:badSignature");
-            resObj.put("detail", "Signature does not match");
-            Spark.halt(HttpURLConnection.HTTP_UNAUTHORIZED, resObj.toString());
+            throw new ACMEBadSignatureAlgorithmException("Signature does not match");
         }
 
     }
@@ -134,4 +126,7 @@ public class SignatureCheck {
     }
 
 
+    public static String getAccountIdFromProtectedKID(String protectedJsonString) {
+        return getAccountIdFromProtectedKID(new JSONObject(protectedJsonString));
+    }
 }

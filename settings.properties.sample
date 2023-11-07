@@ -41,10 +41,18 @@ acme.api.keystore.password = changeme
 acme.api.rsakeysize = 4096
 
 # Database settings (MariaDB)
-database.host = 127.0.0.1:3306
+# database.engine = mariadb
+# database.host = 127.0.0.1:3306
+# database.user = root
+# database.password = 123456
+# database.name = acmeserverdb
+
+# Database settings (H2), leave Database Host empty
+database.engine = h2
+database.host =
 database.user = root
-database.password = password
-database.name = acmeserverdb
+database.password = changeme
+database.name = ./acme
 
 # ACME API created certificates
 acme.clientcert.expire.days = 14

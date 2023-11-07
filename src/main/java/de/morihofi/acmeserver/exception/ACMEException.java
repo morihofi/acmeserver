@@ -1,7 +1,14 @@
 package de.morihofi.acmeserver.exception;
 
-public class ACMEException extends IllegalArgumentException {
+import de.morihofi.acmeserver.exception.objects.ErrorResponse;
+
+public abstract class ACMEException extends IllegalArgumentException {
     public ACMEException(String s) {
         super(s);
     }
+
+    public abstract int getHttpStatusCode();
+
+    public abstract ErrorResponse getErrorResponse();
+
 }

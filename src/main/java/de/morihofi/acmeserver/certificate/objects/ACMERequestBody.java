@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.objects;
 
 import com.google.gson.annotations.SerializedName;
+import de.morihofi.acmeserver.tools.Base64Tools;
 
 public class ACMERequestBody {
     @SerializedName("protected")
@@ -10,12 +11,22 @@ public class ACMERequestBody {
     @SerializedName("signature")
     private String signature;
 
+    public String getDecodedProtected() {
+        String decoded = Base64Tools.decodeBase64(protectedHeader);
+        return decoded;
+    }
+
     public String getProtected() {
         return protectedHeader;
     }
 
     public String getPayload() {
         return payload;
+    }
+
+    public String getDecodedPayload() {
+        String decoded = Base64Tools.decodeBase64(payload);
+        return decoded;
     }
 
     public String getSignature() {

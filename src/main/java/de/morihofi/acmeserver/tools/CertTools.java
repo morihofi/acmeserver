@@ -19,7 +19,6 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
 
-import javax.security.cert.CertificateEncodingException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
@@ -261,9 +260,8 @@ public class CertTools {
      * @param keyPair Das KeyPair, für das das Zertifikat ausgelesen werden soll.
      * @return Ein Byte-Array, das das Zertifikat darstellt.
      * @throws IOException Wenn ein I/O-Fehler auftritt.
-     * @throws CertificateEncodingException Wenn ein Fehler beim Encodieren des Zertifikats auftritt.
      */
-    public static byte[] getCertificateBytes(Path certificatePath, KeyPair keyPair) throws IOException, CertificateEncodingException, CertificateException {
+    public static byte[] getCertificateBytes(Path certificatePath, KeyPair keyPair) throws IOException, CertificateException {
         // Lesen Sie die Datei mit dem PEMParser
         try (PEMParser pemParser = new PEMParser(Files.newBufferedReader(certificatePath))) {
             Object pemObject = pemParser.readObject();

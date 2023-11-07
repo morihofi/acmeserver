@@ -2,6 +2,9 @@ package de.morihofi.acmeserver.database;
 
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
+import de.morihofi.acmeserver.certificate.revoke.objects.RevokedCertificate;
+import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
+import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
@@ -49,7 +52,7 @@ public class Database {
             log.info("New ACME account created with account id \"" + accountId + "\"");
         } catch (Exception e) {
             log.error("Unable to create new ACME account", e);
-            throw new ACMEException(e.getMessage());
+            throw new ACMEServerInternalException(e.getMessage());
         } finally {
             session.close();
         }
@@ -224,7 +227,7 @@ public class Database {
             transaction.commit();
         } catch (Exception e) {
             log.error("Unable to create new ACME Order with id \"" + orderId + "\" for account \"" + account.getAccountId() + "\"", e);
-            throw new ACMEException("Unable to create new ACME Order");
+            throw new ACMEServerInternalException("Unable to create new ACME Order");
         }
     }
 
@@ -252,7 +255,7 @@ public class Database {
 
         } catch (Exception e) {
             log.error("Unable to update emails for account \"" + account.getAccountId() + "\"", e);
-            throw new ACMEException("Unable to update emails");
+            throw new ACMEInvalidContactException("Unable to update emails");
         }
     }
 
@@ -374,7 +377,6 @@ public class Database {
             Object result = query.getSingleResult();
 
             if (result != null) {
-                // Assuming you have a class Account with these fields
                 ACMEAccount account = (ACMEAccount) result;
 
                 acmeAccount = account;
@@ -397,7 +399,6 @@ public class Database {
             Object result = query.getSingleResult();
 
             if (result != null) {
-                // Assuming you have a class Account with these fields
                 ACMEAccount account = (ACMEAccount) result;
                 return account;
             }
@@ -408,5 +409,33 @@ public class Database {
         }
 
         return null;
+    }
+
+    public static List<RevokedCertificate> getRevokedCertificates(){
+        List<RevokedCertificate> certificates = new ArrayList<>();
+
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Transaction transaction = session.beginTransaction();
+
+            //Certificates are revoked when they have a statusCode and a timestamp
+            Query query = session.createQuery("FROM ACMEIdentifier WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL");
+            List<ACMEIdentifier> result = query.getResultList();
+
+            if (!result.isEmpty()) {
+                for(ACMEIdentifier revokedIdentifier : result){
+                    certificates.add(new RevokedCertificate(
+                            revokedIdentifier.getCertificateSerialNumber(),
+                            revokedIdentifier.getRevokeTimestamp(),
+                            revokedIdentifier.getRevokeStatusCode()
+                    ));
+                }
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            log.error("Unable to get revoked certificates", e);
+        }
+
+        return certificates;
     }
 }

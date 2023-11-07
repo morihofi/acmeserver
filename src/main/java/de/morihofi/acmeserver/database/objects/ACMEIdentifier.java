@@ -58,6 +58,9 @@ public class ACMEIdentifier implements Serializable {
     @Column(name = "revokeStatusCode", nullable = true)
     private Integer revokeStatusCode;
 
+    @Column(name = "revokeTimestamp", nullable = true)
+    private Timestamp revokeTimestamp;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "orderId", referencedColumnName = "orderId")
     private ACMEOrder order;
@@ -187,5 +190,13 @@ public class ACMEIdentifier implements Serializable {
 
     public void setRevokeStatusCode(Integer revokeStatusCode) {
         this.revokeStatusCode = revokeStatusCode;
+    }
+
+    public Timestamp getRevokeTimestamp() {
+        return revokeTimestamp;
+    }
+
+    public void setRevokeTimestamp(Timestamp revokeTimestamp) {
+        this.revokeTimestamp = revokeTimestamp;
     }
 }

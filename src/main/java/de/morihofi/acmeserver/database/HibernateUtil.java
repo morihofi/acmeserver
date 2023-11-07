@@ -13,8 +13,7 @@ public class HibernateUtil {
     private static SessionFactory sessionFactory;
 
     public static SessionFactory getSessionFactory() {
-        String dbDriver = "mariadb";
-        switch (dbDriver) {
+        switch (Main.db_engine) {
             case "h2":
                 return getSessionFactory(DatabaseType.H2);
             case "mariadb":

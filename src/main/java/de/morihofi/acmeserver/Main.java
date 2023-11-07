@@ -1,16 +1,30 @@
 package de.morihofi.acmeserver;
 
+import com.google.gson.Gson;
+import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.*;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.AccountEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.NewAccountEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.ChallengeCallbackEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.download.DownloadCaEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.AuthzOwnershipEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderCertEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
+import de.morihofi.acmeserver.certificate.revoke.CRL;
+import de.morihofi.acmeserver.certificate.revoke.CRLEndpoint;
+import de.morihofi.acmeserver.exception.ACMEException;
 import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.tools.KeyStoreUtils;
-import de.morihofi.acmeserver.certificate.acme.api.AcmeAPI;
 import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;
+import io.javalin.Javalin;
+import io.javalin.community.ssl.SSLPlugin;
+import io.javalin.http.staticfiles.Location;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
-import spark.Spark;
 
-import javax.security.cert.CertificateEncodingException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,6 +47,7 @@ public class Main {
     public static String db_user;
     public static String db_name;
     public static String db_host;
+    public static String db_engine;
 
     public static final Path FILES_DIR = Paths.get("serverdata").toAbsolutePath();
 
@@ -88,6 +103,7 @@ public class Main {
     public static String buildMetadataBuildTime = null;
     public static String buildMetadataGitCommit = null;
 
+    public static CRL crlGenerator = null;
 
     public static void main(String[] args) throws Exception {
 
@@ -106,73 +122,96 @@ public class Main {
         initializeCA();
 
 
+        log.info("Loading certificates");
+        KeyStoreFileContent intermediateKeyStoreContents = KeyStoreUtils.loadFromPKCS12(intermediateKeyStorePath, intermediateKeyStorePassword, intermediateKeyStoreAlias);
+        log.info("Loading intermediate Key Pair");
+        intermediateKeyPair = intermediateKeyStoreContents.getKeyPair();
+        log.info("Loading intermediate Certificate");
+        intermediateCertificate = intermediateKeyStoreContents.getCert();
 
-       log.info("Loading certificates");
-       KeyStoreFileContent intermediateKeyStoreContents = KeyStoreUtils.loadFromPKCS12(intermediateKeyStorePath,intermediateKeyStorePassword, intermediateKeyStoreAlias);
-       log.info("Loading intermediate Key Pair");
-       intermediateKeyPair =intermediateKeyStoreContents.getKeyPair();
-       log.info("Loading intermediate Certificate");
-       intermediateCertificate = intermediateKeyStoreContents.getCert();
-
+        CRL crlGenerator = new CRL();
 
         log.info("Starting ACME API WebServer using HTTPS");
         String keyStoreLocation = acmeServerKeyStorePath.toAbsolutePath().toString();
-        Spark.secure(keyStoreLocation, acmeServerKeyStorePassword, null, null);
-        Spark.port(acmeThisServerAPIPort);
-        Spark.staticFileLocation("/webstatic");
+        Javalin app = Javalin.create(config -> {
+            config.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
+            SSLPlugin plugin = new SSLPlugin(conf -> {
+                // conf.pemFromPath("/etc/ssl/certificate.pem", "/etc/ssl/privateKey.pem");
+                conf.keystoreFromPath(keyStoreLocation, caKeyStorePassword);
+                conf.securePort = acmeThisServerAPIPort;
+                conf.insecure = false;
+            });
+            config.plugins.getPluginManager().register(plugin);
 
-        log.info("Configure Routes");
-        Spark.before((request, response) -> {
-           response.header("Access-Control-Allow-Origin","*");
-           response.header("Access-Control-Allow-Methods","*");
-           response.header("Access-Control-Allow-Headers","*");
-           response.header("Access-Control-Max-Age","3600");
+        }).start();
 
-           log.info("API Call [" + request.requestMethod() + "] " + request.raw().getPathInfo());
+        Provisioner provisioner = new Provisioner();
+
+
+        app.before(ctx -> {
+            ctx.header("Access-Control-Allow-Origin", "*");
+            ctx.header("Access-Control-Allow-Methods", "*");
+            ctx.header("Access-Control-Allow-Headers", "*");
+            ctx.header("Access-Control-Max-Age", "3600");
+
+            log.info("API Call [" + ctx.method() + "] " + ctx.path());
         });
-        Spark.options("/*",(request, response) -> {
-            response.status(204); //No Content
-            response.header("Access-Control-Allow-Origin","*");
-            response.header("Access-Control-Allow-Methods","*");
-            response.header("Access-Control-Allow-Headers","*");
-            response.header("Access-Control-Max-Age","3600");
-            return "";
+
+        app.options("/*", ctx -> {
+            ctx.status(204); // No Content
+            ctx.header("Access-Control-Allow-Origin", "*");
+            ctx.header("Access-Control-Allow-Methods", "*");
+            ctx.header("Access-Control-Allow-Headers", "*");
+            ctx.header("Access-Control-Max-Age", "3600");
         });
 
-        // Download CA Endpoint
-        Spark.get("/ca.crt", AcmeAPI.downloadCA);
-        Spark.get("/serverinfo", AcmeAPI.serverInfo);
+        app.exception(ACMEException.class, (exception, ctx) -> {
+            Gson gson = new Gson();
 
-        Spark.get("/directory", AcmeAPI.directoryEndpoint);
+            ctx.status(exception.getHttpStatusCode());
+            ctx.header("Content-Type", "application/problem+json");
+            ctx.header("Link", "<" + provisioner.getApiURL() + "/directory>;rel=\"index\"");
+            ctx.result(gson.toJson(exception.getErrorResponse()));
+        });
+
+        // Global routes
+        app.get("/serverinfo", new ServerInfoEndpoint());
+        app.get("/ca.crt", new DownloadCaEndpoint(provisioner));
+        app.get("/revokation.crl", new CRLEndpoint(provisioner));
+
+        // ACME Directory
+        app.get("/directory", new DirectoryEndpoint(provisioner));
 
         // New account
-        Spark.post("/acme/new-acct", AcmeAPI.newAccount);
+        app.post("/acme/new-acct", new NewAccountEndpoint(provisioner));
 
-        // New Nonce -> Supports (in the RFC) only HEAD (Status 200) and GET (Status 204)
-        Spark.head("/acme/new-nonce", AcmeAPI.newNonce);
-        Spark.get("/acme/new-nonce", AcmeAPI.newNonce);
+        // New Nonce
+        app.head("/acme/new-nonce", new NewNonceEndpoint(provisioner));
+        app.get("/acme/new-nonce", new NewNonceEndpoint(provisioner));
 
         // Account Update
-        Spark.post("/acme/acct/:id", AcmeAPI.account);
+        app.post("/acme/acct/{id}", new AccountEndpoint(provisioner));
 
         // Create new Order
-        Spark.post("/acme/new-order", AcmeAPI.newOrder);
+        app.post("/acme/new-order", new NewOrderEndpoint(provisioner));
 
         // Challenge / Ownership verification
-        Spark.post("/acme/authz/:authorizationId", AcmeAPI.authz);
+        app.post("/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(provisioner));
+
         // Challenge Callback
-        Spark.post("/acme/chall/:challengeId", AcmeAPI.challengeCallback);
+        app.post("/acme/chall/{challengeId}", new ChallengeCallbackEndpoint(provisioner));
+
         // Finalize endpoint
-        Spark.post("/acme/order/:orderId/finalize", AcmeAPI.finalizeOrder);
+        app.post("/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(provisioner));
+
         // Order info Endpoint
-        Spark.post("/acme/order/:orderId", AcmeAPI.order);
+        app.post("/acme/order/{orderId}", new OrderInfoEndpoint(provisioner));
+
         // Get Order Certificate
-        Spark.post("/acme/order/:orderId/cert", AcmeAPI.orderCert);
+        app.post("/acme/order/{orderId}/cert", new OrderCertEndpoint(provisioner));
 
         log.info("Configure Routes completed. Ready for incoming requests");
     }
-
-
 
 
     private static void printBanner() {
@@ -220,6 +259,7 @@ public class Main {
         db_user = properties.getProperty("database.user");
         db_name = properties.getProperty("database.name");
         db_host = properties.getProperty("database.host");
+        db_engine = properties.getProperty("database.engine");
         // Root CA Settings
         caCommonName = properties.getProperty("acme.certificate.root.metadata.cn");
         caRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.certificate.root.rsasize"));
@@ -245,21 +285,22 @@ public class Main {
         acmeCertificatesExpireYears = Integer.parseInt(properties.getProperty("acme.clientcert.expire.years"));
         log.info("Settings have been successfully loaded");
     }
+
     private static void loadBuildAndGitMetadata() {
         try {
             Properties buildMetadataProperties = new Properties();
             buildMetadataProperties.load(Main.class.getResourceAsStream("/build.properties"));
             buildMetadataVersion = buildMetadataProperties.getProperty("build.version");
             buildMetadataBuildTime = buildMetadataProperties.getProperty("build.date") + " UTC";
-        }catch (Exception e){
-            log.error("Unable to load build metadata",e);
+        } catch (Exception e) {
+            log.error("Unable to load build metadata", e);
         }
         try {
             Properties gitMetadataProperties = new Properties();
             gitMetadataProperties.load(Main.class.getResourceAsStream("/git.properties"));
             buildMetadataGitCommit = gitMetadataProperties.getProperty("git.commit.id.full");
-        }catch (Exception e){
-            log.error("Unable to load git metadata",e);
+        } catch (Exception e) {
+            log.error("Unable to load git metadata", e);
         }
     }
 
@@ -270,8 +311,8 @@ public class Main {
         Class.forName("org.h2.Driver");
     }
 
-    private static void initializeCA() throws NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, OperatorCreationException, CertificateEncodingException {
-        if(!Files.exists(caPath) || !Files.exists(caKeyStorePath)){
+    private static void initializeCA() throws NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, OperatorCreationException {
+        if (!Files.exists(caPath) || !Files.exists(caKeyStorePath)) {
             // Create CA
             log.info("Generating RSA " + caRSAKeyPairSize + "bit Key Pair for CA");
             KeyPair caKeyPair = CertTools.generateRSAKeyPair(caRSAKeyPairSize);
@@ -288,13 +329,13 @@ public class Main {
 
 
             //(Old) Intermediate CA is no longer valid, due to new Root CA
-            if (Files.exists(intermediateKeyStorePath)){
+            if (Files.exists(intermediateKeyStorePath)) {
                 Files.delete(intermediateKeyStorePath);
             }
         }
-        if (!Files.exists(intermediateKeyStorePath)){
+        if (!Files.exists(intermediateKeyStorePath)) {
             log.info("Loading Root CA Keypair");
-            caKeyPair = KeyStoreUtils.loadFromPKCS12(caKeyStorePath,caKeyStorePassword,caKeyStoreAlias).getKeyPair();
+            caKeyPair = KeyStoreUtils.loadFromPKCS12(caKeyStorePath, caKeyStorePassword, caKeyStoreAlias).getKeyPair();
             caCertificateBytes = CertTools.getCertificateBytes(caPath, caKeyPair);
 
 
@@ -303,7 +344,7 @@ public class Main {
             log.info("Generating RSA " + intermediateRSAKeyPairSize + "bit Key Pair for Intermediate CA");
             intermediateKeyPair = CertTools.generateRSAKeyPair(intermediateRSAKeyPairSize);
             log.info("Creating Intermediate CA");
-            intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair,caCertificateBytes,intermediateKeyPair,intermediateCommonName,intermediateDefaultExpireDays,intermediateDefaultExpireMonths,intermediateDefaultExpireYears);
+            intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair, caCertificateBytes, intermediateKeyPair, intermediateCommonName, intermediateDefaultExpireDays, intermediateDefaultExpireMonths, intermediateDefaultExpireYears);
             log.info("Writing Intermediate CA to Key Store");
             KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, intermediateKeyStoreAlias, intermediateCertificate.getEncoded(), intermediateKeyStorePath);
 
@@ -315,19 +356,19 @@ public class Main {
             caKeyStoreAlias = null;
 
             //(Old) ACME API Server Certificate is no longer valid, due to new Intermediate CA
-            if (Files.exists(acmeServerKeyStorePath)){
+            if (Files.exists(acmeServerKeyStorePath)) {
                 Files.delete(acmeServerKeyStorePath);
             }
         }
 
 
-        if (!Files.exists(acmeServerKeyStorePath)){
+        if (!Files.exists(acmeServerKeyStorePath)) {
             // *****************************************
             // Create Certificate for our ACME Web Server API (Client Certificate)
             log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
             KeyPair acmeAPIKeyPair = CertTools.generateRSAKeyPair(4096);
             log.info("Creating Server Certificate");
-            X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair,intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{acmeThisServerDNSName},0,1,0);
+            X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair, intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{acmeThisServerDNSName}, 0, 1, 0);
             log.info("Writing Server Certificate (as key chain) to Key Store");
             KeyStoreUtils.saveAsPKCS12KeyChain(acmeAPIKeyPair, acmeServerKeyStorePassword, "server", new byte[][]{acmeAPICertificate.getEncoded(), intermediateCertificate.getEncoded()}, acmeServerKeyStorePath);
 

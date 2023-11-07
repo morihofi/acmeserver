@@ -9,14 +9,15 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>dd-MM-yyyy HH:mm</maven.build.timestamp.format>
 
         <bouncycastle.version>1.70</bouncycastle.version>
+        <javalin.version>5.6.3</javalin.version>
     </properties>
 
     <build>
@@ -107,13 +108,18 @@
     </build>
 
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/com.sparkjava/spark-core -->
+
         <dependency>
-            <groupId>com.sparkjava</groupId>
-            <artifactId>spark-core</artifactId>
-            <version>2.9.4</version>
+            <groupId>io.javalin</groupId>
+            <artifactId>javalin</artifactId>
+            <version>${javalin.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.json/json -->
+        <dependency>
+            <groupId>io.javalin.community.ssl</groupId>
+            <artifactId>ssl-plugin</artifactId>
+            <version>${javalin.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
@@ -145,7 +151,7 @@
         <!-- SLF4J Bridge -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
             <version>2.20.0</version>
         </dependency>
 
