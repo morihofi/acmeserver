@@ -10,16 +10,18 @@ import java.nio.ByteBuffer;
 public class CRLEndpoint implements Handler {
 
     private Provisioner provisioner;
+    private CRL crl;
 
-    public CRLEndpoint(Provisioner provisioner) {
+    public CRLEndpoint(Provisioner provisioner, CRL crl) {
         this.provisioner = provisioner;
+        this.crl = crl;
     }
 
 
     @Override
     public void handle(Context ctx) throws Exception {
         ctx.status(200);
-        ByteBuffer buffer = ByteBuffer.wrap(Main.crlGenerator.getCurrentCrlBytes());
+        ByteBuffer buffer = ByteBuffer.wrap(crl.getCurrentCrlBytes());
 
         ctx.header("Content-Type", "application/pkix-crl");
         ctx.header("Content-Length", String.valueOf(buffer.capacity()));

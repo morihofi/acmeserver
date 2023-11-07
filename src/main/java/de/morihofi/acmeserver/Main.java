@@ -103,8 +103,6 @@ public class Main {
     public static String buildMetadataBuildTime = null;
     public static String buildMetadataGitCommit = null;
 
-    public static CRL crlGenerator = null;
-
     public static void main(String[] args) throws Exception {
 
         printBanner();
@@ -177,7 +175,7 @@ public class Main {
         // Global routes
         app.get("/serverinfo", new ServerInfoEndpoint());
         app.get("/ca.crt", new DownloadCaEndpoint(provisioner));
-        app.get("/revokation.crl", new CRLEndpoint(provisioner));
+        app.get("/revokation.crl", new CRLEndpoint(provisioner, crlGenerator));
 
         // ACME Directory
         app.get("/directory", new DirectoryEndpoint(provisioner));
