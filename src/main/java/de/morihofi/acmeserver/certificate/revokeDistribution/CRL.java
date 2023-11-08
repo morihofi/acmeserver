@@ -1,7 +1,7 @@
-package de.morihofi.acmeserver.certificate.revoke;
+package de.morihofi.acmeserver.certificate.revokeDistribution;
 
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.revoke.objects.RevokedCertificate;
+import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.database.Database;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,7 +13,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
-import java.math.BigInteger;
 import java.security.PrivateKey;
 import java.security.cert.CRLException;
 import java.security.cert.CertificateEncodingException;

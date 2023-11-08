@@ -1,6 +1,5 @@
-package de.morihofi.acmeserver.certificate.revoke;
+package de.morihofi.acmeserver.certificate.revokeDistribution;
 
-import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;

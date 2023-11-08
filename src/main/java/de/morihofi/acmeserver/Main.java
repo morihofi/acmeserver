@@ -1,6 +1,5 @@
 package de.morihofi.acmeserver;
 
-import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.*;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.AccountEndpoint;
@@ -11,9 +10,8 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.AuthzOwnershi
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
-import de.morihofi.acmeserver.certificate.revoke.CRL;
-import de.morihofi.acmeserver.certificate.revoke.CRLEndpoint;
-import de.morihofi.acmeserver.exception.ACMEException;
+import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
+import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.tools.KeyStoreUtils;
 import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;

@@ -2,7 +2,7 @@ package de.morihofi.acmeserver.database;
 
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
-import de.morihofi.acmeserver.certificate.revoke.objects.RevokedCertificate;
+import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.CertTools;
@@ -10,7 +10,6 @@ import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
-import de.morihofi.acmeserver.exception.ACMEException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;

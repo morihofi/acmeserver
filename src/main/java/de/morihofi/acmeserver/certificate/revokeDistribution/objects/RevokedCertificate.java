@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate.revoke.objects;
+package de.morihofi.acmeserver.certificate.revokeDistribution.objects;
 
 import java.math.BigInteger;
 import java.util.Date;
