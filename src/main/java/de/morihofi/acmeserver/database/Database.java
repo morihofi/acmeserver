@@ -165,6 +165,28 @@ public class Database {
     }
 
 
+    public static ACMEIdentifier getACMEIdentifierCertificateSerialNumber(BigInteger serialNumber) {
+        ACMEIdentifier identifier = null;
+        Transaction transaction;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            identifier = session.createQuery("FROM ACMEIdentifier WHERE certificateSerialNumber = :certificateSerialNumber", ACMEIdentifier.class)
+                    .setParameter("certificateSerialNumber", serialNumber)
+                    .setMaxResults(1)
+                    .getSingleResult();
+
+            if (identifier != null) {
+                log.info("(Certificate Serial Number: \"" + serialNumber + "\") Got ACME identifier of type \"" +
+                        identifier.getType() + "\" with value \"" + identifier.getValue() + "\"");
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            log.error("Unable get ACME identifiers for certificate serial number id \"" + serialNumber + "\"", e);
+        }
+        return identifier;
+    }
+
+
     public static List<ACMEIdentifier> getACMEIdentifiersByOrderId(String orderId) {
         List<ACMEIdentifier> identifiers = new ArrayList<>();
         Transaction transaction = null;
@@ -195,8 +217,8 @@ public class Database {
     }
 
     @Transactional
-    public static void createOrder(ACMEAccount account, String orderId, List<ACMEIdentifier> identifierList) {
-        Transaction transaction = null;
+    public static void createOrder(ACMEAccount account, String orderId, List<ACMEIdentifier> identifierList, String provisioner) {
+        Transaction transaction;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
 
@@ -216,6 +238,7 @@ public class Database {
                     throw new RuntimeException("Authorization Id or Token is null");
                 }
 
+                identifier.setProvisioner(provisioner);
                 identifier.setOrder(order);
                 identifier.setVerified(false);
                 session.save(identifier);
@@ -361,6 +384,7 @@ public class Database {
             log.error("Unable to load CA Certificate", e);
         }
 
+        log.info("Returning certificate chain");
         return pemBuilder.toString();
     }
 
@@ -436,5 +460,24 @@ public class Database {
         }
 
         return certificates;
+    }
+
+
+    public static void revokeCertificate(ACMEIdentifier identifier, int reason) {
+        identifier.setRevokeTimestamp(Timestamp.from(Instant.now()));
+        identifier.setRevokeStatusCode(reason);
+
+        Transaction transaction;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+
+            session.update(identifier);
+
+            transaction.commit();
+            log.info("Revoked certificate with serial number " + identifier.getCertificateSerialNumber() + " (Provisioner " + identifier.getProvisioner() + ")");
+        } catch (Exception e) {
+            log.error("Unable to revoke certificate with serial number " + identifier.getCertificateSerialNumber() + " (Provisioner " + identifier.getProvisioner() + ")", e);
+            throw new ACMEServerInternalException("Unable to revoke certificate");
+        }
     }
 }

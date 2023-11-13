@@ -26,6 +26,9 @@ import java.util.Date;
 import java.util.UUID;
 
 public class NewOrderEndpoint implements Handler {
+    /*
+    ChatGPT ACME Guide approved class
+    */
 
     private Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
@@ -122,7 +125,7 @@ public class NewOrderEndpoint implements Handler {
 
         }
         // Add authorizations to Database
-        Database.createOrder(account, orderId, acmeIdentifiersWithAuthorizationData);
+        Database.createOrder(account, orderId, acmeIdentifiersWithAuthorizationData, provisioner.getProvisionerName());
 
         //Send E-Mail if order was created
         try {

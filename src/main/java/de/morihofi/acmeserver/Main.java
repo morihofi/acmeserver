@@ -1,5 +1,7 @@
 package de.morihofi.acmeserver;
 
+import com.google.gson.Gson;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.RevokeCertEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.*;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.AccountEndpoint;
@@ -12,6 +14,8 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderCertEndp
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
+import de.morihofi.acmeserver.config.KeyStoreConfigLoader;
+import de.morihofi.acmeserver.exception.ACMEException;
 import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.tools.KeyStoreUtils;
 import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;
@@ -158,17 +162,17 @@ public class Main {
             ctx.header("Access-Control-Allow-Headers", "*");
             ctx.header("Access-Control-Max-Age", "3600");
         });
-        /*
-        TODO: Implement Exception
+
+        //TODO: Implement Exception
         app.exception(ACMEException.class, (exception, ctx) -> {
             Gson gson = new Gson();
 
             ctx.status(exception.getHttpStatusCode());
             ctx.header("Content-Type", "application/problem+json");
-            ctx.header("Link", "<" + provisioner.getApiURL() + "/directory>;rel=\"index\"");
+            //ctx.header("Link", "<" + provisioner.getApiURL() + "/directory>;rel=\"index\"");
             ctx.result(gson.toJson(exception.getErrorResponse()));
         });
-        */
+
 
 
         // Global routes
@@ -182,7 +186,7 @@ public class Main {
             String prefix = "/" + provisionerName;
             String crlLocation = "/crl/" + provisionerName + ".crl";
 
-            Provisioner provisioner = new Provisioner(provisionerName);
+            Provisioner provisioner = new Provisioner(provisionerName, intermediateCertificate);
 
 
             app.get(crlLocation, new CRLEndpoint(provisioner, crlGenerator));
@@ -217,6 +221,10 @@ public class Main {
 
             // Get Order Certificate
             app.post(prefix + "/acme/order/{orderId}/cert", new OrderCertEndpoint(provisioner));
+
+
+            // Revoke certificate
+            app.post(prefix + "/acme/revoke-cert", new RevokeCertEndpoint(provisioner));
 
             log.info("Provisioner " + provisioner.getProvisionerName() + " registered");
         }

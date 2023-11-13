@@ -65,6 +65,7 @@ public class ACMEIdentifier implements Serializable {
     @JoinColumn(name = "orderId", referencedColumnName = "orderId")
     private ACMEOrder order;
 
+    private String provisioner;
 
     public ACMEOrder getOrder() {
         return order;
@@ -80,6 +81,14 @@ public class ACMEIdentifier implements Serializable {
     }
 
     public ACMEIdentifier() {
+    }
+
+    public String getProvisioner() {
+        return provisioner;
+    }
+
+    public void setProvisioner(String provisioner) {
+        this.provisioner = provisioner;
     }
 
     public String getChallengeId() {

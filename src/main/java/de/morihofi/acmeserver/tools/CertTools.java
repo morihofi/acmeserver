@@ -300,6 +300,25 @@ public class CertTools {
         return stringWriter.toString();
     }
 
+    public static byte[] convertPemToByteArray(String pemString) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        PemReader pemReader = new PemReader(new StringReader(pemString));
+        PemObject pemObject = pemReader.readPemObject();
+        byte[] content = pemObject.getContent();
+        pemReader.close();
+
+        // Optional: Convert to PublicKey if needed
+        // PublicKey publicKey = convertToPublicKey(content);
+
+        return content;
+    }
+
+    // Optional: Convert byte array to PublicKey
+    public static PublicKey convertToPublicKey(byte[] keyBytes) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(keyBytes);
+        return keyFactory.generatePublic(publicKeySpec);
+    }
+
     public static PublicKey convertToPublicKey(String pemString) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         PemReader pemReader = new PemReader(new StringReader(pemString));
         byte[] content = pemReader.readPemObject().getContent();

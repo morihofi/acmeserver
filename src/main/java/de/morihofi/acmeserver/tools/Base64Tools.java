@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver.tools;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class Base64Tools {
@@ -11,7 +12,7 @@ public class Base64Tools {
     }
 
     public static String encodeBase64(String originalInput){
-        return encodeBase64(originalInput);
+        return encodeBase64(originalInput.getBytes(StandardCharsets.UTF_8));
     }
 
     public static String encodeBase64(byte[] originalInput){

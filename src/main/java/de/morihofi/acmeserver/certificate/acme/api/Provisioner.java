@@ -2,6 +2,8 @@ package de.morihofi.acmeserver.certificate.acme.api;
 
 import de.morihofi.acmeserver.Main;
 
+import java.security.cert.X509Certificate;
+
 public class Provisioner {
 
     /**
@@ -14,12 +16,18 @@ public class Provisioner {
     }
 
     private String provisionerName;
+    private X509Certificate intermediateCaCertificate;
 
-    public Provisioner(String provisionerName) {
+    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate) {
         this.provisionerName = provisionerName;
+        this.intermediateCaCertificate = intermediateCaCertificate;
     }
 
     public String getProvisionerName() {
         return provisionerName;
+    }
+
+    public X509Certificate getIntermediateCertificate(){
+        return intermediateCaCertificate;
     }
 }

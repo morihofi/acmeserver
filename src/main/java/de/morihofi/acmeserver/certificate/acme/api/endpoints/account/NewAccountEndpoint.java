@@ -35,8 +35,8 @@ public class NewAccountEndpoint implements Handler {
 
 
         //Payload is Base64 Encoded
-        JSONObject reqBodyPayloadObj = new JSONObject(Base64Tools.decodeBase64(acmeRequestBody.getDecodedPayload()));
-        JSONObject reqBodyProtectedObj = new JSONObject(Base64Tools.decodeBase64(acmeRequestBody.getProtected()));
+        JSONObject reqBodyPayloadObj = new JSONObject(acmeRequestBody.getDecodedPayload());
+        JSONObject reqBodyProtectedObj = new JSONObject(acmeRequestBody.getDecodedProtected());
 
         boolean reqPayloadTermsOfServiceAgreed = reqBodyPayloadObj.getBoolean("termsOfServiceAgreed");
 
