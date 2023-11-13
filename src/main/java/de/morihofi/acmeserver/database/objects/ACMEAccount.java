@@ -1,8 +1,8 @@
 package de.morihofi.acmeserver.database.objects;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
 
@@ -17,9 +17,9 @@ public class ACMEAccount implements Serializable {
     @Column(name = "accountId")
     private String accountId;
 
-    @Column(name = "publicKeyPEM")
-    @Type(type="text")
+    @Column(name = "publicKeyPEM", columnDefinition = "TEXT")
     private String publicKeyPEM;
+
 
     @ElementCollection
     @CollectionTable(name = "account_emails", joinColumns = @JoinColumn(name = "account_id"))

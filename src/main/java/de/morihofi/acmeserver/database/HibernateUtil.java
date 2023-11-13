@@ -7,7 +7,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.reflections.Reflections;
 
-import javax.persistence.Entity;
+import jakarta.persistence.*;
 
 public class HibernateUtil {
     private static SessionFactory sessionFactory;

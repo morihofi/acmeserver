@@ -10,6 +10,7 @@ import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
+import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -17,8 +18,7 @@ import org.hibernate.Transaction;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.persistence.Query;
-import javax.transaction.Transactional;
+import jakarta.persistence.*;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 public class Database {
@@ -37,29 +38,26 @@ public class Database {
 
 
     public static void createAccount(String accountId, String jwk, List<String> emails) {
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        Transaction transaction = null;
-        try {
+        Transaction transaction;
+        try(Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
             ACMEAccount account = new ACMEAccount();
             account.setAccountId(accountId);
             account.setPublicKeyPEM(CertTools.convertToPem(SignatureCheck.convertJWKToPublicKey(new JSONObject(jwk))));
             account.setEmails(emails);
             account.setDeactivated(false);
-            session.save(account);
+            session.persist(account);
             transaction.commit();
             log.info("New ACME account created with account id \"" + accountId + "\"");
         } catch (Exception e) {
             log.error("Unable to create new ACME account", e);
             throw new ACMEServerInternalException(e.getMessage());
-        } finally {
-            session.close();
         }
     }
 
 
     public static void storeCertificateInDatabase(String orderId, String dnsValue, String csr, String pemCertificate, Timestamp issueDate, Timestamp expireDate, BigInteger serialNumber) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
             // Using ACMEIdentifier class
@@ -76,7 +74,7 @@ public class Database {
                 acmeIdentifier.setCertificatePem(pemCertificate);
                 acmeIdentifier.setCertificateSerialNumber(serialNumber);
 
-                session.update(acmeIdentifier);
+                session.merge(acmeIdentifier);
                 transaction.commit();
 
                 log.info("Stored certificate successful");
@@ -92,19 +90,19 @@ public class Database {
     /**
      * This function marks an ACME challenge as passed
      *
-     * @param challengeId Id of the Challenge, provided in URL
+     * @param challengeId id of the Challenge, provided in URL
      */
     @Transactional
     public static void passChallenge(String challengeId) {
         Transaction transaction = null;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
 
             ACMEOrderIdentifier orderIdentifier = session.get(ACMEOrderIdentifier.class, challengeId);
             if (orderIdentifier != null) {
                 orderIdentifier.setVerified(true);
                 orderIdentifier.setVerifiedTime(Timestamp.from(Instant.now()));
-                session.update(orderIdentifier);
+                session.merge(orderIdentifier);
                 transaction.commit();
                 log.info("ACME challenge with id \"" + challengeId + "\" was marked as passed");
             } else {
@@ -122,7 +120,7 @@ public class Database {
     public static ACMEIdentifier getACMEIdentifierByChallengeId(String challengeId) {
         ACMEIdentifier identifier = null;
         Transaction transaction = null;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
             identifier = session.createQuery("FROM ACMEIdentifier WHERE challengeId = :challengeId", ACMEIdentifier.class)
                     .setParameter("challengeId", challengeId)
@@ -145,8 +143,8 @@ public class Database {
 
     public static ACMEIdentifier getACMEIdentifierByAuthorizationId(String authorizationId) {
         ACMEIdentifier identifier = null;
-        Transaction transaction = null;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        Transaction transaction;
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
             identifier = session.createQuery("FROM ACMEIdentifier WHERE authorizationId = :authorizationId", ACMEIdentifier.class)
                     .setParameter("authorizationId", authorizationId)
@@ -168,7 +166,7 @@ public class Database {
     public static ACMEIdentifier getACMEIdentifierCertificateSerialNumber(BigInteger serialNumber) {
         ACMEIdentifier identifier = null;
         Transaction transaction;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
             identifier = session.createQuery("FROM ACMEIdentifier WHERE certificateSerialNumber = :certificateSerialNumber", ACMEIdentifier.class)
                     .setParameter("certificateSerialNumber", serialNumber)
@@ -190,9 +188,9 @@ public class Database {
     public static List<ACMEIdentifier> getACMEIdentifiersByOrderId(String orderId) {
         List<ACMEIdentifier> identifiers = new ArrayList<>();
         Transaction transaction = null;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
-            identifiers = session.createQuery("FROM ACMEIdentifier WHERE orderId = :orderId", ACMEIdentifier.class)
+            identifiers = session.createQuery("FROM ACMEIdentifier ai WHERE ai.order.orderId = :orderId", ACMEIdentifier.class)
                     .setParameter("orderId", orderId)
                     .getResultList();
 
@@ -203,13 +201,11 @@ public class Database {
 
             transaction.commit();
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
             log.error("Unable get ACME identifiers for order id \"" + orderId + "\"", e);
         }
         return identifiers;
     }
+
 
     public static ACMEIdentifier getACMEIdentifierByOrderId(String orderId) {
         //FIXME
@@ -219,7 +215,7 @@ public class Database {
     @Transactional
     public static void createOrder(ACMEAccount account, String orderId, List<ACMEIdentifier> identifierList, String provisioner) {
         Transaction transaction;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
 
             // Create order
@@ -227,7 +223,7 @@ public class Database {
             order.setOrderId(orderId);
             order.setAccount(account);
             order.setCreated(Timestamp.from(Instant.now()));
-            session.save(order);
+            session.persist(order);
 
             log.info("Created new order \"" + orderId + "\"");
 
@@ -241,7 +237,7 @@ public class Database {
                 identifier.setProvisioner(provisioner);
                 identifier.setOrder(order);
                 identifier.setVerified(false);
-                session.save(identifier);
+                session.persist(identifier);
 
                 log.info("Added identifier \"" + identifier.getValue() + "\" of type \"" + identifier.getType() + "\" to order \"" + orderId + "\"");
             }
@@ -255,8 +251,8 @@ public class Database {
 
     @Transactional
     public static void updateAccountEmail(ACMEAccount account, List<String> emails) {
-        Transaction transaction = null;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        Transaction transaction;
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
 
             // Convert emails list to JSON array string
@@ -269,7 +265,7 @@ public class Database {
             // Update email
             account.getEmails().clear();
             account.getEmails().addAll(emails);
-            session.update(account);
+            session.merge(account);
 
             transaction.commit();
 
@@ -281,11 +277,7 @@ public class Database {
         }
     }
 
-    private static Timestamp dateToTimestamp(Date date) {
-        return new Timestamp(date.getTime());
-    }
-
-/*
+    /*
     public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId) throws CertificateEncodingException, IOException {
         StringBuilder pemBuilder = new StringBuilder();
         boolean certFound = false;
@@ -343,10 +335,10 @@ public class Database {
         boolean certFound = false;
 
         // Get Issued certificate
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
-            Query query = session.createQuery("SELECT ai FROM ACMEIdentifier ai WHERE ai.authorizationId = :authorizationId");
+            Query query = session.createQuery("SELECT ai FROM ACMEIdentifier ai WHERE ai.authorizationId = :authorizationId", ACMEIdentifier.class);
             query.setParameter("authorizationId", authorizationId);
             Object result = query.getSingleResult();
 
@@ -392,17 +384,15 @@ public class Database {
     public static ACMEAccount getAccount(String accountId) {
         ACMEAccount acmeAccount = null;
 
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
-            Query query = session.createQuery("SELECT a FROM ACMEAccount a WHERE a.accountId = :accountId");
+            Query query = session.createQuery("SELECT a FROM ACMEAccount a WHERE a.accountId = :accountId", ACMEAccount.class);
             query.setParameter("accountId", accountId);
             Object result = query.getSingleResult();
 
             if (result != null) {
-                ACMEAccount account = (ACMEAccount) result;
-
-                acmeAccount = account;
+                acmeAccount = (ACMEAccount) result;
             }
 
             transaction.commit();
@@ -414,16 +404,15 @@ public class Database {
     }
 
     public static ACMEAccount getAccountByOrderId(String orderId) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
-            Query query = session.createQuery("SELECT o.account FROM ACMEOrder o WHERE o.orderId = :orderId");
+            Query query = session.createQuery("SELECT o.account FROM ACMEOrder o WHERE o.orderId = :orderId", ACMEAccount.class);
             query.setParameter("orderId", orderId);
             Object result = query.getSingleResult();
 
             if (result != null) {
-                ACMEAccount account = (ACMEAccount) result;
-                return account;
+                return (ACMEAccount) result;
             }
 
             transaction.commit();
@@ -437,11 +426,11 @@ public class Database {
     public static List<RevokedCertificate> getRevokedCertificates(){
         List<RevokedCertificate> certificates = new ArrayList<>();
 
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
             //Certificates are revoked when they have a statusCode and a timestamp
-            Query query = session.createQuery("FROM ACMEIdentifier WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL");
+            Query query = session.createQuery("FROM ACMEIdentifier WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL", ACMEIdentifier.class);
             List<ACMEIdentifier> result = query.getResultList();
 
             if (!result.isEmpty()) {
@@ -468,10 +457,10 @@ public class Database {
         identifier.setRevokeStatusCode(reason);
 
         Transaction transaction;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
 
-            session.update(identifier);
+            session.merge(identifier);
 
             transaction.commit();
             log.info("Revoked certificate with serial number " + identifier.getCertificateSerialNumber() + " (Provisioner " + identifier.getProvisioner() + ")");

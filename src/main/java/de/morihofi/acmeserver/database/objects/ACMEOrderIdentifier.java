@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.database.objects;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
 

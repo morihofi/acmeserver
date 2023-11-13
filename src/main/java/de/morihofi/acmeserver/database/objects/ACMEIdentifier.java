@@ -3,7 +3,8 @@ package de.morihofi.acmeserver.database.objects;
 
 import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -34,12 +35,10 @@ public class ACMEIdentifier implements Serializable {
     @Column(name = "verifiedTime")
     private Timestamp verifiedTime;
 
-    @Column(name = "certificateId")
-    @Type(type="text")
+    @Column(name = "certificateId", columnDefinition = "TEXT")
     private String certificateId;
 
-    @Column(name = "certificateCSR")
-    @Type(type="text")
+    @Column(name = "certificateCSR", columnDefinition = "TEXT")
     private String certificateCSR;
 
     @Column(name = "certificateIssued")
@@ -48,8 +47,7 @@ public class ACMEIdentifier implements Serializable {
     @Column(name = "certificateExpires")
     private Timestamp certificateExpires;
 
-    @Column(name = "certificatePem")
-    @Type(type="text")
+    @Column(name = "certificatePem", columnDefinition = "TEXT")
     private String certificatePem;
 
     @Column(name = "certificateSerialNumber", precision = 50, scale = 0)
@@ -186,9 +184,11 @@ public class ACMEIdentifier implements Serializable {
     public void setCertificatePem(String certificatePem) {
         this.certificatePem = certificatePem;
     }
+
     public BigInteger getCertificateSerialNumber() {
         return certificateSerialNumber;
     }
+
     public void setCertificateSerialNumber(BigInteger certificateSerialNumber) {
         this.certificateSerialNumber = certificateSerialNumber;
     }
