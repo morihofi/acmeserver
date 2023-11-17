@@ -12,7 +12,7 @@ public class ACMEOrder implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "orderId")
+    @Column(name = "orderId", unique = true)
     private String orderId;
 
     @ManyToOne

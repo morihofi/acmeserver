@@ -55,7 +55,7 @@ public class AuthzOwnershipEndpoint implements Handler {
 
         JSONObject identifierObj = new JSONObject();
         identifierObj.put("type", identifier.getType());
-        identifierObj.put("value", identifier.getValue());
+        identifierObj.put("value", identifier.getDataValue());
 
 
         JSONArray challengeArr = new JSONArray();

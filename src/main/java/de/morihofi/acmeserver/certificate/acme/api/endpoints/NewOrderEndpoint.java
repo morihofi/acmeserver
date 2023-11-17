@@ -92,13 +92,13 @@ public class NewOrderEndpoint implements Handler {
         for (ACMEIdentifier identifier : acmeIdentifiers) {
 
             if (!identifier.getType().equals("dns")) {
-                log.error("Throwing API error: Unknown identifier type \"" + accountId + "\" for value \"" + identifier.getValue() + "\"");
-                throw new ACMEInvalidContactException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getValue() + "\"");
+                log.error("Throwing API error: Unknown identifier type \"" + accountId + "\" for value \"" + identifier.getDataValue() + "\"");
+                throw new ACMEInvalidContactException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
             }
 
             JSONObject identifierObj = new JSONObject();
             identifierObj.put("type", identifier.getType());
-            identifierObj.put("value", identifier.getValue());
+            identifierObj.put("value", identifier.getDataValue());
 
 
             respIdentifiersArr.put(identifierObj);
@@ -129,7 +129,7 @@ public class NewOrderEndpoint implements Handler {
 
         //Send E-Mail if order was created
         try {
-            SendMail.sendMail(account.getEmails().get(0), "New ACME order created", "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeIdentifiers.get(0).getValue() + "</i> was created.");
+            SendMail.sendMail(account.getEmails().get(0), "New ACME order created", "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeIdentifiers.get(0).getDataValue() + "</i> was created.");
         } catch (Exception ex) {
             log.error("Unable to send email", ex);
         }

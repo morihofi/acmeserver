@@ -60,7 +60,7 @@ public class FinalizeOrderEndpoint implements Handler {
 
         JSONObject identifiersObj = new JSONObject();
         identifiersObj.put("type", identifier.getType());
-        identifiersObj.put("value", identifier.getValue());
+        identifiersObj.put("value", identifier.getDataValue());
 
         JSONArray authorizationsArr = new JSONArray();
         authorizationsArr.put(provisioner.getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
@@ -73,8 +73,8 @@ public class FinalizeOrderEndpoint implements Handler {
             PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
             //RSAKeyParameters pubKey = (RSAKeyParameters) PublicKeyFactory.createKey(csrObj.getSubjectPublicKeyInfo());
 
-            log.info("Creating Certificate for order \"" + orderId + "\" with DNS Name \"" + identifier.getValue() + "\"");
-            X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(Main.intermediateKeyPair, Main.intermediateCertificate.getEncoded(), pkPemObject.getContent(), new String[]{identifier.getValue()}, Main.acmeCertificatesExpireDays, Main.acmeCertificatesExpireMonths, Main.acmeCertificatesExpireYears);
+            log.info("Creating Certificate for order \"" + orderId + "\" with DNS Name \"" + identifier.getDataValue() + "\"");
+            X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(Main.intermediateKeyPair, Main.intermediateCertificate.getEncoded(), pkPemObject.getContent(), new String[]{identifier.getDataValue()}, Main.acmeCertificatesExpireDays, Main.acmeCertificatesExpireMonths, Main.acmeCertificatesExpireYears);
 
             BigInteger serialNumber = acmeGeneratedCertificate.getSerialNumber();
             String pemCertificate = CertTools.certificateToPEM(acmeGeneratedCertificate.getEncoded());
@@ -82,7 +82,7 @@ public class FinalizeOrderEndpoint implements Handler {
             Timestamp expiresAt = new Timestamp(acmeGeneratedCertificate.getNotAfter().getTime());
             Timestamp issuedAt = new Timestamp(acmeGeneratedCertificate.getNotBefore().getTime());
 
-            Database.storeCertificateInDatabase(orderId, identifier.getValue(), csr, pemCertificate, issuedAt, expiresAt, serialNumber);
+            Database.storeCertificateInDatabase(orderId, identifier.getDataValue(), csr, pemCertificate, issuedAt, expiresAt, serialNumber);
 
 
             ctx.header("Content-Type", "application/json");

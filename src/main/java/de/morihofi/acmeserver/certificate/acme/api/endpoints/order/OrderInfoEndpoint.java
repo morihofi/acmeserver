@@ -65,7 +65,7 @@ public class OrderInfoEndpoint implements Handler {
 
             JSONObject identifierObj = new JSONObject();
             identifierObj.put("type", identifier.getType());
-            identifierObj.put("value", identifier.getValue());
+            identifierObj.put("value", identifier.getDataValue());
 
             authorizationsArr.put(provisioner.getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
 

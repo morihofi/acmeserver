@@ -16,8 +16,6 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
-import java.net.HttpURLConnection;
-
 public class ChallengeCallbackEndpoint implements Handler {
 
     private Provisioner provisioner;
@@ -46,8 +44,8 @@ public class ChallengeCallbackEndpoint implements Handler {
         SignatureCheck.checkSignature(ctx, identifier.getOrder().getAccount(), new Gson());
 
 
-        log.info("Validating ownership of host \"" + identifier.getValue() + "\"");
-        if (HTTPChallenge.check(challengeId, identifier.getAuthorizationToken(), identifier.getValue())) {
+        log.info("Validating ownership of host \"" + identifier.getDataValue() + "\"");
+        if (HTTPChallenge.check(challengeId, identifier.getAuthorizationToken(), identifier.getDataValue())) {
             //mark challenge has passed
             Database.passChallenge(challengeId);
         } else {

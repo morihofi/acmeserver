@@ -129,7 +129,7 @@ public class Database {
 
             if (identifier != null) {
                 log.info("(Challenge ID: \"" + challengeId + "\") Got ACME identifier of type \"" +
-                        identifier.getType() + "\" with value \"" + identifier.getValue() + "\"");
+                        identifier.getType() + "\" with value \"" + identifier.getDataValue() + "\"");
             }
             transaction.commit();
         } catch (Exception e) {
@@ -153,7 +153,7 @@ public class Database {
 
             if (identifier != null) {
                 log.info("(Authorization ID: \"" + authorizationId + "\") Got ACME identifier of type \"" +
-                        identifier.getType() + "\" with value \"" + identifier.getValue() + "\"");
+                        identifier.getType() + "\" with value \"" + identifier.getDataValue() + "\"");
             }
             transaction.commit();
         } catch (Exception e) {
@@ -175,7 +175,7 @@ public class Database {
 
             if (identifier != null) {
                 log.info("(Certificate Serial Number: \"" + serialNumber + "\") Got ACME identifier of type \"" +
-                        identifier.getType() + "\" with value \"" + identifier.getValue() + "\"");
+                        identifier.getType() + "\" with value \"" + identifier.getDataValue() + "\"");
             }
             transaction.commit();
         } catch (Exception e) {
@@ -196,7 +196,7 @@ public class Database {
 
             identifiers.forEach(identifier ->
                     log.info("(Order ID: \"" + orderId + "\") Got ACME identifier of type \"" +
-                            identifier.getType() + "\" with value \"" + identifier.getValue() + "\"")
+                            identifier.getType() + "\" with value \"" + identifier.getDataValue() + "\"")
             );
 
             transaction.commit();
@@ -239,7 +239,7 @@ public class Database {
                 identifier.setVerified(false);
                 session.persist(identifier);
 
-                log.info("Added identifier \"" + identifier.getValue() + "\" of type \"" + identifier.getType() + "\" to order \"" + orderId + "\"");
+                log.info("Added identifier \"" + identifier.getDataValue() + "\" of type \"" + identifier.getType() + "\" to order \"" + orderId + "\"");
             }
 
             transaction.commit();

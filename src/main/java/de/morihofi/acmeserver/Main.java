@@ -180,14 +180,14 @@ public class Main {
         app.get("/ca.crt", new DownloadCaEndpoint());
 
         List<String> provisionerNames = List.of("prod", "testing");
+
+
         for (String provisionerName : provisionerNames) {
 
 
             String prefix = "/" + provisionerName;
             String crlLocation = "/crl/" + provisionerName + ".crl";
-
             Provisioner provisioner = new Provisioner(provisionerName, intermediateCertificate);
-
 
             app.get(crlLocation, new CRLEndpoint(provisioner, crlGenerator));
 

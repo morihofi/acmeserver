@@ -14,7 +14,7 @@ public class ACMEAccount implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "accountId")
+    @Column(name = "accountId", unique = true)
     private String accountId;
 
     @Column(name = "publicKeyPEM", columnDefinition = "TEXT")
@@ -28,8 +28,6 @@ public class ACMEAccount implements Serializable {
 
     @Column(name = "deactivated")
     private Boolean deactivated;
-
-
 
     public Long getId() {
         return id;

@@ -1,8 +1,6 @@
 package de.morihofi.acmeserver.database.objects;
 
 
-import org.hibernate.annotations.Type;
-
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -20,8 +18,8 @@ public class ACMEIdentifier implements Serializable {
     @Column(name = "type")
     private String type;
 
-    @Column(name = "value")
-    private String value;
+    @Column(name = "dataValue")
+    private String dataValue;
 
     @Column(name = "authorizationToken")
     private String authorizationToken;
@@ -73,9 +71,9 @@ public class ACMEIdentifier implements Serializable {
         this.order = order;
     }
 
-    public ACMEIdentifier(String type, String value) {
+    public ACMEIdentifier(String type, String dataValue) {
         this.type = type;
-        this.value = value;
+        this.dataValue = dataValue;
     }
 
     public ACMEIdentifier() {
@@ -105,12 +103,12 @@ public class ACMEIdentifier implements Serializable {
         this.type = type;
     }
 
-    public String getValue() {
-        return value;
+    public String getDataValue() {
+        return dataValue;
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public void setDataValue(String dataValue) {
+        this.dataValue = dataValue;
     }
 
     public String getAuthorizationToken() {
