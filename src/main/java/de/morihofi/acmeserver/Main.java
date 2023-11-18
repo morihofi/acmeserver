@@ -248,6 +248,8 @@ public class Main {
             Path intermediateCertificateFile = intermediateProvisionerPath.resolve("certificate.pem");
             //int intermediateRSAKeyPairSize = 4096;
 
+            Provisioner provisioner = new Provisioner(provisionerName, null,null);
+
             X509Certificate intermediateCertificate = null;
             KeyPair intermediateKeyPair = null;
             if (!Files.exists(intermediateKeyPairPublicFile) || !Files.exists(intermediateKeyPairPrivateFile) || !Files.exists(intermediateCertificateFile)) {
@@ -287,7 +289,7 @@ public class Main {
 
 
                 log.info("Creating Intermediate CA");
-                intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair, caCertificateBytes, intermediateKeyPair, intermediateCommonName, intermediateDefaultExpireDays, intermediateDefaultExpireMonths, intermediateDefaultExpireYears);
+                intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair, caCertificateBytes, intermediateKeyPair, intermediateCommonName, intermediateDefaultExpireDays, intermediateDefaultExpireMonths, intermediateDefaultExpireYears, provisioner.getServerURL() + provisioner.getCrlPath());
 
                 log.info("Writing Intermediate CA KeyPair to disk");
                 //KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, provisionerName, intermediateCertificate.getEncoded(), intermediateKeyStoreFilePath);
@@ -329,7 +331,11 @@ public class Main {
                 });
             }
 
-            provisioners.add(new Provisioner(provisionerName, intermediateCertificate, intermediateKeyPair));
+            //Set the missing values
+            provisioner.setIntermediateCaCertificate(intermediateCertificate);
+            provisioner.setIntermediateCaKeyPair(intermediateKeyPair);
+
+            provisioners.add(provisioner);
 
 
         }

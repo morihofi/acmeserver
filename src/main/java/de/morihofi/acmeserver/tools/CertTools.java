@@ -133,7 +133,7 @@ public class CertTools {
         }
     }
 
-    public static X509Certificate createIntermediateCertificate(KeyPair caKeyPair, byte[] caCertificateBytes, KeyPair intermediateKeyPair, String intermediateCommonName, int days, int months, int years) throws CertIOException, CertificateException, OperatorCreationException {
+    public static X509Certificate createIntermediateCertificate(KeyPair caKeyPair, byte[] caCertificateBytes, KeyPair intermediateKeyPair, String intermediateCommonName, int days, int months, int years, String crlDistributionUrl) throws CertIOException, CertificateException, OperatorCreationException {
 
         // Create like a CSR
         X500Name issuerName = X509.getX500NameFromX509Certificate(convertToX509Cert(caCertificateBytes)); // new X500Name("CN=YourCA");
@@ -158,6 +158,12 @@ public class CertTools {
         // KeyUsage Extension, um das Intermediate Certificate als Zertifikatssignatur zu kennzeichnen
         //certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign));
         certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
+        // ******************************************
+        // CRL Distribution Points
+        GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, crlDistributionUrl);
+        DistributionPointName dpn = new DistributionPointName(new GeneralNames(gn));
+        DistributionPoint distp = new DistributionPoint(dpn, null, null);
+        certBuilder.addExtension(Extension.cRLDistributionPoints, false, new CRLDistPoint(new DistributionPoint[]{distp}));
         // ******************************************
 
         // Sign this "CSR" with our CA

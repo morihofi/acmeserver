@@ -48,4 +48,20 @@ public class Provisioner {
     public String getCrlPath() {
         return "/crl/" + getProvisionerName() + ".crl";
     }
+
+    public X509Certificate getIntermediateCaCertificate() {
+        return intermediateCaCertificate;
+    }
+
+    public void setIntermediateCaCertificate(X509Certificate intermediateCaCertificate) {
+        this.intermediateCaCertificate = intermediateCaCertificate;
+    }
+
+    public KeyPair getIntermediateCaKeyPair() {
+        return intermediateCaKeyPair;
+    }
+
+    public void setIntermediateCaKeyPair(KeyPair intermediateCaKeyPair) {
+        this.intermediateCaKeyPair = intermediateCaKeyPair;
+    }
 }
