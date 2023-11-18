@@ -17,15 +17,16 @@ java -jar acmeserver-VERSION.jar
 
 ## Features
 - Self-hosted ACME Server for use with your own CA
-- CRL Support
-- Revoke Support
-- mostly ACME RFC compliant
-- multiple Provisioners support with own intermediate CA
+- CRL support
+- Revokation support
+- Mostly ACME RFC compliant
+- Multiple provisioners support with own intermediate CA
   - Set expiration and key algorithm for each intermediate 
-- included OCSP Server
+- Included OCSP server
+- Signature check
 
 ## Note
-This version is not fully RFC compliant, but should work with most clients. Currently, there is no signature check of the client. Please notice that.
+This version is not fully RFC compliant, but should work with most clients. 
 
 ## Current limitations
 - Only one domain per order is currently allowed
@@ -39,4 +40,4 @@ This version is not fully RFC compliant, but should work with most clients. Curr
 - Linux Mint 21
 - Debian 11
 - Windows 10
-- FreeBSD 13 (openjdk8)
+- ~~FreeBSD 13 (openjdk8)~~ has to be retested
