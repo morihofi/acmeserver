@@ -15,10 +15,10 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndp
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.config.KeyStoreConfigLoader;
+import de.morihofi.acmeserver.config.obj.KeyStoreConfiguration;
 import de.morihofi.acmeserver.exception.ACMEException;
 import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.tools.KeyStoreUtils;
-import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;
 import io.javalin.Javalin;
 import io.javalin.community.ssl.SSLPlugin;
 import io.javalin.http.staticfiles.Location;
@@ -35,6 +35,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -71,14 +72,14 @@ public class Main {
     public static byte[] caCertificateBytes;
 
     //Intermediate CA Certificate
-    public static Path intermediateKeyStorePath;
-    public static String intermediateKeyStorePassword = "";
-    public static String intermediateKeyStoreAlias = "intermediate";
-    public static String intermediateCommonName = "Intermediate CA";
-    public static int intermediateRSAKeyPairSize = 4096;
-    public static int intermediateDefaultExpireDays = 0;
-    public static int intermediateDefaultExpireMonths = 0;
-    public static int intermediateDefaultExpireYears = 180;
+//    public static Path intermediateKeyStorePath;
+//    public static String intermediateKeyStorePassword = "";
+//    public static String intermediateKeyStoreAlias = "intermediate";
+//    public static String intermediateCommonName = "Intermediate CA";
+//    public static int intermediateRSAKeyPairSize = 4096;
+//    public static int intermediateDefaultExpireDays = 0;
+//    public static int intermediateDefaultExpireMonths = 0;
+//    public static int intermediateDefaultExpireYears = 180;
 
     //ACME Directory Information
     public static String acmeMetaWebsite = "";
@@ -114,6 +115,8 @@ public class Main {
         log.info("Register Bouncy Castle Security Provider");
         Security.addProvider(new BouncyCastleProvider());
 
+        log.info("Loading keyStore configuration");
+        KeyStoreConfigLoader ksConfigLoader = new KeyStoreConfigLoader(FILES_DIR.resolve("keystore.json"));
 
         ensureFilesDirectoryExists();
         Path configPath = FILES_DIR.resolve("settings.properties");
@@ -122,13 +125,6 @@ public class Main {
         initializeDatabaseDrivers();
         initializeCA();
 
-
-        log.info("Loading certificates");
-        KeyStoreFileContent intermediateKeyStoreContents = KeyStoreUtils.loadFromPKCS12(intermediateKeyStorePath, intermediateKeyStorePassword, intermediateKeyStoreAlias);
-        log.info("Loading intermediate Key Pair");
-        intermediateKeyPair = intermediateKeyStoreContents.getKeyPair();
-        log.info("Loading intermediate Certificate");
-        intermediateCertificate = intermediateKeyStoreContents.getCert();
 
         CRL crlGenerator = new CRL();
 
@@ -174,22 +170,19 @@ public class Main {
         });
 
 
-
         // Global routes
         app.get("/serverinfo", new ServerInfoEndpoint());
         app.get("/ca.crt", new DownloadCaEndpoint());
 
-        List<String> provisionerNames = List.of("prod", "testing");
+        List<Provisioner> provisioners = getProvisioners(ksConfigLoader); // = List.of("prod", "testing");
 
 
-        for (String provisionerName : provisionerNames) {
+        for (Provisioner provisioner : provisioners) {
 
 
-            String prefix = "/" + provisionerName;
-            String crlLocation = "/crl/" + provisionerName + ".crl";
-            Provisioner provisioner = new Provisioner(provisionerName, intermediateCertificate);
+            String prefix = "/" + provisioner.getProvisionerName();
 
-            app.get(crlLocation, new CRLEndpoint(provisioner, crlGenerator));
+            app.get(provisioner.getCrlPath(), new CRLEndpoint(provisioner, crlGenerator));
 
             // ACME Directory
             app.get(prefix + "/directory", new DirectoryEndpoint(provisioner));
@@ -232,6 +225,48 @@ public class Main {
         log.info("Configure Routes completed. Ready for incoming requests");
     }
 
+    private static List<Provisioner> getProvisioners(KeyStoreConfigLoader ksConfigLoader) throws CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, OperatorCreationException {
+        List<Provisioner> provisioners = new ArrayList<>();
+
+        KeyStoreConfiguration ksConfig = ksConfigLoader.getKeyStoreForName(""); //FIXME
+
+        String provisionerName = "testing"; //durch Config spezifiziert
+        String intermediateCommonName = "Testing Intermediate CA"; //durch Config spezifiziert
+        int intermediateRSAKeyPairSize = 4096;
+        int intermediateDefaultExpireDays = 0;
+        int intermediateDefaultExpireMonths = 6;
+        int intermediateDefaultExpireYears = 0;
+
+        Path intermediateKeyStoreFilePath = Paths.get(ksConfig.getFilename());
+        String intermediateKeyStorePassword = "123456";
+
+
+
+        Path intermediateProvisionerPath = FILES_DIR.resolve(provisionerName);
+
+
+        if (!Files.exists(intermediateKeyStoreFilePath)) {
+            log.info("Loading Root CA Keypair for Intermediate CA generation");
+            caKeyPair = KeyStoreUtils.loadFromPKCS12(caKeyStorePath, caKeyStorePassword, caKeyStoreAlias).getKeyPair();
+            caCertificateBytes = CertTools.getCertificateBytes(caPath, caKeyPair);
+
+
+
+            // *****************************************
+            // Create Intermediate Certificate
+            log.info("Generating RSA " + intermediateRSAKeyPairSize + "bit Key Pair for Intermediate CA");
+            KeyPair intermediateKeyPair = CertTools.generateRSAKeyPair(intermediateRSAKeyPairSize);
+            log.info("Creating Intermediate CA");
+            X509Certificate intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair, caCertificateBytes, intermediateKeyPair, intermediateCommonName, intermediateDefaultExpireDays, intermediateDefaultExpireMonths, intermediateDefaultExpireYears);
+            log.info("Writing Intermediate CA to Key Store");
+            KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, provisionerName, intermediateCertificate.getEncoded(), intermediateKeyStoreFilePath);
+        }
+
+        provisioners.add(new Provisioner(provisionerName, intermediateCertificate));
+
+        return provisioners;
+    }
+
 
     private static void printBanner() {
         System.out.println("    _                       ____                           \n" +
@@ -260,14 +295,14 @@ public class Main {
         //Set DNS Name of this Server
         acmeThisServerDNSName = properties.getProperty("acme.server.dnsname");
         // Set Intermediate CA Settings
-        intermediateCommonName = properties.getProperty("acme.certificate.intermediate.metadata.cn");
-        caRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.rsasize"));
-        intermediateKeyStorePath = FILES_DIR.resolve(properties.getProperty("acme.certificate.intermediate.keystore.filename"));
-        intermediateKeyStorePassword = properties.getProperty("acme.certificate.intermediate.keystore.password");
-        intermediateKeyStoreAlias = properties.getProperty("acme.certificate.intermediate.keystore.alias");
-        intermediateDefaultExpireDays = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.expire.days"));
-        intermediateDefaultExpireMonths = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.expire.months"));
-        intermediateDefaultExpireYears = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.expire.years"));
+//        intermediateCommonName = properties.getProperty("acme.certificate.intermediate.metadata.cn");
+//        caRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.rsasize"));
+//        intermediateKeyStorePath = FILES_DIR.resolve(properties.getProperty("acme.certificate.intermediate.keystore.filename"));
+//        intermediateKeyStorePassword = properties.getProperty("acme.certificate.intermediate.keystore.password");
+//        intermediateKeyStoreAlias = properties.getProperty("acme.certificate.intermediate.keystore.alias");
+//        intermediateDefaultExpireDays = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.expire.days"));
+//       intermediateDefaultExpireMonths = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.expire.months"));
+//        intermediateDefaultExpireYears = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.expire.years"));
         // ACME API Metadata
         acmeMetaWebsite = properties.getProperty("acme.api.meta.website");
         acmeMetaTermsOfService = properties.getProperty("acme.api.meta.termsofservice");

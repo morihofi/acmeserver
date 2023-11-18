@@ -17,6 +17,11 @@ public class Provisioner {
         return "https://" + Main.acmeThisServerDNSName + ":" + Main.acmeThisServerAPIPort + "/" + provisionerName;
     }
 
+    public String getServerURL() {
+        return "https://" + Main.acmeThisServerDNSName + ":" + Main.acmeThisServerAPIPort;
+    }
+
+
     private String provisionerName;
     private X509Certificate intermediateCaCertificate;
 
@@ -31,5 +36,9 @@ public class Provisioner {
 
     public X509Certificate getIntermediateCertificate(){
         return intermediateCaCertificate;
+    }
+
+    public String getCrlPath() {
+        return "/crl/" + getProvisionerName() + ".crl";
     }
 }

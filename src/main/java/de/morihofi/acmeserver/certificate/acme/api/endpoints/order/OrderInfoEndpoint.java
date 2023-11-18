@@ -30,7 +30,7 @@ public class OrderInfoEndpoint implements Handler {
 
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
-        String orderId = ctx.pathParam("orderid");
+        String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", Crypto.createNonce());

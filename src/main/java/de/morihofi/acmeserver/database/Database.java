@@ -61,7 +61,7 @@ public class Database {
             Transaction transaction = session.beginTransaction();
 
             // Using ACMEIdentifier class
-            Query query = session.createQuery("FROM ACMEIdentifier a WHERE a.order.orderId = :orderId AND a.value = :dnsValue", ACMEIdentifier.class);
+            Query query = session.createQuery("FROM ACMEIdentifier a WHERE a.order.orderId = :orderId AND a.dataValue = :dnsValue", ACMEIdentifier.class);
             query.setParameter("orderId", orderId);
             query.setParameter("dnsValue", dnsValue);
 

@@ -21,19 +21,28 @@ public class KeyStoreUtils {
 
 
     public static void saveAsPKCS12(KeyPair keyPair, String password, String alias, byte[] certificate, Path targetLocation) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        // Erzeuge ein KeyStore-Objekt und füge das KeyPair und das Zertifikat hinzu
+        // Konvertiere das Passwort in ein Char-Array
         char[] passwordCharArr = password.toCharArray();
+
+        // Erstelle oder lade ein KeyStore-Objekt
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(null, passwordCharArr);
+        if (Files.exists(targetLocation)) {
+            // Wenn die Datei existiert, lade das vorhandene KeyStore
+            try (InputStream is = Files.newInputStream(targetLocation)) {
+                keyStore.load(is, passwordCharArr);
+            }
+        } else {
+            // Andernfalls initialisiere ein neues KeyStore
+            keyStore.load(null, passwordCharArr);
+        }
 
-
+        // Füge das KeyPair und das Zertifikat hinzu
         keyStore.setKeyEntry(alias, keyPair.getPrivate(), passwordCharArr, new X509Certificate[]{CertTools.convertToX509Cert(certificate)});
 
-
         // Speichere das KeyStore-Objekt als PKCS12-Datei
-        OutputStream fos = Files.newOutputStream(targetLocation);
-        keyStore.store(fos, passwordCharArr);
-        fos.close();
+        try (OutputStream fos = Files.newOutputStream(targetLocation)) {
+            keyStore.store(fos, passwordCharArr);
+        }
     }
 
     public static void saveAsPKCS12KeyChain(KeyPair keyPair, String password, String alias, byte[][] certificates, Path targetLocation) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
