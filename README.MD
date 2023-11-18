@@ -22,8 +22,6 @@ java -jar acmeserver-VERSION.jar
 - mostly ACME RFC compliant
 - multiple Provisioners support with own intermediate CA
   - Set expiration and key algorithm for each intermediate 
-
-## Planned Features
 - included OCSP Server
 
 ## Note
