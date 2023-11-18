@@ -1,8 +1,40 @@
 {
+  "server": {
+    "dnsName": "acme.example.com",
+    "ports": {
+      "https": 443,
+      "http": 80
+    }
+  },
+  "database": {
+    "engine": "h2",
+    "host": "",
+    "user": "root",
+    "password": "changeme",
+    "name": "./acme"
+  },
+  "rootCA": {
+    "metadata": {
+      "commonName": "My Root CA I can trust"
+    },
+    "expiration": {
+      "days": 3,
+      "months": 6,
+      "years": 10
+    },
+    "algorithm": {
+      "type": "rsa",
+      "keySize": "4096"
+    }
+  },
   "provisioner": [
     {
       "name": "testing",
       "useThisProvisionerForAcmeApi": false,
+      "meta": {
+        "website": "https://example.com/testing-ca",
+        "tos": " https://example.com/terms-of-service-testing.html"
+      },
       "intermediate": {
         "metadata": {
           "commonName": "Testing Intermediate"
@@ -21,6 +53,10 @@
     {
       "name": "production",
       "useThisProvisionerIntermediateForAcmeApi": true,
+      "meta": {
+        "website": "https://example.com/production-ca",
+        "tos": " https://example.com/terms-of-service-production.html"
+      },
       "intermediate": {
         "metadata": {
           "commonName": "Production Intermediate"

@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api;
 
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.config.MetadataConfig;
 
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
@@ -15,22 +16,24 @@ public class Provisioner {
      * @return Full url (including HTTPS prefix) and port to this server
      */
     public String getApiURL() {
-        return "https://" + Main.acmeThisServerDNSName + ":" + Main.acmeThisServerAPIPort + "/" + provisionerName;
+        return "https://" + Main.appConfig.getServer().getDnsName() + ":" + Main.appConfig.getServer().getPorts().getHttps() + "/" + provisionerName;
     }
 
     public String getServerURL() {
-        return "https://" + Main.acmeThisServerDNSName + ":" + Main.acmeThisServerAPIPort;
+        return "https://" + Main.appConfig.getServer().getDnsName() + ":" + Main.appConfig.getServer().getPorts().getHttps();
     }
 
 
     private String provisionerName;
     private X509Certificate intermediateCaCertificate;
     private KeyPair intermediateCaKeyPair;
+    private MetadataConfig acmeMetadataConfig;
 
-    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair) {
+    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair, MetadataConfig acmeMetadataConfig) {
         this.provisionerName = provisionerName;
         this.intermediateCaCertificate = intermediateCaCertificate;
         this.intermediateCaKeyPair = intermediateCaKeyPair;
+        this.acmeMetadataConfig = acmeMetadataConfig;
     }
 
     public String getProvisionerName() {
@@ -63,7 +66,16 @@ public class Provisioner {
     }
 
 
+
     public void setIntermediateCaKeyPair(KeyPair intermediateCaKeyPair) {
         this.intermediateCaKeyPair = intermediateCaKeyPair;
+    }
+
+    public MetadataConfig getAcmeMetadataConfig() {
+        return acmeMetadataConfig;
+    }
+
+    public void setAcmeMetadataConfig(MetadataConfig acmeMetadataConfig) {
+        this.acmeMetadataConfig = acmeMetadataConfig;
     }
 }

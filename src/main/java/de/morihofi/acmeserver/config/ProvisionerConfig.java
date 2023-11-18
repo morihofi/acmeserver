@@ -8,6 +8,16 @@ public class ProvisionerConfig implements Serializable {
 
     private CertificateConfig intermediate;
 
+    private MetadataConfig meta;
+
+    public MetadataConfig getMeta() {
+        return meta;
+    }
+
+    public void setMeta(MetadataConfig meta) {
+        this.meta = meta;
+    }
+
     public String getName() {
         return this.name;
     }

@@ -42,7 +42,6 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -50,16 +49,6 @@ import java.util.Properties;
 public class Main {
 
     public static final Logger log = LogManager.getLogger(Main.class);
-
-    //   public static KeyPair intermediateKeyPair;
-    //   public static X509Certificate intermediateCertificate;
-
-    // Database
-    public static String db_password;
-    public static String db_user;
-    public static String db_name;
-    public static String db_host;
-    public static String db_engine;
 
     public static final Path FILES_DIR = Paths.get("serverdata").toAbsolutePath();
 
@@ -79,21 +68,7 @@ public class Main {
     private static KeyPair caKeyPair;
     public static byte[] caCertificateBytes;
 
-    //Intermediate CA Certificate
-//    public static Path intermediateKeyStorePath;
-//    public static String intermediateKeyStorePassword = "";
-//    public static String intermediateKeyStoreAlias = "intermediate";
-//    public static String intermediateCommonName = "Intermediate CA";
-//    public static int intermediateRSAKeyPairSize = 4096;
-//    public static int intermediateDefaultExpireDays = 0;
-//    public static int intermediateDefaultExpireMonths = 0;
-//    public static int intermediateDefaultExpireYears = 180;
 
-    //ACME Directory Information
-    public static String acmeMetaWebsite = "";
-    public static String acmeMetaTermsOfService = "";
-    public static String acmeThisServerDNSName = "";
-    public static int acmeThisServerAPIPort = 7443;
 
     //E-Mail SMTP
     public static int emailSMTPPort = 587;
@@ -115,6 +90,8 @@ public class Main {
     public static String buildMetadataBuildTime = null;
     public static String buildMetadataGitCommit = null;
 
+    public static Config appConfig;
+
     public static void main(String[] args) throws Exception {
         Gson configGson = new GsonBuilder()
                 .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
@@ -127,7 +104,7 @@ public class Main {
         Security.addProvider(new BouncyCastleProvider());
 
         log.info("Loading keyStore configuration");
-        Config appConfig = configGson.fromJson(Files.readString(FILES_DIR.resolve("settings.json")), Config.class);
+        appConfig = configGson.fromJson(Files.readString(FILES_DIR.resolve("settings.json")), Config.class);
 
 
         ensureFilesDirectoryExists();
@@ -141,10 +118,8 @@ public class Main {
         HibernateUtil.initDatabase();
 
         log.info("Starting ACME API WebServer using HTTPS");
-        String keyStoreLocation = acmeServerKeyStorePath.toAbsolutePath().toString();
         Javalin app = Javalin.create(javalinConfig -> {
             javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
-
         });
 
 
@@ -251,9 +226,9 @@ public class Main {
             Path intermediateCertificateFile = intermediateProvisionerPath.resolve("certificate.pem");
             //int intermediateRSAKeyPairSize = 4096;
 
-            Provisioner provisioner = new Provisioner(provisionerName, null,null);
+            Provisioner provisioner = new Provisioner(provisionerName, null,null, config.getMeta());
 
-            X509Certificate intermediateCertificate = null;
+            X509Certificate intermediateCertificate;
             KeyPair intermediateKeyPair = null;
             if (!Files.exists(intermediateKeyPairPublicFile) || !Files.exists(intermediateKeyPairPrivateFile) || !Files.exists(intermediateCertificateFile)) {
                 Files.createDirectories(intermediateProvisionerPath);
@@ -272,15 +247,13 @@ public class Main {
                 // Create Intermediate Certificate
 
 
-                if (config.getIntermediate().getAlgorithm() instanceof RSAAlgorithmParams) {
+                if (config.getIntermediate().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
                     log.info("Using RSA algorithm");
-                    RSAAlgorithmParams rsaParams = (RSAAlgorithmParams) config.getIntermediate().getAlgorithm();
                     log.info("Generating RSA " + rsaParams.getKeySize() + "bit Key Pair for Intermediate CA");
                     intermediateKeyPair = CertTools.generateRSAKeyPair(rsaParams.getKeySize());
                 }
-                if (config.getIntermediate().getAlgorithm() instanceof EcdsaAlgorithmParams) {
+                if (config.getIntermediate().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
                     log.info("Using ECDSA algorithm (Elliptic curves");
-                    EcdsaAlgorithmParams ecdsaAlgorithmParams = (EcdsaAlgorithmParams) config.getIntermediate().getAlgorithm();
 
                     log.info("Generating ECDSA Key Pair using curve " + ecdsaAlgorithmParams.getCurveName() + " for Intermediate CA");
                     intermediateKeyPair = CertTools.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName());
@@ -318,7 +291,7 @@ public class Main {
                     log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
                     KeyPair acmeAPIKeyPair = CertTools.generateRSAKeyPair(4096);
                     log.info("Creating Server Certificate");
-                    X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair, intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{acmeThisServerDNSName}, 0, 1, 0);
+                    X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair, intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{appConfig.getServer().getDnsName()}, 0, 1, 0);
                     log.info("Writing Server Certificate (as key chain) to Key Store");
                     KeyStoreUtils.saveAsPKCS12KeyChain(acmeAPIKeyPair, acmeServerKeyStorePassword, "server", new byte[][]{acmeAPICertificate.getEncoded(), intermediateCertificate.getEncoded()}, acmeServerKeyStorePath);
                 }
@@ -327,8 +300,30 @@ public class Main {
                     SSLPlugin plugin = new SSLPlugin(conf -> {
                         // conf.pemFromPath("/etc/ssl/certificate.pem", "/etc/ssl/privateKey.pem");
                         conf.keystoreFromPath(acmeServerKeyStorePath.toAbsolutePath().toString(), caKeyStorePassword);
-                        conf.securePort = acmeThisServerAPIPort;
-                        conf.insecure = false;
+
+                        /*
+                        If port is not 0, the Service (e.g. HTTP/HTTPS) is enabled. Otherwise, it is disabled
+                        */
+
+                        int httpsPort = appConfig.getServer().getPorts().getHttps();
+                        int httpPort = appConfig.getServer().getPorts().getHttp();
+                        if(httpsPort != 0){
+                            log.info("API HTTPS support is ENABLED");
+                            conf.secure = true;
+                            conf.securePort = httpsPort;
+                        }else {
+                            log.info("API HTTPS support is DISABLED");
+                            conf.secure = false;
+                        }
+
+                        if(httpPort != 0){
+                            log.info("API HTTP support is ENABLED");
+                            conf.insecure = true;
+                            conf.insecurePort = httpPort;
+                        }else {
+                            log.info("API HTTP support is DISABLED");
+                            conf.insecure = false;
+                        }
                     });
                     javalinConfig.plugins.getPluginManager().register(plugin);
                 });
@@ -342,22 +337,18 @@ public class Main {
 
 
         }
-
-
-        //Path intermediateKeyStoreFilePath = Paths.get(ksConfig.getFilename());
-        //String intermediateKeyStorePassword = "123456";
-
-
         return provisioners;
     }
 
 
     private static void printBanner() {
-        System.out.println("    _                       ____                           \n" +
-                "   / \\   ___ _ __ ___   ___/ ___|  ___ _ ____   _____ _ __ \n" +
-                "  / _ \\ / __| '_ ` _ \\ / _ \\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|\n" +
-                " / ___ \\ (__| | | | | |  __/___) |  __/ |   \\ V /  __/ |   \n" +
-                "/_/   \\_\\___|_| |_| |_|\\___|____/ \\___|_|    \\_/ \\___|_|   \n");
+        System.out.println("""
+                    _                       ____                          \s
+                   / \\   ___ _ __ ___   ___/ ___|  ___ _ ____   _____ _ __\s
+                  / _ \\ / __| '_ ` _ \\ / _ \\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|
+                 / ___ \\ (__| | | | | |  __/___) |  __/ |   \\ V /  __/ |  \s
+                /_/   \\_\\___|_| |_| |_|\\___|____/ \\___|_|    \\_/ \\___|_|  \s
+                """);
     }
 
     private static void ensureFilesDirectoryExists() throws IOException {
@@ -377,7 +368,7 @@ public class Main {
         properties.load(Files.newInputStream(configPath));
         log.info("Apply settings config");
         //Set DNS Name of this Server
-        acmeThisServerDNSName = properties.getProperty("acme.server.dnsname");
+//        acmeThisServerDNSName = properties.getProperty("acme.server.dnsname");
         // Set Intermediate CA Settings
 //        intermediateCommonName = properties.getProperty("acme.certificate.intermediate.metadata.cn");
 //        caRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.rsasize"));
@@ -388,16 +379,16 @@ public class Main {
 //       intermediateDefaultExpireMonths = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.expire.months"));
 //        intermediateDefaultExpireYears = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.expire.years"));
         // ACME API Metadata
-        acmeMetaWebsite = properties.getProperty("acme.api.meta.website");
-        acmeMetaTermsOfService = properties.getProperty("acme.api.meta.termsofservice");
+//        acmeMetaWebsite = properties.getProperty("acme.api.meta.website");
+//        acmeMetaTermsOfService = properties.getProperty("acme.api.meta.termsofservice");
         // ACME API Port
-        acmeThisServerAPIPort = Integer.parseInt(properties.getProperty("acme.server.sslport"));
+//        acmeThisServerAPIPort = Integer.parseInt(properties.getProperty("acme.server.sslport"));
         // Database Settings
-        db_password = properties.getProperty("database.password");
-        db_user = properties.getProperty("database.user");
-        db_name = properties.getProperty("database.name");
-        db_host = properties.getProperty("database.host");
-        db_engine = properties.getProperty("database.engine");
+//        db_password = properties.getProperty("database.password");
+//        db_user = properties.getProperty("database.user");
+//        db_name = properties.getProperty("database.name");
+//        db_host = properties.getProperty("database.host");
+//        db_engine = properties.getProperty("database.engine");
         // Root CA Settings
         caCommonName = properties.getProperty("acme.certificate.root.metadata.cn");
         caRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.certificate.root.rsasize"));
@@ -442,7 +433,7 @@ public class Main {
         }
     }
 
-    private static void initializeDatabaseDrivers() throws ClassNotFoundException, SQLException {
+    private static void initializeDatabaseDrivers() throws ClassNotFoundException {
         log.info("Loading MariaDB JDBC driver");
         Class.forName("org.mariadb.jdbc.Driver");
         log.info("Loading H2 JDBC driver");

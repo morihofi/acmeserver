@@ -7,6 +7,9 @@ import java.util.List;
 
 public class Config implements Serializable {
   private List<ProvisionerConfig> provisioner;
+  private ServerConfig server;
+  private DatabaseConfig database;
+  private CertificateConfig rootCA;
 
   public List<ProvisionerConfig> getProvisioner() {
     return this.provisioner;
@@ -16,5 +19,15 @@ public class Config implements Serializable {
     this.provisioner = provisioner;
   }
 
+  public ServerConfig getServer() {
+    return server;
+  }
 
+  public DatabaseConfig getDatabase() {
+    return database;
+  }
+
+  public CertificateConfig getRootCA() {
+    return rootCA;
+  }
 }
