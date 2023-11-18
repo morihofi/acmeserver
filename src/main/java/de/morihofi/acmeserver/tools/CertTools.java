@@ -30,6 +30,9 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.ECKey;
+import java.security.interfaces.RSAKey;
+import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
@@ -40,12 +43,22 @@ import java.util.Date;
 public class CertTools {
 
 
-    public static KeyPair generateRSAKeyPair(int rsaKeySize) throws NoSuchAlgorithmException {
-        KeyPairGenerator rsa = KeyPairGenerator.getInstance("RSA");
+    public static KeyPair generateRSAKeyPair(int rsaKeySize) throws NoSuchAlgorithmException, NoSuchProviderException {
+        KeyPairGenerator rsa = KeyPairGenerator.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
         rsa.initialize(rsaKeySize);
         KeyPair kp = rsa.generateKeyPair();
 
         return kp;
+    }
+
+    public static KeyPair generateEcdsaKeyPair(String curveName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME);
+
+        // Der Parameter "secp256k1" kann je nach gewünschter EC-Kurve geändert werden
+        ECGenParameterSpec ecSpec = new ECGenParameterSpec(curveName);
+        keyPairGenerator.initialize(ecSpec);
+
+        return keyPairGenerator.generateKeyPair();
     }
 
 
@@ -212,8 +225,19 @@ public class CertTools {
 
         // ******************************************
 
-        // Sign this "CSR" with our CA
-        ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(intermediateKeyPair.getPrivate());
+        // Determine the signature algorithm based on key type
+        String signatureAlgorithm;
+        if (intermediateKeyPair.getPrivate() instanceof ECKey) {
+            signatureAlgorithm = "SHA256withECDSA";
+        } else if (intermediateKeyPair.getPrivate() instanceof RSAKey) {
+            signatureAlgorithm = "SHA256withRSA";
+        } else {
+            throw new IllegalArgumentException("Unsupported key type");
+        }
+
+        // Sign the certificate with the chosen algorithm
+        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(intermediateKeyPair.getPrivate());
+
 
         X509CertificateHolder holder = certBuilder.build(signer);
         JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
@@ -371,5 +395,6 @@ public class CertTools {
         DERSequence derSignature = new DERSequence(v);
         return derSignature.getEncoded("DER");
     }
+
 
 }

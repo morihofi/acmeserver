@@ -12,21 +12,22 @@ import jakarta.persistence.*;
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
 
-    public static SessionFactory getSessionFactory() {
-        switch (Main.db_engine) {
-            case "h2":
-                return getSessionFactory(DatabaseType.H2);
-            case "mariadb":
-                return getSessionFactory(DatabaseType.MARIADB);
-            default:
-                return null;
-        }
 
 
-    }
-
-    private static SessionFactory getSessionFactory(DatabaseType dbType) {
+    public static void initDatabase(){
         if (sessionFactory == null) {
+            DatabaseType dbType;
+            switch (Main.db_engine) {
+                case "h2":
+                     dbType = DatabaseType.H2;
+                     break;
+                case "mariadb":
+                     dbType = DatabaseType.MARIADB;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown or unsupported database engine: " + Main.db_engine);
+            }
+
             try {
                 Configuration configuration = new Configuration();
 
@@ -64,6 +65,9 @@ public class HibernateUtil {
                 throw new ExceptionInInitializerError(e);
             }
         }
+    }
+
+    public static SessionFactory getSessionFactory() {
         return sessionFactory;
     }
 

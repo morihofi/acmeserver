@@ -23,16 +23,6 @@ acme.certificate.root.keystore.password = changeme
 acme.certificate.root.keystore.alias = ca
 acme.certificate.root.expire.years = 30
 
-# Intermediate CA Settings
-acme.certificate.intermediate.metadata.cn = Intermediate CA
-acme.certificate.intermediate.rsasize = 4096
-acme.certificate.intermediate.keystore.filename = intermediate.p12
-acme.certificate.intermediate.keystore.password = changeme
-acme.certificate.intermediate.keystore.alias = intermediate
-acme.certificate.intermediate.expire.days = 0
-acme.certificate.intermediate.expire.months = 6
-acme.certificate.intermediate.expire.years = 0
-
 # ACME API Settings
 acme.api.meta.website = https://example.com
 acme.api.meta.termsofservice = https://example.com/ca-tos.html

@@ -330,7 +330,7 @@ public class Database {
 
  */
 
-    public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId) throws CertificateEncodingException, IOException {
+    public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId, byte[] intermediateCertificateBytes) throws CertificateEncodingException, IOException {
         StringBuilder pemBuilder = new StringBuilder();
         boolean certFound = false;
 
@@ -364,7 +364,7 @@ public class Database {
 
         //Intermediate Certificate
         log.info("Adding Intermediate certificate");
-        pemBuilder.append(CertTools.certificateToPEM(Main.intermediateCertificate.getEncoded()));
+        pemBuilder.append(CertTools.certificateToPEM(intermediateCertificateBytes));
         pemBuilder.append("\n");
 
         //CA Certificate

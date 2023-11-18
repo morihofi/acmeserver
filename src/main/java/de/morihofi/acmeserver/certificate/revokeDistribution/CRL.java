@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.database.Database;
 import org.apache.logging.log4j.LogManager;
@@ -18,6 +19,8 @@ import java.security.cert.CRLException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.ECKey;
+import java.security.interfaces.RSAKey;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
@@ -31,11 +34,16 @@ public class CRL {
     private volatile LocalTime lastUpdate = null;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
+    private Provisioner provisioner;
+
     private final Logger log = LogManager.getLogger(getClass());
 
     private static final int UPDATE_MINUTES = 5;
 
-    public CRL() {
+    public CRL(Provisioner provisioner) {
+
+        this.provisioner = provisioner;
+
         log.info("Initialized CRL Generation Task");
         // Start the scheduled task to update the CRL every 5 minutes (must be same as in generateCRL() function
         scheduler.scheduleAtFixedRate(this::updateCRLCache, 0, UPDATE_MINUTES, TimeUnit.MINUTES);
@@ -43,8 +51,18 @@ public class CRL {
 
     private static X509CRL generateCRL(List<RevokedCertificate> revokedCertificates,
                                X509Certificate caCert,
-                               PrivateKey caPrivateKey,
-                               String signatureAlgorithm) throws CertificateEncodingException, CRLException, OperatorCreationException {
+                               PrivateKey caPrivateKey) throws CertificateEncodingException, CRLException, OperatorCreationException {
+
+        // Bestimmen Sie den Signaturalgorithmus basierend auf dem Schlüsseltyp
+        String signatureAlgorithm;
+        if (caPrivateKey instanceof ECKey) {
+            signatureAlgorithm = "SHA256withECDSA";
+        } else if (caPrivateKey instanceof RSAKey) {
+            signatureAlgorithm = "SHA256withRSA";
+        } else {
+            throw new IllegalArgumentException("Unsupported key type for CRL generation");
+        }
+
 
         // Create the CRL Builder
         X509v2CRLBuilder crlBuilder = new X509v2CRLBuilder(
@@ -83,14 +101,14 @@ public class CRL {
             // Get the list of revoked certificates from the database
             List<RevokedCertificate> revokedCertificates = Database.getRevokedCertificates();
             // Generate a new CRL
-            X509CRL crl = generateCRL(revokedCertificates, Main.intermediateCertificate, Main.intermediateKeyPair.getPrivate(), "SHA256withRSA");
+            X509CRL crl = generateCRL(revokedCertificates, provisioner.getIntermediateCertificate(), provisioner.getIntermediateKeyPair().getPrivate());
             // Update the current CRL cache
             currentCRL = getCrlAsBytes(crl);
             // Update the last update time
             lastUpdate = LocalTime.now();
         } catch (Exception e) {
             // Handle exceptions
-            log.error("Unable to update CRL revokation list");
+            log.error("Unable to update CRL revokation list", e);
         }
     }
 

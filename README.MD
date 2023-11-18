@@ -1,7 +1,7 @@
 # ACME Server
 This is a proof-of-concept Automatic Certificate Management Environment Server (ACME), fully written in Java
 
-- Java 8 and up
+- Java 17 and up
 - Any JDBC (and Hibernate compatible) database
 - Proxy support for HTTP Challenge
 
@@ -15,6 +15,17 @@ then start it with
 java -jar acmeserver-VERSION.jar
 ```
 
+## Features
+- Self-hosted ACME Server for use with your own CA
+- CRL Support
+- Revoke Support
+- mostly ACME RFC compliant
+- multiple Provisioners support with own intermediate CA
+  - Set expiration and key algorithm for each intermediate 
+
+## Planned Features
+- included OCSP Server
+
 ## Note
 This version is not fully RFC compliant, but should work with most clients. Currently, there is no signature check of the client. Please notice that.
 
@@ -24,7 +35,7 @@ This version is not fully RFC compliant, but should work with most clients. Curr
 
 ## Tested ACME Clients
 - acme.sh (works)
-- Certbot (works, but not in standalone mode)
+- Certbot (works)
 
 ## Tested Operating Systems
 - Linux Mint 21

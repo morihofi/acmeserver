@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.certificate.acme.api;
 
 import de.morihofi.acmeserver.Main;
 
+import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 
 public class Provisioner {
@@ -24,10 +25,12 @@ public class Provisioner {
 
     private String provisionerName;
     private X509Certificate intermediateCaCertificate;
+    private KeyPair intermediateCaKeyPair;
 
-    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate) {
+    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair) {
         this.provisionerName = provisionerName;
         this.intermediateCaCertificate = intermediateCaCertificate;
+        this.intermediateCaKeyPair = intermediateCaKeyPair;
     }
 
     public String getProvisionerName() {
@@ -36,6 +39,10 @@ public class Provisioner {
 
     public X509Certificate getIntermediateCertificate(){
         return intermediateCaCertificate;
+    }
+
+    public KeyPair getIntermediateKeyPair() {
+        return intermediateCaKeyPair;
     }
 
     public String getCrlPath() {

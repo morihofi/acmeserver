@@ -1,0 +1,40 @@
+{
+  "provisioner": [
+    {
+      "name": "testing",
+      "useThisProvisionerForAcmeApi": false,
+      "intermediate": {
+        "metadata": {
+          "commonName": "Testing Intermediate"
+        },
+        "expiration": {
+          "days": 1,
+          "months": 1,
+          "years": 1
+        },
+        "algorithm": {
+          "type": "ecdsa",
+          "curveName": "secp256k1"
+        }
+      }
+    },
+    {
+      "name": "production",
+      "useThisProvisionerIntermediateForAcmeApi": true,
+      "intermediate": {
+        "metadata": {
+          "commonName": "Production Intermediate"
+        },
+        "expiration": {
+          "days": 1,
+          "months": 1,
+          "years": 1
+        },
+        "algorithm": {
+          "type": "rsa",
+          "keySize": "4096"
+        }
+      }
+    }
+  ]
+}
