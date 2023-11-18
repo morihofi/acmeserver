@@ -65,15 +65,6 @@ public class Main {
     private static KeyPair caKeyPair;
     public static byte[] caCertificateBytes;
 
-
-    //E-Mail SMTP
-    public static int emailSMTPPort = 587;
-    public static String emailSMTPEncryption = "starttls";
-    public static String emailSMTPServer = "";
-    public static String emailSMTPUsername = "";
-    public static String emailSMTPPassword = "";
-    public static String acmeAdminEmail = "";
-
     //ACME client created certificates
     public static int acmeCertificatesExpireDays = 1;
     public static int acmeCertificatesExpireMonths = 1;
@@ -99,13 +90,14 @@ public class Main {
         log.info("Register Bouncy Castle Security Provider");
         Security.addProvider(new BouncyCastleProvider());
 
-        log.info("Loading keyStore configuration");
+        ensureFilesDirectoryExists();
+
+        log.info("Loading server configuration");
         appConfig = configGson.fromJson(Files.readString(FILES_DIR.resolve("settings.json")), Config.class);
 
-
-        ensureFilesDirectoryExists();
         Path configPath = FILES_DIR.resolve("settings.properties");
         loadConfiguration(configPath);
+
         loadBuildAndGitMetadata();
         initializeDatabaseDrivers();
         initializeCA();
@@ -113,7 +105,7 @@ public class Main {
         log.info("Initializing database");
         HibernateUtil.initDatabase();
 
-        log.info("Starting ACME API WebServer using HTTPS");
+        log.info("Starting ACME API WebServer");
         Javalin app = Javalin.create(javalinConfig -> {
             javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
         });
@@ -220,7 +212,6 @@ public class Main {
             Path intermediateKeyPairPublicFile = intermediateProvisionerPath.resolve("public_key.pem");
             Path intermediateKeyPairPrivateFile = intermediateProvisionerPath.resolve("private_key.pem");
             Path intermediateCertificateFile = intermediateProvisionerPath.resolve("certificate.pem");
-            //int intermediateRSAKeyPairSize = 4096;
 
             Provisioner provisioner = new Provisioner(provisionerName, null, null, config.getMeta());
 
@@ -352,9 +343,9 @@ public class Main {
             log.info("First run detected, creating settings directory");
             Files.createDirectories(FILES_DIR);
         }
-        Path configPath = FILES_DIR.resolve("settings.properties");
+        Path configPath = FILES_DIR.resolve("settings.json");
         if (!Files.exists(configPath)) {
-            log.fatal("No configuration was found. Please create a file called \"settings.properties\" in \"" + FILES_DIR.toAbsolutePath() + "\". Then try again");
+            log.fatal("No configuration was found. Please create a file called \"settings.json\" in \"" + FILES_DIR.toAbsolutePath() + "\". Then try again");
             System.exit(1);
         }
     }
@@ -363,47 +354,10 @@ public class Main {
         log.info("Loading settings config into memory");
         properties.load(Files.newInputStream(configPath));
         log.info("Apply settings config");
-        //Set DNS Name of this Server
-//        acmeThisServerDNSName = properties.getProperty("acme.server.dnsname");
-        // Set Intermediate CA Settings
-//        intermediateCommonName = properties.getProperty("acme.certificate.intermediate.metadata.cn");
-//        caRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.rsasize"));
-//        intermediateKeyStorePath = FILES_DIR.resolve(properties.getProperty("acme.certificate.intermediate.keystore.filename"));
-//        intermediateKeyStorePassword = properties.getProperty("acme.certificate.intermediate.keystore.password");
-//        intermediateKeyStoreAlias = properties.getProperty("acme.certificate.intermediate.keystore.alias");
-//        intermediateDefaultExpireDays = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.expire.days"));
-//       intermediateDefaultExpireMonths = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.expire.months"));
-//        intermediateDefaultExpireYears = Integer.parseInt(properties.getProperty("acme.certificate.intermediate.expire.years"));
-        // ACME API Metadata
-//        acmeMetaWebsite = properties.getProperty("acme.api.meta.website");
-//        acmeMetaTermsOfService = properties.getProperty("acme.api.meta.termsofservice");
-        // ACME API Port
-//        acmeThisServerAPIPort = Integer.parseInt(properties.getProperty("acme.server.sslport"));
-        // Database Settings
-//        db_password = properties.getProperty("database.password");
-//        db_user = properties.getProperty("database.user");
-//        db_name = properties.getProperty("database.name");
-//        db_host = properties.getProperty("database.host");
-//        db_engine = properties.getProperty("database.engine");
-        // Root CA Settings
-//        caCommonName = properties.getProperty("acme.certificate.root.metadata.cn");
-//        caRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.certificate.root.rsasize"));
-//        caPath = FILES_DIR.resolve(properties.getProperty("acme.certificate.root.certfile"));
-//        caKeyStorePassword = properties.getProperty("acme.certificate.root.keystore.password");
-//        caKeyStoreAlias = properties.getProperty("acme.certificate.root.keystore.alias");
-//        caDefaultExpireYears = Integer.parseInt(properties.getProperty("acme.certificate.root.expire.years"));
-//        caKeyStorePath = FILES_DIR.resolve(properties.getProperty("acme.certificate.root.keystore.filename"));
         // ACME API Server Settings
         acmeServerKeyStorePassword = properties.getProperty("acme.api.keystore.password");
         acmeServerKeyStorePath = FILES_DIR.resolve(properties.getProperty("acme.api.keystore.filename"));
         acmeServerRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.api.rsakeysize"));
-        // E-Mail Settings
-        emailSMTPPort = Integer.parseInt(properties.getProperty("email.smtp.port"));
-        emailSMTPUsername = properties.getProperty("email.smtp.username");
-        emailSMTPPassword = properties.getProperty("email.smtp.password");
-        emailSMTPServer = properties.getProperty("email.smtp.server");
-        emailSMTPEncryption = properties.getProperty("email.smtp.encryption");
-        acmeAdminEmail = properties.getProperty("email.targetemail");
         // ACME created Certificates
         acmeCertificatesExpireDays = Integer.parseInt(properties.getProperty("acme.clientcert.expire.days"));
         acmeCertificatesExpireMonths = Integer.parseInt(properties.getProperty("acme.clientcert.expire.months"));

@@ -10,6 +10,7 @@ public class Config implements Serializable {
   private ServerConfig server;
   private DatabaseConfig database;
   private CertificateConfig rootCA;
+  private EmailConfig emailSmtp;
 
   public List<ProvisionerConfig> getProvisioner() {
     return this.provisioner;
@@ -29,5 +30,25 @@ public class Config implements Serializable {
 
   public CertificateConfig getRootCA() {
     return rootCA;
+  }
+
+  public void setServer(ServerConfig server) {
+    this.server = server;
+  }
+
+  public void setDatabase(DatabaseConfig database) {
+    this.database = database;
+  }
+
+  public void setRootCA(CertificateConfig rootCA) {
+    this.rootCA = rootCA;
+  }
+
+  public EmailConfig getEmailSmtp() {
+    return emailSmtp;
+  }
+
+  public void setEmailSmtp(EmailConfig emailSmtp) {
+    this.emailSmtp = emailSmtp;
   }
 }

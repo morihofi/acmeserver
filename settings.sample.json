@@ -13,6 +13,14 @@
     "password": "changeme",
     "name": "./acme"
   },
+  "emailSmtp": {
+    "enabled": false,
+    "port": 587,
+    "encryption": "starttls",
+    "host": "mail.example.com",
+    "username": "acme-noreply@example.com",
+    "password": "insecurepassword"
+  },
   "rootCA": {
     "metadata": {
       "commonName": "My Root CA I can trust"
@@ -24,7 +32,7 @@
     },
     "algorithm": {
       "type": "rsa",
-      "keySize": "4096"
+      "keySize": 4096
     }
   },
   "provisioner": [
