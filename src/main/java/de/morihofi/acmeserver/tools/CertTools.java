@@ -31,7 +31,9 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECKey;
+import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.RSAKey;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
@@ -167,7 +169,16 @@ public class CertTools {
         // ******************************************
 
         // Sign this "CSR" with our CA
-        ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(caKeyPair.getPrivate());
+        String signatureAlgorithm;
+        if (caKeyPair.getPrivate() instanceof RSAPrivateKey) {
+            signatureAlgorithm = "SHA256withRSA";
+        } else if (caKeyPair.getPrivate() instanceof ECPrivateKey) {
+            signatureAlgorithm = "SHA256withECDSA";
+        } else {
+            throw new IllegalArgumentException("Nicht unterstützter Schlüsseltyp: " + caKeyPair.getPrivate().getClass().getName());
+        }
+
+        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(caKeyPair.getPrivate());
 
         X509CertificateHolder holder = certBuilder.build(signer);
         JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
