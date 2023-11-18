@@ -92,7 +92,7 @@ public class HTTPChallenge {
 
 
             Request request = new Request.Builder()
-                    .url("http://" + host + "/.well-known/acme-challenge/" + expectedAuthTokenId)
+                    .url("http://" + host + "/.well-known/acme-challenge/" + expectedAuthTokenValue)
                     .header("User-Agent", USER_AGENT)
                     .build();
             if (log.isDebugEnabled()) {
