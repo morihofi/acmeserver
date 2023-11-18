@@ -61,6 +61,7 @@ public class ACMEIdentifier implements Serializable {
     @JoinColumn(name = "orderId", referencedColumnName = "orderId")
     private ACMEOrder order;
 
+    @Column(name = "provisioner", nullable = false)
     private String provisioner;
 
     public ACMEOrder getOrder() {

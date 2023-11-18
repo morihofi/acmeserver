@@ -15,6 +15,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderCertEndp
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
+import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpoint;
 import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.config.certificateAlgorithms.AlgorithmParams;
@@ -184,11 +185,13 @@ public class Main {
         for (Provisioner provisioner : provisioners) {
 
             CRL crlGenerator = new CRL(provisioner);
-
-
             String prefix = "/" + provisioner.getProvisionerName();
 
+            // CRL distribution
             app.get(provisioner.getCrlPath(), new CRLEndpoint(provisioner, crlGenerator));
+
+            // OCSP (Online Certificate Status Protocol) endpoint
+            app.post(provisioner.getOcspPath(), new OcspEndpoint(provisioner, crlGenerator));
 
             // ACME Directory
             app.get(prefix + "/directory", new DirectoryEndpoint(provisioner));
@@ -289,7 +292,7 @@ public class Main {
 
 
                 log.info("Creating Intermediate CA");
-                intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair, caCertificateBytes, intermediateKeyPair, intermediateCommonName, intermediateDefaultExpireDays, intermediateDefaultExpireMonths, intermediateDefaultExpireYears, provisioner.getServerURL() + provisioner.getCrlPath());
+                intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair, caCertificateBytes, intermediateKeyPair, intermediateCommonName, intermediateDefaultExpireDays, intermediateDefaultExpireMonths, intermediateDefaultExpireYears, provisioner.getServerURL() + provisioner.getCrlPath(), provisioner.getServerURL() + provisioner.getOcspPath());
 
                 log.info("Writing Intermediate CA KeyPair to disk");
                 //KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, provisionerName, intermediateCertificate.getEncoded(), intermediateKeyStoreFilePath);

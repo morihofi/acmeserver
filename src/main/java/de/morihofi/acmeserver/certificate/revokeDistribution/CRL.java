@@ -1,6 +1,5 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
-import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.database.Database;
@@ -30,7 +29,8 @@ import java.util.concurrent.TimeUnit;
 
 public class CRL {
 
-    private volatile byte[] currentCRL = null;
+    private volatile byte[] currentCrlBytes = null;
+    private volatile X509CRL currentCrl = null;
     private volatile LocalTime lastUpdate = null;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -96,6 +96,8 @@ public class CRL {
         return crl.getEncoded();
     }
 
+
+
     private void updateCRLCache() {
         try {
             // Get the list of revoked certificates from the database
@@ -103,7 +105,8 @@ public class CRL {
             // Generate a new CRL
             X509CRL crl = generateCRL(revokedCertificates, provisioner.getIntermediateCertificate(), provisioner.getIntermediateKeyPair().getPrivate());
             // Update the current CRL cache
-            currentCRL = getCrlAsBytes(crl);
+            currentCrlBytes = getCrlAsBytes(crl);
+            currentCrl = crl;
             // Update the last update time
             lastUpdate = LocalTime.now();
         } catch (Exception e) {
@@ -113,7 +116,12 @@ public class CRL {
     }
 
     public byte[] getCurrentCrlBytes() {
-        return currentCRL;
+        return currentCrlBytes;
+    }
+
+    public X509CRL getCurrentCrl() throws CRLException {
+        // Return the CRL as a byte array
+        return currentCrl;
     }
 
     public LocalTime getLastUpdate() {

@@ -135,7 +135,7 @@ public class CertTools {
         }
     }
 
-    public static X509Certificate createIntermediateCertificate(KeyPair caKeyPair, byte[] caCertificateBytes, KeyPair intermediateKeyPair, String intermediateCommonName, int days, int months, int years, String crlDistributionUrl) throws CertIOException, CertificateException, OperatorCreationException {
+    public static X509Certificate createIntermediateCertificate(KeyPair caKeyPair, byte[] caCertificateBytes, KeyPair intermediateKeyPair, String intermediateCommonName, int days, int months, int years, String crlDistributionUrl, String ocspServiceEndpoint) throws CertIOException, CertificateException, OperatorCreationException {
 
         // Create like a CSR
         X500Name issuerName = X509.getX500NameFromX509Certificate(convertToX509Cert(caCertificateBytes)); // new X500Name("CN=YourCA");
@@ -166,6 +166,16 @@ public class CertTools {
         DistributionPointName dpn = new DistributionPointName(new GeneralNames(gn));
         DistributionPoint distp = new DistributionPoint(dpn, null, null);
         certBuilder.addExtension(Extension.cRLDistributionPoints, false, new CRLDistPoint(new DistributionPoint[]{distp}));
+        // ******************************************
+        // Authority Information Access (OCSP Endpoint)
+        AccessDescription accessDescription = new AccessDescription(
+                AccessDescription.id_ad_ocsp,
+                new GeneralName(GeneralName.uniformResourceIdentifier, ocspServiceEndpoint)
+        );
+        ASN1EncodableVector authorityInformationAccessVector = new ASN1EncodableVector();
+        authorityInformationAccessVector.add(accessDescription);
+        certBuilder.addExtension(
+                Extension.authorityInfoAccess, false, new DERSequence(authorityInformationAccessVector));
         // ******************************************
 
         // Sign this "CSR" with our CA

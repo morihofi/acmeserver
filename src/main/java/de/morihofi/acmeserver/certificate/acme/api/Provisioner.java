@@ -49,6 +49,11 @@ public class Provisioner {
         return "/crl/" + getProvisionerName() + ".crl";
     }
 
+    public String getOcspPath() {
+        return "/" + getProvisionerName() + "/ocsp";
+    }
+
+
     public X509Certificate getIntermediateCaCertificate() {
         return intermediateCaCertificate;
     }
@@ -57,9 +62,6 @@ public class Provisioner {
         this.intermediateCaCertificate = intermediateCaCertificate;
     }
 
-    public KeyPair getIntermediateCaKeyPair() {
-        return intermediateCaKeyPair;
-    }
 
     public void setIntermediateCaKeyPair(KeyPair intermediateCaKeyPair) {
         this.intermediateCaKeyPair = intermediateCaKeyPair;
