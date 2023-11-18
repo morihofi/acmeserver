@@ -10,6 +10,8 @@ public class ProvisionerConfig implements Serializable {
 
     private MetadataConfig meta;
 
+    private CertificateExpiration issuedCertificateExpiration;
+
     public MetadataConfig getMeta() {
         return meta;
     }
@@ -40,5 +42,13 @@ public class ProvisionerConfig implements Serializable {
 
     public void setUseThisProvisionerIntermediateForAcmeApi(boolean useThisProvisionerIntermediateForAcmeApi) {
         this.useThisProvisionerIntermediateForAcmeApi = useThisProvisionerIntermediateForAcmeApi;
+    }
+
+    public CertificateExpiration getIssuedCertificateExpiration() {
+        return issuedCertificateExpiration;
+    }
+
+    public void setIssuedCertificateExpiration(CertificateExpiration issuedCertificateExpiration) {
+        this.issuedCertificateExpiration = issuedCertificateExpiration;
     }
 }

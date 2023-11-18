@@ -37,6 +37,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,11 +54,6 @@ public class Main {
 
     public static final Path FILES_DIR = Paths.get("serverdata").toAbsolutePath();
 
-    //ACME SERVER Certificate
-    public static Path acmeServerKeyStorePath;
-    public static String acmeServerKeyStorePassword = "";
-    public static int acmeServerRSAKeyPairSize = 4096;
-
     //CA Certificate
     public static Path caPrivateKeyPath;
     public static Path caPublicKeyPath;
@@ -65,12 +61,6 @@ public class Main {
     private static KeyPair caKeyPair;
     public static byte[] caCertificateBytes;
 
-    //ACME client created certificates
-    public static int acmeCertificatesExpireDays = 1;
-    public static int acmeCertificatesExpireMonths = 1;
-    public static int acmeCertificatesExpireYears = 1;
-
-    public static Properties properties = new Properties();
 
     //Build Metadata
     public static String buildMetadataVersion = null;
@@ -94,9 +84,6 @@ public class Main {
 
         log.info("Loading server configuration");
         appConfig = configGson.fromJson(Files.readString(FILES_DIR.resolve("settings.json")), Config.class);
-
-        Path configPath = FILES_DIR.resolve("settings.properties");
-        loadConfiguration(configPath);
 
         loadBuildAndGitMetadata();
         initializeDatabaseDrivers();
@@ -213,7 +200,7 @@ public class Main {
             Path intermediateKeyPairPrivateFile = intermediateProvisionerPath.resolve("private_key.pem");
             Path intermediateCertificateFile = intermediateProvisionerPath.resolve("certificate.pem");
 
-            Provisioner provisioner = new Provisioner(provisionerName, null, null, config.getMeta());
+            Provisioner provisioner = new Provisioner(provisionerName, null, null, config.getMeta(), config.getIssuedCertificateExpiration());
 
             X509Certificate intermediateCertificate;
             KeyPair intermediateKeyPair = null;
@@ -265,28 +252,47 @@ public class Main {
                 log.info("Loading Key Pair");
                 intermediateKeyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
                 log.info("Loading Intermediate CA certificate");
-                byte[] intermediateCertificateBytes = CertTools.getCertificateBytes(caCertificatePath, caKeyPair);
+                byte[] intermediateCertificateBytes = CertTools.getCertificateBytes(intermediateCertificateFile, intermediateKeyPair);
                 intermediateCertificate = CertTools.convertToX509Cert(intermediateCertificateBytes);
             }
 
             if (config.isUseThisProvisionerIntermediateForAcmeApi()) {
-                if (!Files.exists(acmeServerKeyStorePath)) {
-                    log.info("Using provisioner intermediate");
+                Path acmeServerApiCertDir = FILES_DIR.resolve("_acmeAPICert");
+                Files.createDirectories(acmeServerApiCertDir);
+
+                Path acmeApiCertificatePath = acmeServerApiCertDir.resolve("certificate.pem");
+                Path acmeApiPublicKeyPath = acmeServerApiCertDir.resolve("public_key.pem");
+                Path acmeApiPrivateKeyPath = acmeServerApiCertDir.resolve("private_key.pem");
+
+                if (!Files.exists(acmeApiCertificatePath) || !Files.exists(acmeApiPublicKeyPath) || !Files.exists(acmeApiPrivateKeyPath)) {
+                    log.info("Using provisioner intermediate CA for generation");
+
+                    Files.deleteIfExists(acmeApiCertificatePath);
+                    Files.deleteIfExists(acmeApiPublicKeyPath);
+                    Files.deleteIfExists(acmeApiPrivateKeyPath);
 
                     // *****************************************
                     // Create Certificate for our ACME Web Server API (Client Certificate)
                     log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
                     KeyPair acmeAPIKeyPair = CertTools.generateRSAKeyPair(4096);
                     log.info("Creating Server Certificate");
-                    X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair, intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{appConfig.getServer().getDnsName()}, 0, 1, 0);
-                    log.info("Writing Server Certificate (as key chain) to Key Store");
-                    KeyStoreUtils.saveAsPKCS12KeyChain(acmeAPIKeyPair, acmeServerKeyStorePassword, "server", new byte[][]{acmeAPICertificate.getEncoded(), intermediateCertificate.getEncoded()}, acmeServerKeyStorePath);
+                    X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair, intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{appConfig.getServer().getDnsName()}, config.getIssuedCertificateExpiration());
+
+                    // Dumping certificate to HDD
+                    log.info("Writing certificate to disk");
+                    byte[][] certificates = new byte[][]{acmeAPICertificate.getEncoded(), intermediateCertificate.getEncoded()};
+                    String pemCertificates = CertTools.certificatesChainToPEM(certificates);
+                    Files.write(acmeApiCertificatePath, pemCertificates.getBytes(StandardCharsets.UTF_8));
+                    // Save keyPair to disk
+                    log.info("Writing keyPair to disk");
+                    PemUtil.saveKeyPairToPEM(acmeAPIKeyPair, acmeApiPublicKeyPath, acmeApiPrivateKeyPath);
+
                 }
                 javalinInstance.updateConfig(javalinConfig -> {
                     log.info("Updating Javalin's TLS configuration");
                     SSLPlugin plugin = new SSLPlugin(conf -> {
-                        // conf.pemFromPath("/etc/ssl/certificate.pem", "/etc/ssl/privateKey.pem");
-                        conf.keystoreFromPath(acmeServerKeyStorePath.toAbsolutePath().toString(), acmeServerKeyStorePassword);
+                        conf.pemFromPath(acmeApiCertificatePath.toAbsolutePath().toString(), acmeApiPrivateKeyPath.toAbsolutePath().toString());
+                        //conf.keystoreFromPath(acmeServerKeyStorePath.toAbsolutePath().toString(), "");
 
                         /*
                         If port is not 0, the Service (e.g. HTTP/HTTPS) is enabled. Otherwise, it is disabled
@@ -350,20 +356,6 @@ public class Main {
         }
     }
 
-    private static void loadConfiguration(Path configPath) throws IOException {
-        log.info("Loading settings config into memory");
-        properties.load(Files.newInputStream(configPath));
-        log.info("Apply settings config");
-        // ACME API Server Settings
-        acmeServerKeyStorePassword = properties.getProperty("acme.api.keystore.password");
-        acmeServerKeyStorePath = FILES_DIR.resolve(properties.getProperty("acme.api.keystore.filename"));
-        acmeServerRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.api.rsakeysize"));
-        // ACME created Certificates
-        acmeCertificatesExpireDays = Integer.parseInt(properties.getProperty("acme.clientcert.expire.days"));
-        acmeCertificatesExpireMonths = Integer.parseInt(properties.getProperty("acme.clientcert.expire.months"));
-        acmeCertificatesExpireYears = Integer.parseInt(properties.getProperty("acme.clientcert.expire.years"));
-        log.info("Settings have been successfully loaded");
-    }
 
     private static void loadBuildAndGitMetadata() {
         try {

@@ -4,9 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="Remove unnecessary imports, Add MariaDB Database driver">
+    <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="fix: Migration of Email config to settings.json; Minor changes">
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/config/ProxyConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/config/proxy/HttpChallenge.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/Database.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/Database.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.sample.json" beforeDir="false" afterPath="$PROJECT_DIR$/settings.sample.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/api/Provisioner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/api/Provisioner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/api/endpoints/order/FinalizeOrderEndpoint.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/api/endpoints/order/FinalizeOrderEndpoint.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/challenges/HTTPChallenge.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/challenges/HTTPChallenge.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/config/Config.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/config/Config.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/config/ProvisionerConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/config/ProvisionerConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/provisioner/ProvisionerIntermediateHolder.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/tools/CertTools.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/tools/CertTools.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,6 +31,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -36,12 +51,28 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Moritz/IdeaProjects/acmeserver/serverdata&quot;,
     &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.build&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="de.morihofi.acmeserver.config" />
+      <recent name="de.morihofi.acmeserver.certificate.revokeDistribution" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Moritz\IdeaProjects\acmeserver\serverdata" />
+      <recent name="C:\Users\Moritz\IdeaProjects\acmeserver\data" />
+    </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="mvn clean compile" />
+    </option>
+  </component>
   <component name="RunManager" selected="Application.Unnamed">
     <configuration name="Test Signing" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="de.morihofi.acmeserver.certificate.JWSTestSignExample" />
@@ -113,7 +144,63 @@
       <option name="project" value="LOCAL" />
       <updated>1678297346398</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="fix: Add CRL Distribution into certificate">
+      <option name="closed" value="true" />
+      <created>1700318704905</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1700318704905</updated>
+    </task>
+    <task id="LOCAL-00008" summary="fix: Add OCSP functionality">
+      <option name="closed" value="true" />
+      <created>1700325670585</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1700325670585</updated>
+    </task>
+    <task id="LOCAL-00009" summary="fix: Increase version">
+      <option name="closed" value="true" />
+      <created>1700325678828</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1700325678828</updated>
+    </task>
+    <task id="LOCAL-00010" summary="fix: Config migration from Properties to JSON">
+      <option name="closed" value="true" />
+      <created>1700328745277</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1700328745277</updated>
+    </task>
+    <task id="LOCAL-00011" summary="fix: Make webstatic/ compatible with provisioners; Minor fixes">
+      <option name="closed" value="true" />
+      <created>1700344148136</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1700344148136</updated>
+    </task>
+    <task id="LOCAL-00012" summary="docs: Update readme">
+      <option name="closed" value="true" />
+      <created>1700344770815</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1700344770815</updated>
+    </task>
+    <task id="LOCAL-00013" summary="fix: Migration of Email config to settings.json; Minor changes">
+      <option name="closed" value="true" />
+      <created>1700346750831</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1700346750831</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -134,7 +221,14 @@
     <MESSAGE value="Fix cash" />
     <MESSAGE value="Add Web GUi from GetHTTPSForFree" />
     <MESSAGE value="Remove unnecessary imports, Add MariaDB Database driver" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove unnecessary imports, Add MariaDB Database driver" />
+    <MESSAGE value="fix: Add CRL Distribution into certificate" />
+    <MESSAGE value="fix: Add OCSP functionality" />
+    <MESSAGE value="fix: Increase version" />
+    <MESSAGE value="fix: Config migration from Properties to JSON" />
+    <MESSAGE value="fix: Make webstatic/ compatible with provisioners; Minor fixes" />
+    <MESSAGE value="docs: Update readme" />
+    <MESSAGE value="fix: Migration of Email config to settings.json; Minor changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: Migration of Email config to settings.json; Minor changes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -153,6 +247,16 @@
           <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acmeapi/AcmeAPI.java</url>
           <line>62</line>
           <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java</url>
+          <line>254</line>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java</url>
+          <line>278</line>
+          <option name="timeStamp" value="18" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api;
 
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.MetadataConfig;
 
 import java.security.KeyPair;
@@ -28,12 +29,22 @@ public class Provisioner {
     private X509Certificate intermediateCaCertificate;
     private KeyPair intermediateCaKeyPair;
     private MetadataConfig acmeMetadataConfig;
+    private CertificateExpiration generatedCertificateExpiration;
 
-    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair, MetadataConfig acmeMetadataConfig) {
+    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration) {
         this.provisionerName = provisionerName;
         this.intermediateCaCertificate = intermediateCaCertificate;
         this.intermediateCaKeyPair = intermediateCaKeyPair;
         this.acmeMetadataConfig = acmeMetadataConfig;
+        this.generatedCertificateExpiration = generatedCertificateExpiration;
+    }
+
+    public CertificateExpiration getGeneratedCertificateExpiration() {
+        return generatedCertificateExpiration;
+    }
+
+    public void setGeneratedCertificateExpiration(CertificateExpiration generatedCertificateExpiration) {
+        this.generatedCertificateExpiration = generatedCertificateExpiration;
     }
 
     public String getProvisionerName() {

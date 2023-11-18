@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.tools;
 
 import de.morihofi.acmeserver.config.CertificateConfig;
+import de.morihofi.acmeserver.config.CertificateExpiration;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
@@ -119,6 +120,27 @@ public class CertTools {
 
     }
 
+    public static String certificatesChainToPEM(byte[][] certificateBytesArray) {
+        try {
+            // Erstellen eines StringWriter, um die gesamte Zertifikatskette zu speichern
+            StringWriter stringWriter = new StringWriter();
+
+            // Durchlaufen jedes Zertifikats in der Kette
+            for (byte[] certificateBytes : certificateBytesArray) {
+                // Erstellen eines PemObject für jedes Zertifikat
+                stringWriter.write(certificateToPEM(certificateBytes));
+                // Füge eine Leerzeile zwischen den Zertifikaten hinzu für bessere Lesbarkeit
+                stringWriter.write("\n");
+            }
+
+            // Rückgabe der gesamten PEM-Repräsentation der Zertifikatskette
+            return stringWriter.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Fehler beim Konvertieren der Zertifikatskette in PEM-Format", e);
+        }
+    }
+
+
     public static String certificateToPEM(byte[] certificateBytes) {
         try {
             // Erstellen eines PemObject mit dem Zertifikat
@@ -208,15 +230,12 @@ public class CertTools {
      * @param intermediateCertificateBytes Certificate byte array of the intermediate certificate
      * @param serverPublicKeyBytes         Public Key byte array, that the web server uses
      * @param dnsNames                     Array of DNS Names for the Certificate
-     * @param days                         How many days in the future is it valid
-     * @param months                       How many months in the future is it valid
-     * @param years                        How many years in the future is it valid
      * @return Certificate for the Server
      * @throws CertificateException
      * @throws CertIOException
      * @throws OperatorCreationException
      */
-    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, byte[] intermediateCertificateBytes, byte[] serverPublicKeyBytes, String[] dnsNames, int days, int months, int years) throws CertificateException, CertIOException, OperatorCreationException {
+    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, byte[] intermediateCertificateBytes, byte[] serverPublicKeyBytes, String[] dnsNames, CertificateExpiration expiration) throws CertificateException, CertIOException, OperatorCreationException {
 
         // Create our virtual "CSR"
 
@@ -228,9 +247,9 @@ public class CertTools {
         Calendar c = Calendar.getInstance();
         c.setTime(startDate);
         // manipulate date
-        c.add(Calendar.YEAR, years);
-        c.add(Calendar.MONTH, months);
-        c.add(Calendar.DATE, days);
+        c.add(Calendar.YEAR, expiration.getYears());
+        c.add(Calendar.MONTH, expiration.getMonths());
+        c.add(Calendar.DATE, expiration.getDays());
 
         // Set new expire date
         Date endDate = c.getTime();

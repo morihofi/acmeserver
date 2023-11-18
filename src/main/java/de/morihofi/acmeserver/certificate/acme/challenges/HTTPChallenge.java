@@ -26,7 +26,7 @@ public class HTTPChallenge {
 
     public static Proxy getHTTPChallengeProxy() {
 
-        switch (Main.properties.getProperty("acme.challenge.proxy.type")) {
+        switch (Main.appConfig.getProxy().getHttpChallenge().getType()) {
             case "socks":
                 proxyType = Proxy.Type.SOCKS;
                 break;
@@ -38,11 +38,11 @@ public class HTTPChallenge {
         }
 
         try {
-            proxyPort = Integer.parseInt(Main.properties.getProperty("acme.challenge.proxy.port"));
-            proxyHost = Main.properties.getProperty("acme.challenge.proxy.host");
+            proxyPort = Main.appConfig.getProxy().getHttpChallenge().getPort();
+            proxyHost = Main.appConfig.getProxy().getHttpChallenge().getHost();
 
 
-            if (Main.properties.getProperty("acme.challenge.proxy.enabled").equals("false")) {
+            if (!Main.appConfig.getProxy().getHttpChallenge().getEnabled()) {
                 // Set to direct if there is no proxy enabled
                 proxyType = Proxy.Type.DIRECT;
                 proxy = Proxy.NO_PROXY;
@@ -54,9 +54,9 @@ public class HTTPChallenge {
 
 
 
-            if (Main.properties.getProperty("acme.challenge.proxy.auth.enabled").equals("true")) {
-                proxyUser = Main.properties.getProperty("acme.challenge.proxy.auth.user");
-                proxyPassword = Main.properties.getProperty("acme.challenge.proxy.auth.password");
+            if (Main.appConfig.getProxy().getHttpChallenge().getAuthentication().isEnabled()) {
+                proxyUser = Main.appConfig.getProxy().getHttpChallenge().getAuthentication().getUsername();
+                proxyPassword = Main.appConfig.getProxy().getHttpChallenge().getAuthentication().getPassword();
 
                 Authenticator.setDefault(new Authenticator() {
                     @Override

@@ -12,6 +12,8 @@ public class Config implements Serializable {
   private CertificateConfig rootCA;
   private EmailConfig emailSmtp;
 
+  private ProxyConfig proxy;
+
   public List<ProvisionerConfig> getProvisioner() {
     return this.provisioner;
   }
@@ -50,5 +52,13 @@ public class Config implements Serializable {
 
   public void setEmailSmtp(EmailConfig emailSmtp) {
     this.emailSmtp = emailSmtp;
+  }
+
+  public ProxyConfig getProxy() {
+    return proxy;
+  }
+
+  public void setProxy(ProxyConfig proxy) {
+    this.proxy = proxy;
   }
 }
