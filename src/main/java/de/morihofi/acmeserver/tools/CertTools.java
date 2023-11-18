@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver.tools;
 
+import de.morihofi.acmeserver.config.CertificateConfig;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
@@ -66,7 +67,7 @@ public class CertTools {
 
     public static X509Certificate convertToX509Cert(String certificateString) throws CertificateException {
         X509Certificate certificate = null;
-        CertificateFactory cf = null;
+        CertificateFactory cf;
         try {
             if (certificateString != null && !certificateString.trim().isEmpty()) {
 
@@ -96,17 +97,19 @@ public class CertTools {
     }
 
 
-    public static byte[] generateCertificateAuthorityCertificate(String commonName, int years, KeyPair kp) throws IOException, NoSuchAlgorithmException, OperatorCreationException {
+    public static byte[] generateCertificateAuthorityCertificate(CertificateConfig certificateConfig, KeyPair kp) throws IOException, OperatorCreationException {
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.YEAR, years);
+        cal.add(Calendar.YEAR, certificateConfig.getExpiration().getYears());
+        cal.add(Calendar.MONTH, certificateConfig.getExpiration().getMonths());
+        cal.add(Calendar.DATE, certificateConfig.getExpiration().getDays());
 
         byte[] pk = kp.getPublic().getEncoded();
         SubjectPublicKeyInfo bcPk = SubjectPublicKeyInfo.getInstance(pk);
 
-        X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(new X500Name("CN=" + commonName), BigInteger.valueOf((long) (System.currentTimeMillis() * 1.1)), new Date(), cal.getTime(), new X500Name("CN=" + commonName), bcPk);
+        X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(new X500Name("CN=" + certificateConfig.getMetadata().getCommonName()), BigInteger.valueOf((long) (System.currentTimeMillis() * 1.1)), new Date(), cal.getTime(), new X500Name("CN=" + certificateConfig.getMetadata().getCommonName()), bcPk);
 
         certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
-        certBuilder.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
+        certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
 
 
         X509CertificateHolder certHolder = certBuilder.build(new JcaContentSignerBuilder("SHA256withRSA").build(kp.getPrivate()));
@@ -213,7 +216,7 @@ public class CertTools {
      * @throws CertIOException
      * @throws OperatorCreationException
      */
-    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, byte[] intermediateCertificateBytes, byte[] serverPublicKeyBytes, String dnsNames[], int days, int months, int years) throws CertificateException, CertIOException, OperatorCreationException {
+    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, byte[] intermediateCertificateBytes, byte[] serverPublicKeyBytes, String[] dnsNames, int days, int months, int years) throws CertificateException, CertIOException, OperatorCreationException {
 
         // Create our virtual "CSR"
 
@@ -269,17 +272,15 @@ public class CertTools {
         X509CertificateHolder holder = certBuilder.build(signer);
         JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
         converter.setProvider(BouncyCastleProvider.PROVIDER_NAME);
-        X509Certificate serverCert = converter.getCertificate(holder);
 
-        return serverCert;
+        return converter.getCertificate(holder);
     }
 
 
     public static String decodeBase64URL(String stringToDecode) {
 
         // Decoding URl
-        String dStr = new String(decodeBase64URLAsBytes(stringToDecode));
-        return dStr;
+        return new String(decodeBase64URLAsBytes(stringToDecode));
 
     }
 

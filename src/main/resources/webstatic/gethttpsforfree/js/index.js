@@ -3,7 +3,10 @@
  */
 
 // global variables
-var DIRECTORY_URL = window.location.protocol + "//" + window.location.host + "/directory";
+
+const urlParams = new URLSearchParams(window.location.search);
+
+var DIRECTORY_URL = window.location.protocol + "//" + window.location.host + "/" + urlParams.get('provisioner') + "/directory";
 //var DIRECTORY_URL = "https://acme-v02.api.letsencrypt.org/directory";
 //var DIRECTORY_URL = "https://acme-staging-v02.api.letsencrypt.org/directory";
 var DIRECTORY = {

@@ -1,51 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="css/water.css">
-        <title>ACME Server</title>
-    </head>
-    <body>
-        <h1>🥳 ACME Server is running!</h1>
-        If you see this 🔒-Icon in your address bar of your browser, everything is correct configured. Otherwise, you have to import <a href="/ca.crt">this CA Certificate</a> onto your PC or Browser.<br>
-        <br>
-        You can't do much here, but you can ...<br>
-        ➡️ <a href="/gethttpsforfree/">Create a ACME Certificate through GetHTTPSForFree UI</a><br>
-        ➡️ <a href="/directory">Go to ACME /directory Endpoint</a><br>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/water.css" />
+    <title>ACME Server</title>
+  </head>
+  <body>
+    <h1>🥳 ACME Server is running!</h1>
+    If you see this 🔒-Icon in your address bar of your browser, everything is
+    correct configured. Otherwise, you have to import
+    <a href="/ca.crt">this CA Certificate</a> onto your PC or Browser.<br />
+    <br />
+    
+    <h2>Available ACME Provisioners</h2>
+    You can't do much here, but you can view all available provisioners or create a certificate with GetHTTPSForFree<br />
+    <div id="provisioner-container"></div>
 
-        <hr>
-        <h2>💡 Server Info</h2>
-        <b>ℹ️ Server Version: </b><label id="version">...</label><br>
-        <b>⌚ Build at: </b><label id="buildtime">...</label><br>
-        <b>📝 Git Commit: </b><label id="gitcommit">...</label><br>
-        <b>☕ Java Version: </b><label id="javaversion">...</label><br>
-        <b>🖥️ Operating System: </b><label id="os">...</label><br>
+    <hr />
+    <h2>💡 Server Info</h2>
+    <b>ℹ️ Server Version: </b><label id="version">...</label><br />
+    <b>⌚ Build at: </b><label id="buildtime">...</label><br />
+    <b>📝 Git Commit: </b><label id="gitcommit">...</label><br />
+    <b>☕ Java Version: </b><label id="javaversion">...</label><br />
+    <b>🖥️ Operating System: </b><label id="os">...</label><br />
 
-        <script>
-          var xhttp = new XMLHttpRequest();
-          xhttp.onload = function() {
+    <script>
+      var xhttp = new XMLHttpRequest();
+      xhttp.onload = function () {
+        if (this.readyState == 4) {
+          //Parse JSON
+          var responseJSON = JSON.parse(this.responseText);
 
-            if(this.readyState == 4){
+          document.getElementById("version").innerHTML = responseJSON.version;
+          document.getElementById("buildtime").innerHTML =
+            responseJSON.buildtime;
+          document.getElementById("gitcommit").innerHTML =
+            responseJSON.gitcommit;
+          document.getElementById("javaversion").innerHTML =
+            responseJSON.javaversion;
+          document.getElementById("os").innerHTML = responseJSON.os;
 
-                //Parse JSON
-                var responseJSON = JSON.parse(this.responseText);
+          const container = document.getElementById("provisioner-container");
+          const ul = document.createElement("ul");
 
-                document.getElementById("version").innerHTML    = responseJSON.version;
-                document.getElementById("buildtime").innerHTML  = responseJSON.buildtime;
-                document.getElementById("gitcommit").innerHTML  = responseJSON.gitcommit;
-                document.getElementById("javaversion").innerHTML  = responseJSON.javaversion;
-                document.getElementById("os").innerHTML  = responseJSON.os;
-            }
+          // Durch das Array iterieren und für jedes Element ein li-Element erstellen
+          responseJSON.provisioners.forEach((element) => {
+            const li = document.createElement("li");
+            li.innerHTML = `${element.name}
+            <ul>
+                <li>➡️ <a href="/${element.name}/directory">Go to /${element.name}/directory Endpoint</a><br /></li>
+                <li>➡️ <a href="/gethttpsforfree/?provisioner=${element.name}">Create a ACME Certificate through GetHTTPSForFree UI</a></li>
+            </ul>
+            `; //Provisioner name
+            ul.appendChild(li);
+          });
 
-
-          }
-          xhttp.open("GET", "/serverinfo");
-          xhttp.send();
-        </script>
-        <noscript>
-            <b>JavaScript is disabled</b><br>
-            Please activate JavaScript to display server information!
-        </noscript>
-    </body>
+          // Die fertige Liste dem Container hinzufügen
+          container.appendChild(ul);
+        }
+      };
+      xhttp.open("GET", "/serverinfo");
+      xhttp.send();
+    </script>
+    <noscript>
+      <b>JavaScript is disabled</b><br />
+      Please activate JavaScript to display server information!
+    </noscript>
+  </body>
 </html>

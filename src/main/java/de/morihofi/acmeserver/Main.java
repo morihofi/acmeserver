@@ -16,6 +16,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndp
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpoint;
+import de.morihofi.acmeserver.config.CertificateConfig;
 import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.config.certificateAlgorithms.AlgorithmParams;
@@ -58,16 +59,11 @@ public class Main {
     public static int acmeServerRSAKeyPairSize = 4096;
 
     //CA Certificate
-    public static String caKeyStorePassword = "";
-    public static String caKeyStoreAlias = "ca";
-    public static Path caKeyStorePath;
-    public static String caCommonName = "Root CA";
-    public static int caRSAKeyPairSize = 4096;
-    public static int caDefaultExpireYears = 20;
-    public static Path caPath;
+    public static Path caPrivateKeyPath;
+    public static Path caPublicKeyPath;
+    public static Path caCertificatePath;
     private static KeyPair caKeyPair;
     public static byte[] caCertificateBytes;
-
 
 
     //E-Mail SMTP
@@ -151,7 +147,7 @@ public class Main {
 
 
         // Global routes
-        app.get("/serverinfo", new ServerInfoEndpoint());
+        app.get("/serverinfo", new ServerInfoEndpoint(appConfig.getProvisioner()));
         app.get("/ca.crt", new DownloadCaEndpoint());
 
         List<Provisioner> provisioners = getProvisioners(appConfig.getProvisioner(), app); // = List.of("prod", "testing");
@@ -206,7 +202,7 @@ public class Main {
             log.info("Provisioner " + provisioner.getProvisionerName() + " registered");
         }
         app.start();
-        log.info("Configure Routes completed. Ready for incoming requests");
+        log.info("\u2705 Configure Routes completed. Ready for incoming requests");
     }
 
     private static List<Provisioner> getProvisioners(List<ProvisionerConfig> provisionerConfigList, Javalin javalinInstance) throws Exception {
@@ -226,7 +222,7 @@ public class Main {
             Path intermediateCertificateFile = intermediateProvisionerPath.resolve("certificate.pem");
             //int intermediateRSAKeyPairSize = 4096;
 
-            Provisioner provisioner = new Provisioner(provisionerName, null,null, config.getMeta());
+            Provisioner provisioner = new Provisioner(provisionerName, null, null, config.getMeta());
 
             X509Certificate intermediateCertificate;
             KeyPair intermediateKeyPair = null;
@@ -239,8 +235,8 @@ public class Main {
                 Files.deleteIfExists(intermediateCertificateFile);
 
                 log.info("Loading Root CA Keypair for Intermediate CA generation");
-                caKeyPair = KeyStoreUtils.loadFromPKCS12(caKeyStorePath, caKeyStorePassword, caKeyStoreAlias).getKeyPair();
-                caCertificateBytes = CertTools.getCertificateBytes(caPath, caKeyPair);
+                caKeyPair = PemUtil.loadKeyPair(caPrivateKeyPath, caPublicKeyPath); //KeyStoreUtils.loadFromPKCS12(caKeyStorePath, caKeyStorePassword, caKeyStoreAlias).getKeyPair();
+                caCertificateBytes = CertTools.getCertificateBytes(caCertificatePath, caKeyPair); //CertTools.getCertificateBytes(caPath, caKeyPair);
 
 
                 // *****************************************
@@ -278,7 +274,7 @@ public class Main {
                 log.info("Loading Key Pair");
                 intermediateKeyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
                 log.info("Loading Intermediate CA certificate");
-                byte[] intermediateCertificateBytes = CertTools.getCertificateBytes(caPath, caKeyPair);
+                byte[] intermediateCertificateBytes = CertTools.getCertificateBytes(caCertificatePath, caKeyPair);
                 intermediateCertificate = CertTools.convertToX509Cert(intermediateCertificateBytes);
             }
 
@@ -299,7 +295,7 @@ public class Main {
                     log.info("Updating Javalin's TLS configuration");
                     SSLPlugin plugin = new SSLPlugin(conf -> {
                         // conf.pemFromPath("/etc/ssl/certificate.pem", "/etc/ssl/privateKey.pem");
-                        conf.keystoreFromPath(acmeServerKeyStorePath.toAbsolutePath().toString(), caKeyStorePassword);
+                        conf.keystoreFromPath(acmeServerKeyStorePath.toAbsolutePath().toString(), acmeServerKeyStorePassword);
 
                         /*
                         If port is not 0, the Service (e.g. HTTP/HTTPS) is enabled. Otherwise, it is disabled
@@ -307,20 +303,20 @@ public class Main {
 
                         int httpsPort = appConfig.getServer().getPorts().getHttps();
                         int httpPort = appConfig.getServer().getPorts().getHttp();
-                        if(httpsPort != 0){
+                        if (httpsPort != 0) {
                             log.info("API HTTPS support is ENABLED");
                             conf.secure = true;
                             conf.securePort = httpsPort;
-                        }else {
+                        } else {
                             log.info("API HTTPS support is DISABLED");
                             conf.secure = false;
                         }
 
-                        if(httpPort != 0){
+                        if (httpPort != 0) {
                             log.info("API HTTP support is ENABLED");
                             conf.insecure = true;
                             conf.insecurePort = httpPort;
-                        }else {
+                        } else {
                             log.info("API HTTP support is DISABLED");
                             conf.insecure = false;
                         }
@@ -390,13 +386,13 @@ public class Main {
 //        db_host = properties.getProperty("database.host");
 //        db_engine = properties.getProperty("database.engine");
         // Root CA Settings
-        caCommonName = properties.getProperty("acme.certificate.root.metadata.cn");
-        caRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.certificate.root.rsasize"));
-        caPath = FILES_DIR.resolve(properties.getProperty("acme.certificate.root.certfile"));
-        caKeyStorePassword = properties.getProperty("acme.certificate.root.keystore.password");
-        caKeyStoreAlias = properties.getProperty("acme.certificate.root.keystore.alias");
-        caDefaultExpireYears = Integer.parseInt(properties.getProperty("acme.certificate.root.expire.years"));
-        caKeyStorePath = FILES_DIR.resolve(properties.getProperty("acme.certificate.root.keystore.filename"));
+//        caCommonName = properties.getProperty("acme.certificate.root.metadata.cn");
+//        caRSAKeyPairSize = Integer.parseInt(properties.getProperty("acme.certificate.root.rsasize"));
+//        caPath = FILES_DIR.resolve(properties.getProperty("acme.certificate.root.certfile"));
+//        caKeyStorePassword = properties.getProperty("acme.certificate.root.keystore.password");
+//        caKeyStoreAlias = properties.getProperty("acme.certificate.root.keystore.alias");
+//        caDefaultExpireYears = Integer.parseInt(properties.getProperty("acme.certificate.root.expire.years"));
+//        caKeyStorePath = FILES_DIR.resolve(properties.getProperty("acme.certificate.root.keystore.filename"));
         // ACME API Server Settings
         acmeServerKeyStorePassword = properties.getProperty("acme.api.keystore.password");
         acmeServerKeyStorePath = FILES_DIR.resolve(properties.getProperty("acme.api.keystore.filename"));
@@ -440,25 +436,53 @@ public class Main {
         Class.forName("org.h2.Driver");
     }
 
-    private static void initializeCA() throws NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, OperatorCreationException, NoSuchProviderException {
-        if (!Files.exists(caPath) || !Files.exists(caKeyStorePath)) {
+    private static void initializeCA() throws NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, OperatorCreationException, NoSuchProviderException, InvalidAlgorithmParameterException {
+        Path rootCaDir = FILES_DIR.resolve("_rootCA");
+        Files.createDirectories(rootCaDir);
+
+        caCertificatePath = rootCaDir.resolve("root_ca_certificate.pem");
+        caPublicKeyPath = rootCaDir.resolve("public_key.pem");
+        caPrivateKeyPath = rootCaDir.resolve("private_key.pem");
+
+        if (!Files.exists(caCertificatePath) || !Files.exists(caPublicKeyPath) || !Files.exists(caPrivateKeyPath)) {
+
+            Files.deleteIfExists(caCertificatePath);
+            Files.deleteIfExists(caPublicKeyPath);
+            Files.deleteIfExists(caPrivateKeyPath);
+
             // Create CA
-            log.info("Generating RSA " + caRSAKeyPairSize + "bit Key Pair for CA");
-            KeyPair caKeyPair = CertTools.generateRSAKeyPair(caRSAKeyPairSize);
+
+            KeyPair caKeyPair = null;
+            if (appConfig.getRootCA().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
+                log.info("Using RSA algorithm");
+                log.info("Generating RSA " + rsaParams.getKeySize() + "bit Key Pair for Intermediate CA");
+                caKeyPair = CertTools.generateRSAKeyPair(rsaParams.getKeySize());
+            }
+            if (appConfig.getRootCA().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
+                log.info("Using ECDSA algorithm (Elliptic curves");
+
+                log.info("Generating ECDSA Key Pair using curve " + ecdsaAlgorithmParams.getCurveName() + " for Intermediate CA");
+                caKeyPair = CertTools.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName());
+
+            }
+            if (caKeyPair == null) {
+                throw new IllegalArgumentException("Unknown algorithm " + appConfig.getRootCA().getAlgorithm() + " used for root certificate");
+            }
+
             log.info("Creating CA");
-            caCertificateBytes = CertTools.generateCertificateAuthorityCertificate(caCommonName, caDefaultExpireYears, caKeyPair);
+            caCertificateBytes = CertTools.generateCertificateAuthorityCertificate(appConfig.getRootCA(), caKeyPair);
 
             // Dumping CA Certificate to HDD, so other clients can install it
             log.info("Writing CA to disk");
-            Files.createFile(caPath);
-            Files.write(FILES_DIR.resolve(caPath), CertTools.certificateToPEM(caCertificateBytes).getBytes());
+            Files.createFile(caCertificatePath);
+            Files.write(FILES_DIR.resolve(caCertificatePath), CertTools.certificateToPEM(caCertificateBytes).getBytes());
             // Save CA in Keystore
-            log.info("Writing CA to Key Store");
-            KeyStoreUtils.saveAsPKCS12(caKeyPair, caKeyStorePassword, caKeyStoreAlias, caCertificateBytes, caKeyStorePath);
+            log.info("Writing CA to disk");
+            PemUtil.saveKeyPairToPEM(caKeyPair, caPublicKeyPath, caPrivateKeyPath);
         } else {
             log.info("Loading CA KeyPair and Certificate Bytes into memory");
-            caKeyPair = KeyStoreUtils.loadFromPKCS12(caKeyStorePath, caKeyStorePassword, caKeyStoreAlias).getKeyPair();
-            caCertificateBytes = CertTools.getCertificateBytes(caPath, caKeyPair);
+            caKeyPair = PemUtil.loadKeyPair(caPrivateKeyPath, caPublicKeyPath); //KeyStoreUtils.loadFromPKCS12(caKeyStorePath, caKeyStorePassword, caKeyStoreAlias).getKeyPair();
+            caCertificateBytes = CertTools.getCertificateBytes(caCertificatePath, caKeyPair);
         }
 
     }

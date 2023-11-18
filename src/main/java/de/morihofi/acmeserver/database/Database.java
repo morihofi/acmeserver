@@ -369,7 +369,7 @@ public class Database {
 
         //CA Certificate
         log.info("Adding CA certificate");
-        try (Stream<String> stream = Files.lines(Main.caPath, StandardCharsets.UTF_8)) {
+        try (Stream<String> stream = Files.lines(Main.caCertificatePath, StandardCharsets.UTF_8)) {
             stream.forEach(s -> pemBuilder.append(s).append("\n"));
         } catch (IOException e) {
             //handle exception

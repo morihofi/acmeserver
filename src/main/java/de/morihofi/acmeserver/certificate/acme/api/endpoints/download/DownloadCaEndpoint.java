@@ -20,6 +20,6 @@ public class DownloadCaEndpoint implements Handler {
     public void handle(@NotNull Context ctx) throws Exception {
         ctx.header("Content-Type", "application/x-x509-ca-cert");
 
-        ctx.result(new String(Files.readAllBytes(Main.caPath)));
+        ctx.result(new String(Files.readAllBytes(Main.caCertificatePath)));
     }
 }
