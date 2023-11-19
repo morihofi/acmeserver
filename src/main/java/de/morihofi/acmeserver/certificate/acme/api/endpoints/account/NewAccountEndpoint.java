@@ -38,7 +38,7 @@ public class NewAccountEndpoint implements Handler {
         JSONObject reqBodyPayloadObj = new JSONObject(acmeRequestBody.getDecodedPayload());
         JSONObject reqBodyProtectedObj = new JSONObject(acmeRequestBody.getDecodedProtected());
 
-        boolean reqPayloadTermsOfServiceAgreed = reqBodyPayloadObj.getBoolean("termsOfServiceAgreed");
+        boolean reqPayloadTermsOfServiceAgreed = reqBodyPayloadObj.optBoolean("termsOfServiceAgreed");
 
         if (!reqPayloadTermsOfServiceAgreed) {
             throw new ACMEMalformedException("Terms of Service not accepted. Unable to create account");
