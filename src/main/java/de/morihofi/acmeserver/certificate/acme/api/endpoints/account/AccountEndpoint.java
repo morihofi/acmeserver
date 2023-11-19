@@ -5,6 +5,7 @@ import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
@@ -39,6 +40,8 @@ public class AccountEndpoint implements Handler {
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
         //Check signature
         SignatureCheck.checkSignature(ctx, accountId, gson);
+        //Check nonce
+        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
         //Check if account exists
         ACMEAccount account = Database.getAccount(accountId);

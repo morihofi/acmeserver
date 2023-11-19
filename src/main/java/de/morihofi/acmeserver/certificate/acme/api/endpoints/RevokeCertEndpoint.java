@@ -6,6 +6,7 @@ import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
@@ -75,6 +76,9 @@ public class RevokeCertEndpoint implements Handler {
         }
         //Check signature
         SignatureCheck.checkSignature(ctx, accountId, gson);
+        //Check nonce
+        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+
 
 
         log.info("Account ID \"" + accountId + "\" wants to revoke a certificate");

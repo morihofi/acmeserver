@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
+import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.acmeserver.tools.Crypto;
@@ -40,8 +42,14 @@ public class ChallengeCallbackEndpoint implements Handler {
         // check if challenge is valid
         ACMEIdentifier identifier = Database.getACMEIdentifierByChallengeId(challengeId);
 
+        Gson gson = new Gson();
+        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
+
+
         //Check signature
-        SignatureCheck.checkSignature(ctx, identifier.getOrder().getAccount(), new Gson());
+        SignatureCheck.checkSignature(ctx, identifier.getOrder().getAccount(), gson);
+        //Check nonce
+        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
 
         log.info("Validating ownership of host \"" + identifier.getDataValue() + "\"");

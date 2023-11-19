@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.NonceManager;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.tools.Base64Tools;
@@ -32,6 +33,9 @@ public class NewAccountEndpoint implements Handler {
         //Parse request body
         Gson gson = new Gson();
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
+
+        //Check nonce
+        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
 
         //Payload is Base64 Encoded

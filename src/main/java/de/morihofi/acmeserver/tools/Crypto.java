@@ -17,10 +17,12 @@ public class Crypto {
             MessageDigest sha = MessageDigest.getInstance("SHA-256");
             byte[] result = sha.digest(randomNum.getBytes());
             nonce = hexEncode(result);
+
+            return nonce;
         } catch (Exception e) {
+            throw new IllegalArgumentException("Unable to create nonce", e);
         }
 
-        return nonce;
     }
     public static String hexEncode(byte[] aInput) {
         StringBuilder result = new StringBuilder();

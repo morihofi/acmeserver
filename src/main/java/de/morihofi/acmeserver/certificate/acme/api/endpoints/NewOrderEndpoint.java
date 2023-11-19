@@ -5,6 +5,7 @@ import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
@@ -54,6 +55,8 @@ public class NewOrderEndpoint implements Handler {
         }
         //Check signature
         SignatureCheck.checkSignature(ctx, accountId, gson);
+        //Check nonce
+        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
         JSONArray identifiersArr = new JSONObject(acmeRequestBody.getDecodedPayload()).getJSONArray("identifiers");
 
@@ -85,11 +88,11 @@ public class NewOrderEndpoint implements Handler {
         for (ACMEIdentifier identifier : acmeIdentifiers) {
 
             if (!identifier.getType().equals("dns")) {
-                log.error("Throwing API error: Unknown identifier type \"" + accountId + "\" for value \"" + identifier.getDataValue() + "\"");
+                log.error("Throwing API error: Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
                 throw new ACMERejectedIdentifierException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
             }
 
-            if(checkIfDomainIsAllowed(identifier.getDataValue())){
+            if(!checkIfDomainIsAllowed(identifier.getDataValue())){
                 throw new ACMERejectedIdentifierException("Domain identifier \"" + identifier.getDataValue() + "\" is not allowed");
             }
 

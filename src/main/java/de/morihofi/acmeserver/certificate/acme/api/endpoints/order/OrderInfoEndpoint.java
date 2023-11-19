@@ -5,6 +5,7 @@ import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.tools.Crypto;
 import de.morihofi.acmeserver.tools.DateTools;
@@ -43,8 +44,10 @@ public class OrderInfoEndpoint implements Handler {
         Gson gson = new Gson();
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
+        //Check signature
         SignatureCheck.checkSignature(ctx, identifiers.get(0).getOrder().getAccount(), gson);
-
+        //Check nonce
+        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
         JSONObject responseObj = new JSONObject();
 

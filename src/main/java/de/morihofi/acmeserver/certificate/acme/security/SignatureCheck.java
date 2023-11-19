@@ -29,6 +29,8 @@ public class SignatureCheck {
     public static void checkSignature(Context ctx, String accountId, Gson gson) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, NoSuchProviderException {
         ACMERequestBody requestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
+
+
         String protectedHeader = requestBody.getProtected();
         String payload = requestBody.getPayload();
         String signature = requestBody.getSignature();
@@ -80,6 +82,8 @@ public class SignatureCheck {
             log.error("Signature verification failed for account \"" + accountId + "\"");
             throw new ACMEBadSignatureAlgorithmException("Signature does not match");
         }
+
+
 
     }
 

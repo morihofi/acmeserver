@@ -3,7 +3,9 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.authz;
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
+import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.tools.Crypto;
@@ -43,9 +45,13 @@ public class AuthzOwnershipEndpoint implements Handler {
 
         Gson gson = new Gson();
         ACMEIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
+        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
-
+        //Check signature
         SignatureCheck.checkSignature(ctx, identifier.getOrder().getAccount(), gson);
+        //Check nonce
+        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+
 
         //Not found
         if (identifier == null) {

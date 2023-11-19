@@ -7,6 +7,7 @@ import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadCsrException;
@@ -45,7 +46,6 @@ public class FinalizeOrderEndpoint implements Handler {
         Gson gson = new Gson();
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
-        // Check signature
         JSONObject reqBodyPayloadObj = new JSONObject(acmeRequestBody.getDecodedPayload());
         JSONObject responseJSON = new JSONObject();
 
@@ -54,6 +54,8 @@ public class FinalizeOrderEndpoint implements Handler {
         // Check signature
         ACMEAccount account = Database.getAccountByOrderId(orderId);
         SignatureCheck.checkSignature(ctx, account, gson);
+        // Check nonce
+        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
         List<String> csrDomainNames = CSRUtil.getDomainsFromCSR(csr);
         if(csrDomainNames.isEmpty()){
