@@ -401,13 +401,13 @@ public class Main {
             KeyPair caKeyPair = null;
             if (appConfig.getRootCA().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
                 log.info("Using RSA algorithm");
-                log.info("Generating RSA " + rsaParams.getKeySize() + "bit Key Pair for Intermediate CA");
+                log.info("Generating RSA " + rsaParams.getKeySize() + "bit Key Pair for Root CA");
                 caKeyPair = CertTools.generateRSAKeyPair(rsaParams.getKeySize());
             }
             if (appConfig.getRootCA().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
                 log.info("Using ECDSA algorithm (Elliptic curves");
 
-                log.info("Generating ECDSA Key Pair using curve " + ecdsaAlgorithmParams.getCurveName() + " for Intermediate CA");
+                log.info("Generating ECDSA Key Pair using curve " + ecdsaAlgorithmParams.getCurveName() + " for Root CA");
                 caKeyPair = CertTools.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName());
 
             }
