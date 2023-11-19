@@ -1,11 +1,6 @@
 package de.morihofi.acmeserver.tools;
 
-import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
-import org.bouncycastle.asn1.pkcs.RSAPublicKey;
-import org.bouncycastle.util.encoders.Base64;
-
 import java.nio.charset.StandardCharsets;
-import java.security.KeyPair;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -40,36 +35,6 @@ public class Crypto {
         }
 
         return result.toString();
-    }
-
-    public static KeyPair generateKeyPair(String algorithm, int keySize) throws Exception {
-        java.security.KeyPairGenerator generator = java.security.KeyPairGenerator.getInstance(algorithm, "BC");
-        generator.initialize(keySize);
-        return generator.generateKeyPair();
-    }
-
-    public static String encodeRSAPublicKey(RSAPublicKey key) throws Exception {
-        byte[] encoded = key.getEncoded();
-        String encodedString = Base64.toBase64String(encoded)
-                .replace("+", "-").replace("/", "_").replace("=", "");
-        return "-----BEGIN PUBLIC KEY-----\n" + chunkString(encodedString, 64) + "\n-----END PUBLIC KEY-----";
-    }
-
-    public static String encodeRSAPrivateKey(RSAPrivateKey key) throws Exception {
-        byte[] encoded = key.getEncoded();
-        String encodedString = Base64.toBase64String(encoded)
-                .replace("+", "-").replace("/", "_")
-                .replace("=", "");
-        return "-----BEGIN PRIVATE KEY-----\n" + chunkString(encodedString, 64) + "\n-----END PRIVATE KEY-----";
-    }
-    private static String chunkString(String str, int chunkSize) {
-        StringBuilder builder = new StringBuilder();
-        int index = 0;
-        while (index < str.length()) {
-            builder.append(str.substring(index, Math.min(index + chunkSize, str.length()))).append("\n");
-            index += chunkSize;
-        }
-        return builder.toString();
     }
 
 
