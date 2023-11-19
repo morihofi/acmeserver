@@ -61,6 +61,13 @@
         "days": 3,
         "months": 0,
         "years": 0
+      },
+      "domainNameRestriction": {
+        "enabled": false,
+        "mustEndWith": [
+          ".test.example.com",
+          ".test.example.org"
+        ]
       }
     },
     {
@@ -88,6 +95,13 @@
         "days": 0,
         "months": 1,
         "years": 0
+      },
+      "domainNameRestriction": {
+        "enabled": false,
+        "mustEndWith": [
+          ".prod.example.com",
+          ".prod.example.org"
+        ]
       }
     }
   ],

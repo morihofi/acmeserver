@@ -23,6 +23,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 public class NewOrderEndpoint implements Handler {
@@ -85,7 +86,11 @@ public class NewOrderEndpoint implements Handler {
 
             if (!identifier.getType().equals("dns")) {
                 log.error("Throwing API error: Unknown identifier type \"" + accountId + "\" for value \"" + identifier.getDataValue() + "\"");
-                throw new ACMEInvalidContactException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
+                throw new ACMERejectedIdentifierException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
+            }
+
+            if(checkIfDomainIsAllowed(identifier.getDataValue())){
+                throw new ACMERejectedIdentifierException("Domain identifier \"" + identifier.getDataValue() + "\" is not allowed");
             }
 
             JSONObject identifierObj = new JSONObject();
@@ -143,5 +148,23 @@ public class NewOrderEndpoint implements Handler {
         ctx.header("Location", provisioner.getApiURL() + "/acme/order/" + orderId);
 
         ctx.result(returnObj.toString());
+    }
+
+    private boolean checkIfDomainIsAllowed(String domain) {
+
+        if(!provisioner.getDomainNameRestriction().getEnabled()){
+            //Restriction is disabled, so anything is allowed
+            return true;
+        }
+
+        List<String> mustSuffix = provisioner.getDomainNameRestriction().getMustEndWith();
+
+        for (String suffix : mustSuffix) {
+            if (domain.endsWith(suffix)) {
+                return true; // The domain ends with one of the permitted suffixes
+            }
+        }
+
+        return false; // None of the suffixes fit
     }
 }

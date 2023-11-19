@@ -12,6 +12,8 @@ public class ProvisionerConfig implements Serializable {
 
     private CertificateExpiration issuedCertificateExpiration;
 
+    private DomainNameRestrictionConfig domainNameRestriction;
+
     public MetadataConfig getMeta() {
         return meta;
     }
@@ -50,5 +52,13 @@ public class ProvisionerConfig implements Serializable {
 
     public void setIssuedCertificateExpiration(CertificateExpiration issuedCertificateExpiration) {
         this.issuedCertificateExpiration = issuedCertificateExpiration;
+    }
+
+    public DomainNameRestrictionConfig getDomainNameRestriction() {
+        return domainNameRestriction;
+    }
+
+    public void setDomainNameRestriction(DomainNameRestrictionConfig domainNameRestriction) {
+        this.domainNameRestriction = domainNameRestriction;
     }
 }

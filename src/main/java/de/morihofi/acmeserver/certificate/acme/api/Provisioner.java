@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.certificate.acme.api;
 
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.config.CertificateExpiration;
+import de.morihofi.acmeserver.config.DomainNameRestrictionConfig;
 import de.morihofi.acmeserver.config.MetadataConfig;
 
 import java.security.KeyPair;
@@ -31,12 +32,19 @@ public class Provisioner {
     private MetadataConfig acmeMetadataConfig;
     private CertificateExpiration generatedCertificateExpiration;
 
-    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration) {
+    private DomainNameRestrictionConfig domainNameRestriction;
+
+    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction) {
         this.provisionerName = provisionerName;
         this.intermediateCaCertificate = intermediateCaCertificate;
         this.intermediateCaKeyPair = intermediateCaKeyPair;
         this.acmeMetadataConfig = acmeMetadataConfig;
         this.generatedCertificateExpiration = generatedCertificateExpiration;
+        this.domainNameRestriction = domainNameRestriction;
+    }
+
+    public DomainNameRestrictionConfig getDomainNameRestriction() {
+        return domainNameRestriction;
     }
 
     public CertificateExpiration getGeneratedCertificateExpiration() {
