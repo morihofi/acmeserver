@@ -87,8 +87,18 @@
 
 
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.2</version>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id> <!-- Dies ist eine beliebige ID zur Identifikation der Ausführung -->
+                        <phase>package</phase> <!-- Das Plugin wird in der Phase 'package' ausgeführt -->
+                        <goals>
+                            <goal>single</goal> <!-- Verwendet das Ziel 'single' des Assembly Plugins -->
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
                     <appendAssemblyId>false</appendAssemblyId>
                     <descriptorRefs>
