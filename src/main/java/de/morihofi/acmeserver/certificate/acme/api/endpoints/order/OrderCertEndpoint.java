@@ -10,6 +10,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 public class OrderCertEndpoint implements Handler {
 
     private Provisioner provisioner;
@@ -28,10 +30,20 @@ public class OrderCertEndpoint implements Handler {
         ctx.header("Replay-Nonce", Crypto.createNonce());
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
 
-        ACMEIdentifier identifier = Database.getACMEIdentifierByOrderId(orderId);
+        List<ACMEIdentifier> identifiers = Database.getACMEIdentifiersByOrderId(orderId);
+        StringBuilder responseCertificateChainBuilder = new StringBuilder();
 
-        String responseCertificateChain = Database.getCertificateChainPEMofACMEbyAuthorizationId(identifier.getAuthorizationId(), provisioner.getIntermediateCertificate().getEncoded());
+        for (ACMEIdentifier identifier : identifiers) {
+            String individualCertificateChain = Database.getCertificateChainPEMofACMEbyAuthorizationId(
+                    identifier.getAuthorizationId(),
+                    provisioner.getIntermediateCertificate().getEncoded()
+            );
 
+            responseCertificateChainBuilder.append(individualCertificateChain);
+            responseCertificateChainBuilder.append("\n"); // Separator zwischen den Zertifikaten
+        }
+
+        String responseCertificateChain = responseCertificateChainBuilder.toString();
         ctx.result(responseCertificateChain);
     }
 }

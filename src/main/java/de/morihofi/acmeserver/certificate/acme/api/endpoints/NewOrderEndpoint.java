@@ -58,14 +58,6 @@ public class NewOrderEndpoint implements Handler {
 
         ArrayList<ACMEIdentifier> acmeIdentifiers = new ArrayList<>();
 
-        //Currently only one DNS entry is supported
-        if (identifiersArr.length() != 1) {
-            //Throw unsupported error
-            log.error("Too many domains requested. Only one per order is currently supported");
-            throw new ACMERejectedIdentifierException("Too many domains requested. Only one per order is currently supported");
-        }
-
-
         for (int i = 0; i < identifiersArr.length(); i++) {
             JSONObject identifier = identifiersArr.getJSONObject(i);
             String type = identifier.getString("type");

@@ -207,11 +207,6 @@ public class Database {
     }
 
 
-    public static ACMEIdentifier getACMEIdentifierByOrderId(String orderId) {
-        //FIXME
-        return getACMEIdentifiersByOrderId(orderId).get(0);
-    }
-
     @Transactional
     public static void createOrder(ACMEAccount account, String orderId, List<ACMEIdentifier> identifierList, String provisioner) {
         Transaction transaction;

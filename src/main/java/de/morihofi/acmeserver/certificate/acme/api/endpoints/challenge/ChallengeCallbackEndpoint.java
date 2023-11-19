@@ -50,7 +50,7 @@ public class ChallengeCallbackEndpoint implements Handler {
             Database.passChallenge(challengeId);
         } else {
             log.error("Throwing API error: Host verification failed");
-            throw new ACMEConnectionErrorException("Unable to reach host or invalid token. Is the host reachable? Is the http server on port 80 running? If it is running, check your access logs");
+            throw new ACMEConnectionErrorException("Unable to reach host \"" + identifier.getDataValue() + "\" or invalid token. Is the host reachable? Is the http server on port 80 running? If it is running, check your access logs");
 
             // TODO: Fail challenge in database
             //Database.failChallenge(challengeId);
