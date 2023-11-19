@@ -53,7 +53,7 @@ public class ChallengeCallbackEndpoint implements Handler {
             throw new ACMEConnectionErrorException("Unable to reach host or invalid token. Is the host reachable? Is the http server on port 80 running? If it is running, check your access logs");
 
             // TODO: Fail challenge in database
-            // Database.failChallenge(challengeId);
+            //Database.failChallenge(challengeId);
         }
 
 

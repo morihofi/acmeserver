@@ -70,8 +70,7 @@ public class CRL {
                 new Date()
         );
 
-        // Add an expiration date - e.g., one year from now
-        //crlBuilder.setNextUpdate(new Date(System.currentTimeMillis() + 365 * 24 * 60 * 60 * 1000L));
+        // Add an expiration date
         crlBuilder.setNextUpdate(new Date(System.currentTimeMillis() + UPDATE_MINUTES * 60 * 1000L)); //Update in 5 mins
 
 

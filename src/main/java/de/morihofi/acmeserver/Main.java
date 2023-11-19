@@ -16,7 +16,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndp
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpoint;
-import de.morihofi.acmeserver.config.CertificateConfig;
+import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.config.certificateAlgorithms.AlgorithmParams;
@@ -26,8 +26,8 @@ import de.morihofi.acmeserver.config.helper.AlgorithmParamsDeserializer;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.exception.ACMEException;
 import de.morihofi.acmeserver.tools.CertTools;
-import de.morihofi.acmeserver.tools.KeyStoreUtils;
 import de.morihofi.acmeserver.tools.PemUtil;
+import de.morihofi.acmeserver.watcher.CertificateRenewWatcher;
 import io.javalin.Javalin;
 import io.javalin.community.ssl.SSLPlugin;
 import io.javalin.http.staticfiles.Location;
@@ -47,6 +47,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
@@ -264,30 +265,17 @@ public class Main {
                 Path acmeApiPublicKeyPath = acmeServerApiCertDir.resolve("public_key.pem");
                 Path acmeApiPrivateKeyPath = acmeServerApiCertDir.resolve("private_key.pem");
 
-                if (!Files.exists(acmeApiCertificatePath) || !Files.exists(acmeApiPublicKeyPath) || !Files.exists(acmeApiPrivateKeyPath)) {
-                    log.info("Using provisioner intermediate CA for generation");
+                generateAcmeApiClientCertificate(
+                        intermediateKeyPairPrivateFile,
+                        intermediateKeyPairPublicFile,
+                        intermediateCertificate,
+                        acmeApiCertificatePath,
+                        acmeApiPublicKeyPath,
+                        acmeApiPrivateKeyPath,
+                        provisioner.getGeneratedCertificateExpiration()
+                );
 
-                    Files.deleteIfExists(acmeApiCertificatePath);
-                    Files.deleteIfExists(acmeApiPublicKeyPath);
-                    Files.deleteIfExists(acmeApiPrivateKeyPath);
 
-                    // *****************************************
-                    // Create Certificate for our ACME Web Server API (Client Certificate)
-                    log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
-                    KeyPair acmeAPIKeyPair = CertTools.generateRSAKeyPair(4096);
-                    log.info("Creating Server Certificate");
-                    X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair, intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{appConfig.getServer().getDnsName()}, config.getIssuedCertificateExpiration());
-
-                    // Dumping certificate to HDD
-                    log.info("Writing certificate to disk");
-                    byte[][] certificates = new byte[][]{acmeAPICertificate.getEncoded(), intermediateCertificate.getEncoded()};
-                    String pemCertificates = CertTools.certificatesChainToPEM(certificates);
-                    Files.write(acmeApiCertificatePath, pemCertificates.getBytes(StandardCharsets.UTF_8));
-                    // Save keyPair to disk
-                    log.info("Writing keyPair to disk");
-                    PemUtil.saveKeyPairToPEM(acmeAPIKeyPair, acmeApiPublicKeyPath, acmeApiPrivateKeyPath);
-
-                }
                 javalinInstance.updateConfig(javalinConfig -> {
                     log.info("Updating Javalin's TLS configuration");
                     SSLPlugin plugin = new SSLPlugin(conf -> {
@@ -318,6 +306,51 @@ public class Main {
                             conf.insecure = false;
                         }
                     });
+                    log.info("Registering ACME API certificate expiration watcher");
+                    CertificateRenewWatcher watcher = new CertificateRenewWatcher(
+                            acmeApiPrivateKeyPath,
+                            acmeApiPublicKeyPath,
+                            acmeApiCertificatePath,
+                            6, TimeUnit.HOURS,
+                            () -> {
+                                //Executed when certificate needs to be renewed
+
+                                try {
+                                    log.info("Renewing certificate...");
+
+                                    // Loading intermediate certificates from file, because
+                                    // they can have renewed in the meantime and variables not updated
+
+                                    KeyPair keyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
+
+                                    byte[] itmCertificateBytes = CertTools.getCertificateBytes(intermediateCertificateFile, keyPair);
+                                    X509Certificate itmCertificate = CertTools.convertToX509Cert(itmCertificateBytes);
+
+                                    //Delete old expired certificate
+                                    Files.deleteIfExists(acmeApiCertificatePath);
+
+                                    //Generate new certificate in place
+                                    generateAcmeApiClientCertificate(
+                                            intermediateKeyPairPrivateFile,
+                                            intermediateKeyPairPublicFile,
+                                            itmCertificate,
+                                            acmeApiCertificatePath,
+                                            acmeApiPublicKeyPath,
+                                            acmeApiPrivateKeyPath,
+                                            provisioner.getGeneratedCertificateExpiration()
+                                    );
+
+                                    log.info("Certificate renewed successfully.");
+
+                                    log.info("Reloading ACME API certificate");
+                                    plugin.reload(sslConfig -> {
+                                        sslConfig.pemFromPath(acmeApiCertificatePath.toAbsolutePath().toString(), acmeApiPrivateKeyPath.toAbsolutePath().toString());
+                                    });
+                                    log.info("Certificate reload complete");
+                                } catch (Exception e) {
+                                    log.error("Error renewing certificates", e);
+                                }
+                            });
                     javalinConfig.plugins.getPluginManager().register(plugin);
                 });
             }
@@ -331,6 +364,44 @@ public class Main {
 
         }
         return provisioners;
+    }
+
+    private static void generateAcmeApiClientCertificate(Path intermediateKeyPairPrivateFile, Path intermediateKeyPairPublicFile, X509Certificate intermediateCertificate, Path acmeApiCertificatePath, Path acmeApiPublicKeyPath, Path acmeApiPrivateKeyPath, CertificateExpiration expiration) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
+        KeyPair intermediateKeyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
+
+        KeyPair acmeAPIKeyPair = null;
+        if (!Files.exists(acmeApiPublicKeyPath) || !Files.exists(acmeApiPrivateKeyPath)) {
+            Files.deleteIfExists(acmeApiCertificatePath);
+            Files.deleteIfExists(acmeApiPublicKeyPath);
+            Files.deleteIfExists(acmeApiPrivateKeyPath);
+
+            // *****************************************
+            // Create Certificate for our ACME Web Server API (Client Certificate)
+            log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
+            acmeAPIKeyPair = CertTools.generateRSAKeyPair(4096);
+            // Save keyPair to disk
+            log.info("Writing keyPair to disk");
+            PemUtil.saveKeyPairToPEM(acmeAPIKeyPair, acmeApiPublicKeyPath, acmeApiPrivateKeyPath);
+
+        } else {
+            log.info("Loading KeyPair for ACME Web API from disk");
+            acmeAPIKeyPair = PemUtil.loadKeyPair(acmeApiPrivateKeyPath, acmeApiPublicKeyPath);
+        }
+
+
+        if (!Files.exists(acmeApiCertificatePath)) {
+            log.info("Using provisioner intermediate CA for generation");
+
+            log.info("Creating Server Certificate");
+            X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair, intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{appConfig.getServer().getDnsName()}, expiration);
+
+            // Dumping certificate to HDD
+            log.info("Writing certificate to disk");
+            byte[][] certificates = new byte[][]{acmeAPICertificate.getEncoded(), intermediateCertificate.getEncoded()};
+            String pemCertificates = CertTools.certificatesChainToPEM(certificates);
+            Files.createFile(acmeApiCertificatePath);
+            Files.writeString(acmeApiCertificatePath, pemCertificates);
+        }
     }
 
 

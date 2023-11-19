@@ -4,18 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="fix: Migration of Email config to settings.json; Minor changes">
-      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/config/ProxyConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/config/proxy/HttpChallenge.java" afterDir="false" />
+    <list default="true" id="046031f0-bcc6-4e7a-ab85-c38d2bea9758" name="Changes" comment="build: Update org.json dependency">
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/tools/CSRUtil.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/tools/CertMisc.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/watcher/CertificateRenewWatcher.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.sample.json" beforeDir="false" afterPath="$PROJECT_DIR$/settings.sample.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.MD" beforeDir="false" afterPath="$PROJECT_DIR$/README.MD" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/api/Provisioner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/api/Provisioner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/api/endpoints/challenge/ChallengeCallbackEndpoint.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/api/endpoints/challenge/ChallengeCallbackEndpoint.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/api/endpoints/order/FinalizeOrderEndpoint.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/api/endpoints/order/FinalizeOrderEndpoint.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/challenges/HTTPChallenge.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/acme/challenges/HTTPChallenge.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/config/Config.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/config/Config.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/config/ProvisionerConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/config/ProvisionerConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/provisioner/ProvisionerIntermediateHolder.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/revokeDistribution/CRL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/certificate/revokeDistribution/CRL.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/database/Database.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/database/Database.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/tools/CertTools.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/tools/CertTools.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -33,7 +32,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="feat/provisioner" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -60,6 +59,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
+      <recent name="de.morihofi.acmeserver.tools" />
       <recent name="de.morihofi.acmeserver.config" />
       <recent name="de.morihofi.acmeserver.certificate.revokeDistribution" />
     </key>
@@ -71,6 +71,8 @@
   <component name="RunAnythingCache">
     <option name="myCommands">
       <command value="mvn clean compile" />
+      <command value="mvn assembly:assembly" />
+      <command value="mvn package" />
     </option>
   </component>
   <component name="RunManager" selected="Application.Unnamed">
@@ -200,7 +202,55 @@
       <option name="project" value="LOCAL" />
       <updated>1700346750831</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="fix: Migration of the ACME Web Server API configuration">
+      <option name="closed" value="true" />
+      <created>1700351775107</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1700351775107</updated>
+    </task>
+    <task id="LOCAL-00015" summary="docs: Update readme">
+      <option name="closed" value="true" />
+      <created>1700351975934</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1700351975934</updated>
+    </task>
+    <task id="LOCAL-00016" summary="docs: Add sample config files">
+      <option name="closed" value="true" />
+      <created>1700352063650</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1700352063650</updated>
+    </task>
+    <task id="LOCAL-00017" summary="chore: Fixed wrong certificate name in logs">
+      <option name="closed" value="true" />
+      <created>1700394966050</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1700394966050</updated>
+    </task>
+    <task id="LOCAL-00018" summary="build: Now able to use package phase">
+      <option name="closed" value="true" />
+      <created>1700394989436</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1700394989436</updated>
+    </task>
+    <task id="LOCAL-00019" summary="build: Update org.json dependency">
+      <option name="closed" value="true" />
+      <created>1700396398519</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1700396398519</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -226,9 +276,14 @@
     <MESSAGE value="fix: Increase version" />
     <MESSAGE value="fix: Config migration from Properties to JSON" />
     <MESSAGE value="fix: Make webstatic/ compatible with provisioners; Minor fixes" />
-    <MESSAGE value="docs: Update readme" />
     <MESSAGE value="fix: Migration of Email config to settings.json; Minor changes" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: Migration of Email config to settings.json; Minor changes" />
+    <MESSAGE value="fix: Migration of the ACME Web Server API configuration" />
+    <MESSAGE value="docs: Update readme" />
+    <MESSAGE value="docs: Add sample config files" />
+    <MESSAGE value="chore: Fixed wrong certificate name in logs" />
+    <MESSAGE value="build: Now able to use package phase" />
+    <MESSAGE value="build: Update org.json dependency" />
+    <option name="LAST_COMMIT_MESSAGE" value="build: Update org.json dependency" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -250,13 +305,23 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java</url>
-          <line>254</line>
-          <option name="timeStamp" value="17" />
+          <line>318</line>
+          <option name="timeStamp" value="22" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java</url>
-          <line>278</line>
-          <option name="timeStamp" value="18" />
+          <line>344</line>
+          <option name="timeStamp" value="23" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/Main.java</url>
+          <line>325</line>
+          <option name="timeStamp" value="25" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/de/morihofi/acmeserver/tools/CSRUtil.java</url>
+          <line>42</line>
+          <option name="timeStamp" value="31" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

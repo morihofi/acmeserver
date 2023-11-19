@@ -2,21 +2,23 @@ package de.morihofi.acmeserver.tools;
 
 import de.morihofi.acmeserver.config.CertificateConfig;
 import de.morihofi.acmeserver.config.CertificateExpiration;
-import org.bouncycastle.asn1.ASN1EncodableVector;
-import org.bouncycastle.asn1.ASN1Integer;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.*;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
@@ -39,10 +41,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 
 public class CertTools {
 
@@ -50,9 +49,8 @@ public class CertTools {
     public static KeyPair generateRSAKeyPair(int rsaKeySize) throws NoSuchAlgorithmException, NoSuchProviderException {
         KeyPairGenerator rsa = KeyPairGenerator.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
         rsa.initialize(rsaKeySize);
-        KeyPair kp = rsa.generateKeyPair();
 
-        return kp;
+        return rsa.generateKeyPair();
     }
 
     public static KeyPair generateEcdsaKeyPair(String curveName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
@@ -240,7 +238,7 @@ public class CertTools {
         // Create our virtual "CSR"
 
         X500Name issuerName = X509.getX500NameFromX509Certificate(convertToX509Cert(intermediateCertificateBytes));
-        BigInteger serialNumber = BigInteger.valueOf(System.currentTimeMillis());
+        BigInteger serialNumber = CertMisc.generateSerialNumber();
 
         Date startDate = new Date(); // Starts now
 
@@ -327,8 +325,9 @@ public class CertTools {
 
     /**
      * Liest ein Zertifikat aus einer PEM-Datei und gibt die Zertifikatsbytes zurück.
+     *
      * @param certificatePath Der Pfad zur PEM-Datei.
-     * @param keyPair Das KeyPair, für das das Zertifikat ausgelesen werden soll.
+     * @param keyPair         Das KeyPair, für das das Zertifikat ausgelesen werden soll.
      * @return Ein Byte-Array, das das Zertifikat darstellt.
      * @throws IOException Wenn ein I/O-Fehler auftritt.
      */
@@ -419,7 +418,6 @@ public class CertTools {
     }
 
 
-
     public static byte[] convertRawToDerSignatureECDSA(byte[] rawSignature) throws IOException {
         if (rawSignature.length % 2 != 0) {
             throw new IllegalArgumentException("Invalid raw signature length");
@@ -444,4 +442,105 @@ public class CertTools {
     }
 
 
+    public static PKCS10CertificationRequest createCSR(X509Certificate oldCertificate, PublicKey publicKey, PrivateKey privateKey) throws IOException, OperatorCreationException {
+        X500Name subject = new X500Name(oldCertificate.getSubjectX500Principal().getName());
+        SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
+
+        PKCS10CertificationRequestBuilder csrBuilder = new PKCS10CertificationRequestBuilder(subject, publicKeyInfo);
+
+        // ExtensionsGenerator zum Hinzufügen der Erweiterungen zum CSR
+        ExtensionsGenerator extensionsGenerator = new ExtensionsGenerator();
+
+        // Erweiterungen aus dem alten Zertifikat hinzufügen
+        addExtensionsFromCertificate(oldCertificate, extensionsGenerator);
+
+        // CSR mit den Erweiterungen erstellen
+        csrBuilder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extensionsGenerator.generate());
+
+        // ContentSigner für das Signieren des CSRs erstellen
+        String signatureAlgorithm;
+        if (privateKey instanceof ECKey) {
+            signatureAlgorithm = "SHA256withECDSA";
+        } else if (privateKey instanceof RSAKey) {
+            signatureAlgorithm = "SHA256withRSA";
+        } else {
+            throw new IllegalArgumentException("Unsupported key type");
+        }
+
+        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(privateKey);
+
+        return csrBuilder.build(signer);
+    }
+
+    private static void addExtensionsFromCertificate(X509Certificate certificate, ExtensionsGenerator extensionsGenerator) throws IOException {
+        Set<String> criticalOids = certificate.getCriticalExtensionOIDs();
+        Set<String> nonCriticalOids = certificate.getNonCriticalExtensionOIDs();
+
+        if (criticalOids != null) {
+            for (String oid : criticalOids) {
+                addExtension(certificate, oid, true, extensionsGenerator);
+            }
+        }
+
+        if (nonCriticalOids != null) {
+            for (String oid : nonCriticalOids) {
+                addExtension(certificate, oid, false, extensionsGenerator);
+            }
+        }
+    }
+
+    private static void addExtension(X509Certificate certificate, String oidString, boolean isCritical, ExtensionsGenerator extensionsGenerator) throws IOException {
+        ASN1ObjectIdentifier oid = new ASN1ObjectIdentifier(oidString);
+        byte[] bytes = certificate.getExtensionValue(oidString);
+        if (bytes != null) {
+            ASN1Encodable value = ASN1ObjectIdentifier.fromByteArray(bytes);
+            extensionsGenerator.addExtension(oid, isCritical, value);
+        }
+    }
+
+    public static X509Certificate signCSR(PKCS10CertificationRequest csr, PrivateKey caPrivateKey, X509Certificate caCertificate, CertificateExpiration expiration) throws Exception {
+        X500Name issuer = new X500Name(caCertificate.getSubjectX500Principal().getName());
+        X500Name subject = csr.getSubject();
+        BigInteger serialNumber = CertMisc.generateSerialNumber();
+        Date notBefore = new Date();
+
+        Calendar c = Calendar.getInstance();
+        c.setTime(notBefore);
+        // manipulate date
+        c.add(Calendar.YEAR, expiration.getYears());
+        c.add(Calendar.MONTH, expiration.getMonths());
+        c.add(Calendar.DATE, expiration.getDays());
+
+        Date notAfter = c.getTime(); // Setzen Sie das Ablaufdatum
+
+        // Convert SubjectPublicKeyInfo to PublicKey
+        PublicKey publicKey = new JcaPEMKeyConverter().getPublicKey(csr.getSubjectPublicKeyInfo());
+
+        // Use the converted publicKey in the JcaX509v3CertificateBuilder constructor
+        X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(
+                issuer,
+                serialNumber,
+                notBefore,
+                notAfter,
+                subject,
+                publicKey);
+
+        // Hier können Sie zusätzliche Erweiterungen hinzufügen, falls erforderlich
+        // ...
+
+        String signatureAlgorithm;
+        if (caPrivateKey instanceof ECKey) {
+            signatureAlgorithm = "SHA256withECDSA";
+        } else if (caPrivateKey instanceof RSAKey) {
+            signatureAlgorithm = "SHA256withRSA";
+        } else {
+            throw new IllegalArgumentException("Unsupported key type");
+        }
+        ContentSigner contentSigner = new JcaContentSignerBuilder(signatureAlgorithm).build(caPrivateKey);
+
+        X509CertificateHolder certificateHolder = certificateBuilder.build(contentSigner);
+
+        return new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getCertificate(certificateHolder);
+    }
 }
+

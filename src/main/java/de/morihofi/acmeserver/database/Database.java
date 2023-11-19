@@ -187,7 +187,7 @@ public class Database {
 
     public static List<ACMEIdentifier> getACMEIdentifiersByOrderId(String orderId) {
         List<ACMEIdentifier> identifiers = new ArrayList<>();
-        Transaction transaction = null;
+        Transaction transaction;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
             identifiers = session.createQuery("FROM ACMEIdentifier ai WHERE ai.order.orderId = :orderId", ACMEIdentifier.class)

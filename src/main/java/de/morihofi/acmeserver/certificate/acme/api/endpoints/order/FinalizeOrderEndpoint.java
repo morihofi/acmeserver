@@ -10,6 +10,7 @@ import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadCsrException;
+import de.morihofi.acmeserver.tools.CSRUtil;
 import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.tools.Crypto;
 import de.morihofi.acmeserver.tools.DateTools;
@@ -26,6 +27,7 @@ import org.json.JSONObject;
 import java.math.BigInteger;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
+import java.util.List;
 
 public class FinalizeOrderEndpoint implements Handler {
 
@@ -55,8 +57,17 @@ public class FinalizeOrderEndpoint implements Handler {
         SignatureCheck.checkSignature(ctx, account, gson);
 
         //TODO: Check if CSR Domain-names are matching with requested and checked Domain-names
+        List<String> csrDomainNames = CSRUtil.getDomainsFromCSR(csr);
+        if(csrDomainNames.isEmpty()){
+            throw new ACMEBadCsrException("CSR does not contain any domain names");
+        }
 
+        //TODO: Add Support for multiple identifiers
         ACMEIdentifier identifier = Database.getACMEIdentifierByOrderId(orderId);
+        if (!csrDomainNames.get(0).equals(identifier.getDataValue())) {
+            throw new ACMEBadCsrException("ACME Identifier domain does not match with CSR domain");
+        }
+
 
         JSONObject identifiersObj = new JSONObject();
         identifiersObj.put("type", identifier.getType());
