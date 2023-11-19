@@ -123,6 +123,7 @@ public class Main {
             ctx.header("Content-Type", "application/problem+json");
             //ctx.header("Link", "<" + provisioner.getApiURL() + "/directory>;rel=\"index\"");
             ctx.result(gson.toJson(exception.getErrorResponse()));
+            log.error("ACME Exception thrown: " + exception.getErrorResponse().getDetail() + " (" + exception.getErrorResponse().getType() + ")");
         });
 
 
@@ -201,7 +202,7 @@ public class Main {
             Path intermediateKeyPairPrivateFile = intermediateProvisionerPath.resolve("private_key.pem");
             Path intermediateCertificateFile = intermediateProvisionerPath.resolve("certificate.pem");
 
-            Provisioner provisioner = new Provisioner(provisionerName, null, null, config.getMeta(), config.getIssuedCertificateExpiration());
+            Provisioner provisioner = new Provisioner(provisionerName, null, null, config.getMeta(), config.getIssuedCertificateExpiration(), config.getDomainNameRestriction());
 
             X509Certificate intermediateCertificate;
             KeyPair intermediateKeyPair = null;
