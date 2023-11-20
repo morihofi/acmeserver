@@ -37,5 +37,6 @@ build/
 
 ### AcmeServer ###
 serverdata/
-/logs/logfile.log
+logs/logfile.log
+logs/
 *.db
