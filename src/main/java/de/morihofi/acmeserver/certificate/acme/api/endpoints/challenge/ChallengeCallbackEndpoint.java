@@ -10,6 +10,7 @@ import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEConnectionErrorException;
+import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.tools.Crypto;
 import de.morihofi.acmeserver.tools.DateTools;
 import io.javalin.http.Context;
@@ -54,6 +55,16 @@ public class ChallengeCallbackEndpoint implements Handler {
         //Check nonce
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
+        boolean isWildcardDomain = false;
+        String nonWildcardDomain = identifier.getDataValue();
+        if (nonWildcardDomain.startsWith("*.")) {
+            nonWildcardDomain = nonWildcardDomain.substring(2); // Remove wildcard part for validation
+            isWildcardDomain = true;
+        }
+
+        if(!"dns-01".equals(challengeType) && isWildcardDomain){
+            throw new ACMEMalformedException("DNS-01 method is only valid for non wildcard domains");
+        }
 
         boolean challengePassed = false;
         String possibleErrorReasonIfFailed;
@@ -63,8 +74,8 @@ public class ChallengeCallbackEndpoint implements Handler {
                 possibleErrorReasonIfFailed = "Unable to reach host \"" + identifier.getDataValue() + "\" or invalid token. Is the host reachable? Is the http server on port 80 running? If it is running, check your access logs";
             }
             case "dns-01" -> {
-                challengePassed = DNSChallenge.check(identifier.getAuthorizationToken(), identifier.getDataValue(), identifier.getOrder().getAccount());
-                possibleErrorReasonIfFailed = "Unable to verify DNS TXT entry for host \"" + identifier.getDataValue() + "\"";
+                challengePassed = DNSChallenge.check(identifier.getAuthorizationToken(), nonWildcardDomain, identifier.getOrder().getAccount());
+                possibleErrorReasonIfFailed = "Unable to verify DNS TXT entry for host \"" + nonWildcardDomain + "\"";
             }
             default -> {
                 log.error("Unsupported challenge type: " + challengeType);
@@ -73,12 +84,12 @@ public class ChallengeCallbackEndpoint implements Handler {
         }
 
 
-        log.info("Validating ownership of host \"" + identifier.getDataValue() + "\"");
+        log.info("Validating ownership of host \"" + nonWildcardDomain + "\"");
         if (challengePassed) {
             //mark challenge has passed
             Database.passChallenge(challengeId);
         } else {
-            log.error("Throwing API error: Host verification failed with method" + challengeType);
+            log.error("Throwing API error: Host verification failed with method " + challengeType);
             throw new ACMEConnectionErrorException(possibleErrorReasonIfFailed);
 
             // TODO: Fail challenge in database

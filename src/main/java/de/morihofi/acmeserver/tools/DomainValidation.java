@@ -9,10 +9,19 @@ public class DomainValidation {
 
     private static final Pattern PATTERN = Pattern.compile(DOMAIN_AND_HOSTNAME_PATTERN);
 
-    public static boolean isValidDomain(String domain) {
+    public static boolean isValidDomain(final String domain, boolean allowWildcard) {
         if (domain == null) {
             return false;
         }
-        return PATTERN.matcher(domain).matches();
+        String nonWildcardDomain = domain;
+
+        if(allowWildcard){
+            // Check for wildcard domain
+            if (nonWildcardDomain.startsWith("*.")) {
+                nonWildcardDomain = domain.substring(2); // Remove wildcard part for validation
+            }
+        }
+
+        return PATTERN.matcher(nonWildcardDomain).matches();
     }
 }

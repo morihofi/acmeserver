@@ -31,16 +31,26 @@ public class Provisioner {
     private KeyPair intermediateCaKeyPair;
     private MetadataConfig acmeMetadataConfig;
     private CertificateExpiration generatedCertificateExpiration;
+    private boolean wildcardAllowed;
 
     private final DomainNameRestrictionConfig domainNameRestriction;
 
-    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction) {
+    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed) {
         this.provisionerName = provisionerName;
         this.intermediateCaCertificate = intermediateCaCertificate;
         this.intermediateCaKeyPair = intermediateCaKeyPair;
         this.acmeMetadataConfig = acmeMetadataConfig;
         this.generatedCertificateExpiration = generatedCertificateExpiration;
         this.domainNameRestriction = domainNameRestriction;
+        this.wildcardAllowed = wildcardAllowed;
+    }
+
+    public boolean isWildcardAllowed() {
+        return wildcardAllowed;
+    }
+
+    public void setWildcardAllowed(boolean wildcardAllowed) {
+        this.wildcardAllowed = wildcardAllowed;
     }
 
     public DomainNameRestrictionConfig getDomainNameRestriction() {
@@ -96,5 +106,13 @@ public class Provisioner {
 
     public void setAcmeMetadataConfig(MetadataConfig acmeMetadataConfig) {
         this.acmeMetadataConfig = acmeMetadataConfig;
+    }
+
+    public String getFullOcspUrl() {
+        return getServerURL() + getOcspPath();
+    }
+
+    public String getFullCrlUrl() {
+        return getServerURL() + getCrlPath();
     }
 }

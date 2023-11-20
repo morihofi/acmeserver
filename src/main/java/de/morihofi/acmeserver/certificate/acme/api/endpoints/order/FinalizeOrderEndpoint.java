@@ -89,7 +89,7 @@ public class FinalizeOrderEndpoint implements Handler {
                     provisioner.getIntermediateCertificate().getEncoded(),
                     pkPemObject.getContent(),
                     csrDomainNames.toArray(new String[0]),
-                    provisioner.getGeneratedCertificateExpiration());
+                    provisioner);
 
             BigInteger serialNumber = acmeGeneratedCertificate.getSerialNumber();
             String pemCertificate = CertTools.certificateToPEM(acmeGeneratedCertificate.getEncoded());

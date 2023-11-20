@@ -89,8 +89,8 @@ public class NewOrderEndpoint implements Handler {
                 throw new ACMERejectedIdentifierException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
             }
 
-            if(!DomainValidation.isValidDomain(identifier.getDataValue())){
-                throw new ACMERejectedIdentifierException("Identifier \"" + identifier.getDataValue() + "\" is invalid");
+            if(!DomainValidation.isValidDomain(identifier.getDataValue(), provisioner.isWildcardAllowed())){
+                throw new ACMERejectedIdentifierException("Identifier \"" + identifier.getDataValue() + "\" is invalid (Wildcard allowed: " + provisioner.isWildcardAllowed() + ")");
 
             }
 
@@ -156,7 +156,7 @@ public class NewOrderEndpoint implements Handler {
     }
 
 
-    private boolean checkIfDomainIsAllowed(String domain) {
+    private boolean checkIfDomainIsAllowed(final String domain) {
 
         if(!provisioner.getDomainNameRestriction().getEnabled()){
             //Restriction is disabled, so anything is allowed

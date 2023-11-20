@@ -10,17 +10,18 @@ class DomainValidationTest {
     @Test
     @DisplayName("Check validity of domain names")
     void isValidDomain() {
-        assertTrue(DomainValidation.isValidDomain("example.com"));
-        assertTrue(DomainValidation.isValidDomain("sub.domain.co.uk"));
-        assertTrue(DomainValidation.isValidDomain("hostname.internal"));
-        assertTrue(DomainValidation.isValidDomain("host-name.internal"));
-        assertTrue(DomainValidation.isValidDomain("hostname"));
-        assertTrue(DomainValidation.isValidDomain("host.name"));
-        assertTrue(DomainValidation.isValidDomain("host-name"));
+        assertTrue(DomainValidation.isValidDomain("example.com", false));
+        assertTrue(DomainValidation.isValidDomain("sub.domain.co.uk", false));
+        assertTrue(DomainValidation.isValidDomain("hostname.internal", false));
+        assertTrue(DomainValidation.isValidDomain("host-name.internal", false));
+        assertTrue(DomainValidation.isValidDomain("hostname", false));
+        assertTrue(DomainValidation.isValidDomain("host.name", false));
+        assertTrue(DomainValidation.isValidDomain("host-name", false));
+        assertTrue(DomainValidation.isValidDomain("*.example.com", true));
 
-        assertFalse(DomainValidation.isValidDomain("192.168.0.1"));
-        assertFalse(DomainValidation.isValidDomain("::1"));
-        assertFalse(DomainValidation.isValidDomain("invalid_domain"));
-        assertFalse(DomainValidation.isValidDomain("*.example.com"));
+        assertFalse(DomainValidation.isValidDomain("192.168.0.1", false));
+        assertFalse(DomainValidation.isValidDomain("::1", false));
+        assertFalse(DomainValidation.isValidDomain("invalid_domain", false));
+        assertFalse(DomainValidation.isValidDomain("*.example.com", false));
     }
 }

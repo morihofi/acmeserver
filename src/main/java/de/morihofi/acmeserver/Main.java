@@ -200,7 +200,7 @@ public class Main {
             Path intermediateKeyPairPrivateFile = intermediateProvisionerPath.resolve("private_key.pem");
             Path intermediateCertificateFile = intermediateProvisionerPath.resolve("certificate.pem");
 
-            Provisioner provisioner = new Provisioner(provisionerName, null, null, config.getMeta(), config.getIssuedCertificateExpiration(), config.getDomainNameRestriction());
+            Provisioner provisioner = new Provisioner(provisionerName, null, null, config.getMeta(), config.getIssuedCertificateExpiration(), config.getDomainNameRestriction(), config.isWildcardAllowed());
 
             X509Certificate intermediateCertificate;
             KeyPair intermediateKeyPair = null;
@@ -239,7 +239,7 @@ public class Main {
 
 
                 log.info("Creating Intermediate CA");
-                intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair, caCertificateBytes, intermediateKeyPair, intermediateCommonName, intermediateDefaultExpireDays, intermediateDefaultExpireMonths, intermediateDefaultExpireYears, provisioner.getServerURL() + provisioner.getCrlPath(), provisioner.getServerURL() + provisioner.getOcspPath());
+                intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair, caCertificateBytes, intermediateKeyPair, intermediateCommonName, intermediateDefaultExpireDays, intermediateDefaultExpireMonths, intermediateDefaultExpireYears, provisioner.getFullCrlUrl(), provisioner.getFullOcspUrl());
 
                 log.info("Writing Intermediate CA KeyPair to disk");
                 //KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, provisionerName, intermediateCertificate.getEncoded(), intermediateKeyStoreFilePath);
@@ -271,7 +271,7 @@ public class Main {
                         acmeApiCertificatePath,
                         acmeApiPublicKeyPath,
                         acmeApiPrivateKeyPath,
-                        provisioner.getGeneratedCertificateExpiration()
+                        provisioner
                 );
 
 
@@ -336,7 +336,7 @@ public class Main {
                                             acmeApiCertificatePath,
                                             acmeApiPublicKeyPath,
                                             acmeApiPrivateKeyPath,
-                                            provisioner.getGeneratedCertificateExpiration()
+                                            provisioner
                                     );
 
                                     log.info("Certificate renewed successfully.");
@@ -365,7 +365,7 @@ public class Main {
         return provisioners;
     }
 
-    private static void generateAcmeApiClientCertificate(Path intermediateKeyPairPrivateFile, Path intermediateKeyPairPublicFile, X509Certificate intermediateCertificate, Path acmeApiCertificatePath, Path acmeApiPublicKeyPath, Path acmeApiPrivateKeyPath, CertificateExpiration expiration) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
+    private static void generateAcmeApiClientCertificate(Path intermediateKeyPairPrivateFile, Path intermediateKeyPairPublicFile, X509Certificate intermediateCertificate, Path acmeApiCertificatePath, Path acmeApiPublicKeyPath, Path acmeApiPrivateKeyPath, Provisioner provisioner) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
         KeyPair intermediateKeyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
 
         KeyPair acmeAPIKeyPair = null;
@@ -392,7 +392,7 @@ public class Main {
             log.info("Using provisioner intermediate CA for generation");
 
             log.info("Creating Server Certificate");
-            X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair, intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{appConfig.getServer().getDnsName()}, expiration);
+            X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair, intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{appConfig.getServer().getDnsName()}, provisioner);
 
             // Dumping certificate to HDD
             log.info("Writing certificate to disk");

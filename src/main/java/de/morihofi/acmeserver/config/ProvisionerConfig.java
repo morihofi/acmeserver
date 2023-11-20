@@ -14,6 +14,16 @@ public class ProvisionerConfig implements Serializable {
 
     private DomainNameRestrictionConfig domainNameRestriction;
 
+    private boolean wildcardAllowed;
+
+    public boolean isWildcardAllowed() {
+        return wildcardAllowed;
+    }
+
+    public void setWildcardAllowed(boolean wildcardAllowed) {
+        this.wildcardAllowed = wildcardAllowed;
+    }
+
     public MetadataConfig getMeta() {
         return meta;
     }

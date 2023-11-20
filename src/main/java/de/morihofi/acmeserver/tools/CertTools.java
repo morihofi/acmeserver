@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.tools;
 
+import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.config.CertificateConfig;
-import de.morihofi.acmeserver.config.CertificateExpiration;
 import org.bouncycastle.asn1.*;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -231,7 +231,7 @@ public class CertTools {
      * @throws CertIOException
      * @throws OperatorCreationException
      */
-    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, byte[] intermediateCertificateBytes, byte[] serverPublicKeyBytes, String[] dnsNames, CertificateExpiration expiration) throws CertificateException, CertIOException, OperatorCreationException {
+    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, byte[] intermediateCertificateBytes, byte[] serverPublicKeyBytes, String[] dnsNames, Provisioner provisioner) throws CertificateException, CertIOException, OperatorCreationException {
 
         // Create our virtual "CSR"
 
@@ -243,9 +243,9 @@ public class CertTools {
         Calendar c = Calendar.getInstance();
         c.setTime(startDate);
         // manipulate date
-        c.add(Calendar.YEAR, expiration.getYears());
-        c.add(Calendar.MONTH, expiration.getMonths());
-        c.add(Calendar.DATE, expiration.getDays());
+        c.add(Calendar.YEAR, provisioner.getGeneratedCertificateExpiration().getYears());
+        c.add(Calendar.MONTH, provisioner.getGeneratedCertificateExpiration().getMonths());
+        c.add(Calendar.DATE, provisioner.getGeneratedCertificateExpiration().getDays());
 
         // Set new expire date
         Date endDate = c.getTime();
@@ -268,7 +268,25 @@ public class CertTools {
         //GeneralNames subjectAltNames = new GeneralNames(new GeneralName(GeneralName.dNSName, dnsNames[0]));
         certBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
 
+
         // ******************************************
+        // CRL Distribution Points
+        GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullCrlUrl());
+        DistributionPointName dpn = new DistributionPointName(new GeneralNames(gn));
+        DistributionPoint distp = new DistributionPoint(dpn, null, null);
+        certBuilder.addExtension(Extension.cRLDistributionPoints, false, new CRLDistPoint(new DistributionPoint[]{distp}));
+        // ******************************************
+        // Authority Information Access (OCSP Endpoint)
+        AccessDescription accessDescription = new AccessDescription(
+                AccessDescription.id_ad_ocsp,
+                new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullOcspUrl())
+        );
+        ASN1EncodableVector authorityInformationAccessVector = new ASN1EncodableVector();
+        authorityInformationAccessVector.add(accessDescription);
+        certBuilder.addExtension(
+                Extension.authorityInfoAccess, false, new DERSequence(authorityInformationAccessVector));
+        // ******************************************
+
 
         // Determine the signature algorithm based on key type
         String signatureAlgorithm;

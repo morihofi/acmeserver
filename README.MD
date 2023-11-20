@@ -24,6 +24,7 @@ java -jar acmeserver-VERSION.jar
   - Set expiration for each issued certificate in provisioner
   - Each provisioner has its own CRL
   - Set a domain naming restriction for each provisioner (e.g. domain must end with ".example.com")
+  - Enable wildcard support individually for each provisioner
 - Built-in OCSP (Online Certificate Status Protocol) server
 - Signature check of client's requests
 - Support for multiple identifier in one order
@@ -38,9 +39,6 @@ This version is not fully RFC compliant, but should work with most clients.
 ## ✅ Tested ACME Clients
 - acme.sh (works)
 - Certbot (works
-
-## ⛔ Current limitations
- - Wildcard certificates are currently not supported
 
 ## 💻 Tested Operating Systems
 - Debian 11, 12

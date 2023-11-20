@@ -55,7 +55,7 @@ public class DNSChallenge {
             }
 
             if (!passed) {
-                log.error("DNS Challenge validation failed for domain \"" + domain + "\". TXT record not found or value doesn't match. Expected: " + dnsExpectedValue);
+                log.error("DNS Challenge validation failed for domain \"_acme-challenge." + domain + "\". TXT record not found or value doesn't match. Expected: " + dnsExpectedValue);
             }
 
         } catch (TextParseException e) {

@@ -62,6 +62,7 @@
         "months": 0,
         "years": 0
       },
+      "wildcardAllowed": false,
       "domainNameRestriction": {
         "enabled": false,
         "mustEndWith": [
@@ -96,6 +97,7 @@
         "months": 1,
         "years": 0
       },
+      "wildcardAllowed": true,
       "domainNameRestriction": {
         "enabled": false,
         "mustEndWith": [

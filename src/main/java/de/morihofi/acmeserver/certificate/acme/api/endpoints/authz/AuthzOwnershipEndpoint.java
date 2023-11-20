@@ -50,18 +50,29 @@ public class AuthzOwnershipEndpoint implements Handler {
             log.error("Throwing API error: The requested authorization id was not found");
             throw new ACMEMalformedException("The requested authorization id was not found");
         }
+        boolean isWildcardDomain = identifier.getDataValue().startsWith("*.");
+        String nonWildcardDomain = identifier.getDataValue();
+        if (nonWildcardDomain.startsWith("*.")) {
+            nonWildcardDomain = nonWildcardDomain.substring(2); // Remove wildcard part for validation
+        }
+
 
         JSONObject identifierObj = new JSONObject();
         identifierObj.put("type", identifier.getType());
-        identifierObj.put("value", identifier.getDataValue());
+        identifierObj.put("value", nonWildcardDomain);
 
         JSONArray challengeArr = new JSONArray();
 
-        // HTTP Challenge
-        JSONObject challengeHTTP = createChallengeObj("http-01", identifier);
-        challengeArr.put(challengeHTTP);
 
-        // DNS Challenge
+
+        //HTTP-01 Challenge does only work on non-wildcard domains
+        if (!isWildcardDomain) {
+            // HTTP-01 Challenge
+            JSONObject challengeHTTP = createChallengeObj("http-01", identifier);
+            challengeArr.put(challengeHTTP);
+        }
+
+        // DNS-01 Challenge
         JSONObject challengeDNS = createChallengeObj("dns-01", identifier);
         challengeArr.put(challengeDNS);
 

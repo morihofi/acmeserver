@@ -60,7 +60,11 @@ public class OrderInfoEndpoint implements Handler {
         JSONArray authorizationsArr = new JSONArray();
 
         boolean allVerified = true;
-        for (ACMEIdentifier identifier : Database.getACMEIdentifiersByOrderId(orderId)) {
+        List<ACMEIdentifier> acmeIdentifiers = Database.getACMEIdentifiersByOrderId(orderId);
+
+        assert !acmeIdentifiers.isEmpty(); //ACME Identifiers cannot be empty, otherwise something went wrong
+
+        for (ACMEIdentifier identifier : acmeIdentifiers) {
 
             if (!identifier.isVerified()) {
                 allVerified = false;
