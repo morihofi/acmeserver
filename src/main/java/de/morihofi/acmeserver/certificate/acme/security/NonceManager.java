@@ -1,6 +1,8 @@
-package de.morihofi.acmeserver.database;
+package de.morihofi.acmeserver.certificate.acme.security;
 
+import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.HttpNonces;
+import de.morihofi.acmeserver.exception.exceptions.ACMEBadNonceException;
 import jakarta.persistence.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,7 +21,7 @@ public class NonceManager {
         String nonce = reqBodyProtectedObj.getString("nonce");
 
         if(isNonceUsed(nonce)){
-           throw new IllegalArgumentException("Nonce already used");
+           throw new ACMEBadNonceException("Nonce already used");
         }
 
     }
