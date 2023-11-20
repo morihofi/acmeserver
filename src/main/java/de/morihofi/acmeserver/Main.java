@@ -2,7 +2,6 @@ package de.morihofi.acmeserver;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.RevokeCertEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.*;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.AccountEndpoint;
@@ -37,7 +36,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;

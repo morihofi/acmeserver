@@ -5,7 +5,7 @@ import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
 public class ACMEBadNonceException extends ACMEException {
 
-    private String message;
+    private final String message;
 
     public ACMEBadNonceException(String message) {
         super(message);

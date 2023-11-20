@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class NewOrderEndpoint implements Handler {
-    private Provisioner provisioner;
+    private final Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
 
     public NewOrderEndpoint(Provisioner provisioner) {

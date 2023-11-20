@@ -5,7 +5,7 @@ import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
 public class ACMEInvalidContactException  extends ACMEException {
 
-    private String message;
+    private final String message;
 
     public ACMEInvalidContactException(String message) {
         super(message);

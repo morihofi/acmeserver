@@ -5,7 +5,7 @@ import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
 public class ACMEServerInternalException extends ACMEException {
 
-    private String message;
+    private final String message;
 
     public ACMEServerInternalException(String message) {
         super(message);

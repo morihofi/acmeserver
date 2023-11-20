@@ -1,6 +1,5 @@
 package de.morihofi.acmeserver.config;
 
-import java.io.Serializable;
 import java.lang.Boolean;
 import java.lang.Integer;
 import java.lang.String;

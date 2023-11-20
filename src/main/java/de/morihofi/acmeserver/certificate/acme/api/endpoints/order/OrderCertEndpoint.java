@@ -14,7 +14,7 @@ import java.util.List;
 
 public class OrderCertEndpoint implements Handler {
 
-    private Provisioner provisioner;
+    private final Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
 
     public OrderCertEndpoint(Provisioner provisioner) {

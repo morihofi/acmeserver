@@ -1,22 +1,12 @@
 package de.morihofi.acmeserver.watcher;
 
-import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.tools.PemUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.concurrent.Executors;
@@ -30,16 +20,16 @@ public class CertificateRenewWatcher {
     private static final int RENEWAL_THRESHOLD_DAYS = 7; // Tage vor Ablauf, an denen das Zertifikat erneuert werden soll
 
 
-    private Path privateKeyPath;
-    private Path publicKeyPath;
-    private Path certificatePath;
-    private int period;
-    private TimeUnit timeUnit;
+    private final Path privateKeyPath;
+    private final Path publicKeyPath;
+    private final Path certificatePath;
+    private final int period;
+    private final TimeUnit timeUnit;
 
     private Path caPrivateKeyPath;
     private Path caPublicKeyPath;
     private Path caCertificatePath;
-    private Runnable execute;
+    private final Runnable execute;
 
 
     public CertificateRenewWatcher(Path privateKeyPath, Path publicKeyPath, Path certificatePath, int period, TimeUnit timeUnit, Runnable execute) {

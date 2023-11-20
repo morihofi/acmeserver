@@ -5,7 +5,7 @@ import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
 public class ACMERejectedIdentifierException extends ACMEException {
 
-    private String message;
+    private final String message;
     public ACMERejectedIdentifierException(String message) {
         super(message);
         this.message = message;

@@ -5,7 +5,7 @@ import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
 public class ACMEAccountNotFoundException extends ACMEException {
 
-    private String message;
+    private final String message;
 
     public ACMEAccountNotFoundException(String message) {
         super(message);

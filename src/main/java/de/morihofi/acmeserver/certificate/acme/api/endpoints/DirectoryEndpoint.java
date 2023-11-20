@@ -1,15 +1,6 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
-import com.google.gson.Gson;
-import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
-import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
-import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.database.objects.ACMEAccount;
-import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
-import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
-import de.morihofi.acmeserver.tools.RegexTools;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -17,11 +8,9 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-
 
 public class DirectoryEndpoint implements Handler {
-    private Provisioner provisioner;
+    private final Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
 
     public DirectoryEndpoint(Provisioner provisioner) {

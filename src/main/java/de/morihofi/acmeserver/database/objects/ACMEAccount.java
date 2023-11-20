@@ -1,7 +1,6 @@
 package de.morihofi.acmeserver.database.objects;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.Type;
 
 import java.io.Serializable;
 import java.util.List;

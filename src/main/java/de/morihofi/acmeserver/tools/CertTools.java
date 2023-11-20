@@ -10,10 +10,8 @@ import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
@@ -335,12 +333,11 @@ public class CertTools {
         // Lesen Sie die Datei mit dem PEMParser
         try (PEMParser pemParser = new PEMParser(Files.newBufferedReader(certificatePath))) {
             Object pemObject = pemParser.readObject();
-            if (pemObject instanceof X509CertificateHolder) {
+            if (pemObject instanceof X509CertificateHolder certificateHolder) {
                 // Erstellen Sie eine CertificateFactory für X.509
                 CertificateFactory factory = CertificateFactory.getInstance("X.509");
 
                 // Konvertieren Sie das gelesene Objekt in ein X509Certificate
-                X509CertificateHolder certificateHolder = (X509CertificateHolder) pemObject;
                 X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(certificateHolder);
 
                 // Prüfen Sie, ob das Zertifikat zum öffentlichen Schlüssel passt
@@ -359,12 +356,9 @@ public class CertTools {
 
     public static String convertToPem(PublicKey publicKey) throws IOException {
         StringWriter stringWriter = new StringWriter();
-        PemWriter pemWriter = new PemWriter(stringWriter);
 
-        try {
+        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
             pemWriter.writeObject(new PemObject("PUBLIC KEY", publicKey.getEncoded()));
-        } finally {
-            pemWriter.close();
         }
 
         return stringWriter.toString();
@@ -496,51 +490,6 @@ public class CertTools {
             ASN1Encodable value = ASN1ObjectIdentifier.fromByteArray(bytes);
             extensionsGenerator.addExtension(oid, isCritical, value);
         }
-    }
-
-    public static X509Certificate signCSR(PKCS10CertificationRequest csr, PrivateKey caPrivateKey, X509Certificate caCertificate, CertificateExpiration expiration) throws Exception {
-        X500Name issuer = new X500Name(caCertificate.getSubjectX500Principal().getName());
-        X500Name subject = csr.getSubject();
-        BigInteger serialNumber = CertMisc.generateSerialNumber();
-        Date notBefore = new Date();
-
-        Calendar c = Calendar.getInstance();
-        c.setTime(notBefore);
-        // manipulate date
-        c.add(Calendar.YEAR, expiration.getYears());
-        c.add(Calendar.MONTH, expiration.getMonths());
-        c.add(Calendar.DATE, expiration.getDays());
-
-        Date notAfter = c.getTime(); // Setzen Sie das Ablaufdatum
-
-        // Convert SubjectPublicKeyInfo to PublicKey
-        PublicKey publicKey = new JcaPEMKeyConverter().getPublicKey(csr.getSubjectPublicKeyInfo());
-
-        // Use the converted publicKey in the JcaX509v3CertificateBuilder constructor
-        X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(
-                issuer,
-                serialNumber,
-                notBefore,
-                notAfter,
-                subject,
-                publicKey);
-
-        // Hier können Sie zusätzliche Erweiterungen hinzufügen, falls erforderlich
-        // ...
-
-        String signatureAlgorithm;
-        if (caPrivateKey instanceof ECKey) {
-            signatureAlgorithm = "SHA256withECDSA";
-        } else if (caPrivateKey instanceof RSAKey) {
-            signatureAlgorithm = "SHA256withRSA";
-        } else {
-            throw new IllegalArgumentException("Unsupported key type");
-        }
-        ContentSigner contentSigner = new JcaContentSignerBuilder(signatureAlgorithm).build(caPrivateKey);
-
-        X509CertificateHolder certificateHolder = certificateBuilder.build(contentSigner);
-
-        return new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getCertificate(certificateHolder);
     }
 }
 

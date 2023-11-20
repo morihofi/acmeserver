@@ -5,7 +5,7 @@ import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
 public class ACMERateLimitedException extends ACMEException {
 
-    private String message;
+    private final String message;
 
     public ACMERateLimitedException(String message) {
         super(message);

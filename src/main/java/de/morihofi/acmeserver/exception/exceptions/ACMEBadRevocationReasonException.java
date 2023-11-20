@@ -5,7 +5,7 @@ import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
 public class ACMEBadRevocationReasonException extends ACMEException {
 
-    private String message;
+    private final String message;
     public ACMEBadRevocationReasonException(String message) {
         super(message);
         this.message = message;

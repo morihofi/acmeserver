@@ -22,6 +22,9 @@ public class SignatureCheck {
 
     public static final Logger log = LogManager.getLogger(SignatureCheck.class);
 
+    private SignatureCheck(){
+    }
+
     public static void checkSignature(Context ctx, ACMEAccount account, Gson gson) throws NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, InvalidKeyException, NoSuchProviderException {
         checkSignature(ctx, account.getAccountId(), gson);
     }
@@ -58,17 +61,13 @@ public class SignatureCheck {
         // Erstelle eine Signaturinstanz basierend auf dem Algorithmus
         Signature sig;
         switch (alg) {
-            case "RS256":
-                sig = Signature.getInstance("SHA256withRSA", BouncyCastleProvider.PROVIDER_NAME);
-                break;
-            case "ES256":
+            case "RS256" -> sig = Signature.getInstance("SHA256withRSA", BouncyCastleProvider.PROVIDER_NAME);
+            case "ES256" -> {
                 sig = Signature.getInstance("SHA256withECDSA", BouncyCastleProvider.PROVIDER_NAME);
-
                 decodedSignature = CertTools.convertRawToDerSignatureECDSA(decodedSignature);
-                break;
+            }
             // Fügen Sie hier weitere Algorithmen hinzu, falls notwendig
-            default:
-                throw new NoSuchAlgorithmException("Unsupported signature algorithm: " + alg);
+            default -> throw new NoSuchAlgorithmException("Unsupported signature algorithm: " + alg);
         }
 
         // Überprüfe die Signatur
@@ -95,8 +94,7 @@ public class SignatureCheck {
         int startIndex = kid.indexOf(prefix);
         if (startIndex != -1) {
             // Add the length of the prefix to the start index to find the start of the UUID.
-            String uuid = kid.substring(startIndex + prefix.length());
-            return uuid;
+            return kid.substring(startIndex + prefix.length());
         } else {
             return null;
         }

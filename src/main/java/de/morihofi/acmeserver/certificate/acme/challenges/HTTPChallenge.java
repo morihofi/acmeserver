@@ -12,10 +12,13 @@ import java.net.*;
 
 public class HTTPChallenge {
 
+    private HTTPChallenge(){
+
+    }
+
     public static final Logger log = LogManager.getLogger(HTTPChallenge.class);
     private static final OkHttpClient httpClient = new OkHttpClient.Builder().proxy(getHTTPChallengeProxy()).build();
 
-    private static Proxy.Type proxyType;
     private static String proxyHost = "";
     private static int proxyPort = 0;
     private static String proxyUser = "";
@@ -25,17 +28,11 @@ public class HTTPChallenge {
 
 
     public static Proxy getHTTPChallengeProxy() {
-
-        switch (Main.appConfig.getProxy().getHttpChallenge().getType()) {
-            case "socks":
-                proxyType = Proxy.Type.SOCKS;
-                break;
-            case "http":
-                proxyType = Proxy.Type.HTTP;
-                break;
-            default:
-                proxyType = Proxy.Type.DIRECT;
-        }
+        Proxy.Type proxyType = switch (Main.appConfig.getProxy().getHttpChallenge().getType()) {
+            case "socks" -> Proxy.Type.SOCKS;
+            case "http" -> Proxy.Type.HTTP;
+            default -> Proxy.Type.DIRECT;
+        };
 
         try {
             proxyPort = Main.appConfig.getProxy().getHttpChallenge().getPort();
@@ -61,10 +58,8 @@ public class HTTPChallenge {
                 Authenticator.setDefault(new Authenticator() {
                     @Override
                     protected PasswordAuthentication getPasswordAuthentication() {
-                        if (getRequestingHost().equalsIgnoreCase(proxyHost)) {
-                            if (proxyPort == getRequestingPort()) {
+                        if (getRequestingHost().equalsIgnoreCase(proxyHost) && proxyPort == getRequestingPort()) {
                                 return new PasswordAuthentication(proxyUser, proxyPassword.toCharArray());
-                            }
                         }
                         return null;
                     }

@@ -21,7 +21,7 @@ import org.json.JSONObject;
 
 public class ChallengeCallbackEndpoint implements Handler {
 
-    private Provisioner provisioner;
+    private final Provisioner provisioner;
     private final Logger log = LogManager.getLogger(getClass());
 
     /**
@@ -58,17 +58,18 @@ public class ChallengeCallbackEndpoint implements Handler {
         boolean challengePassed = false;
         String possibleErrorReasonIfFailed = "Unknown error";
         switch (challengeType) {
-            case "http-01":
+            case "http-01" -> {
                 challengePassed = HTTPChallenge.check(identifier.getAuthorizationToken(), identifier.getDataValue());
                 possibleErrorReasonIfFailed = "Unable to reach host \"" + identifier.getDataValue() + "\" or invalid token. Is the host reachable? Is the http server on port 80 running? If it is running, check your access logs";
-                break;
-            case "dns-01":
+            }
+            case "dns-01" -> {
                 challengePassed = DNSChallenge.check(identifier.getAuthorizationToken(), identifier.getDataValue(), identifier.getOrder().getAccount());
                 possibleErrorReasonIfFailed = "Unable to verify DNS TXT entry for host \"" + identifier.getDataValue() + "\"";
-                break;
-            default:
+            }
+            default -> {
                 log.error("Unsupported challenge type: " + challengeType);
                 throw new ACMEConnectionErrorException("Unsupported challenge type: " + challengeType);
+            }
         }
 
 

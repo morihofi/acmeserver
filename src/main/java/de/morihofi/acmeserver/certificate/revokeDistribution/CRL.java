@@ -34,7 +34,7 @@ public class CRL {
     private volatile LocalTime lastUpdate = null;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    private Provisioner provisioner;
+    private final Provisioner provisioner;
 
     private final Logger log = LogManager.getLogger(getClass());
 

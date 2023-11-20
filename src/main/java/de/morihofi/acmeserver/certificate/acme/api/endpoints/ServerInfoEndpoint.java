@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ServerInfoEndpoint implements Handler {
 
-    private List<ProvisionerConfig> provisionerConfigList;
+    private final List<ProvisionerConfig> provisionerConfigList;
 
     public ServerInfoEndpoint(List<ProvisionerConfig> provisionerConfigList) {
         this.provisionerConfigList = provisionerConfigList;

@@ -25,7 +25,7 @@ import java.util.ArrayList;
  * URL: /acme/new-order
  */
 public class AccountEndpoint implements Handler {
-    private Provisioner provisioner;
+    private final Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
 
     public AccountEndpoint(Provisioner provisioner) {

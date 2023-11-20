@@ -30,8 +30,7 @@ public class Crypto {
         char[] digits = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                 'a', 'b', 'c', 'd', 'e', 'f' };
 
-        for (int idx = 0; idx < aInput.length; ++idx) {
-            byte b = aInput[idx];
+        for (byte b : aInput) {
             result.append(digits[(b & 0xf0) >> 4]);
             result.append(digits[b & 0x0f]);
         }
@@ -50,9 +49,9 @@ public class Crypto {
 
     private static String bytesToHex(byte[] hash) {
         StringBuilder hexString = new StringBuilder(2 * hash.length);
-        for (int i = 0; i < hash.length; i++) {
-            String hex = Integer.toHexString(0xff & hash[i]);
-            if(hex.length() == 1) {
+        for (byte b : hash) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
                 hexString.append('0');
             }
             hexString.append(hex);

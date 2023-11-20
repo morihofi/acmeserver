@@ -1,7 +1,5 @@
 package de.morihofi.acmeserver.config;
 
-import java.io.Serializable;
-
 public class CertificateMetadata {
     private String commonName;
 

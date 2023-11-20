@@ -1,7 +1,6 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.download;
 
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;

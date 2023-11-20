@@ -31,7 +31,7 @@ import java.util.List;
 
 public class FinalizeOrderEndpoint implements Handler {
 
-    private Provisioner provisioner;
+    private final Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
 
     public FinalizeOrderEndpoint(Provisioner provisioner) {

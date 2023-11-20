@@ -26,13 +26,13 @@ public class Provisioner {
     }
 
 
-    private String provisionerName;
+    private final String provisionerName;
     private X509Certificate intermediateCaCertificate;
     private KeyPair intermediateCaKeyPair;
     private MetadataConfig acmeMetadataConfig;
     private CertificateExpiration generatedCertificateExpiration;
 
-    private DomainNameRestrictionConfig domainNameRestriction;
+    private final DomainNameRestrictionConfig domainNameRestriction;
 
     public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction) {
         this.provisionerName = provisionerName;

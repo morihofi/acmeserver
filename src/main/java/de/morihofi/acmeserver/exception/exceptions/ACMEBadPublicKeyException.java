@@ -5,7 +5,7 @@ import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
 public class ACMEBadPublicKeyException extends ACMEException {
 
-    private String message;
+    private final String message;
 
     public ACMEBadPublicKeyException(String message) {
         super(message);

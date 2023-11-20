@@ -10,9 +10,6 @@ import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 
 public class KeyStoreUtils {
@@ -50,7 +47,7 @@ public class KeyStoreUtils {
         char[] keystorePassword = password.toCharArray();
         String keyAlias = alias;
 
-        ArrayList<X509Certificate> chain = new ArrayList(); // die Zertifikatskette, die gespeichert werden soll
+        ArrayList<X509Certificate> chain = new ArrayList<>(); // die Zertifikatskette, die gespeichert werden soll
         for (byte[] certificate : certificates) {
             chain.add(CertTools.convertToX509Cert(certificate));
         }
@@ -120,30 +117,6 @@ public class KeyStoreUtils {
                     log.error("Unable to close DataOutputStream",e);
                 }
         }
-    }
-
-    public static KeyPair openRSAKeyPairFromDirectory(Path targetDirectory) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-
-        PKCS8EncodedKeySpec privateSpec = new PKCS8EncodedKeySpec(getFileBytes(targetDirectory.resolve("rsaPrivateKey")));
-        KeyFactory privateKf = KeyFactory.getInstance("RSA");
-        PrivateKey privateKey = privateKf.generatePrivate(privateSpec);
-
-        X509EncodedKeySpec spec = new X509EncodedKeySpec(getFileBytes(targetDirectory.resolve("rsaPublicKey")));
-        KeyFactory publicKf = KeyFactory.getInstance("RSA");
-        PublicKey publicKey = publicKf.generatePublic(spec);
-
-        KeyPair kp = new KeyPair(publicKey,privateKey);
-
-        return kp;
-    }
-
-    private static byte[] getFileBytes(Path fileLocation) throws IOException {
-        DataInputStream dis = new DataInputStream(Files.newInputStream(fileLocation));
-        byte[] fileBytes = new byte[(int) Files.size(fileLocation)];
-        dis.readFully(fileBytes);
-        dis.close();
-
-        return fileBytes;
     }
 
 

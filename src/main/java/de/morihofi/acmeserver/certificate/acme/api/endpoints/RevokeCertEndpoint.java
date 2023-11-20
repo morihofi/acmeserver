@@ -31,7 +31,7 @@ import java.util.Date;
 
 public class RevokeCertEndpoint implements Handler {
 
-    private Provisioner provisioner;
+    private final Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
 
     public RevokeCertEndpoint(Provisioner provisioner) {
@@ -78,8 +78,6 @@ public class RevokeCertEndpoint implements Handler {
 
 
         log.info("Account ID \"" + accountId + "\" wants to revoke a certificate");
-
-        System.out.println(reqBodyProtectedObj.toString(4));
 
         String certificateBase64 = reqBodyPayloadObj.getString("certificate");
 

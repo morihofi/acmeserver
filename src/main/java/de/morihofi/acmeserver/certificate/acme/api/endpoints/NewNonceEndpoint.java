@@ -1,7 +1,6 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
-import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.Crypto;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -16,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class NewNonceEndpoint implements Handler {
 
-    private Provisioner provisioner;
+    private final Provisioner provisioner;
 
     /**
      * Constructs a NewNonce handler with the specified ACME provisioner.

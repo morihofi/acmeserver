@@ -1,16 +1,9 @@
 package de.morihofi.acmeserver.certificate.acme.challenges;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.tools.PemUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
-import org.bouncycastle.openssl.PEMParser;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.lang.JoseException;
 import org.xbill.DNS.Lookup;
@@ -20,21 +13,18 @@ import org.xbill.DNS.Type;
 import org.xbill.DNS.Record;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.security.*;
-import java.security.interfaces.ECPublicKey;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.*;
 import java.util.Base64;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class DNSChallenge {
 
     public static final Logger log = LogManager.getLogger(DNSChallenge.class);
+
+    private DNSChallenge(){
+
+    }
 
     public static boolean check(String token, String domain, ACMEAccount acmeAccount) throws IOException, GeneralSecurityException {
         boolean passed = false;

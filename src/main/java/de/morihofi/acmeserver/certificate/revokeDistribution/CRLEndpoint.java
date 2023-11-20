@@ -8,8 +8,8 @@ import java.nio.ByteBuffer;
 
 public class CRLEndpoint implements Handler {
 
-    private Provisioner provisioner;
-    private CRL crl;
+    private final Provisioner provisioner;
+    private final CRL crl;
 
     public CRLEndpoint(Provisioner provisioner, CRL crl) {
         this.provisioner = provisioner;

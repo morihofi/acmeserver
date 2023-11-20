@@ -22,7 +22,7 @@ import java.util.Date;
 
 public class AuthzOwnershipEndpoint implements Handler {
 
-    private Provisioner provisioner;
+    private final Provisioner provisioner;
     private final Logger log = LogManager.getLogger(getClass());
 
     public AuthzOwnershipEndpoint(Provisioner provisioner) {

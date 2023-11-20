@@ -5,7 +5,7 @@ import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
 public class ACMEUnauthorizedException extends ACMEException {
 
-    private String message;
+    private final String message;
 
     public ACMEUnauthorizedException(String message) {
         super(message);

@@ -21,7 +21,7 @@ import java.util.UUID;
 
 public class NewAccountEndpoint implements Handler {
     public final Logger log = LogManager.getLogger(getClass());
-    private Provisioner provisioner;
+    private final Provisioner provisioner;
 
     public NewAccountEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;

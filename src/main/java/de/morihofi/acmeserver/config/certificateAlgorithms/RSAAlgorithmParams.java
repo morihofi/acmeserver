@@ -1,7 +1,5 @@
 package de.morihofi.acmeserver.config.certificateAlgorithms;
 
-import java.io.Serializable;
-
 public class RSAAlgorithmParams extends AlgorithmParams {
         private int keySize;
 

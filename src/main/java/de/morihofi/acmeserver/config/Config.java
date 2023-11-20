@@ -1,8 +1,6 @@
 package de.morihofi.acmeserver.config;
 
 import java.io.Serializable;
-import java.lang.Integer;
-import java.lang.String;
 import java.util.List;
 
 public class Config implements Serializable {

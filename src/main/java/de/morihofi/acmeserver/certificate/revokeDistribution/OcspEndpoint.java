@@ -16,7 +16,6 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.cert.*;
@@ -26,8 +25,8 @@ import java.util.Date;
 
 public class OcspEndpoint implements Handler {
 
-    private Provisioner provisioner;
-    private CRL crlGenerator;
+    private final Provisioner provisioner;
+    private final CRL crlGenerator;
     public final Logger log = LogManager.getLogger(getClass());
 
 

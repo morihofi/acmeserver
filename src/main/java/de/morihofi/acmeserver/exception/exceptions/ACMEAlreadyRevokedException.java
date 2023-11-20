@@ -5,7 +5,7 @@ import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
 public class ACMEAlreadyRevokedException extends ACMEException {
 
-    private String message;
+    private final String message;
 
     public ACMEAlreadyRevokedException(String message) {
         super(message);

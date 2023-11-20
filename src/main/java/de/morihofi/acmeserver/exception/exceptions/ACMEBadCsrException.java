@@ -5,7 +5,7 @@ import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
 public class ACMEBadCsrException extends ACMEException {
 
-    private String message;
+    private final String message;
 
     public ACMEBadCsrException(String message) {
         super(message);

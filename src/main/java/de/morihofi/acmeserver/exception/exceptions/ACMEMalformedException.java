@@ -5,7 +5,7 @@ import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
 public class ACMEMalformedException extends ACMEException {
 
-    private String message;
+    private final String message;
 
     public ACMEMalformedException(String message) {
         super(message);
