@@ -21,5 +21,6 @@ class DomainValidationTest {
         assertFalse(DomainValidation.isValidDomain("192.168.0.1"));
         assertFalse(DomainValidation.isValidDomain("::1"));
         assertFalse(DomainValidation.isValidDomain("invalid_domain"));
+        assertFalse(DomainValidation.isValidDomain("*.example.com"));
     }
 }
