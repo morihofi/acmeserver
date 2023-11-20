@@ -83,7 +83,7 @@ public class HTTPChallenge {
 
     private static final String USER_AGENT = "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + " Java/" + System.getProperty("java.version");
 
-    public static boolean check(String expectedAuthTokenId, String expectedAuthTokenValue, String host) {
+    public static boolean check(String expectedAuthTokenValue, String host) {
         boolean passed = false;
 
         try {

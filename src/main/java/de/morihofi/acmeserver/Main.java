@@ -165,7 +165,7 @@ public class Main {
             app.post(prefix + "/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(provisioner));
 
             // Challenge Callback
-            app.post(prefix + "/acme/chall/{challengeId}", new ChallengeCallbackEndpoint(provisioner));
+            app.post(prefix + "/acme/chall/{challengeId}/{challengeType}", new ChallengeCallbackEndpoint(provisioner));
 
             // Finalize endpoint
             app.post(prefix + "/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(provisioner));

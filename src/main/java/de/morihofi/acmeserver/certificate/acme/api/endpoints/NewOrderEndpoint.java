@@ -29,10 +29,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class NewOrderEndpoint implements Handler {
-    /*
-    ChatGPT ACME Guide approved class
-    */
-
     private Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
 

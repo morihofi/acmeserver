@@ -25,11 +25,6 @@ public class AuthzOwnershipEndpoint implements Handler {
     private Provisioner provisioner;
     private final Logger log = LogManager.getLogger(getClass());
 
-    /**
-     * Constructs a NewNonce handler with the specified ACME provisioner.
-     *
-     * @param provisioner The ACME provisioner to use for generating nonces.
-     */
     public AuthzOwnershipEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
     }
@@ -42,18 +37,15 @@ public class AuthzOwnershipEndpoint implements Handler {
         ctx.header("Replay-Nonce", Crypto.createNonce());
         ctx.status(200);
 
-
         Gson gson = new Gson();
         ACMEIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
-        //Check signature
+        // Check signature and nonce
         SignatureCheck.checkSignature(ctx, identifier.getOrder().getAccount(), gson);
-        //Check nonce
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
-
-        //Not found
+        // Not found handling
         if (identifier == null) {
             log.error("Throwing API error: The requested authorization id was not found");
             throw new ACMEMalformedException("The requested authorization id was not found");
@@ -63,32 +55,34 @@ public class AuthzOwnershipEndpoint implements Handler {
         identifierObj.put("type", identifier.getType());
         identifierObj.put("value", identifier.getDataValue());
 
-
         JSONArray challengeArr = new JSONArray();
 
-        JSONObject challengeHTTP = new JSONObject();
-        challengeHTTP.put("type", "http-01"); //
-        challengeHTTP.put("url", provisioner.getApiURL() + "/acme/chall/" + identifier.getChallengeId()); //Challenge callback URL, called after created token on server
-        challengeHTTP.put("token", identifier.getAuthorizationToken());
-        if (identifier.isVerified()) {
-            challengeHTTP.put("status", "valid");
-            challengeHTTP.put("validated", DateTools.formatDateForACME(identifier.getVerifiedTime()));
-        }
+        // HTTP Challenge
+        JSONObject challengeHTTP = createChallengeObj("http-01", identifier);
         challengeArr.put(challengeHTTP);
 
+        // DNS Challenge
+        JSONObject challengeDNS = createChallengeObj("dns-01", identifier);
+        challengeArr.put(challengeDNS);
 
         JSONObject returnObj = new JSONObject();
-
-        if (identifier.isVerified()) {
-            returnObj.put("status", "valid");
-        } else {
-            returnObj.put("status", "pending");
-        }
+        returnObj.put("status", identifier.isVerified() ? "valid" : "pending");
         returnObj.put("expires", DateTools.formatDateForACME(new Date()));
         returnObj.put("identifier", identifierObj);
         returnObj.put("challenges", challengeArr);
 
-
         ctx.result(returnObj.toString());
+    }
+
+    private JSONObject createChallengeObj(String type, ACMEIdentifier identifier) {
+        JSONObject challenge = new JSONObject();
+        challenge.put("type", type);
+        challenge.put("url", provisioner.getApiURL() + "/acme/chall/" + identifier.getChallengeId() + "/" + type);
+        challenge.put("token", identifier.getAuthorizationToken());
+        if (identifier.isVerified()) {
+            challenge.put("status", "valid");
+            challenge.put("validated", DateTools.formatDateForACME(identifier.getVerifiedTime()));
+        }
+        return challenge;
     }
 }

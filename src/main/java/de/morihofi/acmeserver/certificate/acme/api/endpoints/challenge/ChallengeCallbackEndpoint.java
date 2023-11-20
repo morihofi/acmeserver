@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
@@ -35,6 +36,8 @@ public class ChallengeCallbackEndpoint implements Handler {
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         String challengeId = ctx.pathParam("challengeId");
+        String challengeType = ctx.pathParam("challengeType"); //dns-01 or http-01
+
 
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", Crypto.createNonce());
@@ -52,13 +55,30 @@ public class ChallengeCallbackEndpoint implements Handler {
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
 
+        boolean challengePassed = false;
+        String possibleErrorReasonIfFailed = "Unknown error";
+        switch (challengeType) {
+            case "http-01":
+                challengePassed = HTTPChallenge.check(identifier.getAuthorizationToken(), identifier.getDataValue());
+                possibleErrorReasonIfFailed = "Unable to reach host \"" + identifier.getDataValue() + "\" or invalid token. Is the host reachable? Is the http server on port 80 running? If it is running, check your access logs";
+                break;
+            case "dns-01":
+                challengePassed = DNSChallenge.check(identifier.getAuthorizationToken(), identifier.getDataValue(), identifier.getOrder().getAccount());
+                possibleErrorReasonIfFailed = "Unable to verify DNS TXT entry for host \"" + identifier.getDataValue() + "\"";
+                break;
+            default:
+                log.error("Unsupported challenge type: " + challengeType);
+                throw new ACMEConnectionErrorException("Unsupported challenge type: " + challengeType);
+        }
+
+
         log.info("Validating ownership of host \"" + identifier.getDataValue() + "\"");
-        if (HTTPChallenge.check(challengeId, identifier.getAuthorizationToken(), identifier.getDataValue())) {
+        if (challengePassed) {
             //mark challenge has passed
             Database.passChallenge(challengeId);
         } else {
-            log.error("Throwing API error: Host verification failed");
-            throw new ACMEConnectionErrorException("Unable to reach host \"" + identifier.getDataValue() + "\" or invalid token. Is the host reachable? Is the http server on port 80 running? If it is running, check your access logs");
+            log.error("Throwing API error: Host verification failed with method" + challengeType);
+            throw new ACMEConnectionErrorException(possibleErrorReasonIfFailed);
 
             // TODO: Fail challenge in database
             //Database.failChallenge(challengeId);
@@ -81,7 +101,7 @@ public class ChallengeCallbackEndpoint implements Handler {
 
         //"Up"-Link header is required for certbot
         ctx.header("Link", "<" + provisioner.getApiURL() + "/acme/authz/" + identifier.getAuthorizationId() + ">;rel=\"up\"");
-        responseJSON.put("url", provisioner.getApiURL() + "/acme/chall/" + challengeId);
+        responseJSON.put("url", provisioner.getApiURL() + "/acme/chall/" + challengeId + "/" + challengeType);
         responseJSON.put("token", identifier.getAuthorizationToken());
 
         ctx.result(responseJSON.toString());
