@@ -1,43 +1,82 @@
 # ACME Server
-This is a proof-of-concept Automatic Certificate Management Environment Server (ACME), fully written in Java
+This is a proof-of-concept Automatic Certificate Management Environment (ACME) Server, fully written in Java
 
 - Java 17 and up
-- Any JDBC (and Hibernate compatible) database
+- Any JDBC (and Hibernate compatible) database. Currently, H2 and MariaDB drivers are in classpath
 - Proxy support for HTTP Challenge
 
-## Building
-Run the following command to build this Application
+## 🏗 Building
+Run the following command to build this application
 ```bash
-mvn clean assembly:assembly
+mvn clean package
 ```
 then start it with
 ```bash
 java -jar acmeserver-VERSION.jar
 ```
 
-## Features
+## ✨ Features
 - Self-hosted ACME Server for use with your own CA
-- CRL support
 - Revokation support
 - Mostly ACME RFC compliant
 - Multiple provisioners support with own intermediate CA
-  - Set expiration and key algorithm for each intermediate 
-- Included OCSP server
-- Signature check
+  - Set expiration and key algorithm for each intermediate
+  - Set expiration for each issued certificate in provisioner
+  - Each provisioner has its own CRL
+  - Set a domain naming restriction for each provisioner (e.g. domain must end with ".example.com")
+- Built-in OCSP (Online Certificate Status Protocol) server
+- Signature check of client's requests
+- Support for multiple identifier in one order
+- Nonce validation (Replay protection)
+- Supported challenges:
+  - HTTP-01
+  - DNS-01
 
-## Note
+## 📒 Disclaimer
 This version is not fully RFC compliant, but should work with most clients. 
 
-## Current limitations
-- Only one domain per order is currently allowed
-- Only HTTP Challenge
-
-## Tested ACME Clients
+## ✅ Tested ACME Clients
 - acme.sh (works)
 - Certbot (works)
 
-## Tested Operating Systems
-- Linux Mint 21
-- Debian 11
+## 💻 Tested Operating Systems
+- Debian 11, 12
 - Windows 10
-- ~~FreeBSD 13 (openjdk8)~~ has to be retested
+
+
+## 🌟 Use Cases for a Self-Hosted ACME Server
+
+A self-hosted ACME Server is a versatile solution for a variety of environments and needs. Here are some key use cases:
+
+### Internal Networks and Intranets
+Ideal for organizations needing secure SSL/TLS certificates for internal web services, without reliance on external Certificate Authorities.
+
+### Own Certificate Authorities
+Allows organizations to operate their own Certificate Authority, managing certificates efficiently with complete control over issuance processes and policies.
+
+### Development and Testing Environments
+Provides developers and test teams with a platform for generating certificates for development and testing purposes, without using real certificates or external services.
+
+### Compliance and Security
+Meets the needs of organizations with stringent security policies or compliance requirements.
+
+### Educational and Research Institutions
+Universities and research institutions can use this server to impart practical understanding of certificate management.
+
+### Custom Certificate Policies
+Supports organizations with specific requirements for SSL/TLS certificates, such as unique key lengths, algorithms, or validity periods.
+
+### Network Devices and IoT Environments
+Simplifies certificate management in networks with a multitude of devices or in IoT environments, especially when devices frequently change.
+
+### Geographic and Network Restrictions
+Ideal for regions or networks with strict internet restrictions or in isolated networks.
+
+
+---
+## ❤ Thanks to
+ - [OpenAI's ChatGPT](https://chat.openai.com) (Helped me, when I was struggling)
+ - [BouncyCastle](https://bouncycastle.org) (For a great cryptographic library in Java)
+ - [KeyStore Explorer](https://keystore-explorer.org/) (Helped me debugging my generated certificates)
+ - [GetHttpsForFree](https://gethttpsforfree.com/) (For debugging my ACME Server and understanding the ACME protocol, a modified version is built-in the server)
+ - [Acme4j](https://github.com/shred/acme4j) (It's client implementation helped me to generate the expected DNS Challenge value on the server side)
