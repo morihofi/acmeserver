@@ -213,8 +213,8 @@ public class Main {
                 Files.deleteIfExists(intermediateCertificateFile);
 
                 log.info("Loading Root CA Keypair for Intermediate CA generation");
-                caKeyPair = PemUtil.loadKeyPair(caPrivateKeyPath, caPublicKeyPath); //KeyStoreUtils.loadFromPKCS12(caKeyStorePath, caKeyStorePassword, caKeyStoreAlias).getKeyPair();
-                caCertificateBytes = CertTools.getCertificateBytes(caCertificatePath, caKeyPair); //CertTools.getCertificateBytes(caPath, caKeyPair);
+                caKeyPair = PemUtil.loadKeyPair(caPrivateKeyPath, caPublicKeyPath);
+                caCertificateBytes = CertTools.getCertificateBytes(caCertificatePath, caKeyPair);
 
 
                 // *****************************************

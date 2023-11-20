@@ -56,7 +56,7 @@ public class ChallengeCallbackEndpoint implements Handler {
 
 
         boolean challengePassed = false;
-        String possibleErrorReasonIfFailed = "Unknown error";
+        String possibleErrorReasonIfFailed;
         switch (challengeType) {
             case "http-01" -> {
                 challengePassed = HTTPChallenge.check(identifier.getAuthorizationToken(), identifier.getDataValue());
@@ -91,7 +91,7 @@ public class ChallengeCallbackEndpoint implements Handler {
 
 
         JSONObject responseJSON = new JSONObject();
-        responseJSON.put("type", "http-01");
+        responseJSON.put("type", challengeType);
         if (identifier.isVerified()) {
             responseJSON.put("status", "valid");
             responseJSON.put("verified", DateTools.formatDateForACME(identifier.getVerifiedTime()));
