@@ -13,6 +13,7 @@ import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMERejectedIdentifierException;
 import de.morihofi.acmeserver.tools.Crypto;
 import de.morihofi.acmeserver.tools.DateTools;
+import de.morihofi.acmeserver.tools.DomainValidation;
 import de.morihofi.acmeserver.tools.SendMail;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -92,6 +93,11 @@ public class NewOrderEndpoint implements Handler {
                 throw new ACMERejectedIdentifierException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
             }
 
+            if(!DomainValidation.isValidDomain(identifier.getDataValue())){
+                throw new ACMERejectedIdentifierException("Identifier \"" + identifier.getDataValue() + "\" is invalid");
+
+            }
+
             if(!checkIfDomainIsAllowed(identifier.getDataValue())){
                 throw new ACMERejectedIdentifierException("Domain identifier \"" + identifier.getDataValue() + "\" is not allowed");
             }
@@ -152,6 +158,7 @@ public class NewOrderEndpoint implements Handler {
 
         ctx.result(returnObj.toString());
     }
+
 
     private boolean checkIfDomainIsAllowed(String domain) {
 
