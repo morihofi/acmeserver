@@ -1,0 +1,20 @@
+name: Java Build
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: https://github.com/actions/checkout@v3
+
+      - name: Maven Clean Compile
+        uses: docker://maven:3.9-eclipse-temurin-17-alpine
+        with:
+          entrypoint: /bin/sh
+          args: -c "mvn clean compile -B"
