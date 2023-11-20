@@ -37,7 +37,10 @@ This version is not fully RFC compliant, but should work with most clients.
 
 ## ✅ Tested ACME Clients
 - acme.sh (works)
-- Certbot (works)
+- Certbot (works
+
+## ⛔ Current limitations
+ - Wildcard certificates are currently not supported
 
 ## 💻 Tested Operating Systems
 - Debian 11, 12
