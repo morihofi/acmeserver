@@ -9,6 +9,7 @@ import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
+import de.morihofi.acmeserver.exception.exceptions.ACMEBadRevocationReasonException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.Crypto;
@@ -149,7 +150,7 @@ public class RevokeCertEndpoint implements Handler {
 
         //Check reason code
         if (reason < 0 || reason > 8 || reason == 7) {
-            throw new ACMEMalformedException("Invalid revoke reason");
+            throw new ACMEBadRevocationReasonException("Invalid revokation reason: " + reason);
         }
 
         log.info("Revoke certificate for reason " + reason);
