@@ -30,7 +30,6 @@ import de.morihofi.acmeserver.tools.network.JettySslHelper;
 import de.morihofi.acmeserver.tools.safety.DeepCopyWrapper;
 import de.morihofi.acmeserver.watcher.CertificateRenewWatcher;
 import io.javalin.Javalin;
-import io.javalin.community.ssl.SSLPlugin;
 import io.javalin.http.staticfiles.Location;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
