@@ -5,7 +5,16 @@ This is a proof-of-concept Automatic Certificate Management Environment (ACME) S
 - Any JDBC (and Hibernate compatible) database. Currently, H2 and MariaDB drivers are in classpath
 - Proxy support for HTTP Challenge
 
-## 🏗 Building
+## 🐳 Getting started with Docker (recommended)
+1. Install [Docker Engine](https://docs.docker.com/engine/install/) with `docker compose` plugin, if you haven't already
+2. Create a directory called `serverdata` in this directory
+3. Copy the `settings.sample.json` into the new `serverdata` directory and rename it to `settings.json`
+4. Adjust the settings, especially the `dnsName` (of your host), and the `http`/`https` ports. You can't change these later, because they will be written into the intermediate/client certificates for finding revokation list etc. and ACME client configuration will be get broken.
+5. Run `docker compose up -d` in this directory. That's all!
+
+> You can run `docker compose logs -f` if you want to see the logs of the server. Press `Crtl`+`C` to quit
+
+## 🏗 Building and running on bare metal
 Run the following command to build this application
 ```bash
 mvn clean package
@@ -34,7 +43,7 @@ java -jar acmeserver-VERSION.jar
   - DNS-01
 
 ## 📒 Disclaimer
-This version is not fully RFC compliant, but should work with most clients. 
+This version is not fully RFC 8555 compliant, but should work with most clients. 
 
 ## ✅ Tested ACME Clients
 - acme.sh (works)
