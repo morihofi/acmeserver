@@ -26,6 +26,7 @@ import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.exception.ACMEException;
 import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.tools.PemUtil;
+import de.morihofi.acmeserver.tools.network.JettySslHelper;
 import de.morihofi.acmeserver.tools.safety.DeepCopyWrapper;
 import de.morihofi.acmeserver.watcher.CertificateRenewWatcher;
 import io.javalin.Javalin;
@@ -285,34 +286,20 @@ public class Main {
 
                 javalinInstance.updateConfig(javalinConfig -> {
                     log.info("Updating Javalin's TLS configuration");
-                    SSLPlugin plugin = new SSLPlugin(conf -> {
-                        conf.pemFromPath(acmeApiCertificatePath.toAbsolutePath().toString(), acmeApiPrivateKeyPath.toAbsolutePath().toString());
-                        //conf.keystoreFromPath(acmeServerKeyStorePath.toAbsolutePath().toString(), "");
 
-                        /*
-                        If port is not 0, the Service (e.g. HTTP/HTTPS) is enabled. Otherwise, it is disabled
-                        */
+                    int httpPort = appConfig.getServer().getPorts().getHttp();
+                    int httpsPort = appConfig.getServer().getPorts().getHttps();
 
-                        int httpsPort = appConfig.getServer().getPorts().getHttps();
-                        int httpPort = appConfig.getServer().getPorts().getHttp();
-                        if (httpsPort != 0) {
-                            log.info("API HTTPS support is ENABLED");
-                            conf.secure = true;
-                            conf.securePort = httpsPort;
-                        } else {
-                            log.info("API HTTPS support is DISABLED");
-                            conf.secure = false;
-                        }
 
-                        if (httpPort != 0) {
-                            log.info("API HTTP support is ENABLED");
-                            conf.insecure = true;
-                            conf.insecurePort = httpPort;
-                        } else {
-                            log.info("API HTTP support is DISABLED");
-                            conf.insecure = false;
+                    javalinConfig.jetty.server(() -> {
+                        try {
+                            return JettySslHelper.getSslJetty(httpsPort, httpPort, acmeApiCertificatePath, acmeApiPrivateKeyPath, acmeApiPublicKeyPath);
+                        } catch (Exception e) {
+                            log.error("Error applying certificate to API");
+                            throw new RuntimeException(e);
                         }
                     });
+
                     log.info("Registering ACME API certificate expiration watcher");
                     CertificateRenewWatcher watcher = new CertificateRenewWatcher(
                             acmeApiPrivateKeyPath,
@@ -350,15 +337,20 @@ public class Main {
                                     log.info("Certificate renewed successfully.");
 
                                     log.info("Reloading ACME API certificate");
-                                    plugin.reload(sslConfig -> {
-                                        sslConfig.pemFromPath(acmeApiCertificatePath.toAbsolutePath().toString(), acmeApiPrivateKeyPath.toAbsolutePath().toString());
+
+                                    javalinConfig.jetty.server(() -> {
+                                        try {
+                                            return JettySslHelper.getSslJetty(httpsPort, httpPort, acmeApiCertificatePath, acmeApiPrivateKeyPath, acmeApiPublicKeyPath);
+                                        } catch (Exception e) {
+                                            log.error("Error applying new certificate to API");
+                                            throw new RuntimeException(e);
+                                        }
                                     });
                                     log.info("Certificate reload complete");
                                 } catch (Exception e) {
                                     log.error("Error renewing certificates", e);
                                 }
                             });
-                    javalinConfig.plugins.getPluginManager().register(plugin);
                 });
             }
 
