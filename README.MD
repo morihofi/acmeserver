@@ -22,12 +22,12 @@ java -jar acmeserver-VERSION.jar
 - Multiple provisioners support with own intermediate CA
   - Set expiration and key algorithm for each intermediate
   - Set expiration for each issued certificate in provisioner
-  - Each provisioner has its own CRL
+  - Each provisioner has its own CRL (Certificate Revokation List)
   - Set a domain naming restriction for each provisioner (e.g. domain must end with ".example.com")
-  - Enable wildcard support individually for each provisioner
+  - Enable wildcard support individually for each provisioner (e.g. *.example.com)
 - Built-in OCSP (Online Certificate Status Protocol) server
 - Signature check of client's requests
-- Support for multiple identifier in one order
+- Support for multiple identifiers in one order (multiple domains)
 - Nonce validation (Replay protection)
 - Supported challenges:
   - HTTP-01
