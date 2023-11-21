@@ -33,6 +33,7 @@ import io.javalin.community.ssl.SSLPlugin;
 import io.javalin.http.staticfiles.Location;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -43,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -258,6 +260,9 @@ public class Main {
                 byte[] intermediateCertificateBytes = CertTools.getCertificateBytes(intermediateCertificateFile, intermediateKeyPair);
                 intermediateCertificate = CertTools.convertToX509Cert(intermediateCertificateBytes);
             }
+            // Initialize the CertificateRenewWatcher for this provisioner
+            initializeCertificateRenewWatcher(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile, intermediateCertificateFile, provisioner, config);
+
 
             if (config.isUseThisProvisionerIntermediateForAcmeApi()) {
                 Path acmeServerApiCertDir = FILES_DIR.resolve("_acmeAPICert");
@@ -405,6 +410,52 @@ public class Main {
             Files.writeString(acmeApiCertificatePath, pemCertificates);
         }
     }
+
+    private static void initializeCertificateRenewWatcher(Path privateKeyPath, Path publicKeyPath, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg) {
+        log.info("Initializing renew watcher for intermediate ca of " + provisioner.getProvisionerName() + " provisioner");
+        CertificateRenewWatcher watcher = new CertificateRenewWatcher(
+                privateKeyPath,
+                publicKeyPath,
+                certificatePath,
+                6, TimeUnit.HOURS,
+                () -> {
+                    // Renew logic for the Intermediate Certificate
+                    try {
+                        log.info("Renewing Intermediate Certificate for " + provisioner.getProvisionerName());
+                        renewIntermediateCertificate(privateKeyPath, publicKeyPath, certificatePath, provisioner, provisionerCfg);
+                    } catch (Exception e) {
+                        log.error("Error renewing Intermediate Certificate for " + provisioner.getProvisionerName(), e);
+                    }
+                }
+        );
+        // You might want to store the watcher reference if needed
+    }
+
+    private static void renewIntermediateCertificate(Path privateKeyPath, Path publicKeyPath, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg) throws CertificateException, OperatorCreationException, IOException {
+        // Load the existing key pair
+        KeyPair keyPair = PemUtil.loadKeyPair(privateKeyPath, publicKeyPath);
+
+        // Generate a new certificate
+        X509Certificate renewedCertificate = CertTools.createIntermediateCertificate(
+                caKeyPair, // This should be your CA's key pair
+                caCertificateBytes, // This should be your CA's certificate bytes
+                keyPair,
+                provisionerCfg.getIntermediate().getMetadata().getCommonName(), // Or any other CN you prefer
+                // Specify the expiration as per your requirement
+                provisionerCfg.getIntermediate().getExpiration().getDays(),
+                provisionerCfg.getIntermediate().getExpiration().getMonths(),
+                provisionerCfg.getIntermediate().getExpiration().getYears(),
+                provisioner.getFullCrlUrl(),
+                provisioner.getFullOcspUrl()
+        );
+
+        // Save the renewed certificate
+        Files.writeString(certificatePath, CertTools.certificateToPEM(renewedCertificate.getEncoded()));
+
+        // Update the provisioner's certificate reference
+        provisioner.setIntermediateCaCertificate(renewedCertificate);
+    }
+
 
 
     private static void printBanner() {
