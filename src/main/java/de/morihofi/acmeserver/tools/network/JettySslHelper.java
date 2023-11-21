@@ -23,14 +23,13 @@ public class JettySslHelper {
 
     public static final Logger log = LogManager.getLogger(JettySslHelper.class);
 
-    public static SSLContext createSSLContext(X509Certificate certificate, KeyPair keyPair) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException {
+    public static SSLContext createSSLContext(X509Certificate[] certificateChain, KeyPair keyPair) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException {
         // Erstellen Sie ein neues KeyStore
         KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         keyStore.load(null, null);
 
         // Fügen Sie das Zertifikat und den Schlüssel zum KeyStore hinzu
-        java.security.cert.Certificate[] certChain = new java.security.cert.Certificate[]{certificate};
-        keyStore.setKeyEntry("server", keyPair.getPrivate(), "password".toCharArray(), certChain);
+        keyStore.setKeyEntry("server", keyPair.getPrivate(), "password".toCharArray(), certificateChain);
 
         // Initialisieren Sie das KeyManagerFactory mit dem KeyStore
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -47,15 +46,14 @@ public class JettySslHelper {
         return sslContext;
     }
 
-    public static Server getSslJetty(int httpsPort, int httpPort, Path certificatePath, Path privateKeyPath, Path publicKeyPath) throws CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+    public static Server getSslJetty(int httpsPort, int httpPort, Path certificatePath, Path privateKeyPath, Path publicKeyPath) throws CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException, NoSuchProviderException {
 
         log.info("Loading Key Pair");
         KeyPair jettyKeyPair = PemUtil.loadKeyPair(privateKeyPath, publicKeyPath);
-        log.info("Loading Intermediate CA certificate");
-        byte[] jettyCertificateBytes = CertTools.getCertificateBytes(certificatePath, jettyKeyPair);
-        X509Certificate jettyCertificate = CertTools.convertToX509Cert(jettyCertificateBytes);
 
-        SSLContext sslContext = createSSLContext(jettyCertificate, jettyKeyPair);
+        X509Certificate[] certificateChain = PemUtil.loadCertificateChain(certificatePath);
+
+        SSLContext sslContext = createSSLContext(certificateChain, jettyKeyPair);
 
         return getSslJetty(httpsPort, httpPort, sslContext);
     }

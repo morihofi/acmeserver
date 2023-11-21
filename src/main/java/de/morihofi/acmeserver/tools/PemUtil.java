@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.tools;
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
@@ -13,8 +14,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PemUtil {
     public static void saveKeyPairToPEM(KeyPair keyPair, Path publicKeyFilePath, Path privateKeyFilePath) throws IOException {
@@ -77,5 +83,27 @@ public class PemUtil {
 
         return keyFactory.generatePublic(publicKeySpec);
     }
+
+    public static X509Certificate[] loadCertificateChain(Path pemFilePath) throws IOException, CertificateException, NoSuchProviderException {
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
+
+        try (PEMParser pemParser = new PEMParser(Files.newBufferedReader(pemFilePath))) {
+            List<X509Certificate> certificates = new ArrayList<>();
+            Object object;
+
+            while ((object = pemParser.readObject()) != null) {
+                if (object instanceof X509CertificateHolder) {
+                    X509CertificateHolder certificateHolder = (X509CertificateHolder) object;
+                    X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(
+                            new ByteArrayInputStream(certificateHolder.getEncoded())
+                    );
+                    certificates.add(certificate);
+                }
+            }
+
+            return certificates.toArray(new X509Certificate[0]);
+        }
+    }
+
 
 }
