@@ -5,6 +5,7 @@ services:
     build: .
     volumes:
       - ./serverdata:/app/serverdata
+      - ./logs:/app/logs
     ports:
 # Adjust the ports to be the same as in serverdata/settings.json defined
       - "80:80"
