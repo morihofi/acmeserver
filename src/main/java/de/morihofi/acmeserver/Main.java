@@ -116,7 +116,6 @@ public class Main {
             ctx.header("Access-Control-Max-Age", "3600");
         });
 
-        //TODO: Implement Exception
         app.exception(ACMEException.class, (exception, ctx) -> {
             Gson gson = new Gson();
 
@@ -132,7 +131,7 @@ public class Main {
         app.get("/serverinfo", new ServerInfoEndpoint(appConfig.getProvisioner()));
         app.get("/ca.crt", new DownloadCaEndpoint());
 
-        List<Provisioner> provisioners = getProvisioners(appConfig.getProvisioner(), app); // = List.of("prod", "testing");
+        List<Provisioner> provisioners = getProvisioners(appConfig.getProvisioner(), app);
 
 
         for (Provisioner provisioner : provisioners) {
@@ -456,7 +455,7 @@ public class Main {
         Class.forName("org.h2.Driver");
     }
 
-    private static void initializeCA() throws NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, OperatorCreationException, NoSuchProviderException, InvalidAlgorithmParameterException {
+    private static void initializeCA() throws NoSuchAlgorithmException, CertificateException, IOException, OperatorCreationException, NoSuchProviderException, InvalidAlgorithmParameterException {
         Path rootCaDir = FILES_DIR.resolve("_rootCA");
         Files.createDirectories(rootCaDir);
 
@@ -501,7 +500,7 @@ public class Main {
             PemUtil.saveKeyPairToPEM(caKeyPair, caPublicKeyPath, caPrivateKeyPath);
         } else {
             log.info("Loading CA KeyPair and Certificate Bytes into memory");
-            caKeyPair = PemUtil.loadKeyPair(caPrivateKeyPath, caPublicKeyPath); //KeyStoreUtils.loadFromPKCS12(caKeyStorePath, caKeyStorePassword, caKeyStoreAlias).getKeyPair();
+            caKeyPair = PemUtil.loadKeyPair(caPrivateKeyPath, caPublicKeyPath);
             caCertificateBytes = CertTools.getCertificateBytes(caCertificatePath, caKeyPair);
         }
 
