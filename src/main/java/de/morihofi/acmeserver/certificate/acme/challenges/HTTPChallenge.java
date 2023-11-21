@@ -41,7 +41,6 @@ public class HTTPChallenge {
 
             if (!Main.appConfig.getProxy().getHttpChallenge().getEnabled()) {
                 // Set to direct if there is no proxy enabled
-                proxyType = Proxy.Type.DIRECT;
                 proxy = Proxy.NO_PROXY;
             }else{
                 SocketAddress socketAddress = new InetSocketAddress(proxyHost, proxyPort);

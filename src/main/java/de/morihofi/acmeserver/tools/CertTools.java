@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
@@ -313,7 +314,7 @@ public class CertTools {
     public static String decodeBase64URL(String stringToDecode) {
 
         // Decoding URl
-        return new String(decodeBase64URLAsBytes(stringToDecode));
+        return new String(decodeBase64URLAsBytes(stringToDecode), StandardCharsets.UTF_8);
 
     }
 
@@ -331,7 +332,7 @@ public class CertTools {
         java.util.Base64.Encoder encoder = java.util.Base64.getUrlEncoder();
 
         // Encoding URL
-        String eStr = encoder.encodeToString(stringToEncode.getBytes());
+        String eStr = encoder.encodeToString(stringToEncode.getBytes(StandardCharsets.UTF_8));
 
         System.out.println("Encoded URL: " + eStr);
 
@@ -352,9 +353,6 @@ public class CertTools {
         try (PEMParser pemParser = new PEMParser(Files.newBufferedReader(certificatePath))) {
             Object pemObject = pemParser.readObject();
             if (pemObject instanceof X509CertificateHolder certificateHolder) {
-                // Erstellen Sie eine CertificateFactory für X.509
-                CertificateFactory factory = CertificateFactory.getInstance("X.509");
-
                 // Konvertieren Sie das gelesene Objekt in ein X509Certificate
                 X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(certificateHolder);
 

@@ -15,7 +15,7 @@ public class Crypto {
             String randomNum = String.valueOf(prng.nextInt());
 
             MessageDigest sha = MessageDigest.getInstance("SHA-256");
-            byte[] result = sha.digest(randomNum.getBytes());
+            byte[] result = sha.digest(randomNum.getBytes(StandardCharsets.UTF_8));
             nonce = hexEncode(result);
 
             return nonce;

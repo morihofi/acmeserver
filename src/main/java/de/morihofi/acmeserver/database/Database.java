@@ -19,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import jakarta.persistence.*;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -38,9 +39,9 @@ public class Database {
 
 
     public static void createAccount(String accountId, String jwk, List<String> emails) {
-        Transaction transaction;
-        try(Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            transaction = session.beginTransaction();
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            assert session != null;
+            Transaction transaction = session.beginTransaction();
             ACMEAccount account = new ACMEAccount();
             account.setAccountId(accountId);
             account.setPublicKeyPEM(CertTools.convertToPem(SignatureCheck.convertJWKToPublicKey(new JSONObject(jwk))));
@@ -58,6 +59,7 @@ public class Database {
 
     public static void storeCertificateInDatabase(String orderId, String dnsValue, String csr, String pemCertificate, Timestamp issueDate, Timestamp expireDate, BigInteger serialNumber) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            assert session != null;
             Transaction transaction = session.beginTransaction();
 
             // Using ACMEIdentifier class
@@ -96,6 +98,7 @@ public class Database {
     public static void passChallenge(String challengeId) {
         Transaction transaction = null;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            assert session != null;
             transaction = session.beginTransaction();
 
             ACMEOrderIdentifier orderIdentifier = session.get(ACMEOrderIdentifier.class, challengeId);
@@ -119,9 +122,9 @@ public class Database {
 
     public static ACMEIdentifier getACMEIdentifierByChallengeId(String challengeId) {
         ACMEIdentifier identifier = null;
-        Transaction transaction = null;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            transaction = session.beginTransaction();
+            assert session != null;
+            Transaction transaction = session.beginTransaction();
             identifier = session.createQuery("FROM ACMEIdentifier WHERE challengeId = :challengeId", ACMEIdentifier.class)
                     .setParameter("challengeId", challengeId)
                     .setMaxResults(1)
@@ -133,9 +136,6 @@ public class Database {
             }
             transaction.commit();
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
             log.error("Unable get ACME identifiers for challenge id \"" + challengeId + "\"", e);
         }
         return identifier;
@@ -143,9 +143,9 @@ public class Database {
 
     public static ACMEIdentifier getACMEIdentifierByAuthorizationId(String authorizationId) {
         ACMEIdentifier identifier = null;
-        Transaction transaction;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            transaction = session.beginTransaction();
+            assert session != null;
+            Transaction transaction = session.beginTransaction();
             identifier = session.createQuery("FROM ACMEIdentifier WHERE authorizationId = :authorizationId", ACMEIdentifier.class)
                     .setParameter("authorizationId", authorizationId)
                     .setMaxResults(1)
@@ -165,9 +165,9 @@ public class Database {
 
     public static ACMEIdentifier getACMEIdentifierCertificateSerialNumber(BigInteger serialNumber) {
         ACMEIdentifier identifier = null;
-        Transaction transaction;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            transaction = session.beginTransaction();
+            assert session != null;
+            Transaction transaction = session.beginTransaction();
             identifier = session.createQuery("FROM ACMEIdentifier WHERE certificateSerialNumber = :certificateSerialNumber", ACMEIdentifier.class)
                     .setParameter("certificateSerialNumber", serialNumber)
                     .setMaxResults(1)
@@ -187,9 +187,9 @@ public class Database {
 
     public static List<ACMEIdentifier> getACMEIdentifiersByOrderId(String orderId) {
         List<ACMEIdentifier> identifiers = new ArrayList<>();
-        Transaction transaction;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            transaction = session.beginTransaction();
+            assert session != null;
+            Transaction transaction = session.beginTransaction();
             identifiers = session.createQuery("FROM ACMEIdentifier ai WHERE ai.order.orderId = :orderId", ACMEIdentifier.class)
                     .setParameter("orderId", orderId)
                     .getResultList();
@@ -209,9 +209,9 @@ public class Database {
 
     @Transactional
     public static void createOrder(ACMEAccount account, String orderId, List<ACMEIdentifier> identifierList, String provisioner) {
-        Transaction transaction;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            transaction = session.beginTransaction();
+            assert session != null;
+            Transaction transaction = session.beginTransaction();
 
             // Create order
             ACMEOrder order = new ACMEOrder();
@@ -246,9 +246,9 @@ public class Database {
 
     @Transactional
     public static void updateAccountEmail(ACMEAccount account, List<String> emails) {
-        Transaction transaction;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            transaction = session.beginTransaction();
+            assert session != null;
+            Transaction transaction = session.beginTransaction();
 
             // Convert emails list to JSON array string
             JSONArray emailArr = new JSONArray();
@@ -331,6 +331,7 @@ public class Database {
 
         // Get Issued certificate
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            assert session != null;
             Transaction transaction = session.beginTransaction();
 
             Query query = session.createQuery("SELECT ai FROM ACMEIdentifier ai WHERE ai.authorizationId = :authorizationId", ACMEIdentifier.class);
@@ -365,6 +366,7 @@ public class Database {
         //CA Certificate
         log.info("Adding CA certificate");
         try (Stream<String> stream = Files.lines(Main.caCertificatePath, StandardCharsets.UTF_8)) {
+            assert stream != null;
             stream.forEach(s -> pemBuilder.append(s).append("\n"));
         } catch (IOException e) {
             //handle exception
@@ -380,6 +382,7 @@ public class Database {
         ACMEAccount acmeAccount = null;
 
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            assert session != null;
             Transaction transaction = session.beginTransaction();
 
             Query query = session.createQuery("SELECT a FROM ACMEAccount a WHERE a.accountId = :accountId", ACMEAccount.class);
@@ -400,6 +403,7 @@ public class Database {
 
     public static ACMEAccount getAccountByOrderId(String orderId) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            assert session != null;
             Transaction transaction = session.beginTransaction();
 
             Query query = session.createQuery("SELECT o.account FROM ACMEOrder o WHERE o.orderId = :orderId", ACMEAccount.class);
@@ -418,10 +422,11 @@ public class Database {
         return null;
     }
 
-    public static List<RevokedCertificate> getRevokedCertificates(){
+    public static List<RevokedCertificate> getRevokedCertificates() {
         List<RevokedCertificate> certificates = new ArrayList<>();
 
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            assert session != null;
             Transaction transaction = session.beginTransaction();
 
             //Certificates are revoked when they have a statusCode and a timestamp
@@ -429,7 +434,7 @@ public class Database {
             List<ACMEIdentifier> result = query.getResultList();
 
             if (!result.isEmpty()) {
-                for(ACMEIdentifier revokedIdentifier : result){
+                for (ACMEIdentifier revokedIdentifier : result) {
                     certificates.add(new RevokedCertificate(
                             revokedIdentifier.getCertificateSerialNumber(),
                             revokedIdentifier.getRevokeTimestamp(),
@@ -453,6 +458,7 @@ public class Database {
 
         Transaction transaction;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            assert session != null;
             transaction = session.beginTransaction();
 
             session.merge(identifier);

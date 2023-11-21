@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.config;
 
-public class CertificateMetadata {
+import java.io.Serializable;
+
+public class CertificateMetadata implements Serializable {
     private String commonName;
 
     public String getCommonName() {

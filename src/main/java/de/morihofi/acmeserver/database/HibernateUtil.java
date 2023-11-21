@@ -9,6 +9,8 @@ import org.reflections.Reflections;
 
 import jakarta.persistence.*;
 
+import java.util.Locale;
+
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
 
@@ -16,7 +18,7 @@ public class HibernateUtil {
 
     public static void initDatabase(){
         if (sessionFactory == null) {
-            DatabaseType dbType = switch (Main.appConfig.getDatabase().getEngine().toLowerCase()) {
+            DatabaseType dbType = switch (Main.appConfig.getDatabase().getEngine().toLowerCase(Locale.ROOT)) {
                 case "h2" -> DatabaseType.H2;
                 case "mariadb" -> DatabaseType.MARIADB;
                 default ->

@@ -1,4 +1,6 @@
 package de.morihofi.acmeserver.config.certificateAlgorithms;
 
-public abstract class AlgorithmParams {
+import java.io.Serializable;
+
+public abstract class AlgorithmParams implements Serializable {
 }

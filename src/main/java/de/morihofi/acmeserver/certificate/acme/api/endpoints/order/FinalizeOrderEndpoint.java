@@ -38,6 +38,7 @@ public class FinalizeOrderEndpoint implements Handler {
         this.provisioner = provisioner;
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         String orderId = ctx.pathParam("orderId");

@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.config;
 
-public class CertificateExpiration {
+import java.io.Serializable;
+
+public class CertificateExpiration implements Serializable {
     private Integer months;
 
     private Integer days;

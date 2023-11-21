@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.config;
 
-public class DatabaseConfig {
+import java.io.Serializable;
+
+public class DatabaseConfig implements Serializable {
     private String engine;
     private String host;
     private String user;

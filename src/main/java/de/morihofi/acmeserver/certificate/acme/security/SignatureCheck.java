@@ -41,7 +41,7 @@ public class SignatureCheck {
 
         // Decode the protected header and parse it to JSON
         byte[] decodedProtectedHeaderBytes = Base64.getUrlDecoder().decode(protectedHeader);
-        String decodedProtectedHeader = new String(decodedProtectedHeaderBytes);
+        String decodedProtectedHeader = new String(decodedProtectedHeaderBytes, StandardCharsets.UTF_8);
         JSONObject protectedHeaderObj = new JSONObject(decodedProtectedHeader);
 
         // Ermittle den Algorithmus aus dem protected Header

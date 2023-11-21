@@ -33,9 +33,9 @@ public class NonceManager {
      * @return true if the nonce already exists, false if it was added
      */
     public static boolean isNonceUsed(String nonce) {
-        org.hibernate.Transaction transaction = null;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            transaction = session.beginTransaction();
+            assert session != null;
+            org.hibernate.Transaction transaction = session.beginTransaction();
 
             // Check if the nonce exists in the database
             String hql = "SELECT 1 FROM HttpNonces hn WHERE hn.nonce = :nonce";

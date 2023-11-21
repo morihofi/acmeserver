@@ -25,10 +25,6 @@ public class CertificateRenewWatcher {
     private final Path certificatePath;
     private final int period;
     private final TimeUnit timeUnit;
-
-    private Path caPrivateKeyPath;
-    private Path caPublicKeyPath;
-    private Path caCertificatePath;
     private final Runnable execute;
 
 

@@ -26,6 +26,7 @@ import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.exception.ACMEException;
 import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.tools.PemUtil;
+import de.morihofi.acmeserver.tools.safety.DeepCopyWrapper;
 import de.morihofi.acmeserver.watcher.CertificateRenewWatcher;
 import io.javalin.Javalin;
 import io.javalin.community.ssl.SSLPlugin;
@@ -36,6 +37,8 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -62,9 +65,9 @@ public class Main {
 
 
     //Build Metadata
-    public static String buildMetadataVersion = null;
-    public static String buildMetadataBuildTime = null;
-    public static String buildMetadataGitCommit = null;
+    public static String buildMetadataVersion;
+    public static String buildMetadataBuildTime;
+    public static String buildMetadataGitCommit;
 
     public static Config appConfig;
 
@@ -133,6 +136,7 @@ public class Main {
 
 
         for (Provisioner provisioner : provisioners) {
+
 
             CRL crlGenerator = new CRL(provisioner);
             String prefix = "/" + provisioner.getProvisionerName();
@@ -246,7 +250,7 @@ public class Main {
                 PemUtil.saveKeyPairToPEM(intermediateKeyPair, intermediateKeyPairPublicFile, intermediateKeyPairPrivateFile);
 
                 log.info("Writing Intermedia CA Certificate to disk");
-                Files.write(FILES_DIR.resolve(intermediateCertificateFile), CertTools.certificateToPEM(intermediateCertificate.getEncoded()).getBytes());
+                Files.writeString(FILES_DIR.resolve(intermediateCertificateFile), CertTools.certificateToPEM(intermediateCertificate.getEncoded()));
             } else {
                 log.info("Loading Intermediate CA for provisioner " + provisionerName + " from disk");
                 log.info("Loading Key Pair");
@@ -428,17 +432,17 @@ public class Main {
 
 
     private static void loadBuildAndGitMetadata() {
-        try {
+        try(InputStream is = Main.class.getResourceAsStream("/build.properties")) {
             Properties buildMetadataProperties = new Properties();
-            buildMetadataProperties.load(Main.class.getResourceAsStream("/build.properties"));
+            buildMetadataProperties.load(is);
             buildMetadataVersion = buildMetadataProperties.getProperty("build.version");
             buildMetadataBuildTime = buildMetadataProperties.getProperty("build.date") + " UTC";
         } catch (Exception e) {
             log.error("Unable to load build metadata", e);
         }
-        try {
+        try(InputStream is = Main.class.getResourceAsStream("/git.properties")) {
             Properties gitMetadataProperties = new Properties();
-            gitMetadataProperties.load(Main.class.getResourceAsStream("/git.properties"));
+            gitMetadataProperties.load(is);
             buildMetadataGitCommit = gitMetadataProperties.getProperty("git.commit.id.full");
         } catch (Exception e) {
             log.error("Unable to load git metadata", e);
@@ -491,7 +495,7 @@ public class Main {
             // Dumping CA Certificate to HDD, so other clients can install it
             log.info("Writing CA to disk");
             Files.createFile(caCertificatePath);
-            Files.write(FILES_DIR.resolve(caCertificatePath), CertTools.certificateToPEM(caCertificateBytes).getBytes());
+            Files.writeString(FILES_DIR.resolve(caCertificatePath), CertTools.certificateToPEM(caCertificateBytes));
             // Save CA in Keystore
             log.info("Writing CA to disk");
             PemUtil.saveKeyPairToPEM(caKeyPair, caPublicKeyPath, caPrivateKeyPath);

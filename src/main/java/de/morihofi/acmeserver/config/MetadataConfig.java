@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.config;
 
-public class MetadataConfig {
+import java.io.Serializable;
+
+public class MetadataConfig implements Serializable {
     private String website;
     private String tos;
 

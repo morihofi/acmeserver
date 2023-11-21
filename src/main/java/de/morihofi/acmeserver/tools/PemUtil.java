@@ -9,6 +9,8 @@ import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
@@ -16,21 +18,20 @@ import java.security.spec.X509EncodedKeySpec;
 
 public class PemUtil {
     public static void saveKeyPairToPEM(KeyPair keyPair, Path publicKeyFilePath, Path privateKeyFilePath) throws IOException {
-        try (JcaPEMWriter writer = new JcaPEMWriter(new FileWriter(privateKeyFilePath.toFile()))) {
+        try (JcaPEMWriter writer = new JcaPEMWriter(new OutputStreamWriter(Files.newOutputStream(privateKeyFilePath), StandardCharsets.UTF_8))) {
             writer.writeObject(keyPair.getPrivate());
         }
 
-        try (JcaPEMWriter writer = new JcaPEMWriter(new FileWriter(publicKeyFilePath.toFile()))) {
+        try (JcaPEMWriter writer = new JcaPEMWriter(new OutputStreamWriter(Files.newOutputStream(publicKeyFilePath), StandardCharsets.UTF_8))) {
             writer.writeObject(keyPair.getPublic());
         }
     }
 
     private static PrivateKey readPrivateKeyFromFile(Path file) throws IOException {
-        try (PEMParser pemParser = new PEMParser(new FileReader(file.toFile()))) {
+        try (PEMParser pemParser = new PEMParser(new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8))) {
             JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME);
             Object object = pemParser.readObject();
 
-            // Überprüfen, ob das Objekt ein PrivateKeyInfo oder ein PemKeyPair ist
             if (object instanceof PrivateKeyInfo) {
                 return converter.getPrivateKey((PrivateKeyInfo) object);
             } else if (object instanceof PEMKeyPair) {
@@ -42,7 +43,7 @@ public class PemUtil {
     }
 
     private static PublicKey readPublicKeyFromFile(Path file) throws IOException {
-        try (PEMParser pemParser = new PEMParser(new FileReader(file.toFile()))) {
+        try (PEMParser pemParser = new PEMParser(new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8))) {
             JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME);
             Object object = pemParser.readObject();
             return converter.getPublicKey((org.bouncycastle.asn1.x509.SubjectPublicKeyInfo) object);

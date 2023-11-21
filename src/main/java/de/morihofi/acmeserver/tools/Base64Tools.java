@@ -6,7 +6,7 @@ import java.util.Base64;
 public class Base64Tools {
     public static String decodeBase64(String encodedString){
         byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
-        String decodedString = new String(decodedBytes);
+        String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
 
         return decodedString;
     }

@@ -110,9 +110,9 @@ public class NewOrderEndpoint implements Handler {
             // Random authorization token
             String authorizationToken = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + System.nanoTime() + "--token");
             // Unique challenge id
-            String challengeId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / 100 * 1.557) + "--challenge");
+            String challengeId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / (double) 100 * 1.557) + "--challenge");
             // Unique certificate id
-            String certificateId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / 100 * 5.579) + "--cert");
+            String certificateId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / (double) 168 * 5.579) + "--cert");
 
 
             identifier.setAuthorizationToken(authorizationToken);

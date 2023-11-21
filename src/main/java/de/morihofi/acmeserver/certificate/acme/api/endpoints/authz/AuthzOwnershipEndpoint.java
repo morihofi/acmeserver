@@ -41,15 +41,17 @@ public class AuthzOwnershipEndpoint implements Handler {
         ACMEIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
+        // Not found handling
+        if (identifier == null) {
+            log.error("Throwing API error: For the requested authorization id was no identifier found");
+            throw new ACMEMalformedException("For the requested authorization id was no identifier found");
+        }
+
         // Check signature and nonce
         SignatureCheck.checkSignature(ctx, identifier.getOrder().getAccount(), gson);
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
-        // Not found handling
-        if (identifier == null) {
-            log.error("Throwing API error: The requested authorization id was not found");
-            throw new ACMEMalformedException("The requested authorization id was not found");
-        }
+
         boolean isWildcardDomain = identifier.getDataValue().startsWith("*.");
         String nonWildcardDomain = identifier.getDataValue();
         if (nonWildcardDomain.startsWith("*.")) {

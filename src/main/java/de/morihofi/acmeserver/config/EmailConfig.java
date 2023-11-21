@@ -1,10 +1,11 @@
 package de.morihofi.acmeserver.config;
 
+import java.io.Serializable;
 import java.lang.Boolean;
 import java.lang.Integer;
 import java.lang.String;
 
-public class EmailConfig {
+public class EmailConfig implements Serializable {
   private String password;
 
   private String encryption;
