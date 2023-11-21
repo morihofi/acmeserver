@@ -289,6 +289,12 @@ public class Main {
                     int httpPort = appConfig.getServer().getPorts().getHttp();
                     int httpsPort = appConfig.getServer().getPorts().getHttps();
 
+                    /*
+                     * Why we don't use Javalins official SSL Plugin?
+                     * The official SSL plugin depends on Google's Conscrypt provider, which uses native code
+                     * and is platform dependent. This workaround implementation uses the built-in Java security
+                     * libraries and Bouncy Castle, which is platform independent.
+                     */
 
                     javalinConfig.jetty.server(() -> {
                         try {

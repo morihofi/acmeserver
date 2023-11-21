@@ -52,7 +52,7 @@ This version is not fully RFC 8555 compliant, but should work with most clients.
 ## 💻 Tested Operating Systems
 - Debian 11, 12
 - Windows 10
-
+- FreeBSD 13.2
 
 ## 🌟 Use Cases for a Self-Hosted ACME Server
 
