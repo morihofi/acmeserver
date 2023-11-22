@@ -11,7 +11,7 @@
     "host": "",
     "user": "root",
     "password": "changeme",
-    "name": "./acme"
+    "name": "./serverdata/acme"
   },
   "emailSmtp": {
     "enabled": false,
