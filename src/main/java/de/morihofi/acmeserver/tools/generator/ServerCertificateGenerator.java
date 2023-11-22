@@ -1,0 +1,112 @@
+package de.morihofi.acmeserver.tools.generator;
+
+import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.tools.CertMisc;
+import de.morihofi.acmeserver.tools.X509;
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.cert.CertIOException;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+
+public class ServerCertificateGenerator {
+
+    private ServerCertificateGenerator(){
+
+    }
+
+    /**
+     * Generates an X509 server certificate using provided parameters and cryptographic elements.
+     * <p>
+     * This method creates a virtual Certificate Signing Request (CSR) and uses the provided
+     * intermediate certificate to sign the server certificate. It sets up the certificate with
+     * basic constraints indicating it's not a certificate authority, key usage for digital signature
+     * and key encipherment, subject alternative names based on provided DNS names, CRL Distribution Points,
+     * and Authority Information Access for OCSP. The certificate is then signed using the private key
+     * from the intermediate key pair and the appropriate signature algorithm.</p>
+     *
+     * @param intermediateKeyPair The key pair for the intermediate certificate authority.
+     * @param intermediateCertificateBytes The byte array representing the intermediate certificate.
+     * @param serverPublicKeyBytes The byte array representing the server's public key.
+     * @param dnsNames An array of DNS names to be associated with the server certificate.
+     * @param provisioner The provisioner object containing certificate expiration and other details.
+     * @return An X509Certificate which represents the server certificate.
+     * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
+     * @throws CertificateException If there's an error in processing the certificate data.
+     * @throws CertIOException If there's an IO error during certificate generation.
+     */
+    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, byte[] intermediateCertificateBytes, byte[] serverPublicKeyBytes, String[] dnsNames, Provisioner provisioner) throws OperatorCreationException, CertificateException, CertIOException {
+
+        // Create our virtual "CSR"
+        X500Name issuerName = X509.getX500NameFromX509Certificate(X509.convertToX509Cert(intermediateCertificateBytes));
+        BigInteger serialNumber = CertMisc.generateSerialNumber();
+        Date startDate = new Date(); // Starts now
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDate);
+        calendar.add(Calendar.YEAR, provisioner.getGeneratedCertificateExpiration().getYears());
+        calendar.add(Calendar.MONTH, provisioner.getGeneratedCertificateExpiration().getMonths());
+        calendar.add(Calendar.DATE, provisioner.getGeneratedCertificateExpiration().getDays());
+        Date endDate = calendar.getTime();
+
+        X500Name subjectName = new X500Name("CN=" + dnsNames[0]);
+        X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(
+                issuerName, serialNumber, startDate, endDate, subjectName,
+                SubjectPublicKeyInfo.getInstance(serverPublicKeyBytes)
+        );
+
+        // Basic Constraints - Not a CA
+        certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
+        // Key Usage
+        certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment));
+
+        // Subject Alternative Names
+        ArrayList<GeneralName> dnsGeneralNameList = new ArrayList<>();
+        for (String dnsName : dnsNames) {
+            dnsGeneralNameList.add(new GeneralName(GeneralName.dNSName, dnsName));
+        }
+        GeneralNames subjectAltNames = new GeneralNames(dnsGeneralNameList.toArray(new GeneralName[0]));
+        certBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
+
+        // CRL Distribution Points
+        GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullCrlUrl());
+        DistributionPointName dpn = new DistributionPointName(new GeneralNames(gn));
+        DistributionPoint distp = new DistributionPoint(dpn, null, null);
+        certBuilder.addExtension(Extension.cRLDistributionPoints, false, new CRLDistPoint(new DistributionPoint[]{distp}));
+
+        // Authority Information Access (OCSP Endpoint)
+        AccessDescription accessDescription = new AccessDescription(
+                AccessDescription.id_ad_ocsp,
+                new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullOcspUrl())
+        );
+        ASN1EncodableVector authorityInformationAccessVector = new ASN1EncodableVector();
+        authorityInformationAccessVector.add(accessDescription);
+        certBuilder.addExtension(
+                Extension.authorityInfoAccess, false, new DERSequence(authorityInformationAccessVector));
+
+        // Signature Algorithm
+        String signatureAlgorithm = CertMisc.getSignatureAlgorithmBasedOnKeyType(intermediateKeyPair.getPrivate());
+
+        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(intermediateKeyPair.getPrivate());
+
+        X509CertificateHolder holder = certBuilder.build(signer);
+        JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
+        converter.setProvider(BouncyCastleProvider.PROVIDER_NAME);
+        return converter.getCertificate(holder);
+    }
+}

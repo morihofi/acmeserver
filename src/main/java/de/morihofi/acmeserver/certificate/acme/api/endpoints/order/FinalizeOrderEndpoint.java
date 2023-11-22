@@ -14,6 +14,7 @@ import de.morihofi.acmeserver.tools.CSRUtil;
 import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.tools.Crypto;
 import de.morihofi.acmeserver.tools.DateTools;
+import de.morihofi.acmeserver.tools.generator.ServerCertificateGenerator;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -85,7 +86,7 @@ public class FinalizeOrderEndpoint implements Handler {
             PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
 
             log.info("Creating Certificate for order \"" + orderId + "\" with DNS Names " + String.join(", ", csrDomainNames));
-            X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(
+            X509Certificate acmeGeneratedCertificate = ServerCertificateGenerator.createServerCertificate(
                     provisioner.getIntermediateKeyPair(),
                     provisioner.getIntermediateCertificate().getEncoded(),
                     pkPemObject.getContent(),
