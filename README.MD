@@ -7,7 +7,7 @@ This is a proof-of-concept Automatic Certificate Management Environment (ACME) S
 
 ## 🐳 Getting started with Docker (recommended)
 1. Install [Docker Engine](https://docs.docker.com/engine/install/) with `docker compose` plugin, if you haven't already
-2. Create a directory called `serverdata` in this directory
+2. Create two directories called `serverdata` and `logs` in this directory
 3. Copy the `settings.sample.json` into the new `serverdata` directory and rename it to `settings.json`
 4. Adjust the settings, especially the `dnsName` (of your host), and the `http`/`https` ports. You can't change these later, because they will be written into the intermediate/client certificates for finding revokation list etc. and ACME client configuration will be get broken.
 5. Run `docker compose up -d` in this directory. That's all!
