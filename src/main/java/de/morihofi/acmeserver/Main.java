@@ -395,7 +395,7 @@ public class Main {
     private static void generateAcmeApiClientCertificate(Path intermediateKeyPairPrivateFile, Path intermediateKeyPairPublicFile, X509Certificate intermediateCertificate, Path acmeApiCertificatePath, Path acmeApiPublicKeyPath, Path acmeApiPrivateKeyPath, Provisioner provisioner) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
         KeyPair intermediateKeyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
 
-        KeyPair acmeAPIKeyPair = null;
+        KeyPair acmeAPIKeyPair;
         if (!Files.exists(acmeApiPublicKeyPath) || !Files.exists(acmeApiPrivateKeyPath)) {
             Files.deleteIfExists(acmeApiCertificatePath);
             Files.deleteIfExists(acmeApiPublicKeyPath);
