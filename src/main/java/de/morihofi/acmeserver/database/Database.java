@@ -41,8 +41,8 @@ public class Database {
      * Creates a new ACME (Automated Certificate Management Environment) account in the database with the provided parameters.
      *
      * @param accountId The unique identifier for the ACME account.
-     * @param jwk The JSON Web Key (JWK) representing the account's public key.
-     * @param emails A list of email addresses associated with the account.
+     * @param jwk       The JSON Web Key (JWK) representing the account's public key.
+     * @param emails    A list of email addresses associated with the account.
      * @throws ACMEServerInternalException If an error occurs while creating the ACME account.
      */
     public static void createAccount(String accountId, String jwk, List<String> emails) {
@@ -66,13 +66,13 @@ public class Database {
     /**
      * Stores a certificate and related information in the database for a specific ACME order and DNS value.
      *
-     * @param orderId The unique identifier of the ACME order associated with the certificate.
-     * @param dnsValue The DNS value for which the certificate is issued.
-     * @param csr The Certificate Signing Request (CSR) used to request the certificate.
+     * @param orderId        The unique identifier of the ACME order associated with the certificate.
+     * @param dnsValue       The DNS value for which the certificate is issued.
+     * @param csr            The Certificate Signing Request (CSR) used to request the certificate.
      * @param pemCertificate The PEM-encoded certificate to be stored.
-     * @param issueDate The timestamp when the certificate was issued.
-     * @param expireDate The timestamp when the certificate will expire.
-     * @param serialNumber The serial number of the certificate.
+     * @param issueDate      The timestamp when the certificate was issued.
+     * @param expireDate     The timestamp when the certificate will expire.
+     * @param serialNumber   The serial number of the certificate.
      */
     public static void storeCertificateInDatabase(String orderId, String dnsValue, String csr, String pemCertificate, Timestamp issueDate, Timestamp expireDate, BigInteger serialNumber) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
@@ -248,10 +248,10 @@ public class Database {
     /**
      * Creates a new ACME (Automated Certificate Management Environment) order and associates it with an ACME account.
      *
-     * @param account The ACME account for which the order is created.
-     * @param orderId The unique identifier for the new ACME order.
+     * @param account        The ACME account for which the order is created.
+     * @param orderId        The unique identifier for the new ACME order.
      * @param identifierList A list of ACME identifiers to be associated with the order.
-     * @param provisioner The provisioner responsible for creating the order.
+     * @param provisioner    The provisioner responsible for creating the order.
      * @throws ACMEServerInternalException If an error occurs while creating the ACME order.
      */
     @Transactional
@@ -295,7 +295,7 @@ public class Database {
      * Updates the email addresses associated with an ACME (Automated Certificate Management Environment) account.
      *
      * @param account The ACME account for which email addresses are to be updated.
-     * @param emails A list of new email addresses to be associated with the account.
+     * @param emails  A list of new email addresses to be associated with the account.
      * @throws ACMEInvalidContactException If an error occurs while updating the email addresses.
      */
     @Transactional
@@ -331,12 +331,12 @@ public class Database {
      * authorization identified by its authorization ID, including the issued certificate, intermediate certificate,
      * and CA (Certificate Authority) certificate.
      *
-     * @param authorizationId The unique identifier of the ACME authorization for which the certificate chain is requested.
+     * @param authorizationId              The unique identifier of the ACME authorization for which the certificate chain is requested.
      * @param intermediateCertificateBytes The bytes of the intermediate certificate to be included in the chain.
      * @return A PEM-encoded certificate chain consisting of the issued certificate, intermediate certificate, and CA certificate.
      * @throws CertificateEncodingException If an error occurs while encoding the certificates.
-     * @throws IOException If an error occurs while reading the CA certificate file.
-     * @throws IllegalArgumentException If no certificate is found for the specified authorization ID.
+     * @throws IOException                  If an error occurs while reading the CA certificate file.
+     * @throws IllegalArgumentException     If no certificate is found for the specified authorization ID.
      */
     public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId, byte[] intermediateCertificateBytes) throws CertificateEncodingException, IOException {
         StringBuilder pemBuilder = new StringBuilder();
@@ -451,9 +451,10 @@ public class Database {
      * Retrieves a list of revoked certificates from the database. Revoked certificates are identified by having
      * both a revoke status code and a revoke timestamp in their associated ACME identifiers.
      *
+     * @param provisionerName Provisioner to get revoked certificates for
      * @return A list of {@link RevokedCertificate} objects representing the revoked certificates.
      */
-    public static List<RevokedCertificate> getRevokedCertificates() {
+    public static List<RevokedCertificate> getRevokedCertificates(String provisionerName) {
         List<RevokedCertificate> certificates = new ArrayList<>();
 
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
@@ -461,7 +462,8 @@ public class Database {
             Transaction transaction = session.beginTransaction();
 
             //Certificates are revoked when they have a statusCode and a timestamp
-            Query query = session.createQuery("FROM ACMEIdentifier WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL", ACMEIdentifier.class);
+            Query query = session.createQuery("FROM ACMEIdentifier WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL AND provisioner = :provisionerName", ACMEIdentifier.class);
+            query.setParameter("provisionerName", provisionerName);
             List<ACMEIdentifier> result = query.getResultList();
 
             if (!result.isEmpty()) {
@@ -486,7 +488,7 @@ public class Database {
      * Revokes an ACME (Automated Certificate Management Environment) certificate associated with an ACME identifier.
      *
      * @param identifier The ACME identifier for which the certificate is to be revoked.
-     * @param reason The reason code for revoking the certificate.
+     * @param reason     The reason code for revoking the certificate.
      * @throws ACMEServerInternalException If an error occurs while revoking the certificate.
      */
     public static void revokeCertificate(ACMEIdentifier identifier, int reason) {

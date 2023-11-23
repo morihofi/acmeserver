@@ -48,7 +48,7 @@ public class CRL {
     private void updateCRLCache() {
         try {
             // Get the list of revoked certificates from the database
-            List<RevokedCertificate> revokedCertificates = Database.getRevokedCertificates();
+            List<RevokedCertificate> revokedCertificates = Database.getRevokedCertificates(provisioner.getProvisionerName());
             // Generate a new CRL
             X509CRL crl = CertificateRevokationListGenerator.generateCRL(revokedCertificates, provisioner.getIntermediateCertificate(), provisioner.getIntermediateKeyPair().getPrivate(), UPDATE_MINUTES);
             // Update the current CRL cache
