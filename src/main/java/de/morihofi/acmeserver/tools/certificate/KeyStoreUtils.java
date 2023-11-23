@@ -16,32 +16,58 @@ public class KeyStoreUtils {
 
     public static final Logger log = LogManager.getLogger(KeyStoreUtils.class);
 
-
-    public static void saveAsPKCS12(KeyPair keyPair, String password, String alias, byte[] certificate, Path targetLocation) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        // Konvertiere das Passwort in ein Char-Array
+    /**
+     * Saves a KeyPair and X.509 certificate as a PKCS12 keystore.
+     *
+     * @param keyPair The KeyPair to save.
+     * @param password The password to protect the keystore.
+     * @param alias The alias for the KeyPair within the keystore.
+     * @param certificate The X.509 certificate to save.
+     * @param targetLocation The path to save the PKCS12 keystore.
+     * @throws KeyStoreException If there is an issue with the keystore.
+     * @throws CertificateException If there is an issue with the certificate.
+     * @throws IOException If there is an issue reading or writing the keystore file.
+     * @throws NoSuchAlgorithmException If the algorithm required for the keystore is not available.
+     */
+    public static void saveAsPKCS12(KeyPair keyPair, String password, String alias, byte[] certificate, Path targetLocation)
+            throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+        // Convert the password to a char array
         char[] passwordCharArr = password.toCharArray();
 
-        // Erstelle oder lade ein KeyStore-Objekt
+        // Create or load a KeyStore object
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
         if (Files.exists(targetLocation)) {
-            // Wenn die Datei existiert, lade das vorhandene KeyStore
+            // If the file exists, load the existing KeyStore
             try (InputStream is = Files.newInputStream(targetLocation)) {
                 keyStore.load(is, passwordCharArr);
             }
         } else {
-            // Andernfalls initialisiere ein neues KeyStore
+            // Otherwise, initialize a new KeyStore
             keyStore.load(null, passwordCharArr);
         }
 
-        // Füge das KeyPair und das Zertifikat hinzu
+        // Add the KeyPair and certificate to the KeyStore
         keyStore.setKeyEntry(alias, keyPair.getPrivate(), passwordCharArr, new X509Certificate[]{CertTools.convertToX509Cert(certificate)});
 
-        // Speichere das KeyStore-Objekt als PKCS12-Datei
+        // Save the KeyStore object as a PKCS12 file
         try (OutputStream fos = Files.newOutputStream(targetLocation)) {
             keyStore.store(fos, passwordCharArr);
         }
     }
 
+    /**
+     * Saves a KeyPair and X.509 certificate chain as a PKCS12 keystore.
+     *
+     * @param keyPair The KeyPair to save.
+     * @param password The password to protect the keystore.
+     * @param alias The alias for the KeyPair within the keystore.
+     * @param certificates The X.509 certificate chain to save.
+     * @param targetLocation The path to save the PKCS12 keystore.
+     * @throws KeyStoreException If there is an issue with the keystore.
+     * @throws IOException If there is an issue writing the keystore file.
+     * @throws CertificateException If there is an issue with the certificates.
+     * @throws NoSuchAlgorithmException If the algorithm required for the keystore is not available.
+     */
     public static void saveAsPKCS12KeyChain(KeyPair keyPair, String password, String alias, byte[][] certificates, Path targetLocation) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
 
         char[] keystorePassword = password.toCharArray();
@@ -52,7 +78,7 @@ public class KeyStoreUtils {
             chain.add(CertTools.convertToX509Cert(certificate));
         }
 
-        try(OutputStream os = Files.newOutputStream(targetLocation)) {
+        try (OutputStream os = Files.newOutputStream(targetLocation)) {
             X509Certificate[] certificateChain = chain.toArray(new X509Certificate[0]);
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(null, keystorePassword); // Neuen, leeren KeyStore erstellen
@@ -63,8 +89,22 @@ public class KeyStoreUtils {
 
     }
 
+
+    /**
+     * Loads a KeyPair and X.509 certificate from a PKCS12 keystore file.
+     *
+     * @param keyStorePath     The path to the PKCS12 keystore file.
+     * @param keyStorePassword The password for the keystore.
+     * @param certificateAlias The alias of the certificate to load from the keystore.
+     * @return A KeyStoreFileContent object containing the KeyPair and X.509 certificate.
+     * @throws IOException               If there is an issue reading the keystore file.
+     * @throws KeyStoreException         If there is a problem with the keystore.
+     * @throws CertificateException      If there is an issue with the certificate.
+     * @throws NoSuchAlgorithmException  If the algorithm required for the keystore is not available.
+     * @throws UnrecoverableKeyException If the key cannot be recovered.
+     */
     public static KeyStoreFileContent loadFromPKCS12(Path keyStorePath, String keyStorePassword, String certificateAlias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
-        try(InputStream is = Files.newInputStream(keyStorePath)) {
+        try (InputStream is = Files.newInputStream(keyStorePath)) {
             // Laden des KeyPairs und des Zertifikats aus einem PKCS12-Keystore
             char[] keyStorePasswordCharArr = keyStorePassword.toCharArray();
             String keyAlias = certificateAlias;
@@ -77,52 +117,5 @@ public class KeyStoreUtils {
             return new KeyStoreFileContent(keyPair, cert, certificateAlias);
         }
     }
-
-    public static void saveRSAKeyPairToDirectory(KeyPair keyPair, Path targetDirectory) throws IOException {
-        PublicKey publicKey = keyPair.getPublic();
-        PrivateKey privateKey = keyPair.getPrivate();
-
-        if (!Files.exists(targetDirectory)){
-            Files.createDirectories(targetDirectory);
-        }
-
-        Files.createFile(targetDirectory.resolve("rsaPublicKey"));
-        Files.createFile(targetDirectory.resolve("rsaPrivateKey"));
-
-
-        DataOutputStream dos = null;
-        try {
-            dos = new DataOutputStream(Files.newOutputStream(targetDirectory.resolve("rsaPublicKey")));
-            dos.write(publicKey.getEncoded());
-            dos.flush();
-        } catch (Exception e) {
-            log.error("An exception was thrown",e);
-        } finally {
-            if (dos != null) {
-                try {
-                    dos.close();
-                } catch (IOException e) {
-                    log.error("Unable to close DataOutputStream",e);
-                }
-            }
-
-        }
-
-        try {
-            dos = new DataOutputStream(Files.newOutputStream(targetDirectory.resolve("rsaPrivateKey")));
-            dos.write(privateKey.getEncoded());
-            dos.flush();
-        } catch (Exception e) {
-            log.error("An exception was thrown",e);
-        } finally {
-            if (dos != null)
-                try {
-                    dos.close();
-                } catch (IOException e) {
-                    log.error("Unable to close DataOutputStream",e);
-                }
-        }
-    }
-
 
 }
