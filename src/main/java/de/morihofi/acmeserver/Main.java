@@ -27,8 +27,9 @@ import de.morihofi.acmeserver.tools.certificate.CertTools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
 import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGenerator;
+import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewInitializer;
 import de.morihofi.acmeserver.tools.network.JettySslHelper;
-import de.morihofi.acmeserver.watcher.CertificateRenewWatcher;
+import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
 import org.apache.logging.log4j.LogManager;
@@ -255,7 +256,7 @@ public class Main {
                 intermediateCertificate = CertTools.convertToX509Cert(intermediateCertificateBytes);
             }
             // Initialize the CertificateRenewWatcher for this provisioner
-            initializeCertificateRenewWatcher(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile, intermediateCertificateFile, provisioner, config);
+            CertificateRenewInitializer.initializeIntermediateCertificateRenewWatcher(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile, intermediateCertificateFile, provisioner, config, caKeyPair);
 
 
             if (config.isUseThisProvisionerIntermediateForAcmeApi()) {
@@ -284,7 +285,7 @@ public class Main {
                     int httpsPort = appConfig.getServer().getPorts().getHttps();
 
                     /*
-                     * Why we don't use Javalins official SSL Plugin?
+                     * Why we don't use Javalin's official SSL Plugin?
                      * The official SSL plugin depends on Google's Conscrypt provider, which uses native code
                      * and is platform dependent. This workaround implementation uses the built-in Java security
                      * libraries and Bouncy Castle, which is platform independent.
@@ -402,47 +403,8 @@ public class Main {
         }
     }
 
-    private static void initializeCertificateRenewWatcher(Path privateKeyPath, Path publicKeyPath, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg) {
-        log.info("Initializing renew watcher for intermediate ca of " + provisioner.getProvisionerName() + " provisioner");
-        CertificateRenewWatcher watcher = new CertificateRenewWatcher(
-                privateKeyPath,
-                publicKeyPath,
-                certificatePath,
-                6, TimeUnit.HOURS,
-                () -> {
-                    // Renew logic for the Intermediate Certificate
-                    try {
-                        log.info("Renewing Intermediate Certificate for " + provisioner.getProvisionerName());
-                        renewIntermediateCertificate(privateKeyPath, publicKeyPath, certificatePath, provisioner, provisionerCfg);
-                    } catch (Exception e) {
-                        log.error("Error renewing Intermediate Certificate for " + provisioner.getProvisionerName(), e);
-                    }
-                }
-        );
-        // You might want to store the watcher reference if needed
-    }
 
-    private static void renewIntermediateCertificate(Path privateKeyPath, Path publicKeyPath, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg) throws CertificateException, OperatorCreationException, IOException {
-        // Load the existing key pair
-        KeyPair keyPair = PemUtil.loadKeyPair(privateKeyPath, publicKeyPath);
 
-        // Generate a new certificate
-        X509Certificate renewedCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(
-                caKeyPair, // This should be your CA's key pair
-                keyPair,
-                provisionerCfg.getIntermediate().getMetadata().getCommonName(), // Or any other CN you prefer
-                // Specify the expiration as per your requirement
-                provisionerCfg.getIntermediate().getExpiration(),
-                provisioner.getFullCrlUrl(),
-                provisioner.getFullOcspUrl()
-        );
-
-        // Save the renewed certificate
-        Files.writeString(certificatePath, CertTools.certificateToPEM(renewedCertificate.getEncoded()));
-
-        // Update the provisioner's certificate reference
-        provisioner.setIntermediateCaCertificate(renewedCertificate);
-    }
 
 
     private static void printBanner() {

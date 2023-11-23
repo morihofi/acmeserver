@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.watcher;
+package de.morihofi.acmeserver.tools.certificate.renew.watcher;
 
 import de.morihofi.acmeserver.tools.certificate.CertTools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
