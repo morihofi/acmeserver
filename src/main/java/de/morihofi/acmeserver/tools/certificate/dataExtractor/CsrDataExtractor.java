@@ -12,6 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CsrDataExtractor {
+
+    /**
+     * Extracts domain names from a Certificate Signing Request (CSR) in PEM format.
+     *
+     * @param csr The Certificate Signing Request in PEM format.
+     * @return A list of domain names (Subject Alternative Names) extracted from the CSR.
+     * @throws IOException If an error occurs while processing the CSR.
+     */
     public static List<String> getDomainsFromCSR(String csr) throws IOException {
         byte[] csrBytes = Base64Tools.decodeBase64URLAsBytes(csr);
         PKCS10CertificationRequest certRequest = new PKCS10CertificationRequest(csrBytes);
