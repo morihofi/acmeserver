@@ -187,6 +187,14 @@ public class Main {
         log.info("\u2705 Configure Routes completed. Ready for incoming requests");
     }
 
+    /**
+     * Retrieves or initializes provisioners based on configuration and generates ACME Web API client certificates when required.
+     *
+     * @param provisionerConfigList A list of provisioner configurations.
+     * @param javalinInstance       The Javalin instance.
+     * @return A list of provisioners.
+     * @throws Exception If an error occurs during provisioning or certificate generation.
+     */
     private static List<Provisioner> getProvisioners(List<ProvisionerConfig> provisionerConfigList, Javalin javalinInstance) throws Exception {
 
         List<Provisioner> provisioners = new ArrayList<>();
@@ -365,6 +373,22 @@ public class Main {
         return provisioners;
     }
 
+    /**
+     * Generates or loads the ACME Web API client certificate and key pair.
+     *
+     * @param intermediateKeyPairPrivateFile The path to the intermediate CA's private key file.
+     * @param intermediateKeyPairPublicFile  The path to the intermediate CA's public key file.
+     * @param intermediateCertificate        The intermediate CA certificate.
+     * @param acmeApiCertificatePath         The path to the ACME Web API client certificate file.
+     * @param acmeApiPublicKeyPath           The path to the ACME Web API client's public key file.
+     * @param acmeApiPrivateKeyPath          The path to the ACME Web API client's private key file.
+     * @param provisioner                    The provisioner for certificate generation.
+     * @throws CertificateException      If an issue occurs during certificate generation or loading.
+     * @throws IOException               If an I/O error occurs while creating or deleting files.
+     * @throws NoSuchAlgorithmException  If the specified algorithm is not available.
+     * @throws NoSuchProviderException   If the specified security provider is not available.
+     * @throws OperatorCreationException If there's an issue with operator creation during certificate generation.
+     */
     private static void generateAcmeApiClientCertificate(Path intermediateKeyPairPrivateFile, Path intermediateKeyPairPublicFile, X509Certificate intermediateCertificate, Path acmeApiCertificatePath, Path acmeApiPublicKeyPath, Path acmeApiPrivateKeyPath, Provisioner provisioner) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
         KeyPair intermediateKeyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
 
@@ -404,9 +428,6 @@ public class Main {
     }
 
 
-
-
-
     private static void printBanner() {
         System.out.println("""
                     _                       ____                          \s
@@ -417,6 +438,11 @@ public class Main {
                 """);
     }
 
+    /**
+     * Ensures that the necessary files directory and configuration file exist.
+     *
+     * @throws IOException If an I/O error occurs while creating directories or checking for the configuration file.
+     */
     private static void ensureFilesDirectoryExists() throws IOException {
         if (!Files.exists(FILES_DIR)) {
             log.info("First run detected, creating settings directory");
@@ -429,25 +455,41 @@ public class Main {
         }
     }
 
-
+    /**
+     * Loads build and Git metadata from resource files and populates corresponding variables.
+     */
     private static void loadBuildAndGitMetadata() {
         try (InputStream is = Main.class.getResourceAsStream("/build.properties")) {
-            Properties buildMetadataProperties = new Properties();
-            buildMetadataProperties.load(is);
-            buildMetadataVersion = buildMetadataProperties.getProperty("build.version");
-            buildMetadataBuildTime = buildMetadataProperties.getProperty("build.date") + " UTC";
+            if (is != null) {
+                Properties buildMetadataProperties = new Properties();
+                buildMetadataProperties.load(is);
+                buildMetadataVersion = buildMetadataProperties.getProperty("build.version");
+                buildMetadataBuildTime = buildMetadataProperties.getProperty("build.date") + " UTC";
+            } else {
+                log.warn("Unable to load build metadata");
+            }
         } catch (Exception e) {
             log.error("Unable to load build metadata", e);
         }
         try (InputStream is = Main.class.getResourceAsStream("/git.properties")) {
-            Properties gitMetadataProperties = new Properties();
-            gitMetadataProperties.load(is);
-            buildMetadataGitCommit = gitMetadataProperties.getProperty("git.commit.id.full");
+            if (is != null) {
+                Properties gitMetadataProperties = new Properties();
+                gitMetadataProperties.load(is);
+                buildMetadataGitCommit = gitMetadataProperties.getProperty("git.commit.id.full");
+            } else {
+                log.warn("Unable to load git metadata");
+            }
+
         } catch (Exception e) {
             log.error("Unable to load git metadata", e);
         }
     }
 
+    /**
+     * Initializes database drivers for MariaDB and H2.
+     *
+     * @throws ClassNotFoundException If a database driver class is not found.
+     */
     private static void initializeDatabaseDrivers() throws ClassNotFoundException {
         log.info("Loading MariaDB JDBC driver");
         Class.forName("org.mariadb.jdbc.Driver");
@@ -455,6 +497,17 @@ public class Main {
         Class.forName("org.h2.Driver");
     }
 
+
+    /**
+     * Initializes the Certificate Authority (CA) by generating or loading the CA certificate and key pair.
+     *
+     * @throws NoSuchAlgorithmException           If the specified algorithm is not available.
+     * @throws CertificateException               If an issue occurs during certificate generation or loading.
+     * @throws IOException                        If an I/O error occurs while creating directories or writing files.
+     * @throws OperatorCreationException          If there's an issue with operator creation during certificate generation.
+     * @throws NoSuchProviderException            If the specified security provider is not available.
+     * @throws InvalidAlgorithmParameterException If there's an issue with algorithm parameters during key pair generation.
+     */
     private static void initializeCA() throws NoSuchAlgorithmException, CertificateException, IOException, OperatorCreationException, NoSuchProviderException, InvalidAlgorithmParameterException {
         Path rootCaDir = FILES_DIR.resolve("_rootCA");
         Files.createDirectories(rootCaDir);
