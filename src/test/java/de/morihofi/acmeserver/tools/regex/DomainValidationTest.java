@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.tools;
+package de.morihofi.acmeserver.tools.regex;
 
 import de.morihofi.acmeserver.tools.regex.DomainValidation;
 import org.junit.jupiter.api.DisplayName;
