@@ -13,23 +13,28 @@ public class SendMail {
 
     public static final Logger log = LogManager.getLogger(SendMail.class);
 
-    public static void sendMail(String toEmail, String subject, String content) throws MessagingException {
-
+    public static void sendMail(String toEmail, String subject, String content, String encryption) throws MessagingException {
         EmailConfig emailConfig = Main.appConfig.getEmailSmtp();
 
-        if(!emailConfig.getEnabled()){
-            log.info("Not sending email, cause email sending is disabled in config");
+        if (!emailConfig.getEnabled()) {
+            log.info("Not sending email, because email sending is disabled in the config");
             return;
         }
 
         Properties emailProp = new Properties();
-        emailProp.put("mail.smtp.auth", true);
-        if (emailConfig.getEncryption().equals("starttls")){
-            emailProp.put("mail.smtp.starttls.enable", "true");
-        }
+        emailProp.put("mail.smtp.auth", "true");
         emailProp.put("mail.smtp.host", emailConfig.getHost());
         emailProp.put("mail.smtp.port", String.valueOf(emailConfig.getPort()));
-        emailProp.put("mail.smtp.ssl.trust", emailConfig.getHost());
+
+        if ("starttls".equals(encryption)) {
+            emailProp.put("mail.smtp.starttls.enable", "true");
+        } else if ("ssl".equals(encryption) || "tls".equals(encryption)) {
+            emailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        } else {
+            // No encryption, use a plain connection
+            emailProp.put("mail.smtp.starttls.enable", "false");
+            emailProp.put("mail.smtp.ssl.trust", "*");
+        }
 
         Session session = Session.getInstance(emailProp, new Authenticator() {
             @Override
@@ -55,7 +60,6 @@ public class SendMail {
 
         log.info("Sending E-Mail with subject \"" + subject + "\" to \"" + toEmail + "\"");
         Transport.send(message);
-        log.info("E-Mail has sent");
-
+        log.info("E-Mail has been sent");
     }
 }
