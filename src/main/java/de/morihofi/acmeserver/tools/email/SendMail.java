@@ -13,7 +13,7 @@ public class SendMail {
 
     public static final Logger log = LogManager.getLogger(SendMail.class);
 
-    public static void sendMail(String toEmail, String subject, String content, String encryption) throws MessagingException {
+    public static void sendMail(String toEmail, String subject, String content) throws MessagingException {
         EmailConfig emailConfig = Main.appConfig.getEmailSmtp();
 
         if (!emailConfig.getEnabled()) {
@@ -26,9 +26,9 @@ public class SendMail {
         emailProp.put("mail.smtp.host", emailConfig.getHost());
         emailProp.put("mail.smtp.port", String.valueOf(emailConfig.getPort()));
 
-        if ("starttls".equals(encryption)) {
+        if ("starttls".equals(emailConfig.getEncryption())) {
             emailProp.put("mail.smtp.starttls.enable", "true");
-        } else if ("ssl".equals(encryption) || "tls".equals(encryption)) {
+        } else if ("ssl".equals(emailConfig.getEncryption()) || "tls".equals(emailConfig.getEncryption())) {
             emailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
         } else {
             // No encryption, use a plain connection
