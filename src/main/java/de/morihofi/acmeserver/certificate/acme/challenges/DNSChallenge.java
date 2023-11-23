@@ -1,7 +1,10 @@
 package de.morihofi.acmeserver.certificate.acme.challenges;
 
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
+import de.morihofi.acmeserver.tools.base64.Base64Tools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
+import de.morihofi.acmeserver.tools.crypto.AcmeTokenCryptography;
+import de.morihofi.acmeserver.tools.crypto.Hashing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jose4j.jwk.PublicJsonWebKey;
@@ -49,7 +52,7 @@ public class DNSChallenge {
             lookup.run();
 
             if (lookup.getResult() == Lookup.SUCCESSFUL) {
-                // Überprüfen der TXT-Einträge
+                // Check TXT-Entries
                 for (Record record : lookup.getAnswers()) {
                     TXTRecord txt = (TXTRecord) record;
                     for (Object value : txt.getStrings()) {
@@ -81,71 +84,12 @@ public class DNSChallenge {
 
 
     /**
-     * Computes a thumbprint of the given public key.
-     *
-     * @param key
-     *         {@link PublicKey} to get the thumbprint of
-     * @return Thumbprint of the key
-     */
-    public static byte[] thumbprint(PublicKey key) {
-        try {
-            var jwk = PublicJsonWebKey.Factory.newPublicJwk(key);
-            return jwk.calculateThumbprint("SHA-256");
-        } catch (JoseException ex) {
-            throw new IllegalArgumentException("Bad public key", ex);
-        }
-    }
-
-    /**
      * Returns the digest string to be set in the domain's {@code _acme-challenge} TXT
      * record.
      */
     public static String getDigest(String token, PublicKey pk) {
-        return base64UrlEncode(sha256hash(keyAuthorizationFor(token,pk)));
+        return Base64Tools.base64UrlEncode(Hashing.sha256hash(AcmeTokenCryptography.keyAuthorizationFor(token,pk)));
     }
 
-    private static final java.util.Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
-
-    /**
-     * Base64 encodes the given byte array, using URL style encoding.
-     *
-     * @param data
-     *            byte array to base64 encode
-     * @return base64 encoded string
-     */
-    public static String base64UrlEncode(byte[] data) {
-        return URL_ENCODER.encodeToString(data);
-    }
-
-    /**
-     * Computes a SHA-256 hash of the given string.
-     *
-     * @param z
-     *            String to hash
-     * @return Hash
-     */
-    public static byte[] sha256hash(String z) {
-        try {
-            var md = MessageDigest.getInstance("SHA-256");
-            md.update(z.getBytes(UTF_8));
-            return md.digest();
-        } catch (NoSuchAlgorithmException ex) {
-            throw new IllegalArgumentException("Could not compute hash", ex);
-        }
-    }
-
-    /**
-     * Computes the key authorization for the given token.
-     * <p>
-     * The default is {@code token + '.' + base64url(jwkThumbprint)}. Subclasses may
-     * override this method if a different algorithm is used.
-     *
-     * @param token
-     *         Token to be used
-     * @return Key Authorization string for that token
-     */
-    protected static String keyAuthorizationFor(String token, PublicKey pk) {
-        return token + '.' + base64UrlEncode(thumbprint(pk));
-    }
 
 }

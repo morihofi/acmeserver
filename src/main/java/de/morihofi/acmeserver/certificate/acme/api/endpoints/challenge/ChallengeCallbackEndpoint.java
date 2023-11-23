@@ -70,7 +70,7 @@ public class ChallengeCallbackEndpoint implements Handler {
         String possibleErrorReasonIfFailed;
         switch (challengeType) {
             case "http-01" -> {
-                challengePassed = HTTPChallenge.check(identifier.getAuthorizationToken(), identifier.getDataValue());
+                challengePassed = HTTPChallenge.check(identifier.getAuthorizationToken(), identifier.getDataValue(), identifier.getOrder().getAccount());
                 possibleErrorReasonIfFailed = "Unable to reach host \"" + identifier.getDataValue() + "\" or invalid token. Is the host reachable? Is the http server on port 80 running? If it is running, check your access logs";
             }
             case "dns-01" -> {

@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class Hashing {
 
 
@@ -23,6 +25,23 @@ public class Hashing {
 
         // Convert the byte array to a hexadecimal string representation
         return hexEncode(encodedHash);
+    }
+
+    /**
+     * Computes a SHA-256 hash of the given string.
+     *
+     * @param z
+     *            String to hash
+     * @return Hash
+     */
+    public static byte[] sha256hash(String z) {
+        try {
+            var md = MessageDigest.getInstance("SHA-256");
+            md.update(z.getBytes(UTF_8));
+            return md.digest();
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalArgumentException("Could not compute hash", ex);
+        }
     }
 
 

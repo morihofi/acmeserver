@@ -79,4 +79,16 @@ public class Base64Tools {
 
         return eStr;
     }
+
+    private static final java.util.Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
+
+    /**
+     * Base64 encodes the given byte array, using URL style encoding.
+     *
+     * @param data byte array to base64 encode
+     * @return base64 encoded string
+     */
+    public static String base64UrlEncode(byte[] data) {
+        return URL_ENCODER.encodeToString(data);
+    }
 }

@@ -1,6 +1,9 @@
 package de.morihofi.acmeserver.certificate.acme.challenges;
 
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.database.objects.ACMEAccount;
+import de.morihofi.acmeserver.tools.certificate.PemUtil;
+import de.morihofi.acmeserver.tools.crypto.AcmeTokenCryptography;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -9,6 +12,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 
 public class HTTPChallenge {
 
@@ -86,18 +93,20 @@ public class HTTPChallenge {
      * Performs an HTTP challenge validation by sending a GET request to a specified host and checking the response
      * for the expected authentication token value.
      *
-     * @param expectedAuthTokenValue The expected authentication token value associated with the challenge.
+     * @param authToken The expected authentication token value associated with the challenge.
      * @param host                   The host to which the GET request is sent for challenge validation.
      * @return True if the HTTP challenge validation succeeds, indicating that the response contains the expected token value;
      *         otherwise, false.
      */
-    public static boolean check(String expectedAuthTokenValue, String host) {
+    public static boolean check(String authToken, String host, ACMEAccount acmeAccount) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         boolean passed = false;
+
+        PublicKey acmeAccountPublicKey = PemUtil.readPublicKeyFromPem(acmeAccount.getPublicKeyPEM());
 
         try {
             // Create an HTTP GET request to the challenge URL
             Request request = new Request.Builder()
-                    .url("http://" + host + "/.well-known/acme-challenge/" + expectedAuthTokenValue)
+                    .url("http://" + host + "/.well-known/acme-challenge/" + authToken)
                     .header("User-Agent", USER_AGENT)
                     .build();
 
@@ -113,13 +122,14 @@ public class HTTPChallenge {
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 // Successful response, check the token in the response
                 log.debug("Got response, checking token in response");
-                String acmeTokenFromHost = response.body().string().split("\\.")[0];
+                String acmeTokenFromHost = response.body().string();
+                String expectedValue = AcmeTokenCryptography.keyAuthorizationFor(authToken, acmeAccountPublicKey);
 
-                if (acmeTokenFromHost.equals(expectedAuthTokenValue)) {
+                if (expectedValue.equals(acmeTokenFromHost)) {
                     passed = true;
                     log.info("HTTP Challenge has validated for host \"" + host + "\"");
                 } else {
-                    log.info("HTTP Challenge validation failed for host \"" + host + "\". Content doesn't match. Expected: " + expectedAuthTokenValue + "; Got: " + acmeTokenFromHost);
+                    log.info("HTTP Challenge validation failed for host \"" + host + "\". Content doesn't match. Expected: " + authToken + "; Got: " + acmeTokenFromHost);
                 }
             } else {
                 log.error("HTTP Challenge failed for host \"" + host + "\", got HTTP status code " + responseCode);
