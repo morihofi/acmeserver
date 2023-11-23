@@ -54,15 +54,15 @@ public class IntermediateCaRenew {
     /**
      * Renew an intermediate certificate for a provisioner using the provisioner's key pair.
      *
-     * @param privateKeyPath    The path to the provisioner's private key file.
-     * @param publicKeyPath     The path to the provisioner's public key file.
-     * @param certificatePath   The path to the provisioner's certificate file.
-     * @param provisioner       The provisioner for which the certificate is being renewed.
-     * @param provisionerCfg    The configuration for the provisioner.
-     * @param caKeyPair         The key pair of the Certificate Authority (CA) issuing the certificate.
+     * @param privateKeyPath  The path to the provisioner's private key file.
+     * @param publicKeyPath   The path to the provisioner's public key file.
+     * @param certificatePath The path to the provisioner's certificate file.
+     * @param provisioner     The provisioner for which the certificate is being renewed.
+     * @param provisionerCfg  The configuration for the provisioner.
+     * @param caKeyPair       The key pair of the Certificate Authority (CA) issuing the certificate.
      * @throws CertificateException      If an issue occurs with certificate handling.
      * @throws OperatorCreationException If an issue occurs during operator creation.
-     * @throws IOException              If an I/O error occurs during file operations.
+     * @throws IOException               If an I/O error occurs during file operations.
      */
     public static void renewIntermediateCertificate(Path privateKeyPath, Path publicKeyPath, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg, KeyPair caKeyPair, X509Certificate caCertificate) throws CertificateException, OperatorCreationException, IOException {
         // Load the existing key pair

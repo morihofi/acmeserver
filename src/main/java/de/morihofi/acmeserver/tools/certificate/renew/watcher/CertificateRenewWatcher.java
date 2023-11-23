@@ -54,7 +54,7 @@ public class CertificateRenewWatcher {
             X509Certificate certificate = X509.convertToX509Cert(certificateBytes);
 
             if (shouldRenew(certificate)) {
-               execute.run();
+                execute.run();
             }
         } catch (Exception e) {
             log.error("Error checking/renewing certificate", e);

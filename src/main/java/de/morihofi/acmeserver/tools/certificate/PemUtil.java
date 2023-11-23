@@ -234,7 +234,7 @@ public class PemUtil {
      *
      * @param pemString The PEM-encoded string to be converted.
      * @return A byte array containing the binary content from the PEM-encoded string.
-     * @throws IOException              If there is an issue during the conversion process.
+     * @throws IOException If there is an issue during the conversion process.
      */
     public static byte[] convertPemToByteArray(String pemString) throws IOException {
         PemReader pemReader = new PemReader(new StringReader(pemString));

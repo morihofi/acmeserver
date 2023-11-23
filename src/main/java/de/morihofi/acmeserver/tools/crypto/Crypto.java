@@ -34,7 +34,7 @@ public class Crypto {
 
     /**
      * Generates a cryptographically strong random identifier.
-     *
+     * <p>
      * This method uses a {@link SecureRandom} instance to generate a random 130-bit value,
      * which is then converted into a hexadecimal string.
      *

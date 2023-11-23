@@ -22,7 +22,7 @@ public class DomainValidation {
         }
         String nonWildcardDomain = domain;
 
-        if(allowWildcard){
+        if (allowWildcard) {
             // Check for wildcard domain
             if (nonWildcardDomain.startsWith("*.")) {
                 nonWildcardDomain = domain.substring(2); // Remove wildcard part for validation

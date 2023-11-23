@@ -30,16 +30,14 @@ public class CertificateRevokationListGenerator {
      * @param caCert              The X509 certificate of the Certificate Authority.
      * @param caPrivateKey        The private key of the Certificate Authority used to sign the CRL.
      * @param updateMinutes       The number of minutes after which the CRL should be updated.
-     *
-     * @return                    An {@link X509CRL} object representing the generated CRL.
-     *
+     * @return An {@link X509CRL} object representing the generated CRL.
      * @throws CertificateEncodingException if an encoding error occurs with the CA certificate.
      * @throws CRLException                 if an error occurs during the CRL generation.
      * @throws OperatorCreationException    if there's an error in creating the content signer.
      */
     public static X509CRL generateCRL(List<RevokedCertificate> revokedCertificates,
-                                       X509Certificate caCert,
-                                       PrivateKey caPrivateKey, int updateMinutes) throws CertificateEncodingException, CRLException, OperatorCreationException {
+                                      X509Certificate caCert,
+                                      PrivateKey caPrivateKey, int updateMinutes) throws CertificateEncodingException, CRLException, OperatorCreationException {
 
 
         // Create the CRL Builder

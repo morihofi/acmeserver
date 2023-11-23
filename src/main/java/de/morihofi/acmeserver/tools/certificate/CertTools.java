@@ -118,7 +118,7 @@ public class CertTools {
      *
      * @param rawSignature The raw ECDSA signature to be converted.
      * @return A byte array containing the DER-encoded signature.
-     * @throws IOException If there is an issue during the conversion process.
+     * @throws IOException              If there is an issue during the conversion process.
      * @throws IllegalArgumentException If the input raw signature has an invalid length.
      */
     public static byte[] convertRawToDerSignatureECDSA(byte[] rawSignature) throws IOException {

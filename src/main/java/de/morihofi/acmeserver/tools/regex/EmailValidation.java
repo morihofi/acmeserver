@@ -6,6 +6,7 @@ public class EmailValidation {
 
     /**
      * Check, if an email has a valid syntax
+     *
      * @param email email address to check
      * @return is it a valid email or not
      */

@@ -27,12 +27,12 @@ public class JettySslHelper {
      * @param certificateChain The certificate chain.
      * @param keyPair          The key pair.
      * @return An initialized SSLContext.
-     * @throws KeyStoreException          If there is an issue with the keystore.
-     * @throws CertificateException       If there is an issue with the certificate.
-     * @throws IOException                If there is an issue reading the keystore.
-     * @throws NoSuchAlgorithmException   If a required cryptographic algorithm is not available.
-     * @throws KeyManagementException     If there is an issue with key management.
-     * @throws UnrecoverableKeyException  If the private key cannot be recovered.
+     * @throws KeyStoreException         If there is an issue with the keystore.
+     * @throws CertificateException      If there is an issue with the certificate.
+     * @throws IOException               If there is an issue reading the keystore.
+     * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
+     * @throws KeyManagementException    If there is an issue with key management.
+     * @throws UnrecoverableKeyException If the private key cannot be recovered.
      */
     public static SSLContext createSSLContext(X509Certificate[] certificateChain, KeyPair keyPair)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException,
@@ -69,13 +69,13 @@ public class JettySslHelper {
      * @param privateKeyPath  The path to the private key file.
      * @param publicKeyPath   The path to the public key file.
      * @return A configured Jetty Server instance.
-     * @throws CertificateException       If there is an issue with the SSL certificate.
-     * @throws IOException                If there is an issue reading the certificate or key files.
-     * @throws UnrecoverableKeyException  If the private key cannot be recovered.
-     * @throws KeyStoreException          If there is an issue with the keystore.
-     * @throws NoSuchAlgorithmException   If a required cryptographic algorithm is not available.
-     * @throws KeyManagementException     If there is an issue with key management.
-     * @throws NoSuchProviderException    If a required security provider is not available.
+     * @throws CertificateException      If there is an issue with the SSL certificate.
+     * @throws IOException               If there is an issue reading the certificate or key files.
+     * @throws UnrecoverableKeyException If the private key cannot be recovered.
+     * @throws KeyStoreException         If there is an issue with the keystore.
+     * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
+     * @throws KeyManagementException    If there is an issue with key management.
+     * @throws NoSuchProviderException   If a required security provider is not available.
      */
     public static Server getSslJetty(int httpsPort, int httpPort, Path certificatePath, Path privateKeyPath, Path publicKeyPath)
             throws CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException,
@@ -94,9 +94,9 @@ public class JettySslHelper {
     /**
      * Creates a Jetty server instance configured with SSL and/or HTTP connectors based on the provided ports and SSL context.
      *
-     * @param httpsPort   The port for HTTPS. Set to 0 to disable HTTPS.
-     * @param httpPort    The port for HTTP. Set to 0 to disable HTTP.
-     * @param sslContext  The SSL context to be used for HTTPS. Pass null to disable HTTPS.
+     * @param httpsPort  The port for HTTPS. Set to 0 to disable HTTPS.
+     * @param httpPort   The port for HTTP. Set to 0 to disable HTTP.
+     * @param sslContext The SSL context to be used for HTTPS. Pass null to disable HTTPS.
      * @return A configured Jetty Server instance.
      */
     public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext) {

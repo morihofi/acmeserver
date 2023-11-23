@@ -26,7 +26,7 @@ import java.util.Date;
 
 public class ServerCertificateGenerator {
 
-    private ServerCertificateGenerator(){
+    private ServerCertificateGenerator() {
 
     }
 
@@ -40,15 +40,15 @@ public class ServerCertificateGenerator {
      * and Authority Information Access for OCSP. The certificate is then signed using the private key
      * from the intermediate key pair and the appropriate signature algorithm.</p>
      *
-     * @param intermediateKeyPair The key pair for the intermediate certificate authority.
+     * @param intermediateKeyPair          The key pair for the intermediate certificate authority.
      * @param intermediateCertificateBytes The byte array representing the intermediate certificate.
-     * @param serverPublicKeyBytes The byte array representing the server's public key.
-     * @param dnsNames An array of DNS names to be associated with the server certificate.
-     * @param provisioner The provisioner object containing certificate expiration and other details.
+     * @param serverPublicKeyBytes         The byte array representing the server's public key.
+     * @param dnsNames                     An array of DNS names to be associated with the server certificate.
+     * @param provisioner                  The provisioner object containing certificate expiration and other details.
      * @return An X509Certificate which represents the server certificate.
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
-     * @throws CertificateException If there's an error in processing the certificate data.
-     * @throws CertIOException If there's an IO error during certificate generation.
+     * @throws CertificateException      If there's an error in processing the certificate data.
+     * @throws CertIOException           If there's an IO error during certificate generation.
      */
     public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, byte[] intermediateCertificateBytes, byte[] serverPublicKeyBytes, String[] dnsNames, Provisioner provisioner) throws OperatorCreationException, CertificateException, CertIOException {
 

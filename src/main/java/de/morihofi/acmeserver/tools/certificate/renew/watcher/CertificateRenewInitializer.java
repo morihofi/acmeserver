@@ -18,12 +18,12 @@ public class CertificateRenewInitializer {
     /**
      * Initializes a certificate renew watcher for the intermediate CA certificate of a provisioner.
      *
-     * @param privateKeyPath    The path to the provisioner's private key file.
-     * @param publicKeyPath     The path to the provisioner's public key file.
-     * @param certificatePath   The path to the provisioner's certificate file.
-     * @param provisioner       The provisioner for which the certificate renew watcher is being initialized.
-     * @param provisionerCfg    The configuration for the provisioner.
-     * @param caKeyPair         The key pair of the Certificate Authority (CA) issuing the certificate.
+     * @param privateKeyPath  The path to the provisioner's private key file.
+     * @param publicKeyPath   The path to the provisioner's public key file.
+     * @param certificatePath The path to the provisioner's certificate file.
+     * @param provisioner     The provisioner for which the certificate renew watcher is being initialized.
+     * @param provisionerCfg  The configuration for the provisioner.
+     * @param caKeyPair       The key pair of the Certificate Authority (CA) issuing the certificate.
      */
     public static void initializeIntermediateCertificateRenewWatcher(Path privateKeyPath, Path publicKeyPath, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg, KeyPair caKeyPair, X509Certificate caCertificate) {
         log.info("Initializing renew watcher for intermediate ca of " + provisioner.getProvisionerName() + " provisioner");

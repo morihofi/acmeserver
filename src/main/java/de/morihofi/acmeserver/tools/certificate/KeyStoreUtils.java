@@ -19,14 +19,14 @@ public class KeyStoreUtils {
     /**
      * Saves a KeyPair and X.509 certificate as a PKCS12 keystore.
      *
-     * @param keyPair The KeyPair to save.
-     * @param password The password to protect the keystore.
-     * @param alias The alias for the KeyPair within the keystore.
-     * @param certificate The X.509 certificate to save.
+     * @param keyPair        The KeyPair to save.
+     * @param password       The password to protect the keystore.
+     * @param alias          The alias for the KeyPair within the keystore.
+     * @param certificate    The X.509 certificate to save.
      * @param targetLocation The path to save the PKCS12 keystore.
-     * @throws KeyStoreException If there is an issue with the keystore.
-     * @throws CertificateException If there is an issue with the certificate.
-     * @throws IOException If there is an issue reading or writing the keystore file.
+     * @throws KeyStoreException        If there is an issue with the keystore.
+     * @throws CertificateException     If there is an issue with the certificate.
+     * @throws IOException              If there is an issue reading or writing the keystore file.
      * @throws NoSuchAlgorithmException If the algorithm required for the keystore is not available.
      */
     public static void saveAsPKCS12(KeyPair keyPair, String password, String alias, byte[] certificate, Path targetLocation)
@@ -58,14 +58,14 @@ public class KeyStoreUtils {
     /**
      * Saves a KeyPair and X.509 certificate chain as a PKCS12 keystore.
      *
-     * @param keyPair The KeyPair to save.
-     * @param password The password to protect the keystore.
-     * @param alias The alias for the KeyPair within the keystore.
-     * @param certificates The X.509 certificate chain to save.
+     * @param keyPair        The KeyPair to save.
+     * @param password       The password to protect the keystore.
+     * @param alias          The alias for the KeyPair within the keystore.
+     * @param certificates   The X.509 certificate chain to save.
      * @param targetLocation The path to save the PKCS12 keystore.
-     * @throws KeyStoreException If there is an issue with the keystore.
-     * @throws IOException If there is an issue writing the keystore file.
-     * @throws CertificateException If there is an issue with the certificates.
+     * @throws KeyStoreException        If there is an issue with the keystore.
+     * @throws IOException              If there is an issue writing the keystore file.
+     * @throws CertificateException     If there is an issue with the certificates.
      * @throws NoSuchAlgorithmException If the algorithm required for the keystore is not available.
      */
     public static void saveAsPKCS12KeyChain(KeyPair keyPair, String password, String alias, byte[][] certificates, Path targetLocation) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
