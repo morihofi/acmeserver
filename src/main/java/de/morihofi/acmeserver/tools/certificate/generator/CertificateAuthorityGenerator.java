@@ -3,6 +3,7 @@ package de.morihofi.acmeserver.tools.certificate.generator;
 import de.morihofi.acmeserver.config.CertificateConfig;
 import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.tools.certificate.CertMisc;
+import de.morihofi.acmeserver.tools.certificate.X509;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -102,9 +103,9 @@ public class CertificateAuthorityGenerator {
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
      * @throws CertIOException           If there's an IO error during certificate generation.
      */
-    public static X509Certificate createIntermediateCaCertificate(KeyPair caKeyPair, KeyPair intermediateKeyPair, String intermediateCommonName, CertificateExpiration expiration, String crlDistributionUrl, String ocspServiceEndpoint) throws CertificateException, OperatorCreationException, CertIOException {
+    public static X509Certificate createIntermediateCaCertificate(KeyPair caKeyPair, KeyPair intermediateKeyPair, String intermediateCommonName, CertificateExpiration expiration, String crlDistributionUrl, String ocspServiceEndpoint, X509Certificate caCertificate) throws CertificateException, OperatorCreationException, CertIOException {
 
-        X500Name issuerName = new X500Name("CN=" + intermediateCommonName); // Consider getting this from CA certificate
+        X500Name issuerName = X509.getX500NameFromX509Certificate(caCertificate); // Consider getting this from CA certificate
         BigInteger serialNumber = CertMisc.generateSerialNumber();
         Date startDate = new Date();
 

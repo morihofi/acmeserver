@@ -9,6 +9,13 @@ public class DomainValidation {
 
     private static final Pattern PATTERN = Pattern.compile(DOMAIN_AND_HOSTNAME_PATTERN);
 
+    /**
+     * Validates a domain or hostname string.
+     *
+     * @param domain        The domain or hostname to validate.
+     * @param allowWildcard If true, wildcard domains are allowed (e.g., "*.example.com").
+     * @return True if the domain or hostname is valid, otherwise false.
+     */
     public static boolean isValidDomain(final String domain, boolean allowWildcard) {
         if (domain == null) {
             return false;

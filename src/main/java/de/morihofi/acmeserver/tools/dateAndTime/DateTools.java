@@ -6,12 +6,18 @@ import java.util.TimeZone;
 
 public class DateTools {
 
-    public static String formatDateForACME(Date date){
+    /**
+     * Formats a {@link Date} object as a string in the ACME date format.
+     *
+     * @param date The {@link Date} object to be formatted.
+     * @return A string representing the formatted date in the "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" format in UTC time zone.
+     */
+    public static String formatDateForACME(Date date) {
         // Set the date format
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        // Format the date and print it
+        // Format the date and return it as a string
         String formattedDate = dateFormat.format(date);
 
         return formattedDate;

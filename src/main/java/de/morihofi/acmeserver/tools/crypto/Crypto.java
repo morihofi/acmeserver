@@ -7,6 +7,12 @@ import java.security.SecureRandom;
 
 public class Crypto {
 
+    /**
+     * Generates a nonce (number used once) for security purposes.
+     *
+     * @return A randomly generated nonce as a hexadecimal string.
+     * @throws IllegalArgumentException If there is an issue creating the nonce.
+     */
     public static String createNonce() {
         String nonce = "";
 
@@ -24,18 +30,19 @@ public class Crypto {
         }
 
     }
-    public static String hexEncode(byte[] aInput) {
-        StringBuilder result = new StringBuilder();
 
-        char[] digits = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                'a', 'b', 'c', 'd', 'e', 'f' };
-
-        for (byte b : aInput) {
-            result.append(digits[(b & 0xf0) >> 4]);
-            result.append(digits[b & 0x0f]);
+    /**
+     * Converts a byte array to a hexadecimal string.
+     *
+     * @param bytes The byte array to convert.
+     * @return The hexadecimal representation of the byte array.
+     */
+    private static String hexEncode(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder(2 * bytes.length);
+        for (byte b : bytes) {
+            hexString.append(String.format("%02x", b & 0xff));
         }
-
-        return result.toString();
+        return hexString.toString();
     }
 
 

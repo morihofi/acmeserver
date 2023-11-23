@@ -25,7 +25,9 @@ import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.exception.ACMEException;
 import de.morihofi.acmeserver.tools.certificate.CertTools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
+import de.morihofi.acmeserver.tools.certificate.X509;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
+import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
 import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGenerator;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewInitializer;
 import de.morihofi.acmeserver.tools.network.JettySslHelper;
@@ -82,10 +84,11 @@ public class Main {
         log.info("Register Bouncy Castle Security Provider");
         Security.addProvider(new BouncyCastleProvider());
 
-        ensureFilesDirectoryExists();
+        Path configPath = FILES_DIR.resolve("settings.json");
+        ensureFilesDirectoryExists(configPath);
 
         log.info("Loading server configuration");
-        appConfig = configGson.fromJson(Files.readString(FILES_DIR.resolve("settings.json")), Config.class);
+        appConfig = configGson.fromJson(Files.readString(configPath), Config.class);
 
         loadBuildAndGitMetadata();
         initializeDatabaseDrivers();
@@ -232,13 +235,13 @@ public class Main {
                 if (config.getIntermediate().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
                     log.info("Using RSA algorithm");
                     log.info("Generating RSA " + rsaParams.getKeySize() + "bit Key Pair for Intermediate CA");
-                    intermediateKeyPair = CertTools.generateRSAKeyPair(rsaParams.getKeySize());
+                    intermediateKeyPair = KeyPairGenerator.generateRSAKeyPair(rsaParams.getKeySize());
                 }
                 if (config.getIntermediate().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
                     log.info("Using ECDSA algorithm (Elliptic curves");
 
                     log.info("Generating ECDSA Key Pair using curve " + ecdsaAlgorithmParams.getCurveName() + " for Intermediate CA");
-                    intermediateKeyPair = CertTools.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName());
+                    intermediateKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName());
 
                 }
                 if (intermediateKeyPair == null) {
@@ -247,24 +250,24 @@ public class Main {
 
 
                 log.info("Creating Intermediate CA");
-                intermediateCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(caKeyPair, intermediateKeyPair, intermediateCommonName, config.getIntermediate().getExpiration(), provisioner.getFullCrlUrl(), provisioner.getFullOcspUrl());
+                intermediateCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(caKeyPair, intermediateKeyPair, intermediateCommonName, config.getIntermediate().getExpiration(), provisioner.getFullCrlUrl(), provisioner.getFullOcspUrl(), X509.convertToX509Cert(caCertificateBytes));
 
                 log.info("Writing Intermediate CA KeyPair to disk");
                 //KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, provisionerName, intermediateCertificate.getEncoded(), intermediateKeyStoreFilePath);
                 PemUtil.saveKeyPairToPEM(intermediateKeyPair, intermediateKeyPairPublicFile, intermediateKeyPairPrivateFile);
 
                 log.info("Writing Intermedia CA Certificate to disk");
-                Files.writeString(FILES_DIR.resolve(intermediateCertificateFile), CertTools.certificateToPEM(intermediateCertificate.getEncoded()));
+                Files.writeString(FILES_DIR.resolve(intermediateCertificateFile), PemUtil.certificateToPEM(intermediateCertificate.getEncoded()));
             } else {
                 log.info("Loading Intermediate CA for provisioner " + provisionerName + " from disk");
                 log.info("Loading Key Pair");
                 intermediateKeyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
                 log.info("Loading Intermediate CA certificate");
                 byte[] intermediateCertificateBytes = CertTools.getCertificateBytes(intermediateCertificateFile, intermediateKeyPair);
-                intermediateCertificate = CertTools.convertToX509Cert(intermediateCertificateBytes);
+                intermediateCertificate = X509.convertToX509Cert(intermediateCertificateBytes);
             }
             // Initialize the CertificateRenewWatcher for this provisioner
-            CertificateRenewInitializer.initializeIntermediateCertificateRenewWatcher(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile, intermediateCertificateFile, provisioner, config, caKeyPair);
+            CertificateRenewInitializer.initializeIntermediateCertificateRenewWatcher(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile, intermediateCertificateFile, provisioner, config, caKeyPair, X509.convertToX509Cert(caCertificateBytes));
 
 
             if (config.isUseThisProvisionerIntermediateForAcmeApi()) {
@@ -326,7 +329,7 @@ public class Main {
                                     KeyPair keyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
 
                                     byte[] itmCertificateBytes = CertTools.getCertificateBytes(intermediateCertificateFile, keyPair);
-                                    X509Certificate itmCertificate = CertTools.convertToX509Cert(itmCertificateBytes);
+                                    X509Certificate itmCertificate = X509.convertToX509Cert(itmCertificateBytes);
 
                                     //Delete old expired certificate
                                     Files.deleteIfExists(acmeApiCertificatePath);
@@ -401,7 +404,7 @@ public class Main {
             // *****************************************
             // Create Certificate for our ACME Web Server API (Client Certificate)
             log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
-            acmeAPIKeyPair = CertTools.generateRSAKeyPair(4096);
+            acmeAPIKeyPair = KeyPairGenerator.generateRSAKeyPair(4096);
             // Save keyPair to disk
             log.info("Writing keyPair to disk");
             PemUtil.saveKeyPairToPEM(acmeAPIKeyPair, acmeApiPublicKeyPath, acmeApiPrivateKeyPath);
@@ -421,7 +424,7 @@ public class Main {
             // Dumping certificate to HDD
             log.info("Writing certificate to disk");
             byte[][] certificates = new byte[][]{acmeAPICertificate.getEncoded(), intermediateCertificate.getEncoded()};
-            String pemCertificates = CertTools.certificatesChainToPEM(certificates);
+            String pemCertificates = PemUtil.certificatesChainToPEM(certificates);
             Files.createFile(acmeApiCertificatePath);
             Files.writeString(acmeApiCertificatePath, pemCertificates);
         }
@@ -443,12 +446,11 @@ public class Main {
      *
      * @throws IOException If an I/O error occurs while creating directories or checking for the configuration file.
      */
-    private static void ensureFilesDirectoryExists() throws IOException {
+    private static void ensureFilesDirectoryExists(Path configPath) throws IOException {
         if (!Files.exists(FILES_DIR)) {
             log.info("First run detected, creating settings directory");
             Files.createDirectories(FILES_DIR);
         }
-        Path configPath = FILES_DIR.resolve("settings.json");
         if (!Files.exists(configPath)) {
             log.fatal("No configuration was found. Please create a file called \"settings.json\" in \"" + FILES_DIR.toAbsolutePath() + "\". Then try again");
             System.exit(1);
@@ -528,13 +530,13 @@ public class Main {
             if (appConfig.getRootCA().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
                 log.info("Using RSA algorithm");
                 log.info("Generating RSA " + rsaParams.getKeySize() + "bit Key Pair for Root CA");
-                caKeyPair = CertTools.generateRSAKeyPair(rsaParams.getKeySize());
+                caKeyPair = KeyPairGenerator.generateRSAKeyPair(rsaParams.getKeySize());
             }
             if (appConfig.getRootCA().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
                 log.info("Using ECDSA algorithm (Elliptic curves");
 
                 log.info("Generating ECDSA Key Pair using curve " + ecdsaAlgorithmParams.getCurveName() + " for Root CA");
-                caKeyPair = CertTools.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName());
+                caKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName());
 
             }
             if (caKeyPair == null) {
@@ -547,7 +549,7 @@ public class Main {
             // Dumping CA Certificate to HDD, so other clients can install it
             log.info("Writing CA to disk");
             Files.createFile(caCertificatePath);
-            Files.writeString(FILES_DIR.resolve(caCertificatePath), CertTools.certificateToPEM(caCertificateBytes));
+            Files.writeString(FILES_DIR.resolve(caCertificatePath), PemUtil.certificateToPEM(caCertificateBytes));
             // Save CA in Keystore
             log.info("Writing CA to disk");
             PemUtil.saveKeyPairToPEM(caKeyPair, caPublicKeyPath, caPrivateKeyPath);

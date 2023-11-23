@@ -10,6 +10,7 @@ import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,7 +45,7 @@ public class Database {
             Transaction transaction = session.beginTransaction();
             ACMEAccount account = new ACMEAccount();
             account.setAccountId(accountId);
-            account.setPublicKeyPEM(CertTools.convertToPem(SignatureCheck.convertJWKToPublicKey(new JSONObject(jwk))));
+            account.setPublicKeyPEM(PemUtil.convertToPem(SignatureCheck.convertJWKToPublicKey(new JSONObject(jwk))));
             account.setEmails(emails);
             account.setDeactivated(false);
             session.persist(account);
@@ -360,7 +361,7 @@ public class Database {
 
         //Intermediate Certificate
         log.info("Adding Intermediate certificate");
-        pemBuilder.append(CertTools.certificateToPEM(intermediateCertificateBytes));
+        pemBuilder.append(PemUtil.certificateToPEM(intermediateCertificateBytes));
         pemBuilder.append("\n");
 
         //CA Certificate

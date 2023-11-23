@@ -47,7 +47,7 @@ public class KeyStoreUtils {
         }
 
         // Add the KeyPair and certificate to the KeyStore
-        keyStore.setKeyEntry(alias, keyPair.getPrivate(), passwordCharArr, new X509Certificate[]{CertTools.convertToX509Cert(certificate)});
+        keyStore.setKeyEntry(alias, keyPair.getPrivate(), passwordCharArr, new X509Certificate[]{X509.convertToX509Cert(certificate)});
 
         // Save the KeyStore object as a PKCS12 file
         try (OutputStream fos = Files.newOutputStream(targetLocation)) {
@@ -75,7 +75,7 @@ public class KeyStoreUtils {
 
         ArrayList<X509Certificate> chain = new ArrayList<>(); // die Zertifikatskette, die gespeichert werden soll
         for (byte[] certificate : certificates) {
-            chain.add(CertTools.convertToX509Cert(certificate));
+            chain.add(X509.convertToX509Cert(certificate));
         }
 
         try (OutputStream os = Files.newOutputStream(targetLocation)) {

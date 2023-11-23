@@ -37,5 +37,4 @@ public class X509 {
         CertificateFactory cf = CertificateFactory.getInstance("X509");
         return (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certificateBytes));
     }
-
 }

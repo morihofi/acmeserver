@@ -8,6 +8,9 @@ import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
+import org.bouncycastle.util.io.pem.PemWriter;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -157,5 +160,89 @@ public class PemUtil {
         }
     }
 
+
+    /**
+     * Converts an array of byte arrays containing certificates into a PEM-encoded string representing a certificate chain.
+     *
+     * @param certificateBytesArray An array of byte arrays where each element represents a certificate in the chain.
+     * @return The PEM-encoded representation of the certificate chain.
+     * @throws RuntimeException If there is an issue converting the certificate chain.
+     */
+    public static String certificatesChainToPEM(byte[][] certificateBytesArray) {
+        try {
+            // Create a StringWriter to store the entire certificate chain
+            StringWriter stringWriter = new StringWriter();
+
+            // Iterate through each certificate in the chain
+            for (byte[] certificateBytes : certificateBytesArray) {
+                // Create a PemObject for each certificate
+                stringWriter.write(certificateToPEM(certificateBytes));
+                // Add a newline between certificates for better readability
+                stringWriter.write("\n");
+            }
+
+            // Return the entire PEM-encoded representation of the certificate chain
+            return stringWriter.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Error converting the certificate chain to PEM format", e);
+        }
+    }
+
+
+    /**
+     * Converts a byte array containing a certificate into a PEM-encoded string.
+     *
+     * @param certificateBytes The byte array representing the certificate.
+     * @return The PEM-encoded representation of the certificate.
+     * @throws IOException If there is an issue converting the certificate.
+     */
+    public static String certificateToPEM(byte[] certificateBytes) throws IOException {
+        // Create a PemObject with the certificate bytes
+        PemObject pemObject = new PemObject("CERTIFICATE", certificateBytes);
+
+        // Create a StringWriter and a PemWriter
+        StringWriter stringWriter = new StringWriter();
+        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
+            // Write the PemObject to the PemWriter
+            pemWriter.writeObject(pemObject);
+        }
+
+        // Return the PEM-encoded representation of the certificate
+        return stringWriter.toString();
+    }
+
+    /**
+     * Converts a public key to its PEM format representation.
+     *
+     * @param publicKey The public key to be converted to PEM format.
+     * @return The PEM format representation of the public key.
+     * @throws IOException If there is an issue during the conversion process.
+     */
+    public static String convertToPem(PublicKey publicKey) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+
+        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
+            pemWriter.writeObject(new PemObject("PUBLIC KEY", publicKey.getEncoded()));
+        }
+
+        return stringWriter.toString();
+    }
+
+
+    /**
+     * Converts a PEM-encoded string to a byte array containing the binary content.
+     *
+     * @param pemString The PEM-encoded string to be converted.
+     * @return A byte array containing the binary content from the PEM-encoded string.
+     * @throws IOException              If there is an issue during the conversion process.
+     */
+    public static byte[] convertPemToByteArray(String pemString) throws IOException {
+        PemReader pemReader = new PemReader(new StringReader(pemString));
+        PemObject pemObject = pemReader.readPemObject();
+        byte[] content = pemObject.getContent();
+        pemReader.close();
+
+        return content;
+    }
 
 }

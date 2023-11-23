@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.tools.certificate.renew.watcher;
 
 import de.morihofi.acmeserver.tools.certificate.CertTools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
+import de.morihofi.acmeserver.tools.certificate.X509;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -50,7 +51,7 @@ public class CertificateRenewWatcher {
 
             KeyPair keyPair = PemUtil.loadKeyPair(privateKeyPath, publicKeyPath);
             byte[] certificateBytes = CertTools.getCertificateBytes(certificatePath, keyPair);
-            X509Certificate certificate = CertTools.convertToX509Cert(certificateBytes);
+            X509Certificate certificate = X509.convertToX509Cert(certificateBytes);
 
             if (shouldRenew(certificate)) {
                execute.run();

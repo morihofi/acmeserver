@@ -4,19 +4,79 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class Base64Tools {
-    public static String decodeBase64(String encodedString){
+
+    /**
+     * Decodes a Base64-encoded string into its original string representation.
+     *
+     * @param encodedString The Base64-encoded string to decode.
+     * @return The decoded string.
+     */
+    public static String decodeBase64(String encodedString) {
         byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
         String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
-
         return decodedString;
     }
 
-    public static String encodeBase64(String originalInput){
+    /**
+     * Encodes a string into a Base64-encoded string.
+     *
+     * @param originalInput The string to encode.
+     * @return The Base64-encoded string.
+     */
+    public static String encodeBase64(String originalInput) {
         return encodeBase64(originalInput.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static String encodeBase64(byte[] originalInput){
+    /**
+     * Encodes a byte array into a Base64-encoded string.
+     *
+     * @param originalInput The byte array to encode.
+     * @return The Base64-encoded string.
+     */
+    public static String encodeBase64(byte[] originalInput) {
         String encodedString = Base64.getEncoder().encodeToString(originalInput);
         return encodedString;
+    }
+
+    /**
+     * Decodes a Base64 URL-safe encoded string into a UTF-8 encoded string.
+     *
+     * @param stringToDecode The Base64 URL-safe encoded string to decode.
+     * @return The decoded UTF-8 encoded string.
+     */
+    public static String decodeBase64URL(String stringToDecode) {
+        // Decoding URl
+        return new String(decodeBase64URLAsBytes(stringToDecode), StandardCharsets.UTF_8);
+
+    }
+
+    /**
+     * Decodes a Base64 URL-safe encoded string into a byte array.
+     *
+     * @param stringToDecode The Base64 URL-safe encoded string to decode.
+     * @return The decoded byte array.
+     */
+    public static byte[] decodeBase64URLAsBytes(String stringToDecode) {
+        // Getting decoder
+        java.util.Base64.Decoder decoder = java.util.Base64.getUrlDecoder();
+        return decoder.decode(stringToDecode);
+    }
+
+
+    /**
+     * Encodes a string into a Base64 URL-safe representation.
+     *
+     * @param stringToEncode The string to encode.
+     * @return The Base64 URL-safe encoded string.
+     */
+    public static String encodedBase64URL(String stringToEncode) {
+
+        // Getting encoder
+        java.util.Base64.Encoder encoder = java.util.Base64.getUrlEncoder();
+
+        // Encoding URL
+        String eStr = encoder.encodeToString(stringToEncode.getBytes(StandardCharsets.UTF_8));
+
+        return eStr;
     }
 }

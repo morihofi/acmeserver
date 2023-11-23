@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 import java.security.KeyPair;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
 public class CertificateRenewInitializer {
@@ -24,7 +25,7 @@ public class CertificateRenewInitializer {
      * @param provisionerCfg    The configuration for the provisioner.
      * @param caKeyPair         The key pair of the Certificate Authority (CA) issuing the certificate.
      */
-    public static void initializeIntermediateCertificateRenewWatcher(Path privateKeyPath, Path publicKeyPath, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg, KeyPair caKeyPair) {
+    public static void initializeIntermediateCertificateRenewWatcher(Path privateKeyPath, Path publicKeyPath, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg, KeyPair caKeyPair, X509Certificate caCertificate) {
         log.info("Initializing renew watcher for intermediate ca of " + provisioner.getProvisionerName() + " provisioner");
         CertificateRenewWatcher watcher = new CertificateRenewWatcher(
                 privateKeyPath,
@@ -35,7 +36,7 @@ public class CertificateRenewInitializer {
                     // Renew logic for the Intermediate Certificate
                     try {
                         log.info("Renewing Intermediate Certificate for " + provisioner.getProvisionerName());
-                        IntermediateCaRenew.renewIntermediateCertificate(privateKeyPath, publicKeyPath, certificatePath, provisioner, provisionerCfg, caKeyPair);
+                        IntermediateCaRenew.renewIntermediateCertificate(privateKeyPath, publicKeyPath, certificatePath, provisioner, provisionerCfg, caKeyPair, caCertificate);
                     } catch (Exception e) {
                         log.error("Error renewing Intermediate Certificate for " + provisioner.getProvisionerName(), e);
                     }
