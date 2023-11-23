@@ -156,10 +156,17 @@ public class NewOrderEndpoint implements Handler {
     }
 
 
+    /**
+     * Checks if a given domain is allowed based on domain name restrictions defined in the ACME provisioner's configuration.
+     *
+     * @param domain The domain to be checked for permission.
+     * @return True if the domain is allowed based on the configured restrictions or if restrictions are disabled;
+     *         otherwise, false.
+     */
     private boolean checkIfDomainIsAllowed(final String domain) {
-
-        if(!provisioner.getDomainNameRestriction().getEnabled()){
-            //Restriction is disabled, so anything is allowed
+        // Check if domain name restrictions are disabled
+        if (!provisioner.getDomainNameRestriction().getEnabled()) {
+            // Restriction is disabled, so any domain is allowed
             return true;
         }
 
@@ -171,6 +178,7 @@ public class NewOrderEndpoint implements Handler {
             }
         }
 
-        return false; // None of the suffixes fit
+        return false; // None of the suffixes match, and restrictions are enabled
     }
+
 }

@@ -17,6 +17,14 @@ public class CRLEndpoint implements Handler {
     }
 
 
+    /**
+     * Handles an HTTP request by returning the current Certificate Revocation List (CRL) in the response.
+     * Sets the HTTP status code to 200 (OK) and sets the appropriate headers for the CRL content type
+     * and content length. The CRL data is written to the response's output stream.
+     *
+     * @param ctx The Context object representing the HTTP request and response.
+     * @throws Exception if there is an issue with handling the HTTP request.
+     */
     @Override
     public void handle(Context ctx) throws Exception {
         ctx.status(200);

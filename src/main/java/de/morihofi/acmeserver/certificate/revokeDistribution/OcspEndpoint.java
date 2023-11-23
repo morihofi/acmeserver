@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.tools.CertMisc;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -15,12 +16,9 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.jetbrains.annotations.NotNull;
-
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.cert.*;
-import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.RSAPrivateKey;
 import java.util.Date;
 
 public class OcspEndpoint implements Handler {
@@ -35,6 +33,14 @@ public class OcspEndpoint implements Handler {
         this.crlGenerator = crlGenerator;
     }
 
+
+    /**
+     * Handles an HTTP request for OCSP (Online Certificate Status Protocol) by processing the provided OCSP request,
+     * checking the revocation status for the specified certificate serial number, and sending the corresponding OCSP response.
+     *
+     * @param context The Context object representing the HTTP request and response.
+     * @throws Exception if there is an issue with handling the HTTP request or processing the OCSP request.
+     */
     @Override
     public void handle(@NotNull Context context) throws Exception {
         byte[] ocspRequestBytes = context.bodyAsBytes();
@@ -49,28 +55,39 @@ public class OcspEndpoint implements Handler {
         BigInteger serialNumber = requestList[0].getCertID().getSerialNumber();
         log.info("Checking revokation status for serial number " + serialNumber);
 
-        // Verarbeiten der Anfrage und Erstellen der OCSP-Antwort
+        // Processing the request and creating the OCSP response
         OCSPResp ocspResponse = processOCSPRequest(serialNumber);
 
-        // Senden der OCSP-Antwort
+        // Sending the OCSP response
         context.contentType("application/ocsp-response");
         context.result(ocspResponse.getEncoded());
     }
 
+    /**
+     * Processes an OCSP (Online Certificate Status Protocol) request for a given certificate serial number.
+     * This method checks the status of the certificate using the current Certificate Revocation List (CRL)
+     * and generates an OCSP response accordingly.
+     *
+     * @param serialNumber The serial number of the certificate for which the OCSP response is requested.
+     * @return An OCSPResp object representing the OCSP response for the given certificate.
+     * @throws OCSPException if there is an issue with OCSP processing.
+     * @throws CRLException if there is an issue with CRL processing.
+     * @throws CertificateEncodingException if there is an issue with encoding certificates.
+     * @throws OperatorCreationException if there is an issue with operator creation.
+     */
     private OCSPResp processOCSPRequest(BigInteger serialNumber) throws OCSPException, CRLException, CertificateEncodingException, OperatorCreationException {
-        // Annahme: Sie haben Zugriff auf Ihre CRL und CA-Informationen
-        X509CRL crl = crlGenerator.getCurrentCrl(); // Ihre aktuelle CRL
+        X509CRL crl = crlGenerator.getCurrentCrl(); // Current CRL
 
         CertificateStatus certStatus;
         X509CRLEntry revokedCertificate = crl.getRevokedCertificate(serialNumber);
-        // Überprüfung des Zertifikatsstatus anhand der CRL
+        // Checking the certificate status using the CRL
         if (revokedCertificate != null) {
-            // Zertifikat wurde widerrufen
+            // Certificate has been revoked
             Date revocationDate = revokedCertificate.getRevocationDate();
             int revocationReason = revokedCertificate.hasExtensions() ? revokedCertificate.getRevocationReason().ordinal() : CRLReason.unspecified;
             certStatus = new RevokedStatus(revocationDate, revocationReason);
         } else {
-            // Zertifikat ist gültig
+            // Certificate is valid
             certStatus = CertificateStatus.GOOD;
         }
 
@@ -79,17 +96,8 @@ public class OcspEndpoint implements Handler {
         X509Certificate caCert = provisioner.getIntermediateCaCertificate();
         KeyPair caKeyPair = provisioner.getIntermediateKeyPair();
 
-        // Bestimmung des Signaturalgorithmus basierend auf dem Schlüsseltyp
-        String signatureAlgorithm;
-        if (caKeyPair.getPrivate() instanceof RSAPrivateKey) {
-            signatureAlgorithm = "SHA256withRSA";
-        } else if (caKeyPair.getPrivate() instanceof ECPrivateKey) {
-            signatureAlgorithm = "SHA256withECDSA";
-        } else {
-            throw new IllegalArgumentException("Unsupported key type");
-        }
 
-        // Erstellen der OCSP-Antwort
+        // Creating the OCSP response
         SubjectPublicKeyInfo caPublicKeyInfo = SubjectPublicKeyInfo.getInstance(caCert.getPublicKey().getEncoded());
         DigestCalculator digCalc = new JcaDigestCalculatorProviderBuilder().build().get(CertificateID.HASH_SHA1);
         BasicOCSPRespBuilder respBuilder = new BasicOCSPRespBuilder(caPublicKeyInfo, digCalc);
@@ -97,8 +105,8 @@ public class OcspEndpoint implements Handler {
         respBuilder.addResponse(new CertificateID(digCalc,
                 new JcaX509CertificateHolder(caCert), serialNumber), certStatus);
 
-        // Erstellen und Signieren der OCSP-Antwort
-        BasicOCSPResp basicResp = respBuilder.build(new JcaContentSignerBuilder(signatureAlgorithm).build(caKeyPair.getPrivate()),
+        // Creating and signing the OCSP response
+        BasicOCSPResp basicResp = respBuilder.build(new JcaContentSignerBuilder(CertMisc.getSignatureAlgorithmBasedOnKeyType(caKeyPair.getPrivate())).build(caKeyPair.getPrivate()),
                 new X509CertificateHolder[]{new JcaX509CertificateHolder(caCert)},
                 new Date());
 

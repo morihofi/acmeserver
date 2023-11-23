@@ -26,6 +26,18 @@ public class DNSChallenge {
 
     }
 
+    /**
+     * Checks the validity of an ACME (Automated Certificate Management Environment) challenge by querying DNS TXT records
+     * for the specified domain and comparing them to the expected token value derived from the public key of an ACME account.
+     *
+     * @param token      The token value associated with the ACME challenge.
+     * @param domain     The domain for which the ACME challenge is being validated.
+     * @param acmeAccount The ACME account containing the public key used to derive the expected token value.
+     * @return True if the DNS challenge validation succeeds, indicating that the TXT record matches the expected token value;
+     *         otherwise, false.
+     * @throws IOException             if there is an issue with input/output operations.
+     * @throws GeneralSecurityException if there is a general security-related issue.
+     */
     public static boolean check(String token, String domain, ACMEAccount acmeAccount) throws IOException, GeneralSecurityException {
         boolean passed = false;
 
