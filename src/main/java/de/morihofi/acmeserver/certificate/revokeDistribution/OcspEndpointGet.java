@@ -26,11 +26,11 @@ public class OcspEndpointGet implements Handler {
 
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
-        String ocspRequestEncoded = ctx.queryParam("ocspRequest");
+        String ocspRequestEncoded = ctx.pathParam("ocspRequest");
         if (ocspRequestEncoded == null || ocspRequestEncoded.isEmpty()) {
             throw new IllegalArgumentException("No OCSP request provided");
         }
-        byte[] ocspRequestBytes = Base64.getUrlDecoder().decode(ocspRequestEncoded);
+        byte[] ocspRequestBytes = Base64.getDecoder().decode(ocspRequestEncoded);
 
         OCSPReq ocspRequest = new OCSPReq(ocspRequestBytes);
 
