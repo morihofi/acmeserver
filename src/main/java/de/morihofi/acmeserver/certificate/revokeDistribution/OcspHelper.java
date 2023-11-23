@@ -2,8 +2,6 @@ package de.morihofi.acmeserver.certificate.revokeDistribution;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.tools.certificate.CertMisc;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.x509.CRLReason;
@@ -15,53 +13,16 @@ import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
-import org.jetbrains.annotations.NotNull;
+
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.cert.*;
 import java.util.Date;
 
-public class OcspEndpoint implements Handler {
+public class OcspHelper {
 
-    private final Provisioner provisioner;
-    private final CRL crlGenerator;
-    public final Logger log = LogManager.getLogger(getClass());
+    public static final Logger log = LogManager.getLogger(OcspHelper.class);
 
-
-    public OcspEndpoint(Provisioner provisioner, CRL crlGenerator) {
-        this.provisioner = provisioner;
-        this.crlGenerator = crlGenerator;
-    }
-
-
-    /**
-     * Handles an HTTP request for OCSP (Online Certificate Status Protocol) by processing the provided OCSP request,
-     * checking the revocation status for the specified certificate serial number, and sending the corresponding OCSP response.
-     *
-     * @param context The Context object representing the HTTP request and response.
-     * @throws Exception if there is an issue with handling the HTTP request or processing the OCSP request.
-     */
-    @Override
-    public void handle(@NotNull Context context) throws Exception {
-        byte[] ocspRequestBytes = context.bodyAsBytes();
-        OCSPReq ocspRequest = new OCSPReq(ocspRequestBytes);
-
-        // Erhalten der Seriennummer aus der Anfrage
-        Req[] requestList = ocspRequest.getRequestList();
-        if (requestList.length == 0) {
-            throw new IllegalArgumentException("No request data in the OCSP request");
-        }
-
-        BigInteger serialNumber = requestList[0].getCertID().getSerialNumber();
-        log.info("Checking revokation status for serial number " + serialNumber);
-
-        // Processing the request and creating the OCSP response
-        OCSPResp ocspResponse = processOCSPRequest(serialNumber);
-
-        // Sending the OCSP response
-        context.contentType("application/ocsp-response");
-        context.result(ocspResponse.getEncoded());
-    }
 
     /**
      * Processes an OCSP (Online Certificate Status Protocol) request for a given certificate serial number.
@@ -69,13 +30,15 @@ public class OcspEndpoint implements Handler {
      * and generates an OCSP response accordingly.
      *
      * @param serialNumber The serial number of the certificate for which the OCSP response is requested.
+     * @param crlGenerator CRL Generator Instance
+     * @param provisioner Provisioner Instance
      * @return An OCSPResp object representing the OCSP response for the given certificate.
      * @throws OCSPException if there is an issue with OCSP processing.
      * @throws CRLException if there is an issue with CRL processing.
      * @throws CertificateEncodingException if there is an issue with encoding certificates.
      * @throws OperatorCreationException if there is an issue with operator creation.
      */
-    private OCSPResp processOCSPRequest(BigInteger serialNumber) throws OCSPException, CRLException, CertificateEncodingException, OperatorCreationException {
+    public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRL crlGenerator, Provisioner provisioner) throws OCSPException, CRLException, CertificateEncodingException, OperatorCreationException {
         X509CRL crl = crlGenerator.getCurrentCrl(); // Current CRL
 
         CertificateStatus certStatus;

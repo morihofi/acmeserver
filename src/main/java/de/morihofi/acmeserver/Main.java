@@ -14,7 +14,8 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderCertEndp
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
-import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpoint;
+import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointGet;
+import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointPost;
 import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.config.certificateAlgorithms.AlgorithmParams;
@@ -146,8 +147,9 @@ public class Main {
             // CRL distribution
             app.get(provisioner.getCrlPath(), new CRLEndpoint(provisioner, crlGenerator));
 
-            // OCSP (Online Certificate Status Protocol) endpoint
-            app.post(provisioner.getOcspPath(), new OcspEndpoint(provisioner, crlGenerator));
+            // OCSP (Online Certificate Status Protocol) endpoints
+            app.post(provisioner.getOcspPath(), new OcspEndpointPost(provisioner, crlGenerator));
+            app.get(provisioner.getOcspPath() + "/{ocspRequest}", new OcspEndpointGet(provisioner, crlGenerator));
 
             // ACME Directory
             app.get(prefix + "/directory", new DirectoryEndpoint(provisioner));
