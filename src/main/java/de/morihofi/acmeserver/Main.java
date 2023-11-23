@@ -431,6 +431,9 @@ public class Main {
     }
 
 
+    /**
+     * Prints a banner with a stylized text art representation.
+     */
     private static void printBanner() {
         System.out.println("""
                     _                       ____                          \s
