@@ -106,13 +106,13 @@ public class NewOrderEndpoint implements Handler {
             respIdentifiersArr.put(identifierObj);
 
             // Unique value for each domain
-            String authorizationId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + DateTools.formatDateForACME(new Date()));
+            String authorizationId = Crypto.generateRandomId();
             // Random authorization token
-            String authorizationToken = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + System.nanoTime() + "--token");
+            String authorizationToken = Crypto.generateRandomId();
             // Unique challenge id
-            String challengeId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / (double) 100 * 1.557) + "--challenge");
+            String challengeId = Crypto.generateRandomId();
             // Unique certificate id
-            String certificateId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / (double) 168 * 5.579) + "--cert");
+            String certificateId = Crypto.generateRandomId();
 
 
             identifier.setAuthorizationToken(authorizationToken);
