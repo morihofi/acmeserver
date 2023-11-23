@@ -88,5 +88,5 @@ Ideal for regions or networks with strict internet restrictions or in isolated n
  - [OpenAI's ChatGPT](https://chat.openai.com) (Helped me, when I was struggling)
  - [BouncyCastle](https://bouncycastle.org) (For a great cryptographic library in Java)
  - [KeyStore Explorer](https://keystore-explorer.org/) (Helped me debugging my generated certificates)
- - [GetHttpsForFree](https://gethttpsforfree.com/) (For debugging my ACME Server and understanding the ACME protocol, a modified version is built-in the server)
+ - [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree) (For debugging my ACME Server and understanding the ACME protocol, a modified version is built-in the server)
  - [Acme4j](https://github.com/shred/acme4j) (It's client implementation helped me to generate the expected DNS Challenge value on the server side)
