@@ -147,8 +147,7 @@ public class PemUtil {
             Object object;
 
             while ((object = pemParser.readObject()) != null) {
-                if (object instanceof X509CertificateHolder) {
-                    X509CertificateHolder certificateHolder = (X509CertificateHolder) object;
+                if (object instanceof X509CertificateHolder certificateHolder) {
                     X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(
                             new ByteArrayInputStream(certificateHolder.getEncoded())
                     );
