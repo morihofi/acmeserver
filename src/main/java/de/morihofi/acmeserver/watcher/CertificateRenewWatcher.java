@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.watcher;
 
-import de.morihofi.acmeserver.tools.CertTools;
-import de.morihofi.acmeserver.tools.PemUtil;
+import de.morihofi.acmeserver.tools.certificate.CertTools;
+import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

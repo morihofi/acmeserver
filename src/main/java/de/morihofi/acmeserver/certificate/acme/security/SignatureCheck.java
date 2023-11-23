@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadSignatureAlgorithmException;
-import de.morihofi.acmeserver.tools.CertTools;
+import de.morihofi.acmeserver.tools.certificate.CertTools;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;

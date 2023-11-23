@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.tools;
+package de.morihofi.acmeserver.tools.base64;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;

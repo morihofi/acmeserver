@@ -3,7 +3,7 @@ package de.morihofi.acmeserver.certificate.revokeDistribution;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.tools.generator.CertificateRevokationListGenerator;
+import de.morihofi.acmeserver.tools.certificate.generator.CertificateRevokationListGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.security.cert.CRLException;

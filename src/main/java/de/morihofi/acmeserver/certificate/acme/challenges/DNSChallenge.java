@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.challenges;
 
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
-import de.morihofi.acmeserver.tools.PemUtil;
+import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jose4j.jwk.PublicJsonWebKey;

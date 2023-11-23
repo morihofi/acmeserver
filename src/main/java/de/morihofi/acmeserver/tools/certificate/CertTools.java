@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.tools;
+package de.morihofi.acmeserver.tools.certificate;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.config.CertificateConfig;

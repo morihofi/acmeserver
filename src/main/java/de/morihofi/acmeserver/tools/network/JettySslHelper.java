@@ -1,8 +1,6 @@
 package de.morihofi.acmeserver.tools.network;
 
-import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.tools.CertTools;
-import de.morihofi.acmeserver.tools.PemUtil;
+import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.*;

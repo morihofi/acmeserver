@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.certificate.objects;
 
 import com.google.gson.annotations.SerializedName;
-import de.morihofi.acmeserver.tools.Base64Tools;
+import de.morihofi.acmeserver.tools.base64.Base64Tools;
 
 public class ACMERequestBody {
     @SerializedName("protected")

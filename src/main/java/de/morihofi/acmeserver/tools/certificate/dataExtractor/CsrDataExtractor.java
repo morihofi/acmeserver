@@ -1,5 +1,6 @@
-package de.morihofi.acmeserver.tools;
+package de.morihofi.acmeserver.tools.certificate.dataExtractor;
 
+import de.morihofi.acmeserver.tools.certificate.CertTools;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
@@ -9,7 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CSRUtil {
+public class CsrDataExtractor {
     public static List<String> getDomainsFromCSR(String csr) throws IOException {
         byte[] csrBytes = CertTools.decodeBase64URLAsBytes(csr);
         PKCS10CertificationRequest certRequest = new PKCS10CertificationRequest(csrBytes);

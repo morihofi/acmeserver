@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
-import de.morihofi.acmeserver.tools.CertMisc;
+import de.morihofi.acmeserver.tools.certificate.CertMisc;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;

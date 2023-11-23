@@ -1,7 +1,7 @@
-package de.morihofi.acmeserver.tools.generator;
+package de.morihofi.acmeserver.tools.certificate.generator;
 
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
-import de.morihofi.acmeserver.tools.CertMisc;
+import de.morihofi.acmeserver.tools.certificate.CertMisc;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509v2CRLBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CRLConverter;

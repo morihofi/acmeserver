@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.tools;
+package de.morihofi.acmeserver.tools.crypto;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

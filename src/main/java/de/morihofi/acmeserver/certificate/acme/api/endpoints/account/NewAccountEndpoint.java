@@ -7,8 +7,8 @@ import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
-import de.morihofi.acmeserver.tools.Crypto;
-import de.morihofi.acmeserver.tools.RegexTools;
+import de.morihofi.acmeserver.tools.crypto.Crypto;
+import de.morihofi.acmeserver.tools.regex.EmailValidation;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -57,7 +57,7 @@ public class NewAccountEndpoint implements Handler {
                 String email = reqBodyPayloadObj.getJSONArray("contact").getString(i);
                 email = email.replace("mailto:", "");
 
-                if (!RegexTools.isValidEmail(email) || email.split("\\@")[0].equals("localhost")) {
+                if (!EmailValidation.isValidEmail(email) || email.split("\\@")[0].equals("localhost")) {
                     log.error("E-Mail validation failed for email \"" + email + "\"");
                     throw new ACMEInvalidContactException("Mail validation failed for email " + email);
                 }

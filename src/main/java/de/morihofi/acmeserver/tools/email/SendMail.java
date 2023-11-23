@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.tools;
+package de.morihofi.acmeserver.tools.email;
 
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.config.EmailConfig;

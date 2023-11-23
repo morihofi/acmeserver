@@ -10,11 +10,11 @@ import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadCsrException;
-import de.morihofi.acmeserver.tools.CSRUtil;
-import de.morihofi.acmeserver.tools.CertTools;
-import de.morihofi.acmeserver.tools.Crypto;
-import de.morihofi.acmeserver.tools.DateTools;
-import de.morihofi.acmeserver.tools.generator.ServerCertificateGenerator;
+import de.morihofi.acmeserver.tools.certificate.dataExtractor.CsrDataExtractor;
+import de.morihofi.acmeserver.tools.certificate.CertTools;
+import de.morihofi.acmeserver.tools.crypto.Crypto;
+import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
+import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGenerator;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -58,7 +58,7 @@ public class FinalizeOrderEndpoint implements Handler {
         // Check nonce
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
-        List<String> csrDomainNames = CSRUtil.getDomainsFromCSR(csr);
+        List<String> csrDomainNames = CsrDataExtractor.getDomainsFromCSR(csr);
         if(csrDomainNames.isEmpty()){
             throw new ACMEBadCsrException("CSR does not contain any domain names");
         }

@@ -1,13 +1,13 @@
-package de.morihofi.acmeserver.tools;
+package de.morihofi.acmeserver.tools.regex;
 
 import java.util.regex.Pattern;
 
-public class RegexTools {
+public class EmailValidation {
 
     /**
      * Check, if an email has a valid syntax
-     * @param email E-Mail to check
-     * @return
+     * @param email email address to check
+     * @return is it a valid email or not
      */
     public static boolean isValidEmail(String email) {
         // Regular expression pattern to match an email address
