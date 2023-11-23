@@ -10,10 +10,13 @@ import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadCsrException;
-import de.morihofi.acmeserver.tools.CSRUtil;
-import de.morihofi.acmeserver.tools.CertTools;
-import de.morihofi.acmeserver.tools.Crypto;
-import de.morihofi.acmeserver.tools.DateTools;
+import de.morihofi.acmeserver.tools.base64.Base64Tools;
+import de.morihofi.acmeserver.tools.certificate.PemUtil;
+import de.morihofi.acmeserver.tools.certificate.dataExtractor.CsrDataExtractor;
+import de.morihofi.acmeserver.tools.certificate.CertTools;
+import de.morihofi.acmeserver.tools.crypto.Crypto;
+import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
+import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGenerator;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -57,7 +60,7 @@ public class FinalizeOrderEndpoint implements Handler {
         // Check nonce
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
-        List<String> csrDomainNames = CSRUtil.getDomainsFromCSR(csr);
+        List<String> csrDomainNames = CsrDataExtractor.getDomainsFromCSR(csr);
         if(csrDomainNames.isEmpty()){
             throw new ACMEBadCsrException("CSR does not contain any domain names");
         }
@@ -80,12 +83,12 @@ public class FinalizeOrderEndpoint implements Handler {
         }
 
         try {
-            byte[] csrBytes = CertTools.decodeBase64URLAsBytes(csr);
+            byte[] csrBytes = Base64Tools.decodeBase64URLAsBytes(csr);
             PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
             PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
 
             log.info("Creating Certificate for order \"" + orderId + "\" with DNS Names " + String.join(", ", csrDomainNames));
-            X509Certificate acmeGeneratedCertificate = CertTools.createServerCertificate(
+            X509Certificate acmeGeneratedCertificate = ServerCertificateGenerator.createServerCertificate(
                     provisioner.getIntermediateKeyPair(),
                     provisioner.getIntermediateCertificate().getEncoded(),
                     pkPemObject.getContent(),
@@ -93,7 +96,7 @@ public class FinalizeOrderEndpoint implements Handler {
                     provisioner);
 
             BigInteger serialNumber = acmeGeneratedCertificate.getSerialNumber();
-            String pemCertificate = CertTools.certificateToPEM(acmeGeneratedCertificate.getEncoded());
+            String pemCertificate = PemUtil.certificateToPEM(acmeGeneratedCertificate.getEncoded());
 
             Timestamp expiresAt = new Timestamp(acmeGeneratedCertificate.getNotAfter().getTime());
             Timestamp issuedAt = new Timestamp(acmeGeneratedCertificate.getNotBefore().getTime());

@@ -18,17 +18,16 @@ public class HttpNonces {
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
 
-    // Konstruktor ohne Argumente ist erforderlich
+    // Constructor without arguments, needed for Hibernate
     public HttpNonces() {
     }
 
-    // Konstruktor mit Argumenten
+    // Constructor with arguments
     public HttpNonces(String nonce, LocalDateTime timestamp) {
         this.nonce = nonce;
         this.timestamp = timestamp;
     }
 
-    // Getter und Setter für nonce und timestamp
     public String getNonce() {
         return nonce;
     }

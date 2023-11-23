@@ -15,7 +15,6 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndp
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpoint;
-import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.config.certificateAlgorithms.AlgorithmParams;
@@ -24,27 +23,28 @@ import de.morihofi.acmeserver.config.certificateAlgorithms.RSAAlgorithmParams;
 import de.morihofi.acmeserver.config.helper.AlgorithmParamsDeserializer;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.exception.ACMEException;
-import de.morihofi.acmeserver.tools.CertTools;
-import de.morihofi.acmeserver.tools.PemUtil;
+import de.morihofi.acmeserver.tools.certificate.CertTools;
+import de.morihofi.acmeserver.tools.certificate.PemUtil;
+import de.morihofi.acmeserver.tools.certificate.X509;
+import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
+import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
+import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGenerator;
+import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewInitializer;
 import de.morihofi.acmeserver.tools.network.JettySslHelper;
-import de.morihofi.acmeserver.tools.safety.DeepCopyWrapper;
-import de.morihofi.acmeserver.watcher.CertificateRenewWatcher;
+import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -84,10 +84,11 @@ public class Main {
         log.info("Register Bouncy Castle Security Provider");
         Security.addProvider(new BouncyCastleProvider());
 
-        ensureFilesDirectoryExists();
+        Path configPath = FILES_DIR.resolve("settings.json");
+        ensureFilesDirectoryExists(configPath);
 
         log.info("Loading server configuration");
-        appConfig = configGson.fromJson(Files.readString(FILES_DIR.resolve("settings.json")), Config.class);
+        appConfig = configGson.fromJson(Files.readString(configPath), Config.class);
 
         loadBuildAndGitMetadata();
         initializeDatabaseDrivers();
@@ -189,6 +190,14 @@ public class Main {
         log.info("\u2705 Configure Routes completed. Ready for incoming requests");
     }
 
+    /**
+     * Retrieves or initializes provisioners based on configuration and generates ACME Web API client certificates when required.
+     *
+     * @param provisionerConfigList A list of provisioner configurations.
+     * @param javalinInstance       The Javalin instance.
+     * @return A list of provisioners.
+     * @throws Exception If an error occurs during provisioning or certificate generation.
+     */
     private static List<Provisioner> getProvisioners(List<ProvisionerConfig> provisionerConfigList, Javalin javalinInstance) throws Exception {
 
         List<Provisioner> provisioners = new ArrayList<>();
@@ -197,9 +206,6 @@ public class Main {
             String provisionerName = config.getName();
             String intermediateCommonName = config.getIntermediate().getMetadata().getCommonName();
             Path intermediateProvisionerPath = FILES_DIR.resolve(provisionerName);
-            int intermediateDefaultExpireDays = config.getIntermediate().getExpiration().getDays();
-            int intermediateDefaultExpireMonths = config.getIntermediate().getExpiration().getMonths();
-            int intermediateDefaultExpireYears = config.getIntermediate().getExpiration().getYears();
 
             Path intermediateKeyPairPublicFile = intermediateProvisionerPath.resolve("public_key.pem");
             Path intermediateKeyPairPrivateFile = intermediateProvisionerPath.resolve("private_key.pem");
@@ -229,13 +235,13 @@ public class Main {
                 if (config.getIntermediate().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
                     log.info("Using RSA algorithm");
                     log.info("Generating RSA " + rsaParams.getKeySize() + "bit Key Pair for Intermediate CA");
-                    intermediateKeyPair = CertTools.generateRSAKeyPair(rsaParams.getKeySize());
+                    intermediateKeyPair = KeyPairGenerator.generateRSAKeyPair(rsaParams.getKeySize());
                 }
                 if (config.getIntermediate().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
                     log.info("Using ECDSA algorithm (Elliptic curves");
 
                     log.info("Generating ECDSA Key Pair using curve " + ecdsaAlgorithmParams.getCurveName() + " for Intermediate CA");
-                    intermediateKeyPair = CertTools.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName());
+                    intermediateKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName());
 
                 }
                 if (intermediateKeyPair == null) {
@@ -244,24 +250,24 @@ public class Main {
 
 
                 log.info("Creating Intermediate CA");
-                intermediateCertificate = CertTools.createIntermediateCertificate(caKeyPair, caCertificateBytes, intermediateKeyPair, intermediateCommonName, intermediateDefaultExpireDays, intermediateDefaultExpireMonths, intermediateDefaultExpireYears, provisioner.getFullCrlUrl(), provisioner.getFullOcspUrl());
+                intermediateCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(caKeyPair, intermediateKeyPair, intermediateCommonName, config.getIntermediate().getExpiration(), provisioner.getFullCrlUrl(), provisioner.getFullOcspUrl(), X509.convertToX509Cert(caCertificateBytes));
 
                 log.info("Writing Intermediate CA KeyPair to disk");
                 //KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, provisionerName, intermediateCertificate.getEncoded(), intermediateKeyStoreFilePath);
                 PemUtil.saveKeyPairToPEM(intermediateKeyPair, intermediateKeyPairPublicFile, intermediateKeyPairPrivateFile);
 
                 log.info("Writing Intermedia CA Certificate to disk");
-                Files.writeString(FILES_DIR.resolve(intermediateCertificateFile), CertTools.certificateToPEM(intermediateCertificate.getEncoded()));
+                Files.writeString(FILES_DIR.resolve(intermediateCertificateFile), PemUtil.certificateToPEM(intermediateCertificate.getEncoded()));
             } else {
                 log.info("Loading Intermediate CA for provisioner " + provisionerName + " from disk");
                 log.info("Loading Key Pair");
                 intermediateKeyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
                 log.info("Loading Intermediate CA certificate");
                 byte[] intermediateCertificateBytes = CertTools.getCertificateBytes(intermediateCertificateFile, intermediateKeyPair);
-                intermediateCertificate = CertTools.convertToX509Cert(intermediateCertificateBytes);
+                intermediateCertificate = X509.convertToX509Cert(intermediateCertificateBytes);
             }
             // Initialize the CertificateRenewWatcher for this provisioner
-            initializeCertificateRenewWatcher(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile, intermediateCertificateFile, provisioner, config);
+            CertificateRenewInitializer.initializeIntermediateCertificateRenewWatcher(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile, intermediateCertificateFile, provisioner, config, caKeyPair, X509.convertToX509Cert(caCertificateBytes));
 
 
             if (config.isUseThisProvisionerIntermediateForAcmeApi()) {
@@ -290,7 +296,7 @@ public class Main {
                     int httpsPort = appConfig.getServer().getPorts().getHttps();
 
                     /*
-                     * Why we don't use Javalins official SSL Plugin?
+                     * Why we don't use Javalin's official SSL Plugin?
                      * The official SSL plugin depends on Google's Conscrypt provider, which uses native code
                      * and is platform dependent. This workaround implementation uses the built-in Java security
                      * libraries and Bouncy Castle, which is platform independent.
@@ -323,7 +329,7 @@ public class Main {
                                     KeyPair keyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
 
                                     byte[] itmCertificateBytes = CertTools.getCertificateBytes(intermediateCertificateFile, keyPair);
-                                    X509Certificate itmCertificate = CertTools.convertToX509Cert(itmCertificateBytes);
+                                    X509Certificate itmCertificate = X509.convertToX509Cert(itmCertificateBytes);
 
                                     //Delete old expired certificate
                                     Files.deleteIfExists(acmeApiCertificatePath);
@@ -370,10 +376,26 @@ public class Main {
         return provisioners;
     }
 
+    /**
+     * Generates or loads the ACME Web API client certificate and key pair.
+     *
+     * @param intermediateKeyPairPrivateFile The path to the intermediate CA's private key file.
+     * @param intermediateKeyPairPublicFile  The path to the intermediate CA's public key file.
+     * @param intermediateCertificate        The intermediate CA certificate.
+     * @param acmeApiCertificatePath         The path to the ACME Web API client certificate file.
+     * @param acmeApiPublicKeyPath           The path to the ACME Web API client's public key file.
+     * @param acmeApiPrivateKeyPath          The path to the ACME Web API client's private key file.
+     * @param provisioner                    The provisioner for certificate generation.
+     * @throws CertificateException      If an issue occurs during certificate generation or loading.
+     * @throws IOException               If an I/O error occurs while creating or deleting files.
+     * @throws NoSuchAlgorithmException  If the specified algorithm is not available.
+     * @throws NoSuchProviderException   If the specified security provider is not available.
+     * @throws OperatorCreationException If there's an issue with operator creation during certificate generation.
+     */
     private static void generateAcmeApiClientCertificate(Path intermediateKeyPairPrivateFile, Path intermediateKeyPairPublicFile, X509Certificate intermediateCertificate, Path acmeApiCertificatePath, Path acmeApiPublicKeyPath, Path acmeApiPrivateKeyPath, Provisioner provisioner) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
         KeyPair intermediateKeyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
 
-        KeyPair acmeAPIKeyPair = null;
+        KeyPair acmeAPIKeyPair;
         if (!Files.exists(acmeApiPublicKeyPath) || !Files.exists(acmeApiPrivateKeyPath)) {
             Files.deleteIfExists(acmeApiCertificatePath);
             Files.deleteIfExists(acmeApiPublicKeyPath);
@@ -382,7 +404,7 @@ public class Main {
             // *****************************************
             // Create Certificate for our ACME Web Server API (Client Certificate)
             log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
-            acmeAPIKeyPair = CertTools.generateRSAKeyPair(4096);
+            acmeAPIKeyPair = KeyPairGenerator.generateRSAKeyPair(4096);
             // Save keyPair to disk
             log.info("Writing keyPair to disk");
             PemUtil.saveKeyPairToPEM(acmeAPIKeyPair, acmeApiPublicKeyPath, acmeApiPrivateKeyPath);
@@ -397,64 +419,21 @@ public class Main {
             log.info("Using provisioner intermediate CA for generation");
 
             log.info("Creating Server Certificate");
-            X509Certificate acmeAPICertificate = CertTools.createServerCertificate(intermediateKeyPair, intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{appConfig.getServer().getDnsName()}, provisioner);
+            X509Certificate acmeAPICertificate = ServerCertificateGenerator.createServerCertificate(intermediateKeyPair, intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{appConfig.getServer().getDnsName()}, provisioner);
 
             // Dumping certificate to HDD
             log.info("Writing certificate to disk");
             byte[][] certificates = new byte[][]{acmeAPICertificate.getEncoded(), intermediateCertificate.getEncoded()};
-            String pemCertificates = CertTools.certificatesChainToPEM(certificates);
+            String pemCertificates = PemUtil.certificatesChainToPEM(certificates);
             Files.createFile(acmeApiCertificatePath);
             Files.writeString(acmeApiCertificatePath, pemCertificates);
         }
     }
 
-    private static void initializeCertificateRenewWatcher(Path privateKeyPath, Path publicKeyPath, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg) {
-        log.info("Initializing renew watcher for intermediate ca of " + provisioner.getProvisionerName() + " provisioner");
-        CertificateRenewWatcher watcher = new CertificateRenewWatcher(
-                privateKeyPath,
-                publicKeyPath,
-                certificatePath,
-                6, TimeUnit.HOURS,
-                () -> {
-                    // Renew logic for the Intermediate Certificate
-                    try {
-                        log.info("Renewing Intermediate Certificate for " + provisioner.getProvisionerName());
-                        renewIntermediateCertificate(privateKeyPath, publicKeyPath, certificatePath, provisioner, provisionerCfg);
-                    } catch (Exception e) {
-                        log.error("Error renewing Intermediate Certificate for " + provisioner.getProvisionerName(), e);
-                    }
-                }
-        );
-        // You might want to store the watcher reference if needed
-    }
 
-    private static void renewIntermediateCertificate(Path privateKeyPath, Path publicKeyPath, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg) throws CertificateException, OperatorCreationException, IOException {
-        // Load the existing key pair
-        KeyPair keyPair = PemUtil.loadKeyPair(privateKeyPath, publicKeyPath);
-
-        // Generate a new certificate
-        X509Certificate renewedCertificate = CertTools.createIntermediateCertificate(
-                caKeyPair, // This should be your CA's key pair
-                caCertificateBytes, // This should be your CA's certificate bytes
-                keyPair,
-                provisionerCfg.getIntermediate().getMetadata().getCommonName(), // Or any other CN you prefer
-                // Specify the expiration as per your requirement
-                provisionerCfg.getIntermediate().getExpiration().getDays(),
-                provisionerCfg.getIntermediate().getExpiration().getMonths(),
-                provisionerCfg.getIntermediate().getExpiration().getYears(),
-                provisioner.getFullCrlUrl(),
-                provisioner.getFullOcspUrl()
-        );
-
-        // Save the renewed certificate
-        Files.writeString(certificatePath, CertTools.certificateToPEM(renewedCertificate.getEncoded()));
-
-        // Update the provisioner's certificate reference
-        provisioner.setIntermediateCaCertificate(renewedCertificate);
-    }
-
-
-
+    /**
+     * Prints a banner with a stylized text art representation.
+     */
     private static void printBanner() {
         System.out.println("""
                     _                       ____                          \s
@@ -465,37 +444,57 @@ public class Main {
                 """);
     }
 
-    private static void ensureFilesDirectoryExists() throws IOException {
+    /**
+     * Ensures that the necessary files directory and configuration file exist.
+     *
+     * @throws IOException If an I/O error occurs while creating directories or checking for the configuration file.
+     */
+    private static void ensureFilesDirectoryExists(Path configPath) throws IOException {
         if (!Files.exists(FILES_DIR)) {
             log.info("First run detected, creating settings directory");
             Files.createDirectories(FILES_DIR);
         }
-        Path configPath = FILES_DIR.resolve("settings.json");
         if (!Files.exists(configPath)) {
             log.fatal("No configuration was found. Please create a file called \"settings.json\" in \"" + FILES_DIR.toAbsolutePath() + "\". Then try again");
             System.exit(1);
         }
     }
 
-
+    /**
+     * Loads build and Git metadata from resource files and populates corresponding variables.
+     */
     private static void loadBuildAndGitMetadata() {
-        try(InputStream is = Main.class.getResourceAsStream("/build.properties")) {
-            Properties buildMetadataProperties = new Properties();
-            buildMetadataProperties.load(is);
-            buildMetadataVersion = buildMetadataProperties.getProperty("build.version");
-            buildMetadataBuildTime = buildMetadataProperties.getProperty("build.date") + " UTC";
+        try (InputStream is = Main.class.getResourceAsStream("/build.properties")) {
+            if (is != null) {
+                Properties buildMetadataProperties = new Properties();
+                buildMetadataProperties.load(is);
+                buildMetadataVersion = buildMetadataProperties.getProperty("build.version");
+                buildMetadataBuildTime = buildMetadataProperties.getProperty("build.date") + " UTC";
+            } else {
+                log.warn("Unable to load build metadata");
+            }
         } catch (Exception e) {
             log.error("Unable to load build metadata", e);
         }
-        try(InputStream is = Main.class.getResourceAsStream("/git.properties")) {
-            Properties gitMetadataProperties = new Properties();
-            gitMetadataProperties.load(is);
-            buildMetadataGitCommit = gitMetadataProperties.getProperty("git.commit.id.full");
+        try (InputStream is = Main.class.getResourceAsStream("/git.properties")) {
+            if (is != null) {
+                Properties gitMetadataProperties = new Properties();
+                gitMetadataProperties.load(is);
+                buildMetadataGitCommit = gitMetadataProperties.getProperty("git.commit.id.full");
+            } else {
+                log.warn("Unable to load git metadata");
+            }
+
         } catch (Exception e) {
             log.error("Unable to load git metadata", e);
         }
     }
 
+    /**
+     * Initializes database drivers for MariaDB and H2.
+     *
+     * @throws ClassNotFoundException If a database driver class is not found.
+     */
     private static void initializeDatabaseDrivers() throws ClassNotFoundException {
         log.info("Loading MariaDB JDBC driver");
         Class.forName("org.mariadb.jdbc.Driver");
@@ -503,6 +502,17 @@ public class Main {
         Class.forName("org.h2.Driver");
     }
 
+
+    /**
+     * Initializes the Certificate Authority (CA) by generating or loading the CA certificate and key pair.
+     *
+     * @throws NoSuchAlgorithmException           If the specified algorithm is not available.
+     * @throws CertificateException               If an issue occurs during certificate generation or loading.
+     * @throws IOException                        If an I/O error occurs while creating directories or writing files.
+     * @throws OperatorCreationException          If there's an issue with operator creation during certificate generation.
+     * @throws NoSuchProviderException            If the specified security provider is not available.
+     * @throws InvalidAlgorithmParameterException If there's an issue with algorithm parameters during key pair generation.
+     */
     private static void initializeCA() throws NoSuchAlgorithmException, CertificateException, IOException, OperatorCreationException, NoSuchProviderException, InvalidAlgorithmParameterException {
         Path rootCaDir = FILES_DIR.resolve("_rootCA");
         Files.createDirectories(rootCaDir);
@@ -523,13 +533,13 @@ public class Main {
             if (appConfig.getRootCA().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
                 log.info("Using RSA algorithm");
                 log.info("Generating RSA " + rsaParams.getKeySize() + "bit Key Pair for Root CA");
-                caKeyPair = CertTools.generateRSAKeyPair(rsaParams.getKeySize());
+                caKeyPair = KeyPairGenerator.generateRSAKeyPair(rsaParams.getKeySize());
             }
             if (appConfig.getRootCA().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
                 log.info("Using ECDSA algorithm (Elliptic curves");
 
                 log.info("Generating ECDSA Key Pair using curve " + ecdsaAlgorithmParams.getCurveName() + " for Root CA");
-                caKeyPair = CertTools.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName());
+                caKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName());
 
             }
             if (caKeyPair == null) {
@@ -537,12 +547,12 @@ public class Main {
             }
 
             log.info("Creating CA");
-            caCertificateBytes = CertTools.generateCertificateAuthorityCertificate(appConfig.getRootCA(), caKeyPair);
+            caCertificateBytes = CertificateAuthorityGenerator.generateCertificateAuthorityCertificate(appConfig.getRootCA(), caKeyPair).getEncoded();
 
             // Dumping CA Certificate to HDD, so other clients can install it
             log.info("Writing CA to disk");
             Files.createFile(caCertificatePath);
-            Files.writeString(FILES_DIR.resolve(caCertificatePath), CertTools.certificateToPEM(caCertificateBytes));
+            Files.writeString(FILES_DIR.resolve(caCertificatePath), PemUtil.certificateToPEM(caCertificateBytes));
             // Save CA in Keystore
             log.info("Writing CA to disk");
             PemUtil.saveKeyPairToPEM(caKeyPair, caPublicKeyPath, caPrivateKeyPath);

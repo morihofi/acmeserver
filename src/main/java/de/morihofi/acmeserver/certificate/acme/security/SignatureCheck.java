@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadSignatureAlgorithmException;
-import de.morihofi.acmeserver.tools.CertTools;
+import de.morihofi.acmeserver.tools.certificate.CertTools;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
@@ -22,16 +22,43 @@ public class SignatureCheck {
 
     public static final Logger log = LogManager.getLogger(SignatureCheck.class);
 
-    private SignatureCheck(){
+    private SignatureCheck() {
     }
 
+    /**
+     * Verifies the signature of an ACME request using an ACME account.
+     *
+     * @param ctx     The Javalin context containing the request data.
+     * @param account The ACME account for which to verify the signature.
+     * @param gson    The Gson instance for JSON parsing.
+     * @throws NoSuchAlgorithmException           If the specified signature algorithm is not available.
+     * @throws SignatureException                 If an issue occurs during signature verification.
+     * @throws IOException                        If an I/O error occurs during decoding or parsing.
+     * @throws InvalidKeySpecException            If the provided key specifications are invalid.
+     * @throws InvalidKeyException                If the public key is invalid.
+     * @throws NoSuchProviderException            If the specified provider is not available.
+     * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
+     */
     public static void checkSignature(Context ctx, ACMEAccount account, Gson gson) throws NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, InvalidKeyException, NoSuchProviderException {
         checkSignature(ctx, account.getAccountId(), gson);
     }
 
+    /**
+     * Verifies the signature of an ACME request.
+     *
+     * @param ctx       The Javalin context containing the request data.
+     * @param accountId The account ID associated with the request.
+     * @param gson      The Gson instance for JSON parsing.
+     * @throws InvalidKeyException                If the public key is invalid.
+     * @throws NoSuchAlgorithmException           If the specified signature algorithm is not available.
+     * @throws SignatureException                 If an issue occurs during signature verification.
+     * @throws IOException                        If an I/O error occurs during decoding or parsing.
+     * @throws InvalidKeySpecException            If the provided key specifications are invalid.
+     * @throws NoSuchProviderException            If the specified provider is not available.
+     * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
+     */
     public static void checkSignature(Context ctx, String accountId, Gson gson) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, NoSuchProviderException {
         ACMERequestBody requestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
-
 
 
         String protectedHeader = requestBody.getProtected();
@@ -81,12 +108,15 @@ public class SignatureCheck {
             log.error("Signature verification failed for account \"" + accountId + "\"");
             throw new ACMEBadSignatureAlgorithmException("Signature does not match");
         }
-
-
-
     }
 
-    public static String getAccountIdFromProtectedKID(JSONObject protectedHeader){
+    /**
+     * Extracts the account ID from the "kid" (Key Identifier) in the protected header of an ACME request.
+     *
+     * @param protectedHeader The protected header of an ACME request as a JSON object.
+     * @return The account ID extracted from the "kid," or null if not found.
+     */
+    public static String getAccountIdFromProtectedKID(JSONObject protectedHeader) {
         String prefix = "/acme/acct/";
         String kid = protectedHeader.getString("kid");
 
@@ -100,6 +130,17 @@ public class SignatureCheck {
         }
     }
 
+    /**
+     * Converts a JSON Web Key (JWK) represented as a JSON object into a PublicKey.
+     *
+     * @param jwkObj The JSON object representing the JWK.
+     * @return The PublicKey representation of the JWK.
+     * @throws NoSuchAlgorithmException      If the specified algorithm is not available.
+     * @throws InvalidKeySpecException       If the provided key specifications are invalid.
+     * @throws InvalidParameterSpecException If the provided parameter specifications are invalid.
+     * @throws NoSuchProviderException       If the specified provider is not available.
+     * @throws IllegalArgumentException      If the JWK's key type is unsupported.
+     */
     public static PublicKey convertJWKToPublicKey(JSONObject jwkObj) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidParameterSpecException, NoSuchProviderException {
         String kty = jwkObj.getString("kty");
         if ("RSA".equals(kty)) {
@@ -127,7 +168,12 @@ public class SignatureCheck {
         throw new IllegalArgumentException("Unsupported key type: " + kty);
     }
 
-
+    /**
+     * Extracts the account ID from the "kid" (Key Identifier) in the protected header of an ACME request.
+     *
+     * @param protectedJsonString The protected header of an ACME request as a JSON string.
+     * @return The account ID extracted from the "kid," or null if not found.
+     */
     public static String getAccountIdFromProtectedKID(String protectedJsonString) {
         return getAccountIdFromProtectedKID(new JSONObject(protectedJsonString));
     }

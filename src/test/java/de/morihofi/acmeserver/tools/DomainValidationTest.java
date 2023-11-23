@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver.tools;
 
+import de.morihofi.acmeserver.tools.regex.DomainValidation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

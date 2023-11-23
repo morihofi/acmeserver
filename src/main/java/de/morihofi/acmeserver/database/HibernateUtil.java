@@ -28,7 +28,7 @@ public class HibernateUtil {
             try {
                 Configuration configuration = new Configuration();
 
-                // Einstellungen basierend auf der gewählten Datenbank
+                // Settings based on the selected database
                 switch (dbType) {
                     case H2 -> {
                         configuration.setProperty(Environment.DRIVER, "org.h2.Driver");
@@ -48,7 +48,7 @@ public class HibernateUtil {
 
                 configuration.setProperty(Environment.ENABLE_LAZY_LOAD_NO_TRANS, "true");
 
-                // Scannen von Entity-Klassen
+                // Scan Entity classes
                 Reflections reflections = new Reflections("de.morihofi.acmeserver");
                 for (Class<?> clazz : reflections.getTypesAnnotatedWith(Entity.class)) {
                     configuration.addAnnotatedClass(clazz);

@@ -8,11 +8,8 @@ import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
-import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
-import de.morihofi.acmeserver.exception.exceptions.ACMEBadRevocationReasonException;
-import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
-import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
-import de.morihofi.acmeserver.tools.Crypto;
+import de.morihofi.acmeserver.exception.exceptions.*;
+import de.morihofi.acmeserver.tools.crypto.Crypto;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -60,6 +57,7 @@ public class RevokeCertEndpoint implements Handler {
             //if(reqBodyPayloadObj.has("jwk"))
             //Domain Key Method
             //Currently unsupported
+            //TODO: Implement JWK Method
             throw new ACMEMalformedException("Method currently unsupported. Please use Account Key Method (kid)");
         }
 
@@ -87,16 +85,16 @@ public class RevokeCertEndpoint implements Handler {
                 new ByteArrayInputStream(Base64.getUrlDecoder().decode(certificateBase64))
         );
 
-        // Zertifikat prüfen (optional)
-        // Hier können Sie verschiedene Prüfungen durchführen, z.B. Gültigkeitsdatum, Aussteller usw.
-        // Ausstellerinformationen prüfen
+        // Check certificate (optional)
+        // You can perform various checks here, e.g. validity date, issuer, etc.
+        // Check issuer information
         log.debug("Issuer: " + certificate.getIssuerX500Principal());
 
-        // Root-Zertifikat einlesen
+        // Read in root certificate
         X509Certificate intermediateCertificate = provisioner.getIntermediateCertificate();
 
         boolean isValid = true;
-        // Zertifikat gegen Root-Zertifikat validieren
+        // Validate given certificate against root certificate
         try {
             PublicKey intermediateCertificatePublicKey = intermediateCertificate.getPublicKey();
             certificate.verify(intermediateCertificatePublicKey);
@@ -132,6 +130,11 @@ public class RevokeCertEndpoint implements Handler {
             throw new ACMEServerInternalException("Rejected: You cannot revoke a certificate, that belongs to another account.");
         }
 
+        //Check if already revoked
+        if(identifier.getRevokeStatusCode() != null && identifier.getRevokeTimestamp() != null){
+            throw new ACMEAlreadyRevokedException("Error revoking certificate: The specified certificate is already revoked");
+        }
+
         /*
         Reasons:
             0: Unspecified - No specific reason given.
@@ -151,8 +154,9 @@ public class RevokeCertEndpoint implements Handler {
             throw new ACMEBadRevocationReasonException("Invalid revokation reason: " + reason);
         }
 
-        log.info("Revoke certificate for reason " + reason);
+        log.info("Revoking certificate for reason " + reason);
 
+        //Revoke it
         Database.revokeCertificate(identifier, reason);
 
 

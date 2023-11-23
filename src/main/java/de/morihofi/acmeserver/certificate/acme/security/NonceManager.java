@@ -16,12 +16,18 @@ import java.util.Objects;
 public class NonceManager {
     public static final Logger log = LogManager.getLogger(NonceManager.class);
 
+    /**
+     * Checks if a nonce from a decoded protected request body has already been used.
+     *
+     * @param decodedProtected The decoded protected request body as a JSON string.
+     * @throws ACMEBadNonceException If the nonce has already been used.
+     */
     public static void checkNonceFromDecodedProtected(String decodedProtected) {
         JSONObject reqBodyProtectedObj = new JSONObject(decodedProtected);
         String nonce = reqBodyProtectedObj.getString("nonce");
 
-        if(isNonceUsed(nonce)){
-           throw new ACMEBadNonceException("Nonce already used");
+        if (isNonceUsed(nonce)) {
+            throw new ACMEBadNonceException("Nonce already used");
         }
 
     }

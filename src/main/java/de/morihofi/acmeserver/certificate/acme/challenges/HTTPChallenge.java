@@ -27,6 +27,11 @@ public class HTTPChallenge {
     private static Proxy proxy;
 
 
+    /**
+     * Retrieves and configures an HTTP challenge proxy based on the application configuration settings.
+     *
+     * @return A Proxy object representing the configured HTTP challenge proxy.
+     */
     public static Proxy getHTTPChallengeProxy() {
         Proxy.Type proxyType = switch (Main.appConfig.getProxy().getHttpChallenge().getType()) {
             case "socks" -> Proxy.Type.SOCKS;
@@ -77,28 +82,36 @@ public class HTTPChallenge {
 
     private static final String USER_AGENT = "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + " Java/" + System.getProperty("java.version");
 
+    /**
+     * Performs an HTTP challenge validation by sending a GET request to a specified host and checking the response
+     * for the expected authentication token value.
+     *
+     * @param expectedAuthTokenValue The expected authentication token value associated with the challenge.
+     * @param host                   The host to which the GET request is sent for challenge validation.
+     * @return True if the HTTP challenge validation succeeds, indicating that the response contains the expected token value;
+     *         otherwise, false.
+     */
     public static boolean check(String expectedAuthTokenValue, String host) {
         boolean passed = false;
 
         try {
-
-            // avoid creating several instances, should be singleon
-
-
+            // Create an HTTP GET request to the challenge URL
             Request request = new Request.Builder()
                     .url("http://" + host + "/.well-known/acme-challenge/" + expectedAuthTokenValue)
                     .header("User-Agent", USER_AGENT)
                     .build();
+
             if (log.isDebugEnabled()) {
                 log.debug("Performing GET request to \"" + request.url() + "\"");
             }
 
+            // Execute the HTTP GET request and retrieve the response
             Response response = httpClient.newCall(request).execute();
 
             int responseCode = response.code();
-            if (responseCode == HttpURLConnection.HTTP_OK) { // success
 
-
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                // Successful response, check the token in the response
                 log.debug("Got response, checking token in response");
                 String acmeTokenFromHost = response.body().string().split("\\.")[0];
 
@@ -108,16 +121,14 @@ public class HTTPChallenge {
                 } else {
                     log.info("HTTP Challenge validation failed for host \"" + host + "\". Content doesn't match. Expected: " + expectedAuthTokenValue + "; Got: " + acmeTokenFromHost);
                 }
-
             } else {
                 log.error("HTTP Challenge failed for host \"" + host + "\", got HTTP status code " + responseCode);
-
             }
         } catch (IOException e) {
             log.error("HTTP Challenge failed for host \"" + host + "\". Is it reachable?", e);
         }
 
         return passed;
-
     }
+
 }

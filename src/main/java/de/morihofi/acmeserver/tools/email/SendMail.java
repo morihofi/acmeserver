@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.tools;
+package de.morihofi.acmeserver.tools.email;
 
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.config.EmailConfig;
@@ -13,23 +13,36 @@ public class SendMail {
 
     public static final Logger log = LogManager.getLogger(SendMail.class);
 
+    /**
+     * Sends an email using the specified email configuration, including optional encryption settings.
+     *
+     * @param toEmail The recipient's email address.
+     * @param subject The subject of the email.
+     * @param content The content of the email.
+     * @throws MessagingException If there is an issue with the email sending process.
+     */
     public static void sendMail(String toEmail, String subject, String content) throws MessagingException {
-
         EmailConfig emailConfig = Main.appConfig.getEmailSmtp();
 
-        if(!emailConfig.getEnabled()){
-            log.info("Not sending email, cause email sending is disabled in config");
+        if (!emailConfig.getEnabled()) {
+            log.info("Not sending email, because email sending is disabled in the config");
             return;
         }
 
         Properties emailProp = new Properties();
-        emailProp.put("mail.smtp.auth", true);
-        if (emailConfig.getEncryption().equals("starttls")){
-            emailProp.put("mail.smtp.starttls.enable", "true");
-        }
+        emailProp.put("mail.smtp.auth", "true");
         emailProp.put("mail.smtp.host", emailConfig.getHost());
         emailProp.put("mail.smtp.port", String.valueOf(emailConfig.getPort()));
-        emailProp.put("mail.smtp.ssl.trust", emailConfig.getHost());
+
+        if ("starttls".equals(emailConfig.getEncryption())) {
+            emailProp.put("mail.smtp.starttls.enable", "true");
+        } else if ("ssl".equals(emailConfig.getEncryption()) || "tls".equals(emailConfig.getEncryption())) {
+            emailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        } else {
+            // No encryption, use a plain connection
+            emailProp.put("mail.smtp.starttls.enable", "false");
+            emailProp.put("mail.smtp.ssl.trust", "*");
+        }
 
         Session session = Session.getInstance(emailProp, new Authenticator() {
             @Override
@@ -55,7 +68,6 @@ public class SendMail {
 
         log.info("Sending E-Mail with subject \"" + subject + "\" to \"" + toEmail + "\"");
         Transport.send(message);
-        log.info("E-Mail has sent");
-
+        log.info("E-Mail has been sent");
     }
 }

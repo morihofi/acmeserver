@@ -1,0 +1,46 @@
+package de.morihofi.acmeserver.tools.certificate.generator;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.spec.ECGenParameterSpec;
+
+public class KeyPairGenerator {
+
+    /**
+     * Generates an RSA KeyPair with the specified key size.
+     *
+     * @param rsaKeySize The size of the RSA key to generate.
+     * @return A KeyPair containing the generated RSA public and private keys.
+     * @throws NoSuchAlgorithmException If RSA key pair generation is not supported by the security provider.
+     * @throws NoSuchProviderException  If the specified security provider is not found.
+     */
+    public static KeyPair generateRSAKeyPair(int rsaKeySize) throws NoSuchAlgorithmException, NoSuchProviderException {
+        java.security.KeyPairGenerator rsa = java.security.KeyPairGenerator.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
+        rsa.initialize(rsaKeySize);
+
+        return rsa.generateKeyPair();
+    }
+
+    /**
+     * Generates an ECDSA KeyPair with the specified elliptic curve.
+     *
+     * @param curveName The name of the elliptic curve to use for key pair generation.
+     * @return A KeyPair containing the generated ECDSA public and private keys.
+     * @throws NoSuchAlgorithmException           If ECDSA key pair generation is not supported by the security provider.
+     * @throws NoSuchProviderException            If the specified security provider is not found.
+     * @throws InvalidAlgorithmParameterException If the provided curve name is invalid or not supported.
+     */
+    public static KeyPair generateEcdsaKeyPair(String curveName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+        java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME);
+
+        ECGenParameterSpec ecSpec = new ECGenParameterSpec(curveName);
+        keyPairGenerator.initialize(ecSpec);
+
+        return keyPairGenerator.generateKeyPair();
+    }
+
+}

@@ -11,10 +11,10 @@ import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMERejectedIdentifierException;
-import de.morihofi.acmeserver.tools.Crypto;
-import de.morihofi.acmeserver.tools.DateTools;
-import de.morihofi.acmeserver.tools.DomainValidation;
-import de.morihofi.acmeserver.tools.SendMail;
+import de.morihofi.acmeserver.tools.crypto.Crypto;
+import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
+import de.morihofi.acmeserver.tools.regex.DomainValidation;
+import de.morihofi.acmeserver.tools.email.SendMail;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -106,13 +106,13 @@ public class NewOrderEndpoint implements Handler {
             respIdentifiersArr.put(identifierObj);
 
             // Unique value for each domain
-            String authorizationId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + DateTools.formatDateForACME(new Date()));
+            String authorizationId = Crypto.generateRandomId();
             // Random authorization token
-            String authorizationToken = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + System.nanoTime() + "--token");
+            String authorizationToken = Crypto.generateRandomId();
             // Unique challenge id
-            String challengeId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / (double) 100 * 1.557) + "--challenge");
+            String challengeId = Crypto.generateRandomId();
             // Unique certificate id
-            String certificateId = Crypto.hashStringSHA256(identifier.getType() + "." + identifier.getType() + "." + (System.nanoTime() / (double) 168 * 5.579) + "--cert");
+            String certificateId = Crypto.generateRandomId();
 
 
             identifier.setAuthorizationToken(authorizationToken);
@@ -156,10 +156,17 @@ public class NewOrderEndpoint implements Handler {
     }
 
 
+    /**
+     * Checks if a given domain is allowed based on domain name restrictions defined in the ACME provisioner's configuration.
+     *
+     * @param domain The domain to be checked for permission.
+     * @return True if the domain is allowed based on the configured restrictions or if restrictions are disabled;
+     *         otherwise, false.
+     */
     private boolean checkIfDomainIsAllowed(final String domain) {
-
-        if(!provisioner.getDomainNameRestriction().getEnabled()){
-            //Restriction is disabled, so anything is allowed
+        // Check if domain name restrictions are disabled
+        if (!provisioner.getDomainNameRestriction().getEnabled()) {
+            // Restriction is disabled, so any domain is allowed
             return true;
         }
 
@@ -171,6 +178,7 @@ public class NewOrderEndpoint implements Handler {
             }
         }
 
-        return false; // None of the suffixes fit
+        return false; // None of the suffixes match, and restrictions are enabled
     }
+
 }

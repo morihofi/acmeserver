@@ -5,11 +5,11 @@ import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
-import de.morihofi.acmeserver.tools.CertTools;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,14 +37,21 @@ public class Database {
 
     public static final Logger log = LogManager.getLogger(Database.class);
 
-
+    /**
+     * Creates a new ACME (Automated Certificate Management Environment) account in the database with the provided parameters.
+     *
+     * @param accountId The unique identifier for the ACME account.
+     * @param jwk The JSON Web Key (JWK) representing the account's public key.
+     * @param emails A list of email addresses associated with the account.
+     * @throws ACMEServerInternalException If an error occurs while creating the ACME account.
+     */
     public static void createAccount(String accountId, String jwk, List<String> emails) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             assert session != null;
             Transaction transaction = session.beginTransaction();
             ACMEAccount account = new ACMEAccount();
             account.setAccountId(accountId);
-            account.setPublicKeyPEM(CertTools.convertToPem(SignatureCheck.convertJWKToPublicKey(new JSONObject(jwk))));
+            account.setPublicKeyPEM(PemUtil.convertToPem(SignatureCheck.convertJWKToPublicKey(new JSONObject(jwk))));
             account.setEmails(emails);
             account.setDeactivated(false);
             session.persist(account);
@@ -56,7 +63,17 @@ public class Database {
         }
     }
 
-
+    /**
+     * Stores a certificate and related information in the database for a specific ACME order and DNS value.
+     *
+     * @param orderId The unique identifier of the ACME order associated with the certificate.
+     * @param dnsValue The DNS value for which the certificate is issued.
+     * @param csr The Certificate Signing Request (CSR) used to request the certificate.
+     * @param pemCertificate The PEM-encoded certificate to be stored.
+     * @param issueDate The timestamp when the certificate was issued.
+     * @param expireDate The timestamp when the certificate will expire.
+     * @param serialNumber The serial number of the certificate.
+     */
     public static void storeCertificateInDatabase(String orderId, String dnsValue, String csr, String pemCertificate, Timestamp issueDate, Timestamp expireDate, BigInteger serialNumber) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             assert session != null;
@@ -120,6 +137,12 @@ public class Database {
         }
     }
 
+    /**
+     * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated challenge ID.
+     *
+     * @param challengeId The unique identifier of the challenge associated with the ACME identifier.
+     * @return The ACME identifier matching the provided challenge ID, or null if not found.
+     */
     public static ACMEIdentifier getACMEIdentifierByChallengeId(String challengeId) {
         ACMEIdentifier identifier = null;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
@@ -141,6 +164,12 @@ public class Database {
         return identifier;
     }
 
+    /**
+     * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated authorization ID.
+     *
+     * @param authorizationId The unique identifier of the authorization associated with the ACME identifier.
+     * @return The ACME identifier matching the provided authorization ID, or null if not found.
+     */
     public static ACMEIdentifier getACMEIdentifierByAuthorizationId(String authorizationId) {
         ACMEIdentifier identifier = null;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
@@ -162,7 +191,12 @@ public class Database {
         return identifier;
     }
 
-
+    /**
+     * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated certificate serial number.
+     *
+     * @param serialNumber The serial number of the certificate associated with the ACME identifier.
+     * @return The ACME identifier matching the provided certificate serial number, or null if not found.
+     */
     public static ACMEIdentifier getACMEIdentifierCertificateSerialNumber(BigInteger serialNumber) {
         ACMEIdentifier identifier = null;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
@@ -184,7 +218,12 @@ public class Database {
         return identifier;
     }
 
-
+    /**
+     * Retrieves a list of ACME (Automated Certificate Management Environment) identifiers associated with a specific order ID.
+     *
+     * @param orderId The unique identifier of the ACME order for which identifiers are to be retrieved.
+     * @return A list of ACME identifiers associated with the provided order ID.
+     */
     public static List<ACMEIdentifier> getACMEIdentifiersByOrderId(String orderId) {
         List<ACMEIdentifier> identifiers = new ArrayList<>();
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
@@ -206,7 +245,15 @@ public class Database {
         return identifiers;
     }
 
-
+    /**
+     * Creates a new ACME (Automated Certificate Management Environment) order and associates it with an ACME account.
+     *
+     * @param account The ACME account for which the order is created.
+     * @param orderId The unique identifier for the new ACME order.
+     * @param identifierList A list of ACME identifiers to be associated with the order.
+     * @param provisioner The provisioner responsible for creating the order.
+     * @throws ACMEServerInternalException If an error occurs while creating the ACME order.
+     */
     @Transactional
     public static void createOrder(ACMEAccount account, String orderId, List<ACMEIdentifier> identifierList, String provisioner) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
@@ -244,6 +291,13 @@ public class Database {
         }
     }
 
+    /**
+     * Updates the email addresses associated with an ACME (Automated Certificate Management Environment) account.
+     *
+     * @param account The ACME account for which email addresses are to be updated.
+     * @param emails A list of new email addresses to be associated with the account.
+     * @throws ACMEInvalidContactException If an error occurs while updating the email addresses.
+     */
     @Transactional
     public static void updateAccountEmail(ACMEAccount account, List<String> emails) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
@@ -272,59 +326,18 @@ public class Database {
         }
     }
 
-    /*
-    public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId) throws CertificateEncodingException, IOException {
-        StringBuilder pemBuilder = new StringBuilder();
-        boolean certFound = false;
-
-        // Get Issued certificate
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction transaction = session.beginTransaction();
-
-            Query query = session.createQuery("FROM ACMEIdentifier WHERE authorizationId = :authorizationId", ACMEIdentifier.class);
-            query.setParameter("authorizationId", authorizationId);
-            ACMEIdentifier identifier = (ACMEIdentifier) query.getSingleResult();
-
-            if (identifier != null) {
-                certFound = true;
-
-                String certificatePEM = identifier.getCertificatePem();
-                Date certificateExpires = identifier.getCertificateExpires();
-
-                log.info("Getting Certificate for authorization Id \"" + authorizationId + "\" -> Expires at " + certificateExpires.toString());
-
-                pemBuilder.append(certificatePEM);
-            }
-
-            transaction.commit();
-
-        } catch (Exception e) {
-            log.error("Unable get Certificate for authorization id \"" + authorizationId + "\"", e);
-        }
-
-        if (!certFound) {
-            throw new IllegalArgumentException("No certificate was found for authorization id \"" + authorizationId + "\"");
-        }
-
-        //Intermediate Certificate
-        log.info("Adding Intermediate certificate");
-        pemBuilder.append(CertTools.certificateToPEM(Main.intermediateCertificate.getEncoded()));
-        pemBuilder.append("\n");
-
-        //CA Certificate
-        log.info("Adding CA certificate");
-        try (Stream<String> stream = Files.lines(Main.caPath, StandardCharsets.UTF_8)) {
-            stream.forEach(s -> pemBuilder.append(s).append("\n"));
-        } catch (IOException e) {
-            //handle exception
-            log.error("Unable to load CA Certificate", e);
-        }
-
-        return pemBuilder.toString();
-    }
-
- */
-
+    /**
+     * Retrieves a PEM-encoded certificate chain for an ACME (Automated Certificate Management Environment)
+     * authorization identified by its authorization ID, including the issued certificate, intermediate certificate,
+     * and CA (Certificate Authority) certificate.
+     *
+     * @param authorizationId The unique identifier of the ACME authorization for which the certificate chain is requested.
+     * @param intermediateCertificateBytes The bytes of the intermediate certificate to be included in the chain.
+     * @return A PEM-encoded certificate chain consisting of the issued certificate, intermediate certificate, and CA certificate.
+     * @throws CertificateEncodingException If an error occurs while encoding the certificates.
+     * @throws IOException If an error occurs while reading the CA certificate file.
+     * @throws IllegalArgumentException If no certificate is found for the specified authorization ID.
+     */
     public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId, byte[] intermediateCertificateBytes) throws CertificateEncodingException, IOException {
         StringBuilder pemBuilder = new StringBuilder();
         boolean certFound = false;
@@ -360,7 +373,7 @@ public class Database {
 
         //Intermediate Certificate
         log.info("Adding Intermediate certificate");
-        pemBuilder.append(CertTools.certificateToPEM(intermediateCertificateBytes));
+        pemBuilder.append(PemUtil.certificateToPEM(intermediateCertificateBytes));
         pemBuilder.append("\n");
 
         //CA Certificate
@@ -378,6 +391,12 @@ public class Database {
     }
 
 
+    /**
+     * Retrieves an ACME (Automated Certificate Management Environment) account by its unique account ID.
+     *
+     * @param accountId The unique identifier of the ACME account to be retrieved.
+     * @return The ACME account matching the provided account ID, or null if not found.
+     */
     public static ACMEAccount getAccount(String accountId) {
         ACMEAccount acmeAccount = null;
 
@@ -401,6 +420,12 @@ public class Database {
         return acmeAccount;
     }
 
+    /**
+     * Retrieves the ACME (Automated Certificate Management Environment) account associated with a specific order ID.
+     *
+     * @param orderId The unique identifier of the ACME order for which the associated account is to be retrieved.
+     * @return The ACME account associated with the provided order ID, or null if not found.
+     */
     public static ACMEAccount getAccountByOrderId(String orderId) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             assert session != null;
@@ -422,6 +447,12 @@ public class Database {
         return null;
     }
 
+    /**
+     * Retrieves a list of revoked certificates from the database. Revoked certificates are identified by having
+     * both a revoke status code and a revoke timestamp in their associated ACME identifiers.
+     *
+     * @return A list of {@link RevokedCertificate} objects representing the revoked certificates.
+     */
     public static List<RevokedCertificate> getRevokedCertificates() {
         List<RevokedCertificate> certificates = new ArrayList<>();
 
@@ -451,7 +482,13 @@ public class Database {
         return certificates;
     }
 
-
+    /**
+     * Revokes an ACME (Automated Certificate Management Environment) certificate associated with an ACME identifier.
+     *
+     * @param identifier The ACME identifier for which the certificate is to be revoked.
+     * @param reason The reason code for revoking the certificate.
+     * @throws ACMEServerInternalException If an error occurs while revoking the certificate.
+     */
     public static void revokeCertificate(ACMEIdentifier identifier, int reason) {
         identifier.setRevokeTimestamp(Timestamp.from(Instant.now()));
         identifier.setRevokeStatusCode(reason);
