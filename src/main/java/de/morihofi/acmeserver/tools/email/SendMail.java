@@ -13,6 +13,14 @@ public class SendMail {
 
     public static final Logger log = LogManager.getLogger(SendMail.class);
 
+    /**
+     * Sends an email using the specified email configuration, including optional encryption settings.
+     *
+     * @param toEmail   The recipient's email address.
+     * @param subject   The subject of the email.
+     * @param content   The content of the email.
+     * @throws MessagingException If there is an issue with the email sending process.
+     */
     public static void sendMail(String toEmail, String subject, String content) throws MessagingException {
         EmailConfig emailConfig = Main.appConfig.getEmailSmtp();
 
