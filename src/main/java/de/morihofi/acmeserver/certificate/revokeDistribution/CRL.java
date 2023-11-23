@@ -3,6 +3,7 @@ package de.morihofi.acmeserver.certificate.revokeDistribution;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.tools.CertMisc;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.cert.X509CRLHolder;
@@ -53,16 +54,6 @@ public class CRL {
                                X509Certificate caCert,
                                PrivateKey caPrivateKey) throws CertificateEncodingException, CRLException, OperatorCreationException {
 
-        // Bestimmen Sie den Signaturalgorithmus basierend auf dem Schlüsseltyp
-        String signatureAlgorithm;
-        if (caPrivateKey instanceof ECKey) {
-            signatureAlgorithm = "SHA256withECDSA";
-        } else if (caPrivateKey instanceof RSAKey) {
-            signatureAlgorithm = "SHA256withRSA";
-        } else {
-            throw new IllegalArgumentException("Unsupported key type for CRL generation");
-        }
-
 
         // Create the CRL Builder
         X509v2CRLBuilder crlBuilder = new X509v2CRLBuilder(
@@ -80,7 +71,7 @@ public class CRL {
         }
 
         // Sign the CRL with the CA's private key
-        JcaContentSignerBuilder signerBuilder = new JcaContentSignerBuilder(signatureAlgorithm);
+        JcaContentSignerBuilder signerBuilder = new JcaContentSignerBuilder(CertMisc.getSignatureAlgorithmBasedOnKeyType(caPrivateKey));
         X509CRLHolder crlHolder = crlBuilder.build(signerBuilder.build(caPrivateKey));
 
         // Convert the CRL to a Java CRL object
