@@ -46,26 +46,22 @@ public class Crypto {
     }
 
 
+    /**
+     * Calculates the SHA-256 hash of a given string.
+     *
+     * @param stringToHash The input string to calculate the hash for.
+     * @return A hexadecimal representation of the SHA-256 hash of the input string.
+     * @throws NoSuchAlgorithmException If the SHA-256 algorithm is not available on the system.
+     */
     public static String hashStringSHA256(String stringToHash) throws NoSuchAlgorithmException {
+        // Initialize a MessageDigest with the SHA-256 algorithm
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+        // Compute the hash of the input string as bytes
         byte[] encodedHash = digest.digest(stringToHash.getBytes(StandardCharsets.UTF_8));
 
-
-        return bytesToHex(encodedHash);
+        // Convert the byte array to a hexadecimal string representation
+        return hexEncode(encodedHash);
     }
-
-    private static String bytesToHex(byte[] hash) {
-        StringBuilder hexString = new StringBuilder(2 * hash.length);
-        for (byte b : hash) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        return hexString.toString();
-    }
-
-
 
 }
