@@ -36,7 +36,7 @@ public class IntermediateCaRenew {
         X509Certificate renewedCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(
                 caKeyPair, // This should be your CA's key pair
                 provisionerKeyPair,
-                provisionerCfg.getIntermediate().getMetadata().getCommonName(), // Or any other CN you prefer
+                provisionerCfg.getIntermediate().getMetadata(),
                 // Specify the expiration as per your requirement
                 provisionerCfg.getIntermediate().getExpiration(),
                 provisioner.getFullCrlUrl(),

@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.tools.certificate.generator;
 
 import de.morihofi.acmeserver.config.CertificateConfig;
 import de.morihofi.acmeserver.config.CertificateExpiration;
+import de.morihofi.acmeserver.config.CertificateMetadata;
 import de.morihofi.acmeserver.tools.certificate.CertMisc;
 import de.morihofi.acmeserver.tools.certificate.X509;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -54,7 +55,26 @@ public class CertificateAuthorityGenerator {
         calendar.add(Calendar.MONTH, certificateConfig.getExpiration().getMonths());
         calendar.add(Calendar.DATE, certificateConfig.getExpiration().getDays());
 
-        X500Name issuerName = new X500Name("CN=" + certificateConfig.getMetadata().getCommonName());
+        String organisation = certificateConfig.getMetadata().getOrganisation();
+        String organisationalUnit = certificateConfig.getMetadata().getOrganisationalUnit();
+        String countryCode = certificateConfig.getMetadata().getCountryCode();
+
+        if (certificateConfig.getMetadata().getCommonName() == null || "".equals(certificateConfig.getMetadata().getCommonName())) {
+            throw new IllegalArgumentException("A common name is required in root CA. Please change it in your settings.");
+        }
+        String issuerNameString = "CN=" + certificateConfig.getMetadata().getCommonName();
+        if (organisation != null && !organisation.isEmpty()) {
+            issuerNameString += ", O=" + organisation;
+        }
+        if (organisationalUnit != null && !organisationalUnit.isEmpty()) {
+            issuerNameString += ", OU=" + organisationalUnit;
+        }
+        if (countryCode != null && !countryCode.isEmpty()) {
+            issuerNameString += ", C=" + countryCode;
+        }
+
+
+        X500Name issuerName = new X500Name(issuerNameString);
         BigInteger serialNumber = CertMisc.generateSerialNumber();
 
         X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(
@@ -92,18 +112,18 @@ public class CertificateAuthorityGenerator {
      * Authority Information Access. The certificate is signed using the private key of the root CA and the
      * appropriate signature algorithm.</p>
      *
-     * @param caKeyPair              The key pair of the root CA used for signing the intermediate CA certificate.
-     * @param intermediateKeyPair    The key pair for the intermediate CA.
-     * @param intermediateCommonName The common name for the intermediate CA certificate.
-     * @param expiration             The expiration details for the certificate.
-     * @param crlDistributionUrl     The URL for the Certificate Revocation List (CRL) distribution point.
-     * @param ocspServiceEndpoint    The URL for the Online Certificate Status Protocol (OCSP) service endpoint.
+     * @param caKeyPair           The key pair of the root CA used for signing the intermediate CA certificate.
+     * @param intermediateKeyPair The key pair for the intermediate CA.
+     * @param certificateMetadata The metadata for the intermediate CA certificate.
+     * @param expiration          The expiration details for the certificate.
+     * @param crlDistributionUrl  The URL for the Certificate Revocation List (CRL) distribution point.
+     * @param ocspServiceEndpoint The URL for the Online Certificate Status Protocol (OCSP) service endpoint.
      * @return An X509Certificate representing the intermediate CA certificate.
      * @throws CertificateException      If there's an error in processing the certificate data.
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
      * @throws CertIOException           If there's an IO error during certificate generation.
      */
-    public static X509Certificate createIntermediateCaCertificate(KeyPair caKeyPair, KeyPair intermediateKeyPair, String intermediateCommonName, CertificateExpiration expiration, String crlDistributionUrl, String ocspServiceEndpoint, X509Certificate caCertificate) throws CertificateException, OperatorCreationException, CertIOException {
+    public static X509Certificate createIntermediateCaCertificate(KeyPair caKeyPair, KeyPair intermediateKeyPair, CertificateMetadata certificateMetadata, CertificateExpiration expiration, String crlDistributionUrl, String ocspServiceEndpoint, X509Certificate caCertificate) throws CertificateException, OperatorCreationException, CertIOException {
 
         X500Name issuerName = X509.getX500NameFromX509Certificate(caCertificate); // Consider getting this from CA certificate
         BigInteger serialNumber = CertMisc.generateSerialNumber();
@@ -116,7 +136,25 @@ public class CertificateAuthorityGenerator {
         calendar.add(Calendar.DATE, expiration.getDays());
         Date endDate = calendar.getTime();
 
-        X500Name subjectName = new X500Name("CN=" + intermediateCommonName);
+        String organisation = certificateMetadata.getOrganisation();
+        String organisationalUnit = certificateMetadata.getOrganisationalUnit();
+        String countryCode = certificateMetadata.getCountryCode();
+
+        if (certificateMetadata.getCommonName() == null || "".equals(certificateMetadata.getCommonName())) {
+            throw new IllegalArgumentException("A common name is required in intermediate CA. Please change it in your settings.");
+        }
+        String issuerNameString = "CN=" + certificateMetadata.getCommonName();
+        if (organisation != null && !organisation.isEmpty()) {
+            issuerNameString += ", O=" + organisation;
+        }
+        if (organisationalUnit != null && !organisationalUnit.isEmpty()) {
+            issuerNameString += ", OU=" + organisationalUnit;
+        }
+        if (countryCode != null && !countryCode.isEmpty()) {
+            issuerNameString += ", C=" + countryCode;
+        }
+
+        X500Name subjectName = new X500Name(issuerNameString);
         X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(
                 issuerName, serialNumber, startDate, endDate, subjectName,
                 SubjectPublicKeyInfo.getInstance(intermediateKeyPair.getPublic().getEncoded())

@@ -206,7 +206,6 @@ public class Main {
 
         for (ProvisionerConfig config : provisionerConfigList) {
             String provisionerName = config.getName();
-            String intermediateCommonName = config.getIntermediate().getMetadata().getCommonName();
             Path intermediateProvisionerPath = FILES_DIR.resolve(provisionerName);
 
             Path intermediateKeyPairPublicFile = intermediateProvisionerPath.resolve("public_key.pem");
@@ -252,7 +251,7 @@ public class Main {
 
 
                 log.info("Creating Intermediate CA");
-                intermediateCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(caKeyPair, intermediateKeyPair, intermediateCommonName, config.getIntermediate().getExpiration(), provisioner.getFullCrlUrl(), provisioner.getFullOcspUrl(), X509.convertToX509Cert(caCertificateBytes));
+                intermediateCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(caKeyPair, intermediateKeyPair, config.getIntermediate().getMetadata(), config.getIntermediate().getExpiration(), provisioner.getFullCrlUrl(), provisioner.getFullOcspUrl(), X509.convertToX509Cert(caCertificateBytes));
 
                 log.info("Writing Intermediate CA KeyPair to disk");
                 //KeyStoreUtils.saveAsPKCS12(intermediateKeyPair, intermediateKeyStorePassword, provisionerName, intermediateCertificate.getEncoded(), intermediateKeyStoreFilePath);

@@ -23,7 +23,10 @@
   },
   "rootCA": {
     "metadata": {
-      "commonName": "My Root CA I can trust"
+      "commonName": "My Root CA I can trust",
+      "organisation": null,
+      "organisationalUnit": null,
+      "countryCode": null
     },
     "expiration": {
       "days": 3,
@@ -45,7 +48,10 @@
       },
       "intermediate": {
         "metadata": {
-          "commonName": "Testing Intermediate"
+          "commonName": "Testing Intermediate",
+          "organisation": null,
+          "organisationalUnit": null,
+          "countryCode": null
         },
         "expiration": {
           "days": 1,
@@ -80,7 +86,10 @@
       },
       "intermediate": {
         "metadata": {
-          "commonName": "Production Intermediate"
+          "commonName": "Production Intermediate",
+          "organisation": null,
+          "organisationalUnit": null,
+          "countryCode": null
         },
         "expiration": {
           "days": 1,
