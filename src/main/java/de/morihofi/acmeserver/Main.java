@@ -208,11 +208,11 @@ public class Main {
             String provisionerName = config.getName();
             Path intermediateProvisionerPath = FILES_DIR.resolve(provisionerName);
 
-            Path intermediateKeyPairPublicFile = intermediateProvisionerPath.resolve("public_key.pem");
-            Path intermediateKeyPairPrivateFile = intermediateProvisionerPath.resolve("private_key.pem");
-            Path intermediateCertificateFile = intermediateProvisionerPath.resolve("certificate.pem");
+            final Path intermediateKeyPairPublicFile = intermediateProvisionerPath.resolve("public_key.pem");
+            final Path intermediateKeyPairPrivateFile = intermediateProvisionerPath.resolve("private_key.pem");
+            final Path intermediateCertificateFile = intermediateProvisionerPath.resolve("certificate.pem");
 
-            Provisioner provisioner = new Provisioner(provisionerName, null, null, config.getMeta(), config.getIssuedCertificateExpiration(), config.getDomainNameRestriction(), config.isWildcardAllowed());
+            final Provisioner provisioner = new Provisioner(provisionerName, null, null, config.getMeta(), config.getIssuedCertificateExpiration(), config.getDomainNameRestriction(), config.isWildcardAllowed());
 
             X509Certificate intermediateCertificate;
             KeyPair intermediateKeyPair = null;
