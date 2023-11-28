@@ -40,29 +40,35 @@ public class ServerCertificateGenerator {
      * and Authority Information Access for OCSP. The certificate is then signed using the private key
      * from the intermediate key pair and the appropriate signature algorithm.</p>
      *
-     * @param intermediateKeyPair          The key pair for the intermediate certificate authority.
-     * @param intermediateCertificateBytes The byte array representing the intermediate certificate.
-     * @param serverPublicKeyBytes         The byte array representing the server's public key.
-     * @param dnsNames                     An array of DNS names to be associated with the server certificate.
-     * @param provisioner                  The provisioner object containing certificate expiration and other details.
+     * @param intermediateKeyPair     The key pair for the intermediate certificate authority.
+     * @param intermediateCertificate The byte array intermediate certificate.
+     * @param serverPublicKeyBytes    The byte array representing the server's public key.
+     * @param dnsNames                An array of DNS names to be associated with the server certificate.
+     * @param provisioner             The provisioner object containing certificate expiration and other details.
      * @return An X509Certificate which represents the server certificate.
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
      * @throws CertificateException      If there's an error in processing the certificate data.
      * @throws CertIOException           If there's an IO error during certificate generation.
      */
-    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, byte[] intermediateCertificateBytes, byte[] serverPublicKeyBytes, String[] dnsNames, Provisioner provisioner) throws OperatorCreationException, CertificateException, CertIOException {
+    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate, byte[] serverPublicKeyBytes, String[] dnsNames, Provisioner provisioner) throws OperatorCreationException, CertificateException, CertIOException {
 
         // Create our virtual "CSR"
-        X500Name issuerName = X509.getX500NameFromX509Certificate(X509.convertToX509Cert(intermediateCertificateBytes));
+        X500Name issuerName = X509.getX500NameFromX509Certificate(intermediateCertificate);
         BigInteger serialNumber = CertMisc.generateSerialNumber();
         Date startDate = new Date(); // Starts now
 
+        // Calculate the proposed end date based on provisioner settings
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(startDate);
         calendar.add(Calendar.YEAR, provisioner.getGeneratedCertificateExpiration().getYears());
         calendar.add(Calendar.MONTH, provisioner.getGeneratedCertificateExpiration().getMonths());
         calendar.add(Calendar.DATE, provisioner.getGeneratedCertificateExpiration().getDays());
-        Date endDate = calendar.getTime();
+        Date proposedEndDate = calendar.getTime();
+
+        // Ensure the server certificate does not outlive the intermediate certificate
+        Date intermediateEndDate = intermediateCertificate.getNotAfter();
+        Date endDate = (proposedEndDate.before(intermediateEndDate)) ? proposedEndDate : intermediateEndDate;
+
 
         X500Name subjectName = new X500Name("CN=" + dnsNames[0]);
         X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(

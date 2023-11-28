@@ -90,7 +90,7 @@ public class FinalizeOrderEndpoint implements Handler {
             log.info("Creating Certificate for order \"" + orderId + "\" with DNS Names " + String.join(", ", csrDomainNames));
             X509Certificate acmeGeneratedCertificate = ServerCertificateGenerator.createServerCertificate(
                     provisioner.getIntermediateKeyPair(),
-                    provisioner.getIntermediateCertificate().getEncoded(),
+                    provisioner.getIntermediateCertificate(),
                     pkPemObject.getContent(),
                     csrDomainNames.toArray(new String[0]),
                     provisioner);

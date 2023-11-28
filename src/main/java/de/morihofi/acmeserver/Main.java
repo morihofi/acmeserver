@@ -33,6 +33,7 @@ import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGener
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewInitializer;
 import de.morihofi.acmeserver.tools.network.JettySslHelper;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
+import de.morihofi.acmeserver.tools.regex.ConfigCheck;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
 import org.apache.logging.log4j.LogManager;
@@ -206,6 +207,11 @@ public class Main {
 
         for (ProvisionerConfig config : provisionerConfigList) {
             String provisionerName = config.getName();
+
+            if (!ConfigCheck.isValidProvisionerName(provisionerName)){
+                throw new IllegalArgumentException("Invalid provisioner name in config. Can only contain A-Z, A-z, numbers, \"-\" and \"_\"");
+            }
+
             Path intermediateProvisionerPath = FILES_DIR.resolve(provisionerName);
 
             final Path intermediateKeyPairPublicFile = intermediateProvisionerPath.resolve("public_key.pem");
@@ -420,7 +426,7 @@ public class Main {
             log.info("Using provisioner intermediate CA for generation");
 
             log.info("Creating Server Certificate");
-            X509Certificate acmeAPICertificate = ServerCertificateGenerator.createServerCertificate(intermediateKeyPair, intermediateCertificate.getEncoded(), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{appConfig.getServer().getDnsName()}, provisioner);
+            X509Certificate acmeAPICertificate = ServerCertificateGenerator.createServerCertificate(intermediateKeyPair, intermediateCertificate, acmeAPIKeyPair.getPublic().getEncoded(), new String[]{appConfig.getServer().getDnsName()}, provisioner);
 
             // Dumping certificate to HDD
             log.info("Writing certificate to disk");
