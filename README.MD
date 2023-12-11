@@ -45,9 +45,11 @@ java -jar acmeserver-VERSION.jar
 ## 📒 Disclaimer
 This version is not fully RFC 8555 compliant, but should work with most clients. 
 
-## ✅ Tested ACME Clients
-- acme.sh (works)
-- Certbot (works)
+## ✅ Tested and working ACME Clients
+- [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree)
+- [acme.sh](https://github.com/acmesh-official/acme.sh)
+- [Certbot](https://certbot.eff.org)
+- [Traefik](https://github.com/traefik/traefik)
 
 ## 💻 Tested Operating Systems
 - Debian 11, 12
