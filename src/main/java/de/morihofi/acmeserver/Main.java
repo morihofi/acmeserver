@@ -158,6 +158,10 @@ public class Main {
             // New account
             app.post(prefix + "/acme/new-acct", new NewAccountEndpoint(provisioner));
 
+            // TODO: Key Change Endpoint (Account key rollover)
+            app.post(prefix + "/acme/key-change", new NotImplementedEndpoint());
+            app.get(prefix + "/acme/key-change", new NotImplementedEndpoint());
+
             // New Nonce
             app.head(prefix + "/acme/new-nonce", new NewNonceEndpoint(provisioner));
             app.get(prefix + "/acme/new-nonce", new NewNonceEndpoint(provisioner));
