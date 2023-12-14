@@ -16,6 +16,7 @@ public class PKCS12KeyStoreConfig implements IKeyStoreConfig{
         return password;
     }
 
+
     public void setPassword(String password) {
         this.password = password;
     }

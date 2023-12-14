@@ -5,7 +5,7 @@ public class ConfigCheck {
         if (provisionerName == null) {
             return false;
         }
-        return provisionerName.matches("^[A-Za-z0-9_-]+$") && provisionerName.length() <= 255;
+        return provisionerName.matches("^[a-z0-9_-]+$") && provisionerName.length() <= 255;
     }
 
 

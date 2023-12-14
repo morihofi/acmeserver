@@ -3,11 +3,14 @@ package de.morihofi.acmeserver.tools.certificate.renew.watcher;
 import de.morihofi.acmeserver.tools.certificate.CertTools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.X509;
+import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.concurrent.Executors;
@@ -20,19 +23,16 @@ public class CertificateRenewWatcher {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private static final int RENEWAL_THRESHOLD_DAYS = 7; // Tage vor Ablauf, an denen das Zertifikat erneuert werden soll
 
-
-    private final Path privateKeyPath;
-    private final Path publicKeyPath;
-    private final Path certificatePath;
+    private final CryptoStoreManager cryptoStoreManager;
+    private final String alias;
     private final int period;
     private final TimeUnit timeUnit;
     private final Runnable execute;
 
 
-    public CertificateRenewWatcher(Path privateKeyPath, Path publicKeyPath, Path certificatePath, int period, TimeUnit timeUnit, Runnable execute) {
-        this.privateKeyPath = privateKeyPath;
-        this.publicKeyPath = publicKeyPath;
-        this.certificatePath = certificatePath;
+    public CertificateRenewWatcher(CryptoStoreManager cryptoStoreManager, String alias, int period, TimeUnit timeUnit, Runnable execute) {
+        this.cryptoStoreManager = cryptoStoreManager;
+        this.alias = alias;
         this.period = period;
         this.timeUnit = timeUnit;
         this.execute = execute;
@@ -48,9 +48,9 @@ public class CertificateRenewWatcher {
 
 
         try {
+            KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
-            KeyPair keyPair = PemUtil.loadKeyPair(privateKeyPath, publicKeyPath);
-            byte[] certificateBytes = CertTools.getCertificateBytes(certificatePath, keyPair);
+            byte[] certificateBytes = keyStore.getCertificate(alias).getEncoded();
             X509Certificate certificate = X509.convertToX509Cert(certificateBytes);
 
             if (shouldRenew(certificate)) {

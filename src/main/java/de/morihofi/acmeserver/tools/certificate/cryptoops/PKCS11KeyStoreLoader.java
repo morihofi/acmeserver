@@ -29,7 +29,10 @@ public class PKCS11KeyStoreLoader {
         for (Iterator<String> it = keyStore.aliases().asIterator(); it.hasNext(); ) {
             String alias = it.next();
 
+            PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, "".toCharArray());
+
             System.out.println(alias);
+            System.out.println(privateKey.getEncoded());
         }
     }
 

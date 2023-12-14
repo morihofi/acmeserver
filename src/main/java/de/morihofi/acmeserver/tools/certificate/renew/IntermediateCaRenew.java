@@ -5,6 +5,7 @@ import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.tools.certificate.CertTools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.X509;
+import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -12,6 +13,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -29,23 +33,20 @@ public class IntermediateCaRenew {
      * @throws OperatorCreationException If an issue occurs during operator creation.
      * @throws IOException               If an I/O error occurs during file operations.
      */
-    public static void renewIntermediateCertificate(KeyPair provisionerKeyPair, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg, KeyPair caKeyPair, X509Certificate caCertificate) throws CertificateException, OperatorCreationException, IOException {
+    public static void renewIntermediateCertificate(KeyPair provisionerKeyPair, Provisioner provisioner, ProvisionerConfig provisionerCfg, KeyPair caKeyPair, X509Certificate caCertificate, CryptoStoreManager cryptoStoreManager, String intermediateAlias) throws CertificateException, OperatorCreationException, IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
 
 
         // Generate a new certificate
         X509Certificate renewedCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(
-                caKeyPair, // This should be your CA's key pair
+                cryptoStoreManager,
+                intermediateAlias,
                 provisionerKeyPair,
                 provisionerCfg.getIntermediate().getMetadata(),
                 // Specify the expiration as per your requirement
                 provisionerCfg.getIntermediate().getExpiration(),
                 provisioner.getFullCrlUrl(),
-                provisioner.getFullOcspUrl(),
-                caCertificate
+                provisioner.getFullOcspUrl()
         );
-
-        // Save the renewed certificate
-        Files.writeString(certificatePath, PemUtil.certificateToPEM(renewedCertificate.getEncoded()));
 
         // Update the provisioner's certificate reference
         provisioner.setIntermediateCaCertificate(renewedCertificate);
@@ -64,10 +65,10 @@ public class IntermediateCaRenew {
      * @throws OperatorCreationException If an issue occurs during operator creation.
      * @throws IOException               If an I/O error occurs during file operations.
      */
-    public static void renewIntermediateCertificate(Path privateKeyPath, Path publicKeyPath, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg, KeyPair caKeyPair, X509Certificate caCertificate) throws CertificateException, OperatorCreationException, IOException {
+/*    public static void renewIntermediateCertificate(Path privateKeyPath, Path publicKeyPath, Path certificatePath, Provisioner provisioner, ProvisionerConfig provisionerCfg, KeyPair caKeyPair, X509Certificate caCertificate) throws CertificateException, OperatorCreationException, IOException {
         // Load the existing key pair
         KeyPair provisionerKeyPair = PemUtil.loadKeyPair(privateKeyPath, publicKeyPath);
 
         renewIntermediateCertificate(provisionerKeyPair, certificatePath, provisioner, provisionerCfg, caKeyPair, caCertificate);
-    }
+    }*/
 }

@@ -18,6 +18,7 @@ public class PKCS11KeyStoreConfig implements IKeyStoreConfig{
         return pin;
     }
 
+
     public void setPassword(String pin) {
         this.pin = pin;
     }

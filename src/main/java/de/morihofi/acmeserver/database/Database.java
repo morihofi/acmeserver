@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.database;
 
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
@@ -10,6 +11,7 @@ import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
+import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,7 +26,11 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.KeyStoreException;
+import java.security.Provider;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.sql.*;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -338,7 +344,7 @@ public class Database {
      * @throws IOException                  If an error occurs while reading the CA certificate file.
      * @throws IllegalArgumentException     If no certificate is found for the specified authorization ID.
      */
-    public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId, byte[] intermediateCertificateBytes) throws CertificateEncodingException, IOException {
+    public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId, byte[] intermediateCertificateBytes, Provisioner provisioner) throws CertificateEncodingException, IOException, KeyStoreException {
         StringBuilder pemBuilder = new StringBuilder();
         boolean certFound = false;
 
@@ -378,13 +384,26 @@ public class Database {
 
         //CA Certificate
         log.info("Adding CA certificate");
-        try (Stream<String> stream = Files.lines(Main.caCertificatePath, StandardCharsets.UTF_8)) {
-            assert stream != null;
-            stream.forEach(s -> pemBuilder.append(s).append("\n"));
-        } catch (IOException e) {
-            //handle exception
-            log.error("Unable to load CA Certificate", e);
+        //try (Stream<String> stream = Files.lines(Main.caCertificatePath, StandardCharsets.UTF_8)) {
+        //    assert stream != null;
+        //    stream.forEach(s -> pemBuilder.append(s).append("\n"));
+        //} catch (IOException e) {
+        //    //handle exception
+        //    log.error("Unable to load CA Certificate", e);
+        //}
+
+        for (Certificate certificate :
+                provisioner.getCryptoStoreManager().getKeyStore().getCertificateChain(
+                        CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(
+                                provisioner.getProvisionerName()
+                        )
+                )
+        ) {
+            X509Certificate x509Certificate = (X509Certificate) certificate;
+            pemBuilder.append(PemUtil.certificateToPEM(x509Certificate.getEncoded()));
+            pemBuilder.append("\n");
         }
+
 
         log.info("Returning certificate chain");
         return pemBuilder.toString();

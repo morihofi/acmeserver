@@ -5,6 +5,7 @@ import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.CertificateMetadata;
 import de.morihofi.acmeserver.tools.certificate.CertMisc;
 import de.morihofi.acmeserver.tools.certificate.X509;
+import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -21,8 +22,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
@@ -112,7 +112,7 @@ public class CertificateAuthorityGenerator {
      * Authority Information Access. The certificate is signed using the private key of the root CA and the
      * appropriate signature algorithm.</p>
      *
-     * @param caKeyPair           The key pair of the root CA used for signing the intermediate CA certificate.
+     * @param cryptoStoreManager  Manager of the keyStore we use
      * @param intermediateKeyPair The key pair for the intermediate CA.
      * @param certificateMetadata The metadata for the intermediate CA certificate.
      * @param expiration          The expiration details for the certificate.
@@ -123,7 +123,11 @@ public class CertificateAuthorityGenerator {
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
      * @throws CertIOException           If there's an IO error during certificate generation.
      */
-    public static X509Certificate createIntermediateCaCertificate(KeyPair caKeyPair, KeyPair intermediateKeyPair, CertificateMetadata certificateMetadata, CertificateExpiration expiration, String crlDistributionUrl, String ocspServiceEndpoint, X509Certificate caCertificate) throws CertificateException, OperatorCreationException, CertIOException {
+    public static X509Certificate createIntermediateCaCertificate(CryptoStoreManager cryptoStoreManager, String intermediateAlias, KeyPair intermediateKeyPair, CertificateMetadata certificateMetadata, CertificateExpiration expiration, String crlDistributionUrl, String ocspServiceEndpoint) throws CertificateException, OperatorCreationException, CertIOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+
+        KeyStore keyStore = cryptoStoreManager.getKeyStore();
+
+        X509Certificate caCertificate = (X509Certificate) keyStore.getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
 
         X500Name issuerName = X509.getX500NameFromX509Certificate(caCertificate); // Consider getting this from CA certificate
         BigInteger serialNumber = CertMisc.generateSerialNumber();
@@ -179,13 +183,17 @@ public class CertificateAuthorityGenerator {
         certBuilder.addExtension(Extension.authorityInfoAccess, false, new DERSequence(authorityInformationAccessVector));
 
         // Signature Algorithm
-        String signatureAlgorithm = CertMisc.getSignatureAlgorithmBasedOnKeyType(caKeyPair.getPrivate());
+        PrivateKey caPrivateKey = (PrivateKey) keyStore.getKey(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA, "".toCharArray());
 
-        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(caKeyPair.getPrivate());
+        String signatureAlgorithm = CertMisc.getSignatureAlgorithmBasedOnKeyType(caPrivateKey);
+
+        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(caPrivateKey);
         X509CertificateHolder holder = certBuilder.build(signer);
         JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
         converter.setProvider(BouncyCastleProvider.PROVIDER_NAME);
-        return converter.getCertificate(holder);
+        X509Certificate intermediateCaCertificate = converter.getCertificate(holder);
+
+        return intermediateCaCertificate;
     }
 
 
