@@ -101,7 +101,8 @@ public class Main {
 
         log.info("Starting ACME API WebServer");
         Javalin app = Javalin.create(javalinConfig -> {
-            javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
+            //TODO: Make it compatible again with modules
+           // javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
         });
 
 
