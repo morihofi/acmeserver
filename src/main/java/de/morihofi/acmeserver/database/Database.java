@@ -379,13 +379,9 @@ public class Database {
             throw new IllegalArgumentException("No certificate was found for authorization id \"" + authorizationId + "\"");
         }
 
-        //Intermediate Certificate
-        log.info("Adding Intermediate certificate");
-        pemBuilder.append(PemUtil.certificateToPEM(intermediateCertificateBytes));
+        //Certificate chain
+        log.info("Adding Intermediate and CA certificate");
         pemBuilder.append("\n");
-
-        //CA Certificate
-        log.info("Adding CA certificate");
 
         for (Certificate certificate :
                 provisioner.getCryptoStoreManager().getKeyStore().getCertificateChain(
@@ -397,6 +393,7 @@ public class Database {
             X509Certificate x509Certificate = (X509Certificate) certificate;
             pemBuilder.append(PemUtil.certificateToPEM(x509Certificate.getEncoded()));
             pemBuilder.append("\n");
+
         }
 
 
