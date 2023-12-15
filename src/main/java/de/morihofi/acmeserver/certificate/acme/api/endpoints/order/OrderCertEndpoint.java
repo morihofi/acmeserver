@@ -36,7 +36,8 @@ public class OrderCertEndpoint implements Handler {
         for (ACMEIdentifier identifier : identifiers) {
             String individualCertificateChain = Database.getCertificateChainPEMofACMEbyAuthorizationId(
                     identifier.getAuthorizationId(),
-                    provisioner.getIntermediateCertificate().getEncoded()
+                    provisioner.getIntermediateCertificate().getEncoded(),
+                    provisioner
             );
 
             responseCertificateChainBuilder.append(individualCertificateChain);

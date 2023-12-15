@@ -26,6 +26,7 @@ java -jar acmeserver-VERSION.jar
 
 ## ✨ Features
 - Self-hosted ACME Server for use with your own CA
+- Support for PKCS#12 (.p12) KeyStore and PKCS#11 Hardware Security Modules (HSM)
 - Revokation support
 - Mostly ACME RFC compliant
 - Multiple provisioners support with own intermediate CA
@@ -45,9 +46,11 @@ java -jar acmeserver-VERSION.jar
 ## 📒 Disclaimer
 This version is not fully RFC 8555 compliant, but should work with most clients. 
 
-## ✅ Tested ACME Clients
-- acme.sh (works)
-- Certbot (works)
+## ✅ Tested and working ACME Clients
+- [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree)
+- [acme.sh](https://github.com/acmesh-official/acme.sh)
+- [Certbot](https://certbot.eff.org)
+- [Traefik](https://github.com/traefik/traefik)
 
 ## 💻 Tested Operating Systems
 - Debian 11, 12

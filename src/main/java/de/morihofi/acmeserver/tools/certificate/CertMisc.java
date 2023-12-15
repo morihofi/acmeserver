@@ -30,6 +30,9 @@ public class CertMisc {
             signatureAlgorithm = "SHA256withRSA";
         } else if (privateKey instanceof ECPrivateKey) {
             signatureAlgorithm = "SHA256withECDSA";
+        } else if (privateKey.getClass().getName().equals("sun.security.pkcs11.P11Key$P11PrivateKey")) {
+            // Assuming RSA key for PKCS#11 - may need to be adjusted based on actual key type and capabilities
+            signatureAlgorithm = "SHA256withRSA";
         } else {
             throw new IllegalArgumentException("Unsupported key type: " + privateKey.getClass().getName());
         }

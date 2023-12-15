@@ -3,12 +3,11 @@ package de.morihofi.acmeserver.tools.network;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.*;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.*;
@@ -36,7 +35,7 @@ public class JettySslHelper {
      */
     public static SSLContext createSSLContext(X509Certificate[] certificateChain, KeyPair keyPair)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException,
-            KeyManagementException, UnrecoverableKeyException {
+            KeyManagementException, UnrecoverableKeyException, NoSuchProviderException {
 
         // Create a new KeyStore
         KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -54,12 +53,40 @@ public class JettySslHelper {
         trustManagerFactory.init(keyStore);
 
         // Create and initialize the SSL context
-        SSLContext sslContext = SSLContext.getInstance("TLS");
+        SSLContext sslContext = SSLContext.getInstance("TLS", BouncyCastleJsseProvider.PROVIDER_NAME);
         sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
         return sslContext;
     }
 
+    public static SSLContext createSSLContext(KeyStore keyStore, String alias, String keyPassword)
+            throws Exception {
+
+        // Erstellen Sie eine Instanz von SslContextFactory
+        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+
+        // Setzen Sie den KeyStore und die Passwörter
+        sslContextFactory.setKeyStore(keyStore);
+        sslContextFactory.setKeyStorePassword(keyPassword);
+        sslContextFactory.setKeyManagerPassword(keyPassword);
+
+        // Setzen Sie den Alias für das Zertifikat
+        sslContextFactory.setCertAlias(alias);
+
+        sslContextFactory.setProvider(BouncyCastleJsseProvider.PROVIDER_NAME);
+        sslContextFactory.setProtocol("TLS");
+
+        // Setzen Sie den Algorithmus für den KeyManager
+        sslContextFactory.setKeyManagerFactoryAlgorithm("PKIX");
+
+        // Initialisieren Sie SslContextFactory
+        sslContextFactory.start();
+
+        // Erhalten Sie das SSLContext-Objekt von SslContextFactory
+        SSLContext sslContext = sslContextFactory.getSslContext();
+
+        return sslContext;
+    }
     /**
      * Creates a Jetty server instance configured with SSL and/or HTTP connectors based on the provided ports and SSL context.
      *
@@ -90,6 +117,16 @@ public class JettySslHelper {
 
         return getSslJetty(httpsPort, httpPort, sslContext);
     }
+
+    public static Server getSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String alias)
+            throws Exception {
+
+
+        SSLContext sslContext = createSSLContext(keyStore, alias, "");
+
+        return getSslJetty(httpsPort, httpPort, sslContext);
+    }
+
 
     /**
      * Creates a Jetty server instance configured with SSL and/or HTTP connectors based on the provided ports and SSL context.

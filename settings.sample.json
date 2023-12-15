@@ -6,6 +6,11 @@
       "http": 80
     }
   },
+  "keyStore": {
+    "type": "pkcs12",
+    "password": "test",
+    "location": "./serverdata/test.p12"
+  },
   "database": {
     "engine": "h2",
     "host": "",

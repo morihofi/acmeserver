@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.database;
 
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
@@ -10,6 +11,7 @@ import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
+import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,7 +26,11 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.KeyStoreException;
+import java.security.Provider;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.sql.*;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -327,18 +333,20 @@ public class Database {
     }
 
     /**
-     * Retrieves a PEM-encoded certificate chain for an ACME (Automated Certificate Management Environment)
-     * authorization identified by its authorization ID, including the issued certificate, intermediate certificate,
-     * and CA (Certificate Authority) certificate.
+     * Retrieves the PEM-encoded certificate chain of an ACME entity by its authorization ID.
+     * This method fetches the issued certificate from a database using Hibernate, appends the intermediate certificate,
+     * and then appends each certificate in the CA certificate chain. If the issued certificate is not found,
+     * it throws an IllegalArgumentException.
      *
-     * @param authorizationId              The unique identifier of the ACME authorization for which the certificate chain is requested.
-     * @param intermediateCertificateBytes The bytes of the intermediate certificate to be included in the chain.
-     * @return A PEM-encoded certificate chain consisting of the issued certificate, intermediate certificate, and CA certificate.
-     * @throws CertificateEncodingException If an error occurs while encoding the certificates.
-     * @throws IOException                  If an error occurs while reading the CA certificate file.
-     * @throws IllegalArgumentException     If no certificate is found for the specified authorization ID.
+     * @param authorizationId The authorization ID associated with the ACME entity.
+     * @param intermediateCertificateBytes The byte array of the intermediate certificate.
+     * @param provisioner The provisioner instance used for cryptographic operations.
+     * @return A string representation of the certificate chain in PEM format.
+     * @throws CertificateEncodingException if an error occurs during the encoding of certificates.
+     * @throws IOException if an I/O error occurs during certificate processing.
+     * @throws KeyStoreException if an error occurs while accessing the keystore.
      */
-    public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId, byte[] intermediateCertificateBytes) throws CertificateEncodingException, IOException {
+    public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId, byte[] intermediateCertificateBytes, Provisioner provisioner) throws CertificateEncodingException, IOException, KeyStoreException {
         StringBuilder pemBuilder = new StringBuilder();
         boolean certFound = false;
 
@@ -371,20 +379,23 @@ public class Database {
             throw new IllegalArgumentException("No certificate was found for authorization id \"" + authorizationId + "\"");
         }
 
-        //Intermediate Certificate
-        log.info("Adding Intermediate certificate");
-        pemBuilder.append(PemUtil.certificateToPEM(intermediateCertificateBytes));
+        //Certificate chain
+        log.info("Adding Intermediate and CA certificate");
         pemBuilder.append("\n");
 
-        //CA Certificate
-        log.info("Adding CA certificate");
-        try (Stream<String> stream = Files.lines(Main.caCertificatePath, StandardCharsets.UTF_8)) {
-            assert stream != null;
-            stream.forEach(s -> pemBuilder.append(s).append("\n"));
-        } catch (IOException e) {
-            //handle exception
-            log.error("Unable to load CA Certificate", e);
+        for (Certificate certificate :
+                provisioner.getCryptoStoreManager().getKeyStore().getCertificateChain(
+                        CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(
+                                provisioner.getProvisionerName()
+                        )
+                )
+        ) {
+            X509Certificate x509Certificate = (X509Certificate) certificate;
+            pemBuilder.append(PemUtil.certificateToPEM(x509Certificate.getEncoded()));
+            pemBuilder.append("\n");
+
         }
+
 
         log.info("Returning certificate chain");
         return pemBuilder.toString();

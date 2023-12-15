@@ -4,6 +4,7 @@ import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.DomainNameRestrictionConfig;
 import de.morihofi.acmeserver.config.MetadataConfig;
+import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
@@ -32,10 +33,11 @@ public class Provisioner {
     private MetadataConfig acmeMetadataConfig;
     private CertificateExpiration generatedCertificateExpiration;
     private boolean wildcardAllowed;
+    private final CryptoStoreManager cryptoStoreManager;
 
     private final DomainNameRestrictionConfig domainNameRestriction;
 
-    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed) {
+    public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager) {
         this.provisionerName = provisionerName;
         this.intermediateCaCertificate = intermediateCaCertificate;
         this.intermediateCaKeyPair = intermediateCaKeyPair;
@@ -43,6 +45,7 @@ public class Provisioner {
         this.generatedCertificateExpiration = generatedCertificateExpiration;
         this.domainNameRestriction = domainNameRestriction;
         this.wildcardAllowed = wildcardAllowed;
+        this.cryptoStoreManager = cryptoStoreManager;
     }
 
     public boolean isWildcardAllowed() {
@@ -114,5 +117,9 @@ public class Provisioner {
 
     public String getFullCrlUrl() {
         return getServerURL() + getCrlPath();
+    }
+
+    public CryptoStoreManager getCryptoStoreManager() {
+        return cryptoStoreManager;
     }
 }

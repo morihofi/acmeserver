@@ -40,3 +40,5 @@ serverdata/
 logs/logfile.log
 logs/
 *.db
+*.pem
+*.p12
