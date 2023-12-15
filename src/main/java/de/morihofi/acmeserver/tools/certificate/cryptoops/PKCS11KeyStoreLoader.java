@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Iterator;
@@ -35,7 +36,6 @@ public class PKCS11KeyStoreLoader {
             PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, "".toCharArray());
 
             System.out.println(alias);
-            System.out.println(privateKey.getEncoded());
         }
     }
 
@@ -112,7 +112,7 @@ public class PKCS11KeyStoreLoader {
      */
     private static Provider getPkcs11Provider(int slot, String libraryLocation) throws InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException {
         String pkcs11ConfigSettings = "name = Slot" + slot + "\n" + "library = " + libraryLocation + "\n" + "slotListIndex = " + slot;
-        ByteArrayInputStream confStream = new ByteArrayInputStream(pkcs11ConfigSettings.getBytes());
+        ByteArrayInputStream confStream = new ByteArrayInputStream(pkcs11ConfigSettings.getBytes(StandardCharsets.UTF_8));
 
         // instantiate the provider
         Provider p11Provider = null;
