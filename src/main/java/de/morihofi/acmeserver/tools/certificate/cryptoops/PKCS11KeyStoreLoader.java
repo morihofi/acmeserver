@@ -37,24 +37,23 @@ public class PKCS11KeyStoreLoader {
     }
 
     /**
-     * Loads a PKCS#11 KeyStore using the specified parameters.
-     * This method initializes a PKCS#11 KeyStore using a specific slot and library location. It involves setting up a password handler for the KeyStore, which involves handling password callbacks specifically for the provided PIN. The method handles various exceptions and ensures that the KeyStore is properly loaded with the specified parameters.
+     * Loads a PKCS11 Keystore using the specified PIN, slot, and library location.
+     * This method involves retrieving a PKCS11 provider and initializing a KeyStore instance with it.
+     * It sets up a callback handler to manage password input for the keystore.
      *
-     * @param pin             The PIN code for accessing the KeyStore.
-     * @param slot            The slot number of the PKCS#11 token.
-     * @param libraryLocation The file system location of the PKCS#11 library.
-     * @return The loaded KeyStore instance.
-     * @throws CertificateException         If any of the certificates in the KeyStore could not be loaded.
-     * @throws IOException                  If an I/O error occurs.
-     * @throws NoSuchAlgorithmException     If the algorithm used to check the integrity of the KeyStore cannot be found.
-     * @throws ClassNotFoundException       If the PKCS#11 provider class cannot be found.
-     * @throws InvocationTargetException    If the underlying method throws an exception.
-     * @throws InstantiationException       If the PKCS#11 provider class cannot be instantiated.
-     * @throws IllegalAccessException       If the default constructor of the PKCS#11 provider class is not accessible.
-     * @throws NoSuchMethodException        If a required method is not found.
-     * @throws KeyStoreException            If the KeyStore cannot be initialized.
-     * @throws CancellationException        If the KeyStore password is null.
-     * @throws UnsupportedCallbackException If any of the callbacks provided for handling authentication are not supported.
+     * @param pin             The PIN code for accessing the keystore.
+     * @param slot            The slot index of the PKCS11 provider.
+     * @param libraryLocation The file path of the PKCS11 library.
+     * @return An initialized KeyStore instance.
+     * @throws CertificateException      if any certificate-related issues occur.
+     * @throws IOException               if there is an I/O problem with keystore data.
+     * @throws NoSuchAlgorithmException  if the algorithm for keystore integrity check is not available.
+     * @throws ClassNotFoundException    if the PKCS11 provider class is not found.
+     * @throws InvocationTargetException if an error occurs during method invocation.
+     * @throws InstantiationException    if an error occurs during instantiation of the provider.
+     * @throws IllegalAccessException    if there is illegal access during provider instantiation.
+     * @throws NoSuchMethodException     if a required method is not found.
+     * @throws KeyStoreException         if there is an issue with keystore operations.
      */
     public static KeyStore loadPKCS11Keystore(String pin, int slot, String libraryLocation) throws CertificateException, IOException, NoSuchAlgorithmException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, KeyStoreException {
 
@@ -94,17 +93,19 @@ public class PKCS11KeyStoreLoader {
     }
 
     /**
-     * Retrieves a PKCS#11 Provider based on the specified slot and library location.
-     * This private method is used to instantiate and configure a PKCS#11 provider based on the provided slot and library location. It handles different scenarios based on the Java version, either using reflection for older versions or the newer Provider configuration methods introduced in Java 9.
+     * Retrieves a PKCS11 provider for the specified slot and library location.
+     * This method configures the provider differently based on the JRE version.
+     * For JRE version 9 and above, it uses the built-in SunPKCS11 provider and configures it using reflection.
+     * For older versions, it creates an instance of the SunPKCS11 provider using its constructor.
      *
-     * @param slot            The slot number of the PKCS#11 token.
-     * @param libraryLocation The file system location of the PKCS#11 library.
-     * @return The configured Provider instance for the specified PKCS#11 token.
-     * @throws InvocationTargetException If the underlying method throws an exception.
-     * @throws InstantiationException    If the PKCS#11 provider class cannot be instantiated.
-     * @throws IllegalAccessException    If the default constructor of the PKCS#11 provider class is not accessible.
-     * @throws NoSuchMethodException     If a required method is not found.
-     * @throws ClassNotFoundException    If the PKCS#11 provider class cannot be found.
+     * @param slot            The slot index of the PKCS11 provider.
+     * @param libraryLocation The file path of the PKCS11 library.
+     * @return The configured PKCS11 provider.
+     * @throws InvocationTargetException if an error occurs during method invocation.
+     * @throws InstantiationException    if an error occurs during instantiation.
+     * @throws IllegalAccessException    if an error occurs accessing the class or method.
+     * @throws NoSuchMethodException     if a required method is not found.
+     * @throws ClassNotFoundException    if the SunPKCS11 class is not found.
      */
     private static Provider getPkcs11Provider(int slot, String libraryLocation) throws InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException {
         String pkcs11ConfigSettings = "name = Slot" + slot + "\n" + "library = " + libraryLocation + "\n" + "slotListIndex = " + slot;
