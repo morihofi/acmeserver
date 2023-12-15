@@ -1,8 +1,11 @@
 package de.morihofi.acmeserver.tools.certificate.cryptoops;
 
+import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.IKeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.IOException;
@@ -19,7 +22,9 @@ public class CryptoStoreManager {
     public static final String KEYSTORE_ALIAS_ACMEAPI = "serverAcmeApi";
     public static final String KEYSTORE_ALIASPREFIX_INTERMEDIATECA = "intermediateCA_";
 
-    public static final String getKeyStoreAliasForProvisionerIntermediate(String provisioner){
+    public final Logger log = LogManager.getLogger(getClass());
+
+    public static String getKeyStoreAliasForProvisionerIntermediate(String provisioner){
         return KEYSTORE_ALIASPREFIX_INTERMEDIATECA + provisioner;
     }
 
@@ -31,47 +36,37 @@ public class CryptoStoreManager {
 
         if (keyStoreConfig instanceof PKCS11KeyStoreConfig) {
             PKCS11KeyStoreConfig pkcs11Config = (PKCS11KeyStoreConfig) keyStoreConfig;
+            String libraryLocation = pkcs11Config.getLibraryPath().toAbsolutePath().toString();
 
-            keyStore = PKCS11KeyStoreLoader.loadPKCS11Keystore(pkcs11Config.getPassword(), pkcs11Config.getSlot(), pkcs11Config.getLibraryPath().toAbsolutePath().toString());
+            log.info("Using PKCS#11 KeyStore with native library at \"" + libraryLocation + "\" with slot " + pkcs11Config.getSlot());
+            keyStore = PKCS11KeyStoreLoader.loadPKCS11Keystore(pkcs11Config.getPassword(), pkcs11Config.getSlot(), libraryLocation);
         }
         if (keyStoreConfig instanceof PKCS12KeyStoreConfig) {
             PKCS12KeyStoreConfig pkcs12Config = (PKCS12KeyStoreConfig) keyStoreConfig;
-
+            log.info("Using PKCS#12 KeyStore at \"" + pkcs12Config.getPath().toAbsolutePath().toString() + "\"");
             keyStore = KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
             if (Files.exists(pkcs12Config.getPath())) {
                 // If the file exists, load the existing KeyStore
+                log.info("KeyStore does exist, loading existing into memory");
                 try (InputStream is = Files.newInputStream(pkcs12Config.getPath())) {
                     keyStore.load(is, pkcs12Config.getPassword().toCharArray());
                 }
             } else {
                 // Otherwise, initialize a new KeyStore
+                log.info("KeyStore does not exist, creating new KeyStore");
                 keyStore.load(null, pkcs12Config.getPassword().toCharArray());
             }
-
-
         }
     }
 
     public KeyPair getCerificateAuthorityKeyPair() throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
-        return getKeyPair(KEYSTORE_ALIAS_ROOTCA);
+        return KeyStoreUtil.getKeyPair(KEYSTORE_ALIAS_ROOTCA, keyStore);
     }
 
-    public KeyPair getIntermediateCerificateAuthorityKeyPair(String intermediateCa) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
-        return getKeyPair(getKeyStoreAliasForProvisionerIntermediate(intermediateCa));
+    public KeyPair getIntermediateCerificateAuthorityKeyPair(String intermediateCaName) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+        return KeyStoreUtil.getKeyPair(getKeyStoreAliasForProvisionerIntermediate(intermediateCaName), keyStore);
     }
 
-    private KeyPair getKeyPair(String alias) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
-        if(!keyStore.containsAlias(alias)){
-            throw new IllegalArgumentException("Alias " + alias + " does not exist in KeyStore");
-        }
-
-        KeyPair keyPair = new KeyPair(
-                keyStore.getCertificate(alias).getPublicKey(),
-                (PrivateKey) keyStore.getKey(alias, "".toCharArray())
-        );
-
-        return keyPair;
-    }
 
     public KeyStore getKeyStore() {
         return keyStore;

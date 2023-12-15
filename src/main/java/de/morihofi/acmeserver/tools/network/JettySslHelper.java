@@ -3,6 +3,7 @@ package de.morihofi.acmeserver.tools.network;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
@@ -34,7 +35,7 @@ public class JettySslHelper {
      */
     public static SSLContext createSSLContext(X509Certificate[] certificateChain, KeyPair keyPair)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException,
-            KeyManagementException, UnrecoverableKeyException {
+            KeyManagementException, UnrecoverableKeyException, NoSuchProviderException {
 
         // Create a new KeyStore
         KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -52,7 +53,7 @@ public class JettySslHelper {
         trustManagerFactory.init(keyStore);
 
         // Create and initialize the SSL context
-        SSLContext sslContext = SSLContext.getInstance("TLS");
+        SSLContext sslContext = SSLContext.getInstance("TLS", BouncyCastleJsseProvider.PROVIDER_NAME);
         sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
         return sslContext;
@@ -71,6 +72,12 @@ public class JettySslHelper {
 
         // Setzen Sie den Alias für das Zertifikat
         sslContextFactory.setCertAlias(alias);
+
+        sslContextFactory.setProvider(BouncyCastleJsseProvider.PROVIDER_NAME);
+        sslContextFactory.setProtocol("TLS");
+
+        // Setzen Sie den Algorithmus für den KeyManager
+        sslContextFactory.setKeyManagerFactoryAlgorithm("PKIX");
 
         // Initialisieren Sie SslContextFactory
         sslContextFactory.start();

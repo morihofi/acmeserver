@@ -41,7 +41,7 @@ public class CertificateRenewInitializer {
                         );
 
                         log.info("Renewing Intermediate Certificate for " + provisioner.getProvisionerName());
-                        IntermediateCaRenew.renewIntermediateCertificate(keyPair, provisioner, provisionerCfg, caKeyPair, caCertificate,cryptoStoreManager, alias);
+                        IntermediateCaRenew.renewIntermediateCertificate(keyPair, provisioner, provisionerCfg, cryptoStoreManager, alias);
                     } catch (Exception e) {
                         log.error("Error renewing Intermediate Certificate for " + provisioner.getProvisionerName(), e);
                     }

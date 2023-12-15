@@ -35,10 +35,13 @@ import de.morihofi.acmeserver.tools.network.JettySslHelper;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
 import de.morihofi.acmeserver.tools.regex.ConfigCheck;
 import io.javalin.Javalin;
+import io.javalin.http.staticfiles.Location;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -73,9 +76,14 @@ public class Main {
 
         printBanner();
 
+        System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+
         //Register Bouncy Castle Provider
-        log.info("Register Bouncy Castle Security Provider");
+        log.info("Register Bouncy Castle Security Providers");
         Security.addProvider(new BouncyCastleProvider());
+        Security.addProvider(new BouncyCastleJsseProvider());
 
         Path configPath = FILES_DIR.resolve("settings.json");
         ensureFilesDirectoryExists(configPath);
@@ -97,7 +105,7 @@ public class Main {
         log.info("Starting ACME API WebServer");
         Javalin app = Javalin.create(javalinConfig -> {
             //TODO: Make it compatible again with modules
-            // javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
+            javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
         });
 
 
@@ -242,7 +250,7 @@ public class Main {
 
 
                 log.info("Generating Intermediate CA");
-                intermediateCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(cryptoStoreManager, IntermediateKeyAlias, intermediateKeyPair, config.getIntermediate().getMetadata(), config.getIntermediate().getExpiration(), provisioner.getFullCrlUrl(), provisioner.getFullOcspUrl());
+                intermediateCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(cryptoStoreManager, intermediateKeyPair, config.getIntermediate().getMetadata(), config.getIntermediate().getExpiration(), provisioner.getFullCrlUrl(), provisioner.getFullOcspUrl());
                 log.info("Storing generated Intermedia CA");
                 X509Certificate[] chain = new X509Certificate[]{intermediateCertificate, (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)};
                 cryptoStoreManager.getKeyStore().setKeyEntry(
@@ -251,6 +259,7 @@ public class Main {
                         "".toCharArray(),
                         chain
                 );
+                log.info("Saving KeyStore");
                 cryptoStoreManager.saveKeystore();
 
             } else {
@@ -364,7 +373,7 @@ public class Main {
     private static void generateAcmeApiClientCertificate(CryptoStoreManager cryptoStoreManager, String provisionerName, Provisioner provisioner) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
         String intermediateCaAlias = CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(provisionerName);
 
-        KeyPair intermediateKeyPair = cryptoStoreManager.getIntermediateCerificateAuthorityKeyPair(provisionerName);
+        KeyPair intermediateCaKeyPair = cryptoStoreManager.getIntermediateCerificateAuthorityKeyPair(provisionerName);
 
         KeyPair acmeAPIKeyPair;
         if (!cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI)) {
@@ -377,14 +386,23 @@ public class Main {
             log.info("Using provisioner intermediate CA for generation");
 
             log.info("Creating Server Certificate");
-            X509Certificate acmeAPICertificate = ServerCertificateGenerator.createServerCertificate(intermediateKeyPair, (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(intermediateCaAlias), acmeAPIKeyPair.getPublic().getEncoded(), new String[]{appConfig.getServer().getDnsName()}, provisioner);
+            X509Certificate rootCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
+            X509Certificate intermediateCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(intermediateCaAlias);
+            X509Certificate acmeAPICertificate = ServerCertificateGenerator.createServerCertificate(
+                    intermediateCaKeyPair,
+                    intermediateCertificate,
+                    acmeAPIKeyPair.getPublic().getEncoded(),
+                    new String[]{
+                            appConfig.getServer().getDnsName()
+                    },
+                    provisioner);
 
             // Dumping certificate to HDD
             log.info("Storing certificate in KeyStore");
             X509Certificate[] chain = new X509Certificate[]{
                     acmeAPICertificate,
-                    (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(intermediateCaAlias),
-                    (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
+                    intermediateCertificate,
+                    rootCertificate
             };
 
             cryptoStoreManager.getKeyStore().setKeyEntry(

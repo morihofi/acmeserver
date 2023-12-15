@@ -123,7 +123,7 @@ public class CertificateAuthorityGenerator {
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
      * @throws CertIOException           If there's an IO error during certificate generation.
      */
-    public static X509Certificate createIntermediateCaCertificate(CryptoStoreManager cryptoStoreManager, String intermediateAlias, KeyPair intermediateKeyPair, CertificateMetadata certificateMetadata, CertificateExpiration expiration, String crlDistributionUrl, String ocspServiceEndpoint) throws CertificateException, OperatorCreationException, CertIOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+    public static X509Certificate createIntermediateCaCertificate(CryptoStoreManager cryptoStoreManager, KeyPair intermediateKeyPair, CertificateMetadata certificateMetadata, CertificateExpiration expiration, String crlDistributionUrl, String ocspServiceEndpoint) throws CertificateException, OperatorCreationException, CertIOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
 
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 

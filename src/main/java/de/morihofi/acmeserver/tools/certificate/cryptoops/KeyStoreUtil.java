@@ -4,8 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.Key;
-import java.security.KeyStore;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.util.function.Supplier;
 
@@ -77,20 +76,28 @@ public class KeyStoreUtil {
         }).run();
     }
 
+    public static KeyPair getKeyPair(String alias, KeyStore keyStore) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+        if(!keyStore.containsAlias(alias)){
+            throw new IllegalArgumentException("Alias " + alias + " does not exist in KeyStore");
+        }
+
+        KeyPair keyPair = new KeyPair(
+                keyStore.getCertificate(alias).getPublicKey(),
+                (PrivateKey) keyStore.getKey(alias, "".toCharArray())
+        );
+
+        return keyPair;
+    }
+
     public static final String inferTypeFromFile(String file) {
-        if (file == null)
-            return "PKCS11";
-        else if (file.endsWith("jks") || file.endsWith("keystore"))
-            return "JKS";
-        else if (file.endsWith("p12") || file.endsWith("pfx"))
-            return "PKCS12";
+        if (file == null) return "PKCS11";
+        else if (file.endsWith("jks") || file.endsWith("keystore")) return "JKS";
+        else if (file.endsWith("p12") || file.endsWith("pfx")) return "PKCS12";
         else
             throw new RuntimeException("Cannot infer keystore type from file name, please used either .p12, .jks, or .keystore");
     }
 
-    private static <T> Supplier<T> throwingSupplierWrapper(
-            ThrowingSupplier<T, Exception> supplier) {
-
+    private static <T> Supplier<T> throwingSupplierWrapper(ThrowingSupplier<T, Exception> supplier) {
         return () -> {
             try {
                 return supplier.get();
@@ -100,9 +107,7 @@ public class KeyStoreUtil {
         };
     }
 
-    private static Runnable throwingRunnableWrapper(
-            ThrowingRunnable<Exception> runnable) {
-
+    private static Runnable throwingRunnableWrapper(ThrowingRunnable<Exception> runnable) {
         return () -> {
             try {
                 runnable.run();

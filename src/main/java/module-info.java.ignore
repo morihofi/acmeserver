@@ -1,6 +1,7 @@
 module acmeserver {
     requires jdk.crypto.cryptoki;
     requires org.bouncycastle.provider;
+    requires org.bouncycastle.tls;
     requires org.apache.logging.log4j;
     requires jakarta.mail;
     requires com.google.gson;
@@ -27,5 +28,5 @@ module acmeserver {
     //Hibernate
     opens de.morihofi.acmeserver.database.objects to org.hibernate.orm.core;
 
-    opens webstatic;
+    opens webstatic to org.eclipse.jetty.util;
 }

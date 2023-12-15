@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.tools.certificate.cryptoops;
 
 import de.morihofi.acmeserver.tools.javaversion.JavaVersion;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -18,6 +20,7 @@ import java.util.Iterator;
 import java.util.concurrent.CancellationException;
 
 public class PKCS11KeyStoreLoader {
+
     public static void main(String[] args) throws Exception {
         String libraryLocation = "C:\\SoftHSM2\\lib\\softhsm2-x64.dll";
         int slot = 0;
