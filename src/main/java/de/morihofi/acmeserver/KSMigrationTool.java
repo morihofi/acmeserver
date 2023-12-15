@@ -92,13 +92,14 @@ public class KSMigrationTool {
                 X509Certificate intermediateCertificate = X509.convertToX509Cert(intermediateCertificateBytes);
 
                 log.info("Adding " + KeyStoreAliasName + " to KeyStore");
+                X509Certificate chain[] = new X509Certificate[]{
+                        intermediateCertificate, caCertificate
+                };
                 keyStore.setKeyEntry(
                         KeyStoreAliasName,
-                        caKeyPair.getPrivate(),
+                        intermediateKeyPair.getPrivate(),
                         "".toCharArray(),
-                        new X509Certificate[]{
-                                intermediateCertificate, caCertificate
-                        }
+                        chain
                 );
             }
 
