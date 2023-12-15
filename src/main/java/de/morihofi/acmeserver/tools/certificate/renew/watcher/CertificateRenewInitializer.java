@@ -19,15 +19,21 @@ public class CertificateRenewInitializer {
     public static final Logger log = LogManager.getLogger(CertificateRenewInitializer.class);
 
     /**
-     * Initializes a certificate renew watcher for the intermediate CA certificate of a provisioner.
+     * Initializes a watcher for renewing an intermediate CA certificate.
+     * This method sets up a new CertificateRenewWatcher to monitor and renew the intermediate CA certificate
+     * at specified intervals. The renewal process involves retrieving the KeyStore, generating a new key pair,
+     * and renewing the certificate through the IntermediateCaRenew utility.
      *
-     * @param provisioner     The provisioner for which the certificate renew watcher is being initialized.
-     * @param provisionerCfg  The configuration for the provisioner.
-     * @param caKeyPair       The key pair of the Certificate Authority (CA) issuing the certificate.
+     * @param cryptoStoreManager The manager responsible for cryptographic storage operations.
+     * @param alias The alias under which the certificate is stored in the KeyStore.
+     * @param provisioner The provisioner instance associated with the certificate.
+     * @param provisionerCfg Configuration details for the provisioner.
+     * @param caKeyPair The KeyPair associated with the CA.
+     * @param caCertificate The X509Certificate of the CA.
      */
     public static void initializeIntermediateCertificateRenewWatcher(CryptoStoreManager cryptoStoreManager, String alias, Provisioner provisioner, ProvisionerConfig provisionerCfg, KeyPair caKeyPair, X509Certificate caCertificate) {
         log.info("Initializing renew watcher for intermediate ca of " + provisioner.getProvisionerName() + " provisioner");
-        CertificateRenewWatcher watcher = new CertificateRenewWatcher(
+        new CertificateRenewWatcher(
                 cryptoStoreManager,
                 alias,
                 6, TimeUnit.HOURS,
