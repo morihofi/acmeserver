@@ -17,11 +17,15 @@ import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointGet;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointPost;
 import de.morihofi.acmeserver.config.Config;
+import de.morihofi.acmeserver.config.keyStoreHelpers.KeyStoreParams;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.config.certificateAlgorithms.AlgorithmParams;
 import de.morihofi.acmeserver.config.certificateAlgorithms.EcdsaAlgorithmParams;
 import de.morihofi.acmeserver.config.certificateAlgorithms.RSAAlgorithmParams;
 import de.morihofi.acmeserver.config.helper.AlgorithmParamsDeserializer;
+import de.morihofi.acmeserver.config.helper.KeyStoreParamsDeserializer;
+import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS11KeyStoreParams;
+import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS12KeyStoreParams;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.exception.ACMEException;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
@@ -72,7 +76,10 @@ public class Main {
     public static Config appConfig;
 
     public static void main(String[] args) throws Exception {
-        Gson configGson = new GsonBuilder().registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer()).create();
+        Gson configGson = new GsonBuilder()
+                .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
+                .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())
+                .create();
 
         printBanner();
 
@@ -81,10 +88,12 @@ public class Main {
         SLF4JBridgeHandler.install();
 
         //Register Bouncy Castle Provider
-        log.info("Register Bouncy Castle Security Providers");
+        log.info("Register Bouncy Castle Security Provider");
         Security.addProvider(new BouncyCastleProvider());
+        log.info("Register Bouncy Castle JSSE Security Provider");
         Security.addProvider(new BouncyCastleJsseProvider());
 
+        log.info("Initializing directories");
         Path configPath = FILES_DIR.resolve("settings.json");
         ensureFilesDirectoryExists(configPath);
 
@@ -93,10 +102,34 @@ public class Main {
 
         loadBuildAndGitMetadata();
         initializeDatabaseDrivers();
-        cryptoStoreManager = new CryptoStoreManager(
-               //new PKCS11KeyStoreConfig(Paths.get("C:\\SoftHSM2\\lib\\softhsm2-x64.dll"), 0, "1234")
-                new PKCS12KeyStoreConfig(Paths.get("test.p12"), "test")
-        );
+
+        {
+            //Initialize KeyStore
+
+            if (appConfig.getKeyStore() instanceof PKCS11KeyStoreParams pkcs11KeyStoreParams) {
+
+                cryptoStoreManager = new CryptoStoreManager(
+                        new PKCS11KeyStoreConfig(
+                                Paths.get(pkcs11KeyStoreParams.getLibraryLocation()),
+                                pkcs11KeyStoreParams.getSlot(),
+                                pkcs11KeyStoreParams.getPassword()
+                        )
+                );
+            }
+            if (appConfig.getKeyStore() instanceof PKCS12KeyStoreParams pkcs12KeyStoreParams) {
+
+                cryptoStoreManager = new CryptoStoreManager(
+                        new PKCS12KeyStoreConfig(
+                                Paths.get(pkcs12KeyStoreParams.getLocation()),
+                                pkcs12KeyStoreParams.getPassword()
+                        )
+                );
+            }
+            if (cryptoStoreManager == null) {
+                throw new IllegalArgumentException("Could not create CryptoStoreManager, due to unsupported KeyStore configuration");
+            }
+        }
+
         initializeCA(cryptoStoreManager);
 
         log.info("Initializing database");
@@ -252,7 +285,6 @@ public class Main {
                 }
 
 
-
                 log.info("Generating Intermediate CA");
                 intermediateCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(cryptoStoreManager, intermediateKeyPair, config.getIntermediate().getMetadata(), config.getIntermediate().getExpiration(), provisioner.getFullCrlUrl(), provisioner.getFullOcspUrl());
                 log.info("Storing generated Intermedia CA");
@@ -329,7 +361,6 @@ public class Main {
                             byte[] itmCertificateBytes = keyStore.getCertificate(IntermediateKeyAlias).getEncoded();
 
 
-
                             //Generate new certificate in place
                             generateAcmeApiClientCertificate(cryptoStoreManager, provisionerName, provisioner);
 
@@ -367,7 +398,7 @@ public class Main {
     /**
      * Generates or loads the ACME Web API client certificate and key pair.
      *
-     * @param provisioner             The provisioner for certificate generation.
+     * @param provisioner The provisioner for certificate generation.
      * @throws CertificateException      If an issue occurs during certificate generation or loading.
      * @throws IOException               If an I/O error occurs while creating or deleting files.
      * @throws NoSuchAlgorithmException  If the specified algorithm is not available.

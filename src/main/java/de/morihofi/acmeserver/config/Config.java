@@ -1,10 +1,14 @@
 package de.morihofi.acmeserver.config;
 
+import de.morihofi.acmeserver.config.keyStoreHelpers.KeyStoreParams;
+
 import java.io.Serializable;
 import java.util.List;
 
 public class Config implements Serializable {
   private List<ProvisionerConfig> provisioner;
+
+  private KeyStoreParams keyStore;
   private ServerConfig server;
   private DatabaseConfig database;
   private CertificateConfig rootCA;
@@ -58,5 +62,13 @@ public class Config implements Serializable {
 
   public void setProxy(ProxyConfig proxy) {
     this.proxy = proxy;
+  }
+
+  public KeyStoreParams getKeyStore() {
+    return keyStore;
+  }
+
+  public void setKeyStore(KeyStoreParams keyStore) {
+    this.keyStore = keyStore;
   }
 }
