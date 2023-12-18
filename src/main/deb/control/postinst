@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Reload systemd manager configuration
+systemctl daemon-reload
+
+# Enable and start the ACME Server service
+systemctl enable acmeserver
+systemctl start acmeserver

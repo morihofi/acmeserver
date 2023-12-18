@@ -1,0 +1,11 @@
+[Unit]
+Description=ACME Server
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+ExecStart=/usr/bin/java -jar /usr/share/java/acmeserver.jar
+
+[Install]
+WantedBy=multi-user.target
