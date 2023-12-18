@@ -91,7 +91,7 @@ public class RevokeCertEndpoint implements Handler {
         log.debug("Issuer: " + certificate.getIssuerX500Principal());
 
         // Read in root certificate
-        X509Certificate intermediateCertificate = provisioner.getIntermediateCertificate();
+        X509Certificate intermediateCertificate = provisioner.getIntermediateCaCertificate();
 
         boolean isValid = true;
         // Validate given certificate against root certificate

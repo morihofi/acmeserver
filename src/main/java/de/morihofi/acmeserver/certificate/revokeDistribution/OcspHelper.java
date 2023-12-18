@@ -16,6 +16,9 @@ import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.*;
 import java.util.Date;
 
@@ -38,7 +41,7 @@ public class OcspHelper {
      * @throws CertificateEncodingException if there is an issue with encoding certificates.
      * @throws OperatorCreationException if there is an issue with operator creation.
      */
-    public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRL crlGenerator, Provisioner provisioner) throws OCSPException, CRLException, CertificateEncodingException, OperatorCreationException {
+    public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRL crlGenerator, Provisioner provisioner) throws OCSPException, CRLException, CertificateEncodingException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
         X509CRL crl = crlGenerator.getCurrentCrl(); // Current CRL
 
         CertificateStatus certStatus;
@@ -57,7 +60,7 @@ public class OcspHelper {
         log.info("Status for serial number " + serialNumber + " is: " + (certStatus != null ? "revoked" : "valid"));
 
         X509Certificate caCert = provisioner.getIntermediateCaCertificate();
-        KeyPair caKeyPair = provisioner.getIntermediateKeyPair();
+        KeyPair caKeyPair = provisioner.getIntermediateCaKeyPair();
 
 
         // Creating the OCSP response

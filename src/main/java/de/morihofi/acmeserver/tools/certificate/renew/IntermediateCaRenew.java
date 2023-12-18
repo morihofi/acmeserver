@@ -50,8 +50,7 @@ public class IntermediateCaRenew {
         cryptoStoreManager.saveKeystore();
 
 
-        // Update the provisioner's certificate reference
-        provisioner.setIntermediateCaCertificate(renewedCertificate);
+        // provisioner's certificate reference
     }
 
 

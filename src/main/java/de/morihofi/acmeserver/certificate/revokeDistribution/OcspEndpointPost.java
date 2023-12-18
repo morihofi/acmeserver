@@ -28,6 +28,13 @@ public class OcspEndpointPost implements Handler {
     public final Logger log = LogManager.getLogger(getClass());
 
 
+    /**
+     * Constructor for OcspEndpointPost class. Processes POST Requests.
+     * Initializes an instance with a specified Provisioner and CRL generator.
+     *
+     * @param provisioner  the Provisioner object to be used with this endpoint
+     * @param crlGenerator the CRL (Certificate Revocation List) generator for managing revoked certificates
+     */
     public OcspEndpointPost(Provisioner provisioner, CRL crlGenerator) {
         this.provisioner = provisioner;
         this.crlGenerator = crlGenerator;

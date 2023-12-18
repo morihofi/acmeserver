@@ -3,6 +3,8 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.order;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.Identifier;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
@@ -31,23 +33,25 @@ import java.math.BigInteger;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FinalizeOrderEndpoint implements Handler {
 
     private final Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
+    private final Gson gson;
 
     public FinalizeOrderEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
+        this.gson = new Gson();
     }
 
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         String orderId = ctx.pathParam("orderId");
-
-        Gson gson = new Gson();
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
+
 
         JSONObject reqBodyPayloadObj = new JSONObject(acmeRequestBody.getDecodedPayload());
         JSONObject responseJSON = new JSONObject();
@@ -61,26 +65,24 @@ public class FinalizeOrderEndpoint implements Handler {
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
         List<String> csrDomainNames = CsrDataExtractor.getDomainsFromCSR(csr);
-        if(csrDomainNames.isEmpty()){
+        if (csrDomainNames.isEmpty()) {
             throw new ACMEBadCsrException("CSR does not contain any domain names");
         }
 
         List<ACMEIdentifier> identifiers = Database.getACMEIdentifiersByOrderId(orderId);
-        for(String domain : csrDomainNames) {
-            if(identifiers.stream().noneMatch(id -> domain.equals(id.getDataValue()))) {
+        for (String domain : csrDomainNames) {
+            if (identifiers.stream().noneMatch(id -> domain.equals(id.getDataValue()))) {
                 throw new ACMEBadCsrException("One or more CSR domains do not match the ACME identifiers");
             }
         }
 
-        JSONArray identifiersArr = new JSONArray();
-        JSONArray authorizationsArr = new JSONArray();
-        for(ACMEIdentifier identifier : identifiers) {
-            JSONObject identifierObj = new JSONObject();
-            identifierObj.put("type", identifier.getType());
-            identifierObj.put("value", identifier.getDataValue());
-            identifiersArr.put(identifierObj);
-            authorizationsArr.put(provisioner.getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
-        }
+        List<Identifier> identifierList = identifiers.stream()
+                .map(id -> new Identifier(id.getType(), id.getDataValue()))
+                .collect(Collectors.toList());
+
+        List<String> authorizationsList = identifiers.stream()
+                .map(id -> provisioner.getApiURL() + "/acme/authz/" + id.getAuthorizationId())
+                .collect(Collectors.toList());
 
         try {
             byte[] csrBytes = Base64Tools.decodeBase64URLAsBytes(csr);
@@ -89,8 +91,8 @@ public class FinalizeOrderEndpoint implements Handler {
 
             log.info("Creating Certificate for order \"" + orderId + "\" with DNS Names " + String.join(", ", csrDomainNames));
             X509Certificate acmeGeneratedCertificate = ServerCertificateGenerator.createServerCertificate(
-                    provisioner.getIntermediateKeyPair(),
-                    provisioner.getIntermediateCertificate(),
+                    provisioner.getIntermediateCaKeyPair(),
+                    provisioner.getIntermediateCaCertificate(),
                     pkPemObject.getContent(),
                     csrDomainNames.toArray(new String[0]),
                     provisioner);
@@ -102,7 +104,7 @@ public class FinalizeOrderEndpoint implements Handler {
             Timestamp issuedAt = new Timestamp(acmeGeneratedCertificate.getNotBefore().getTime());
 
             // Speichern des Zertifikats für jeden Identifier in der Datenbank
-            for(ACMEIdentifier identifier : identifiers) {
+            for (ACMEIdentifier identifier : identifiers) {
                 Database.storeCertificateInDatabase(orderId, identifier.getDataValue(), csr, pemCertificate, issuedAt, expiresAt, serialNumber);
             }
 
@@ -110,12 +112,14 @@ public class FinalizeOrderEndpoint implements Handler {
             ctx.header("Replay-Nonce", Crypto.createNonce());
             ctx.header("Location", provisioner.getApiURL() + "/acme/order/" + orderId);
 
-            responseJSON.put("status", "valid");
-            responseJSON.put("expires", DateTools.formatDateForACME(expiresAt));
-            responseJSON.put("finalize", provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
-            responseJSON.put("certificate", provisioner.getApiURL() + "/acme/order/" + orderId + "/cert");
-            responseJSON.put("identifiers", identifiersArr);
-            responseJSON.put("authorizations", authorizationsArr);
+            ACMEOrderResponse response = new ACMEOrderResponse();
+            response.setStatus("valid");
+            response.setExpires(DateTools.formatDateForACME(expiresAt));
+            response.setIssued(DateTools.formatDateForACME(issuedAt));
+            response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
+            response.setCertificate(provisioner.getApiURL() + "/acme/order/" + orderId + "/cert");
+            response.setIdentifiers(identifierList);
+            response.setAuthorizations(authorizationsList);
 
             ctx.result(responseJSON.toString());
         } catch (Exception ex) {

@@ -2,6 +2,8 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.order;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.Identifier;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
@@ -17,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -24,9 +27,11 @@ public class OrderInfoEndpoint implements Handler {
 
     private final Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
+    private final Gson gson;
 
     public OrderInfoEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
+        this.gson = new Gson();
     }
 
     @Override
@@ -41,58 +46,32 @@ public class OrderInfoEndpoint implements Handler {
             throw new IllegalArgumentException("Identifiers empty, FIXME");
         }
 
-        Gson gson = new Gson();
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
-        //Check signature
+        // Check signature and nonce
         SignatureCheck.checkSignature(ctx, identifiers.get(0).getOrder().getAccount(), gson);
-        //Check nonce
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
-        JSONObject responseObj = new JSONObject();
-
-
-        // TODO: Valid Expires Date
-        responseObj.put("expires", DateTools.formatDateForACME(new Date()));
-
-
-        JSONArray identifiersArr = new JSONArray();
-        JSONArray authorizationsArr = new JSONArray();
 
         boolean allVerified = true;
-        List<ACMEIdentifier> acmeIdentifiers = Database.getACMEIdentifiersByOrderId(orderId);
+        List<Identifier> identifierList = new ArrayList<>();
+        List<String> authorizationsList = new ArrayList<>();
 
-        assert !acmeIdentifiers.isEmpty(); //ACME Identifiers cannot be empty, otherwise something went wrong
-
-        for (ACMEIdentifier identifier : acmeIdentifiers) {
-
+        for (ACMEIdentifier identifier : identifiers) {
             if (!identifier.isVerified()) {
                 allVerified = false;
             }
-
-            JSONObject identifierObj = new JSONObject();
-            identifierObj.put("type", identifier.getType());
-            identifierObj.put("value", identifier.getDataValue());
-
-            authorizationsArr.put(provisioner.getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
-
+            identifierList.add(new Identifier(identifier.getType(), identifier.getDataValue()));
+            authorizationsList.add(provisioner.getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
         }
 
+        ACMEOrderResponse response = new ACMEOrderResponse();
+        response.setExpires(DateTools.formatDateForACME(new Date()));
+        response.setStatus(allVerified ? "valid" : "pending");
+        response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
+        response.setCertificate(provisioner.getApiURL() + "/acme/order/" + orderId + "/cert");
+        response.setIdentifiers(identifierList);
 
-        responseObj.put("identifiers", identifiersArr);
-        if (allVerified) {
-            responseObj.put("status", "valid");
-        } else {
-            responseObj.put("status", "pending");
-        }
-
-
-        responseObj.put("finalize", provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
-        // Get certificate for order
-        //responseObj.put("certificate", getApiURL() + "/acme/cert/" + "fixme");
-        responseObj.put("certificate", provisioner.getApiURL() + "/acme/order/" + orderId + "/cert");
-
-
-        ctx.result(responseObj.toString());
+        ctx.result(gson.toJson(response));
     }
 }
