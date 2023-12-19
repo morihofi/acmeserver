@@ -74,8 +74,7 @@ public class CryptoStoreManager {
     }
 
     public void saveKeystore() throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
-        if (keyStoreConfig instanceof PKCS12KeyStoreConfig) {
-            PKCS12KeyStoreConfig pkcs12Config = (PKCS12KeyStoreConfig) keyStoreConfig;
+        if (keyStoreConfig instanceof PKCS12KeyStoreConfig pkcs12Config) {
 
             try (OutputStream fos = Files.newOutputStream(pkcs12Config.getPath())) {
                 keyStore.store(fos, pkcs12Config.getPassword().toCharArray());

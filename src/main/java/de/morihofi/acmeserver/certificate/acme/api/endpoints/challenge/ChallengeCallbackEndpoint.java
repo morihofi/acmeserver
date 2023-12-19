@@ -69,17 +69,18 @@ public class ChallengeCallbackEndpoint implements Handler {
         boolean challengePassed = false;
         String possibleErrorReasonIfFailed = null;
         switch (challengeType) {
-            case "http-01":
+            case "http-01" -> {
                 challengePassed = HTTPChallenge.check(identifier.getAuthorizationToken(), identifier.getDataValue(), identifier.getOrder().getAccount());
                 possibleErrorReasonIfFailed = "Unable to reach host \"" + identifier.getDataValue() + "\" or invalid token. Is the host reachable? Is the http server on port 80 running? If it is running, check your access logs";
-                break;
-            case "dns-01":
+            }
+            case "dns-01" -> {
                 challengePassed = DNSChallenge.check(identifier.getAuthorizationToken(), nonWildcardDomain, identifier.getOrder().getAccount());
                 possibleErrorReasonIfFailed = "Unable to verify DNS TXT entry for host \"" + nonWildcardDomain + "\"";
-                break;
-            default:
+            }
+            default -> {
                 log.error("Unsupported challenge type: " + challengeType);
                 throw new ACMEConnectionErrorException("Unsupported challenge type: " + challengeType);
+            }
         }
 
         log.info("Validating ownership of host \"" + nonWildcardDomain + "\"");
