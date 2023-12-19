@@ -39,7 +39,7 @@ public class AccountEndpoint implements Handler {
         String accountId = ctx.pathParam("id");
 
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
-        ACMEAccountRequestBody acmeAccountRequestBody = gson.fromJson(ctx.body(), ACMEAccountRequestBody.class);
+        ACMEAccountRequestBody acmeAccountRequestBody = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestBody.class);
 
         // Check signature and nonce
         SignatureCheck.checkSignature(ctx, accountId, gson);
