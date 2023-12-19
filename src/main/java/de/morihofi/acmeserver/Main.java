@@ -11,12 +11,14 @@ import de.morihofi.acmeserver.config.helper.AlgorithmParamsDeserializer;
 import de.morihofi.acmeserver.config.helper.KeyStoreParamsDeserializer;
 import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS11KeyStoreParams;
 import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS12KeyStoreParams;
+import de.morihofi.acmeserver.postsetup.PostSetup;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
 import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
 import de.morihofi.acmeserver.tools.cli.CLIArgument;
+import de.morihofi.acmeserver.tools.path.AppDirectoryHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -32,13 +34,14 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Objects;
 import java.util.Properties;
 
 public class Main {
 
     public static final Logger log = LogManager.getLogger(Main.class);
 
-    public static final Path FILES_DIR = Paths.get("serverdata").toAbsolutePath();
+    public static final Path FILES_DIR = Paths.get(Objects.requireNonNull(AppDirectoryHelper.getAppDirectory())).resolve("serverdata").toAbsolutePath();
 
     public static CryptoStoreManager cryptoStoreManager;
 
@@ -48,9 +51,11 @@ public class Main {
     public static String buildMetadataGitCommit;
 
     public static Config appConfig;
+
     public static enum MODE {
-        NORMAL, KEYSTORE_MIGRATION_PEM2KS
+        NORMAL, POSTSETUP, KEYSTORE_MIGRATION_PEM2KS
     }
+
     public static MODE selectedMode = MODE.NORMAL;
 
     public static void main(String[] args) throws Exception {
@@ -112,7 +117,7 @@ public class Main {
         final String argPrefix = "--";
         final char splitCharacter = '=';
 
-        for (String arg: args){
+        for (String arg : args) {
             CLIArgument cliArgument = new CLIArgument(argPrefix, splitCharacter, arg);
 
             /*
@@ -121,25 +126,38 @@ public class Main {
             System.out.println("-----------------------------------");
              */
 
-            if(cliArgument.getParameterName().equals("normal")){
+            if (cliArgument.getParameterName().equals("normal")) {
                 selectedMode = MODE.NORMAL;
             }
-            if(cliArgument.getParameterName().equals("migrate-pem-to-keystore")){
+            if (cliArgument.getParameterName().equals("migrate-pem-to-keystore")) {
                 selectedMode = MODE.KEYSTORE_MIGRATION_PEM2KS;
             }
-
+            if (cliArgument.getParameterName().equals("postsetup")) {
+                selectedMode = MODE.POSTSETUP;
+            }
         }
 
-        switch (selectedMode){
-            case NORMAL -> AcmeApiServer.startServer(cryptoStoreManager, appConfig);
-            case KEYSTORE_MIGRATION_PEM2KS -> KSMigrationTool.run(args, cryptoStoreManager, appConfig, FILES_DIR);
+        switch (selectedMode) {
+            case NORMAL -> {
+                log.info("Starting normally");
+                AcmeApiServer.startServer(cryptoStoreManager, appConfig);
+                break;
+            }
+            case POSTSETUP -> {
+                log.info("Starting Post Setup");
+                PostSetup.run(cryptoStoreManager, appConfig, FILES_DIR, args);
+                break;
+            }
+            case KEYSTORE_MIGRATION_PEM2KS -> {
+                log.info("Starting in KeyStore migration Mode (PEM to KeyStore)");
+                KSMigrationTool.run(args, cryptoStoreManager, appConfig, FILES_DIR);
+                break;
+            }
+
         }
 
 
     }
-
-
-
 
 
     /**

@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Run acme server post-setup wizard
+acmeserver --postsetup
+
 # Reload systemd manager configuration
 systemctl daemon-reload
 

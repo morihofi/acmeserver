@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=www-data
 Group=www-data
-ExecStart=/usr/bin/java -jar /usr/share/java/acmeserver.jar
+ExecStart=/usr/bin/java -jar /opt/acmeserver/acmeserver.jar
 
 [Install]
 WantedBy=multi-user.target

@@ -133,6 +133,25 @@
                 </dependencies>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target>
+                                <copy file="${project.basedir}/settings.sample.json" tofile="${project.build.directory}/settings.json"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <artifactId>jdeb</artifactId>
                 <groupId>org.vafer</groupId>
                 <version>1.10</version>
@@ -150,10 +169,20 @@
                                     <type>file</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/usr/share/java/</prefix>
+                                        <prefix>/opt/${project.artifactId}/</prefix>
                                         <filemode>644</filemode>
                                         <user>www-data</user>
                                         <group>www-data</group>
+                                    </mapper>
+                                </data>
+                                <!-- default settings file for ACME Server -->
+                                <data>
+                                    <src>${project.build.directory}/settings.json</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <prefix>/opt/${project.artifactId}/serverdata</prefix>
+                                        <type>perm</type>
+                                        <filemode>644</filemode>
                                     </mapper>
                                 </data>
                                 <!-- systemd service file -->
@@ -164,6 +193,16 @@
                                         <prefix>/etc/systemd/system/</prefix>
                                         <type>perm</type>
                                         <filemode>644</filemode>
+                                    </mapper>
+                                </data>
+                                <!-- cli wrapper script -->
+                                <data>
+                                    <src>${project.basedir}/src/main/deb/acmeserver</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <prefix>/usr/local/bin/</prefix>
+                                        <type>perm</type>
+                                        <filemode>755</filemode>
                                     </mapper>
                                 </data>
                             </dataSet>
@@ -320,8 +359,13 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>RELEASE</version>
+            <version>4.8.3</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.lanterna</groupId>
+            <artifactId>lanterna</artifactId>
+            <version>3.1.1</version>
         </dependency>
 
     </dependencies>
