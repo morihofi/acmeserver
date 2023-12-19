@@ -1,16 +1,11 @@
 package de.morihofi.acmeserver.tools.certificate.renew.watcher;
 
-import de.morihofi.acmeserver.tools.certificate.CertTools;
-import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.X509;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.nio.file.Path;
-import java.security.KeyPair;
 import java.security.KeyStore;
-import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.concurrent.Executors;

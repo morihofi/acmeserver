@@ -7,8 +7,6 @@ import de.morihofi.acmeserver.tools.crypto.AcmeTokenCryptography;
 import de.morihofi.acmeserver.tools.crypto.Hashing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jose4j.jwk.PublicJsonWebKey;
-import org.jose4j.lang.JoseException;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.TXTRecord;
 import org.xbill.DNS.TextParseException;
@@ -17,9 +15,6 @@ import org.xbill.DNS.Record;
 
 import java.io.IOException;
 import java.security.*;
-import java.util.Base64;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class DNSChallenge {
 

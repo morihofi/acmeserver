@@ -1,16 +1,14 @@
-package de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.ServerInfo;
+package de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.ServerInfo.objects.MetadataInfoResponse;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.ServerInfo.objects.ProvisionerResponse;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.ServerInfo.objects.ServerInfoResponse;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.MetadataInfoResponse;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ProvisionerResponse;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -5,7 +5,6 @@ import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.DomainNameRestrictionConfig;
 import de.morihofi.acmeserver.config.MetadataConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
-import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
 
 import java.security.*;
 import java.security.cert.X509Certificate;

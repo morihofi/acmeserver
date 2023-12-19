@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.ServerInfo.objects;
+package de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects;
 
 public class ProvisionerResponse {
     private String name;
