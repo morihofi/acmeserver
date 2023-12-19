@@ -52,7 +52,7 @@ public class FinalizeOrderEndpoint implements Handler {
 
 
         JSONObject reqBodyPayloadObj = new JSONObject(acmeRequestBody.getDecodedPayload());
-        JSONObject responseJSON = new JSONObject();
+
 
         String csr = reqBodyPayloadObj.getString("csr");
 
@@ -119,7 +119,7 @@ public class FinalizeOrderEndpoint implements Handler {
             response.setIdentifiers(identifierList);
             response.setAuthorizations(authorizationsList);
 
-            ctx.result(responseJSON.toString());
+            ctx.result(gson.toJson(response));
         } catch (Exception ex) {
             log.error("Throwing API error: CSR processing error", ex);
             throw new ACMEBadCsrException("Unable to process requested CSR. Is the CSR valid? Otherwise try again later, if the problem persists contact support.");
