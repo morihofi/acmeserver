@@ -31,18 +31,17 @@ public class CryptoStoreManager {
     private IKeyStoreConfig keyStoreConfig;
     private KeyStore keyStore;
 
+
     public CryptoStoreManager(IKeyStoreConfig keyStoreConfig) throws CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, NoSuchProviderException {
         this.keyStoreConfig = keyStoreConfig;
 
-        if (keyStoreConfig instanceof PKCS11KeyStoreConfig) {
-            PKCS11KeyStoreConfig pkcs11Config = (PKCS11KeyStoreConfig) keyStoreConfig;
+        if (keyStoreConfig instanceof PKCS11KeyStoreConfig pkcs11Config) {
             String libraryLocation = pkcs11Config.getLibraryPath().toAbsolutePath().toString();
 
             log.info("Using PKCS#11 KeyStore with native library at \"" + libraryLocation + "\" with slot " + pkcs11Config.getSlot());
             keyStore = PKCS11KeyStoreLoader.loadPKCS11Keystore(pkcs11Config.getPassword(), pkcs11Config.getSlot(), libraryLocation);
         }
-        if (keyStoreConfig instanceof PKCS12KeyStoreConfig) {
-            PKCS12KeyStoreConfig pkcs12Config = (PKCS12KeyStoreConfig) keyStoreConfig;
+        if (keyStoreConfig instanceof PKCS12KeyStoreConfig pkcs12Config) {
             log.info("Using PKCS#12 KeyStore at \"" + pkcs12Config.getPath().toAbsolutePath().toString() + "\"");
             keyStore = KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
             if (Files.exists(pkcs12Config.getPath())) {
