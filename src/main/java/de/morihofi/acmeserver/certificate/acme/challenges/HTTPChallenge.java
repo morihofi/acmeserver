@@ -122,6 +122,7 @@ public class HTTPChallenge {
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 // Successful response, check the token in the response
                 log.debug("Got response, checking token in response");
+                assert response.body() != null;
                 String acmeTokenFromHost = response.body().string();
                 String expectedValue = AcmeTokenCryptography.keyAuthorizationFor(authToken, acmeAccountPublicKey);
 
