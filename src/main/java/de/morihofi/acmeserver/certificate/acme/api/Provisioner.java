@@ -126,12 +126,4 @@ public class Provisioner {
         return cryptoStoreManager;
     }
 
-    @Deprecated(forRemoval = true)
-    public void setIntermediateCaCertificate(X509Certificate intermediateCertificate) {
-        //This function does not do anything. It will be removed
-    }
-    @Deprecated(forRemoval = true)
-    public void setIntermediateCaKeyPair(KeyPair intermediateKeyPair) {
-        //This function does not do anything. It will be removed
-    }
 }
