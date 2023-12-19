@@ -40,7 +40,7 @@ public class NonceManager {
      */
     public static boolean isNonceUsed(String nonce) {
 
-        if(System.getenv("DEBUG") == "TRUE"){
+        if(Objects.equals(System.getenv("DEBUG"), "TRUE")){
             //Nonce protection is disabled when DEBUG environment variable is set to TRUE
             return false;
         }
