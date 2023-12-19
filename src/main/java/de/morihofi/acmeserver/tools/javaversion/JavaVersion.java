@@ -20,7 +20,6 @@
 package de.morihofi.acmeserver.tools.javaversion;
 
 import java.text.MessageFormat;
-import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

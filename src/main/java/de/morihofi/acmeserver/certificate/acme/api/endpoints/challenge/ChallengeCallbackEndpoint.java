@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.objects.ACMEChallengeResponse;
 import de.morihofi.acmeserver.certificate.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
@@ -18,12 +19,12 @@ import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONObject;
 
 public class ChallengeCallbackEndpoint implements Handler {
 
     private final Provisioner provisioner;
     private final Logger log = LogManager.getLogger(getClass());
+    private final Gson gson;
 
     /**
      * Constructs a NewNonce handler with the specified ACME provisioner.
@@ -32,6 +33,7 @@ public class ChallengeCallbackEndpoint implements Handler {
      */
     public ChallengeCallbackEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
+        this.gson = new Gson();
     }
 
     @Override
@@ -39,20 +41,18 @@ public class ChallengeCallbackEndpoint implements Handler {
         String challengeId = ctx.pathParam("challengeId");
         String challengeType = ctx.pathParam("challengeType"); //dns-01 or http-01
 
-
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", Crypto.createNonce());
 
-        // check if challenge is valid
+        // Check if challenge is valid
         ACMEIdentifier identifier = Database.getACMEIdentifierByChallengeId(challengeId);
 
         Gson gson = new Gson();
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
-
-        //Check signature
+        // Check signature
         SignatureCheck.checkSignature(ctx, identifier.getOrder().getAccount(), gson);
-        //Check nonce
+        // Check nonce
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
         boolean isWildcardDomain = false;
@@ -62,12 +62,12 @@ public class ChallengeCallbackEndpoint implements Handler {
             isWildcardDomain = true;
         }
 
-        if(!"dns-01".equals(challengeType) && isWildcardDomain){
+        if (!"dns-01".equals(challengeType) && isWildcardDomain) {
             throw new ACMEMalformedException("DNS-01 method is only valid for non wildcard domains");
         }
 
         boolean challengePassed = false;
-        String possibleErrorReasonIfFailed;
+        String possibleErrorReasonIfFailed = null;
         switch (challengeType) {
             case "http-01" -> {
                 challengePassed = HTTPChallenge.check(identifier.getAuthorizationToken(), identifier.getDataValue(), identifier.getOrder().getAccount());
@@ -83,40 +83,34 @@ public class ChallengeCallbackEndpoint implements Handler {
             }
         }
 
-
         log.info("Validating ownership of host \"" + nonWildcardDomain + "\"");
         if (challengePassed) {
-            //mark challenge has passed
+            // Mark challenge as passed
             Database.passChallenge(challengeId);
         } else {
             log.error("Throwing API error: Host verification failed with method " + challengeType);
             throw new ACMEConnectionErrorException(possibleErrorReasonIfFailed);
-
             // TODO: Fail challenge in database
             //Database.failChallenge(challengeId);
         }
 
-
-        //Reload identifier, e.g. host has validated
+        // Reload identifier, e.g., host has validated
         identifier = Database.getACMEIdentifierByChallengeId(challengeId);
 
-
-        JSONObject responseJSON = new JSONObject();
-        responseJSON.put("type", challengeType);
+        // Creating response object
+        ACMEChallengeResponse response = new ACMEChallengeResponse();
+        response.setType(challengeType);
         if (identifier.isVerified()) {
-            responseJSON.put("status", "valid");
-            responseJSON.put("verified", DateTools.formatDateForACME(identifier.getVerifiedTime()));
+            response.setStatus("valid");
+            response.setVerified(DateTools.formatDateForACME(identifier.getVerifiedTime()));
         } else {
-            responseJSON.put("status", "pending");
+            response.setStatus("pending");
         }
+        response.setUrl(provisioner.getApiURL() + "/acme/chall/" + challengeId + "/" + challengeType);
+        response.setToken(identifier.getAuthorizationToken());
 
-
-        //"Up"-Link header is required for certbot
+        // "Up"-Link header is required for certbot
         ctx.header("Link", "<" + provisioner.getApiURL() + "/acme/authz/" + identifier.getAuthorizationId() + ">;rel=\"up\"");
-        responseJSON.put("url", provisioner.getApiURL() + "/acme/chall/" + challengeId + "/" + challengeType);
-        responseJSON.put("token", identifier.getAuthorizationToken());
-
-        ctx.result(responseJSON.toString());
-
+        ctx.result(gson.toJson(response));
     }
 }

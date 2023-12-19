@@ -1,6 +1,5 @@
 package de.morihofi.acmeserver.tools.certificate.cryptoops;
 
-import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.IKeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
@@ -13,7 +12,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.security.*;
 import java.security.cert.CertificateException;
 
@@ -76,8 +74,7 @@ public class CryptoStoreManager {
     }
 
     public void saveKeystore() throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
-        if (keyStoreConfig instanceof PKCS12KeyStoreConfig) {
-            PKCS12KeyStoreConfig pkcs12Config = (PKCS12KeyStoreConfig) keyStoreConfig;
+        if (keyStoreConfig instanceof PKCS12KeyStoreConfig pkcs12Config) {
 
             try (OutputStream fos = Files.newOutputStream(pkcs12Config.getPath())) {
                 keyStore.store(fos, pkcs12Config.getPassword().toCharArray());

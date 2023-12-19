@@ -18,12 +18,28 @@ public class OcspEndpointGet implements Handler {
     private final CRL crlGenerator;
     public final Logger log = LogManager.getLogger(getClass());
 
-
+    /**
+     * Constructor for OcspEndpointGet class. Processes GET Requests
+     * Creates an instance with specified Provisioner and CRL generator.
+     *
+     * @param provisioner  the Provisioner instance for OCSP handling
+     * @param crlGenerator the CRL (Certificate Revocation List) generator for managing revoked certificates
+     */
     public OcspEndpointGet(Provisioner provisioner, CRL crlGenerator) {
         this.provisioner = provisioner;
         this.crlGenerator = crlGenerator;
     }
 
+    /**
+     * Handles OCSP (Online Certificate Status Protocol) requests.
+     * This method decodes the OCSP request encoded in the URL path parameter,
+     * extracts the certificate serial number, and generates an OCSP response.
+     * It then sends the OCSP response back to the client.
+     *
+     * @param ctx the Context object representing the HTTP request and response
+     * @throws Exception if there's an error in processing the OCSP request or in generating the response.
+     *                   This includes cases like invalid input, empty request, or issues with request parsing.
+     */
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         String ocspRequestEncoded = ctx.pathParam("ocspRequest");

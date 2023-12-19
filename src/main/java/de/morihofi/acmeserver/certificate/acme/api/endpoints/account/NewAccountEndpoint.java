@@ -2,6 +2,8 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.account;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestBody;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.AccountResponse;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
@@ -14,89 +16,66 @@ import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
 import org.json.JSONObject;
-import java.util.ArrayList;
+
+import java.util.List;
 import java.util.UUID;
 
 public class NewAccountEndpoint implements Handler {
     public final Logger log = LogManager.getLogger(getClass());
     private final Provisioner provisioner;
+    private final Gson gson;
 
     public NewAccountEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
+        this.gson = new Gson();
     }
 
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
-        //Parse request body
-        Gson gson = new Gson();
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
-        //Check nonce
+        // Check nonce
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
-
-        //Payload is Base64 Encoded
-        JSONObject reqBodyPayloadObj = new JSONObject(acmeRequestBody.getDecodedPayload());
+        // Deserialize payload and protected objects
+        ACMEAccountRequestBody payload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestBody.class);
         JSONObject reqBodyProtectedObj = new JSONObject(acmeRequestBody.getDecodedProtected());
 
-        boolean reqPayloadTermsOfServiceAgreed = reqBodyPayloadObj.optBoolean("termsOfServiceAgreed");
-
-        if (!reqPayloadTermsOfServiceAgreed) {
+        // Check terms of service agreement
+        if (payload.getTermsOfServiceAgreed() == null || !payload.getTermsOfServiceAgreed()) {
             throw new ACMEMalformedException("Terms of Service not accepted. Unable to create account");
         }
 
-        //String reqPayloadContactEmail = "";
-        ArrayList<String> emailsFromPayload = new ArrayList<>();
-        // Has email? (This can be updated later)
-        if (reqBodyPayloadObj.has("contact")) {
-
-
-            for (int i = 0; i < reqBodyPayloadObj.getJSONArray("contact").length(); i++) {
-                String email = reqBodyPayloadObj.getJSONArray("contact").getString(i);
+        // Validate email addresses
+        List<String> emails = payload.getContact();
+        if (emails != null) {
+            for (String email : emails) {
                 email = email.replace("mailto:", "");
-
-                if (!EmailValidation.isValidEmail(email) || email.split("\\@")[0].equals("localhost")) {
+                if (!EmailValidation.isValidEmail(email) || email.split("@")[0].equals("localhost")) {
                     log.error("E-Mail validation failed for email \"" + email + "\"");
                     throw new ACMEInvalidContactException("Mail validation failed for email " + email);
                 }
-                log.info("E-Mail validation successful for email \"" + email + "\"");
-                emailsFromPayload.add(email);
             }
         }
 
-
         // Create new account in database
-        // https://ietf-wg-acme.github.io/acme/draft-ietf-acme-acme.html#rfc.section.7.3
-
         String accountId = UUID.randomUUID().toString();
-        Database.createAccount(accountId, reqBodyProtectedObj.getJSONObject("jwk").toString(), emailsFromPayload);
+        Database.createAccount(accountId, reqBodyProtectedObj.getJSONObject("jwk").toString(), emails);
 
+        // Construct response
         String nonce = Crypto.createNonce();
-        // Response is JSON
         ctx.header("Content-Type", "application/json");
         ctx.header("Location", provisioner.getApiURL() + "/acme/acct/" + accountId);
         ctx.header("Replay-Nonce", nonce);
-        ctx.status(201); //Created
+        ctx.status(201); // Created
 
-        JSONObject responseJSON = new JSONObject();
+        AccountResponse response = new AccountResponse();
+        response.setStatus("valid");
+        response.setContact(emails);
+        response.setOrders(provisioner.getApiURL() + "/acme/acct/" + accountId + "/orders");
 
-
-        //Contact information
-        JSONArray contactEmailsArr = new JSONArray();
-        for (String email : emailsFromPayload) {
-            contactEmailsArr.put(email);
-        }
-
-        responseJSON.put("status", "valid");
-        if (contactEmailsArr.length() != 0) {
-            responseJSON.put("contact", contactEmailsArr);
-        }
-
-        responseJSON.put("orders", provisioner.getApiURL() + "/acme/acct/" + accountId + "/orders");
-
-        ctx.result(responseJSON.toString());
-
+        ctx.result(gson.toJson(response));
     }
+
 }

@@ -1,6 +1,5 @@
 package de.morihofi.acmeserver.database;
 
-import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
@@ -24,10 +23,7 @@ import jakarta.persistence.*;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.security.KeyStoreException;
-import java.security.Provider;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -37,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 public class Database {
 
