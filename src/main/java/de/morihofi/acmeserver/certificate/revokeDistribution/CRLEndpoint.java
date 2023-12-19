@@ -11,6 +11,13 @@ public class CRLEndpoint implements Handler {
     private final Provisioner provisioner;
     private final CRL crl;
 
+    /**
+     * Constructor for the CRLEndpoint class.
+     * Initializes a new instance with a given Provisioner and CRL (Certificate Revocation List) object.
+     *
+     * @param provisioner the Provisioner instance to be associated with this endpoint
+     * @param crl the CRL instance for handling certificate revocation related operations
+     */
     public CRLEndpoint(Provisioner provisioner, CRL crl) {
         this.provisioner = provisioner;
         this.crl = crl;

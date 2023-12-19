@@ -2,6 +2,9 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.authz;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.AuthzResponse;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.Challenge;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.Identifier;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
@@ -15,18 +18,20 @@ import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class AuthzOwnershipEndpoint implements Handler {
 
     private final Provisioner provisioner;
     private final Logger log = LogManager.getLogger(getClass());
+    private Gson gson;
 
     public AuthzOwnershipEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
+        this.gson = new Gson();
     }
 
     @Override
@@ -51,50 +56,44 @@ public class AuthzOwnershipEndpoint implements Handler {
         SignatureCheck.checkSignature(ctx, identifier.getOrder().getAccount(), gson);
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
-
         boolean isWildcardDomain = identifier.getDataValue().startsWith("*.");
         String nonWildcardDomain = identifier.getDataValue();
-        if (nonWildcardDomain.startsWith("*.")) {
+        if (isWildcardDomain) {
             nonWildcardDomain = nonWildcardDomain.substring(2); // Remove wildcard part for validation
         }
 
+        Identifier idObj = new Identifier();
+        idObj.setType(identifier.getType());
+        idObj.setValue(nonWildcardDomain);
 
-        JSONObject identifierObj = new JSONObject();
-        identifierObj.put("type", identifier.getType());
-        identifierObj.put("value", nonWildcardDomain);
+        List<Challenge> challenges = new ArrayList<>();
 
-        JSONArray challengeArr = new JSONArray();
-
-
-
-        //HTTP-01 Challenge does only work on non-wildcard domains
+        // HTTP-01 Challenge only for non-wildcard domains
         if (!isWildcardDomain) {
-            // HTTP-01 Challenge
-            JSONObject challengeHTTP = createChallengeObj("http-01", identifier);
-            challengeArr.put(challengeHTTP);
+            challenges.add(createChallenge("http-01", identifier));
         }
 
         // DNS-01 Challenge
-        JSONObject challengeDNS = createChallengeObj("dns-01", identifier);
-        challengeArr.put(challengeDNS);
+        challenges.add(createChallenge("dns-01", identifier));
 
-        JSONObject returnObj = new JSONObject();
-        returnObj.put("status", identifier.isVerified() ? "valid" : "pending");
-        returnObj.put("expires", DateTools.formatDateForACME(new Date()));
-        returnObj.put("identifier", identifierObj);
-        returnObj.put("challenges", challengeArr);
+        AuthzResponse response = new AuthzResponse();
+        response.setStatus(identifier.isVerified() ? "valid" : "pending");
+        response.setExpires(DateTools.formatDateForACME(new Date()));
+        response.setIdentifier(idObj);
+        response.setChallenges(challenges);
 
-        ctx.result(returnObj.toString());
+        ctx.result(gson.toJson(response));
     }
 
-    private JSONObject createChallengeObj(String type, ACMEIdentifier identifier) {
-        JSONObject challenge = new JSONObject();
-        challenge.put("type", type);
-        challenge.put("url", provisioner.getApiURL() + "/acme/chall/" + identifier.getChallengeId() + "/" + type);
-        challenge.put("token", identifier.getAuthorizationToken());
+
+    private Challenge createChallenge(String type, ACMEIdentifier identifier) {
+        Challenge challenge = new Challenge();
+        challenge.setType(type);
+        challenge.setUrl(provisioner.getApiURL() + "/acme/chall/" + identifier.getChallengeId() + "/" + type);
+        challenge.setToken(identifier.getAuthorizationToken());
         if (identifier.isVerified()) {
-            challenge.put("status", "valid");
-            challenge.put("validated", DateTools.formatDateForACME(identifier.getVerifiedTime()));
+            challenge.setStatus("valid");
+            challenge.setValidated(DateTools.formatDateForACME(identifier.getVerifiedTime()));
         }
         return challenge;
     }

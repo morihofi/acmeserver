@@ -6,11 +6,10 @@ import de.morihofi.acmeserver.config.DomainNameRestrictionConfig;
 import de.morihofi.acmeserver.config.MetadataConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 
-import java.security.KeyPair;
+import java.security.*;
 import java.security.cert.X509Certificate;
 
 public class Provisioner {
-
 
 
     /**
@@ -22,14 +21,19 @@ public class Provisioner {
         return "https://" + Main.appConfig.getServer().getDnsName() + ":" + Main.appConfig.getServer().getPorts().getHttps() + "/" + provisionerName;
     }
 
+    /**
+     * Retrieves the server URL constructed from the application's configuration.
+     * This method combines the DNS name and HTTPS port specified in the app configuration
+     * to form the complete server URL.
+     *
+     * @return a String representing the full HTTPS URL of the server
+     */
     public String getServerURL() {
         return "https://" + Main.appConfig.getServer().getDnsName() + ":" + Main.appConfig.getServer().getPorts().getHttps();
     }
 
 
     private final String provisionerName;
-    private X509Certificate intermediateCaCertificate;
-    private KeyPair intermediateCaKeyPair;
     private MetadataConfig acmeMetadataConfig;
     private CertificateExpiration generatedCertificateExpiration;
     private boolean wildcardAllowed;
@@ -39,8 +43,6 @@ public class Provisioner {
 
     public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager) {
         this.provisionerName = provisionerName;
-        this.intermediateCaCertificate = intermediateCaCertificate;
-        this.intermediateCaKeyPair = intermediateCaKeyPair;
         this.acmeMetadataConfig = acmeMetadataConfig;
         this.generatedCertificateExpiration = generatedCertificateExpiration;
         this.domainNameRestriction = domainNameRestriction;
@@ -72,13 +74,6 @@ public class Provisioner {
         return provisionerName;
     }
 
-    public X509Certificate getIntermediateCertificate(){
-        return intermediateCaCertificate;
-    }
-
-    public KeyPair getIntermediateKeyPair() {
-        return intermediateCaKeyPair;
-    }
 
     public String getCrlPath() {
         return "/crl/" + getProvisionerName() + ".crl";
@@ -89,19 +84,26 @@ public class Provisioner {
     }
 
 
-    public X509Certificate getIntermediateCaCertificate() {
-        return intermediateCaCertificate;
+    public X509Certificate getIntermediateCaCertificate() throws KeyStoreException {
+
+        String alias = CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(provisionerName);
+        KeyStore keyStore = cryptoStoreManager.getKeyStore();
+        return (X509Certificate) keyStore.getCertificate(alias);
     }
 
-    public void setIntermediateCaCertificate(X509Certificate intermediateCaCertificate) {
-        this.intermediateCaCertificate = intermediateCaCertificate;
+    public KeyPair getIntermediateCaKeyPair() throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+
+        String alias = CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(provisionerName);
+
+        KeyStore keyStore = cryptoStoreManager.getKeyStore();
+        KeyPair keyPair = new KeyPair(
+                keyStore.getCertificate(alias).getPublicKey(),
+                (PrivateKey) keyStore.getKey(alias, "".toCharArray())
+        );
+
+        return keyPair;
     }
 
-
-
-    public void setIntermediateCaKeyPair(KeyPair intermediateCaKeyPair) {
-        this.intermediateCaKeyPair = intermediateCaKeyPair;
-    }
 
     public MetadataConfig getAcmeMetadataConfig() {
         return acmeMetadataConfig;
@@ -122,4 +124,5 @@ public class Provisioner {
     public CryptoStoreManager getCryptoStoreManager() {
         return cryptoStoreManager;
     }
+
 }

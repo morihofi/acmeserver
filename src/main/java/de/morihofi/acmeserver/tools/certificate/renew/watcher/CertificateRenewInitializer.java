@@ -7,7 +7,6 @@ import de.morihofi.acmeserver.tools.certificate.renew.IntermediateCaRenew;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;

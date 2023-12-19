@@ -8,6 +8,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.NewAccountE
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.AuthzOwnershipEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.ChallengeCallbackEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.download.DownloadCaEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.ServerInfoEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
@@ -222,9 +223,6 @@ public class AcmeApiServer {
                 intermediateKeyPair = cryptoStoreManager.getIntermediateCerificateAuthorityKeyPair(provisionerName);
                 intermediateCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(IntermediateKeyAlias);
             }
-            provisioner.setIntermediateCaKeyPair(intermediateKeyPair);
-            provisioner.setIntermediateCaCertificate(intermediateCertificate);
-
 
             // Initialize the CertificateRenewWatcher for this provisioner
             KeyStore keyStore = cryptoStoreManager.getKeyStore();
@@ -302,10 +300,6 @@ public class AcmeApiServer {
                     });
                 });
             }
-
-            //Set the missing values
-            provisioner.setIntermediateCaCertificate(intermediateCertificate);
-            provisioner.setIntermediateCaKeyPair(intermediateKeyPair);
 
             provisioners.add(provisioner);
 

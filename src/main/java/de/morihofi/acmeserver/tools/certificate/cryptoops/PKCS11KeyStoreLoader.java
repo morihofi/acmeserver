@@ -1,8 +1,6 @@
 package de.morihofi.acmeserver.tools.certificate.cryptoops;
 
 import de.morihofi.acmeserver.tools.javaversion.JavaVersion;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
