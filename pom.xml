@@ -16,6 +16,8 @@
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>dd-MM-yyyy HH:mm</maven.build.timestamp.format>
 
+        <deb.version>${project.version}-${git.commit.id.abbrev}</deb.version>
+
         <bouncycastle.version>1.77</bouncycastle.version>
         <javalin.version>5.6.3</javalin.version>
         <jose4j.version>0.9.3</jose4j.version>
@@ -162,6 +164,7 @@
                             <goal>jdeb</goal>
                         </goals>
                         <configuration>
+                            <deb>${project.build.directory}/${project.artifactId}-${deb.version}.deb</deb>
                             <controlDir>${project.basedir}/src/main/deb/control</controlDir>
                             <dataSet>
                                 <data>
