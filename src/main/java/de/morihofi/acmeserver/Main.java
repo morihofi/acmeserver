@@ -28,6 +28,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -84,34 +85,7 @@ public class Main {
         appConfig = configGson.fromJson(Files.readString(configPath), Config.class);
 
         loadBuildAndGitMetadata();
-        initializeDatabaseDrivers();
 
-        {
-            //Initialize KeyStore
-
-            if (appConfig.getKeyStore() instanceof PKCS11KeyStoreParams pkcs11KeyStoreParams) {
-
-                cryptoStoreManager = new CryptoStoreManager(
-                        new PKCS11KeyStoreConfig(
-                                Paths.get(pkcs11KeyStoreParams.getLibraryLocation()),
-                                pkcs11KeyStoreParams.getSlot(),
-                                pkcs11KeyStoreParams.getPassword()
-                        )
-                );
-            }
-            if (appConfig.getKeyStore() instanceof PKCS12KeyStoreParams pkcs12KeyStoreParams) {
-
-                cryptoStoreManager = new CryptoStoreManager(
-                        new PKCS12KeyStoreConfig(
-                                Paths.get(pkcs12KeyStoreParams.getLocation()),
-                                pkcs12KeyStoreParams.getPassword()
-                        )
-                );
-            }
-            if (cryptoStoreManager == null) {
-                throw new IllegalArgumentException("Could not create CryptoStoreManager, due to unsupported KeyStore configuration");
-            }
-        }
 
         //Parse CLI Arguments
         final String argPrefix = "--";
@@ -139,16 +113,19 @@ public class Main {
 
         switch (selectedMode) {
             case NORMAL -> {
+                initializeCoreComponents();
                 log.info("Starting normally");
                 AcmeApiServer.startServer(cryptoStoreManager, appConfig);
                 break;
             }
             case POSTSETUP -> {
+                //Do not init core components, due to changing passwords in UI
                 log.info("Starting Post Setup");
                 PostSetup.run(cryptoStoreManager, appConfig, FILES_DIR, args);
                 break;
             }
             case KEYSTORE_MIGRATION_PEM2KS -> {
+                initializeCoreComponents();
                 log.info("Starting in KeyStore migration Mode (PEM to KeyStore)");
                 KSMigrationTool.run(args, cryptoStoreManager, appConfig, FILES_DIR);
                 break;
@@ -171,6 +148,44 @@ public class Main {
                  / ___ \\ (__| | | | | |  __/___) |  __/ |   \\ V /  __/ |  \s
                 /_/   \\_\\___|_| |_| |_|\\___|____/ \\___|_|    \\_/ \\___|_|  \s
                 """);
+    }
+    private static boolean coreComponentsInitialized = false;
+
+    private static void initializeCoreComponents() throws ClassNotFoundException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+        if(coreComponentsInitialized){
+            return;
+        }
+
+        initializeDatabaseDrivers();
+
+        {
+            //Initialize KeyStore
+
+            if (appConfig.getKeyStore() instanceof PKCS11KeyStoreParams pkcs11KeyStoreParams) {
+
+                cryptoStoreManager = new CryptoStoreManager(
+                        new PKCS11KeyStoreConfig(
+                                Paths.get(pkcs11KeyStoreParams.getLibraryLocation()),
+                                pkcs11KeyStoreParams.getSlot(),
+                                pkcs11KeyStoreParams.getPassword()
+                        )
+                );
+            }
+            if (appConfig.getKeyStore() instanceof PKCS12KeyStoreParams pkcs12KeyStoreParams) {
+
+                cryptoStoreManager = new CryptoStoreManager(
+                        new PKCS12KeyStoreConfig(
+                                Paths.get(pkcs12KeyStoreParams.getLocation()),
+                                pkcs12KeyStoreParams.getPassword()
+                        )
+                );
+            }
+            if (cryptoStoreManager == null) {
+                throw new IllegalArgumentException("Could not create CryptoStoreManager, due to unsupported KeyStore configuration");
+            }
+
+            coreComponentsInitialized = true;
+        }
     }
 
     /**
