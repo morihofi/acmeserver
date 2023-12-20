@@ -69,6 +69,7 @@ public class OrderInfoEndpoint implements Handler {
         response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
         response.setCertificate(provisioner.getApiURL() + "/acme/order/" + orderId + "/cert");
         response.setIdentifiers(identifierList);
+        response.setAuthorizations(authorizationsList);
 
         ctx.result(gson.toJson(response));
     }
