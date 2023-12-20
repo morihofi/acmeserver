@@ -83,12 +83,12 @@ public class ChallengeCallbackEndpoint implements Handler {
             }
         }
 
-        log.info("Validating ownership of host \"" + nonWildcardDomain + "\"");
+        log.info("Validating ownership of host {}", nonWildcardDomain);
         if (challengePassed) {
             // Mark challenge as passed
             Database.passChallenge(challengeId);
         } else {
-            log.error("Throwing API error: Host verification failed with method " + challengeType);
+            log.error("Throwing API error: Host verification failed with method {}", challengeType);
             throw new ACMEConnectionErrorException(possibleErrorReasonIfFailed);
             // TODO: Fail challenge in database
             //Database.failChallenge(challengeId);

@@ -57,7 +57,7 @@ public class OcspHelper {
             certStatus = CertificateStatus.GOOD;
         }
 
-        log.info("Status for serial number " + serialNumber + " is: " + (certStatus != null ? "revoked" : "valid"));
+        log.info("Status for serial number {} is: {}", serialNumber, (certStatus != null ? "revoked" : "valid"));
 
         X509Certificate caCert = provisioner.getIntermediateCaCertificate();
         KeyPair caKeyPair = provisioner.getIntermediateCaKeyPair();

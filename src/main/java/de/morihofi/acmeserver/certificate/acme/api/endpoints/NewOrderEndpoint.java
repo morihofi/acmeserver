@@ -31,16 +31,16 @@ import java.util.UUID;
 public class NewOrderEndpoint implements Handler {
     private final Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
+    private final Gson gson;
 
     public NewOrderEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
+        this.gson = new Gson();
     }
-
 
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         //Parse request body
-        Gson gson = new Gson();
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
@@ -138,6 +138,7 @@ public class NewOrderEndpoint implements Handler {
 
 
         //TODO: Set better Date/Time
+        //TODO: Use POJOs instead of org.JSON
         returnObj.put("status", "pending");
         returnObj.put("expires", DateTools.formatDateForACME(new Date()));
         returnObj.put("notBefore", DateTools.formatDateForACME(new Date()));
