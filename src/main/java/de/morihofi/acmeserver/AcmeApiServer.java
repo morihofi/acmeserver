@@ -84,7 +84,7 @@ public class AcmeApiServer {
             ctx.header("Content-Type", "application/problem+json");
             //ctx.header("Link", "<" + provisioner.getApiURL() + "/directory>;rel=\"index\"");
             ctx.result(gson.toJson(exception.getErrorResponse()));
-            log.error("ACME Exception thrown: " + exception.getErrorResponse().getDetail() + " (" + exception.getErrorResponse().getType() + ")");
+            log.error("ACME Exception thrown: {} ({})", exception.getErrorResponse().getDetail(), exception.getErrorResponse().getType());
         });
 
 
@@ -190,13 +190,13 @@ public class AcmeApiServer {
 
                 if (config.getIntermediate().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
                     log.info("Using RSA algorithm");
-                    log.info("Generating RSA " + rsaParams.getKeySize() + "bit Key Pair for Intermediate CA");
+                    log.info("Generating RSA {} bit Key Pair for Intermediate CA",rsaParams.getKeySize());
                     intermediateKeyPair = KeyPairGenerator.generateRSAKeyPair(rsaParams.getKeySize(), cryptoStoreManager.getKeyStore().getProvider().getName());
                 }
                 if (config.getIntermediate().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
                     log.info("Using ECDSA algorithm (Elliptic curves");
 
-                    log.info("Generating ECDSA Key Pair using curve " + ecdsaAlgorithmParams.getCurveName() + " for Intermediate CA");
+                    log.info("Generating ECDSA Key Pair using curve {} for Intermediate CA",ecdsaAlgorithmParams.getCurveName());
                     intermediateKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName(), cryptoStoreManager.getKeyStore().getProvider().getName());
 
                 }
@@ -219,7 +219,7 @@ public class AcmeApiServer {
                 cryptoStoreManager.saveKeystore();
 
             } else {
-                log.info("Loading Intermediate CA and KeyPair for provisioner " + provisionerName);
+                log.info("Loading Intermediate CA and KeyPair for provisioner {}", provisionerName);
                 intermediateKeyPair = cryptoStoreManager.getIntermediateCerificateAuthorityKeyPair(provisionerName);
                 intermediateCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(IntermediateKeyAlias);
             }
@@ -275,7 +275,7 @@ public class AcmeApiServer {
                                     (PrivateKey) keyStore.getKey(IntermediateKeyAlias, "".toCharArray())
                             );
 
-                            byte[] itmCertificateBytes = keyStore.getCertificate(IntermediateKeyAlias).getEncoded();
+                            //byte[] itmCertificateBytes = keyStore.getCertificate(IntermediateKeyAlias).getEncoded();
 
 
                             //Generate new certificate in place
