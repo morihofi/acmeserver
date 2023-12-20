@@ -26,6 +26,7 @@ java -jar acmeserver-VERSION.jar
 
 ## ✨ Features
 - Self-hosted ACME Server for use with your own CA
+- Support for PKCS#12 (.p12) KeyStore and PKCS#11 Hardware Security Modules (HSM)
 - Revokation support
 - Mostly ACME RFC compliant
 - Multiple provisioners support with own intermediate CA

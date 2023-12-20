@@ -6,6 +6,11 @@
       "http": 80
     }
   },
+  "keyStore": {
+    "type": "pkcs12",
+    "password": "test",
+    "location": "./serverdata/test.p12"
+  },
   "database": {
     "engine": "h2",
     "host": "",
@@ -23,7 +28,7 @@
   },
   "rootCA": {
     "metadata": {
-      "commonName": "My Root CA I can trust",
+      "commonName": "ACMEServer Root CA",
       "organisation": null,
       "organisationalUnit": null,
       "countryCode": null

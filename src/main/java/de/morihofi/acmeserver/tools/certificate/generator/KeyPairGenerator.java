@@ -1,11 +1,6 @@
 package de.morihofi.acmeserver.tools.certificate.generator;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.*;
 import java.security.spec.ECGenParameterSpec;
 
 public class KeyPairGenerator {
@@ -18,10 +13,9 @@ public class KeyPairGenerator {
      * @throws NoSuchAlgorithmException If RSA key pair generation is not supported by the security provider.
      * @throws NoSuchProviderException  If the specified security provider is not found.
      */
-    public static KeyPair generateRSAKeyPair(int rsaKeySize) throws NoSuchAlgorithmException, NoSuchProviderException {
-        java.security.KeyPairGenerator rsa = java.security.KeyPairGenerator.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
+    public static KeyPair generateRSAKeyPair(int rsaKeySize, String givenProviderName) throws NoSuchAlgorithmException, NoSuchProviderException {
+        java.security.KeyPairGenerator rsa = java.security.KeyPairGenerator.getInstance("RSA", givenProviderName);
         rsa.initialize(rsaKeySize);
-
         return rsa.generateKeyPair();
     }
 
@@ -34,8 +28,8 @@ public class KeyPairGenerator {
      * @throws NoSuchProviderException            If the specified security provider is not found.
      * @throws InvalidAlgorithmParameterException If the provided curve name is invalid or not supported.
      */
-    public static KeyPair generateEcdsaKeyPair(String curveName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
-        java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME);
+    public static KeyPair generateEcdsaKeyPair(String curveName, String givenProviderName) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+        java.security.KeyPairGenerator keyPairGenerator = java.security.KeyPairGenerator.getInstance("ECDSA", givenProviderName);
 
         ECGenParameterSpec ecSpec = new ECGenParameterSpec(curveName);
         keyPairGenerator.initialize(ecSpec);

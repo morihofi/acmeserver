@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -13,6 +14,7 @@ public class DirectoryEndpoint implements Handler {
     private final Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public DirectoryEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
     }

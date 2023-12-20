@@ -27,30 +27,50 @@ public class CRL {
 
     private static final int UPDATE_MINUTES = 5;
 
+    /**
+     * Constructor for the CRL (Certificate Revocation List) class.
+     * Initializes a new CRL instance with a given Provisioner.
+     * It logs the initialization of the CRL generation task and starts
+     * a scheduled task to update the CRL cache at a fixed rate.
+     *
+     * @param provisioner the Provisioner instance to be used for CRL operations
+     */
     public CRL(Provisioner provisioner) {
 
         this.provisioner = provisioner;
 
         log.info("Initialized CRL Generation Task");
-        // Start the scheduled task to update the CRL every 5 minutes (must be same as in generateCRL() function
+        // Start the scheduled task to update the CRL every 5 minutes (must be same as in generateCRL() function)
         scheduler.scheduleAtFixedRate(this::updateCRLCache, 0, UPDATE_MINUTES, TimeUnit.MINUTES);
     }
 
 
-
+    /**
+     * Converts a given X509CRL object to its byte array representation.
+     * This method is useful for encoding the CRL for storage or transmission.
+     *
+     * @param crl the X509CRL object to be converted into a byte array
+     * @return a byte array representing the encoded form of the provided CRL
+     * @throws CRLException if there is an error in encoding the CRL
+     */
     private static byte[] getCrlAsBytes(X509CRL crl) throws CRLException {
         // Return the CRL as a byte array
         return crl.getEncoded();
     }
 
 
-
+    /**
+     * Updates the cache of the Certificate Revocation List (CRL).
+     * This method retrieves the list of revoked certificates from the database,
+     * generates a new CRL based on the retrieved data, and updates the current CRL cache.
+     * It also logs the time of the last update and handles any exceptions that occur during the process.
+     */
     private void updateCRLCache() {
         try {
             // Get the list of revoked certificates from the database
             List<RevokedCertificate> revokedCertificates = Database.getRevokedCertificates(provisioner.getProvisionerName());
             // Generate a new CRL
-            X509CRL crl = CertificateRevokationListGenerator.generateCRL(revokedCertificates, provisioner.getIntermediateCertificate(), provisioner.getIntermediateKeyPair().getPrivate(), UPDATE_MINUTES);
+            X509CRL crl = CertificateRevokationListGenerator.generateCRL(revokedCertificates, provisioner.getIntermediateCaCertificate(), provisioner.getIntermediateCaKeyPair().getPrivate(), UPDATE_MINUTES);
             // Update the current CRL cache
             currentCrlBytes = getCrlAsBytes(crl);
             currentCrl = crl;

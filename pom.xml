@@ -6,7 +6,7 @@
 
     <groupId>de.morihofi.acmeserver</groupId>
     <artifactId>acmeserver</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,6 +22,7 @@
     </properties>
 
     <build>
+        <finalName>acmeserver</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -44,6 +45,14 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <!-- put your configurations here -->
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>pl.project13.maven</groupId>
@@ -123,6 +132,87 @@
                     </dependency>
                 </dependencies>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target>
+                                <copy file="${project.basedir}/settings.sample.json" tofile="${project.build.directory}/settings.json"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>jdeb</artifactId>
+                <groupId>org.vafer</groupId>
+                <version>1.10</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jdeb</goal>
+                        </goals>
+                        <configuration>
+                            <controlDir>${project.basedir}/src/main/deb/control</controlDir>
+                            <dataSet>
+                                <data>
+                                    <src>${project.basedir}/target/${project.build.finalName}.jar</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/opt/${project.artifactId}/</prefix>
+                                        <filemode>644</filemode>
+                                        <user>www-data</user>
+                                        <group>www-data</group>
+                                    </mapper>
+                                </data>
+                                <!-- default settings file for ACME Server -->
+                                <data>
+                                    <src>${project.build.directory}/settings.json</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <prefix>/opt/${project.artifactId}/serverdata</prefix>
+                                        <type>perm</type>
+                                        <filemode>644</filemode>
+                                        <user>www-data</user>
+                                        <group>www-data</group>
+                                    </mapper>
+                                </data>
+                                <!-- systemd service file -->
+                                <data>
+                                    <src>${project.basedir}/src/main/deb/acmeserver.service</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <prefix>/etc/systemd/system/</prefix>
+                                        <type>perm</type>
+                                        <filemode>644</filemode>
+                                    </mapper>
+                                </data>
+                                <!-- cli wrapper script -->
+                                <data>
+                                    <src>${project.basedir}/src/main/deb/acmeserver</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <prefix>/usr/local/bin/</prefix>
+                                        <type>perm</type>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+                            </dataSet>
+                            <postinst>${project.basedir}/src/main/deb/postinst</postinst>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
 
         </plugins>
@@ -153,6 +243,12 @@
             <artifactId>bcprov-jdk18on</artifactId>
             <version>${bouncycastle.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bctls-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+
 
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
         <dependency>
@@ -171,6 +267,12 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j2-impl</artifactId>
             <version>2.20.0</version>
+        </dependency>
+        <!-- java.util Logger to SLF4J -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>2.0.9</version>
         </dependency>
 
 
@@ -208,6 +310,27 @@
             <version>0.10.2</version>
         </dependency>
         <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <version>9.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.enterprise</groupId>
+            <artifactId>jakarta.enterprise.cdi-api</artifactId>
+            <version>3.0.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.interceptor</groupId>
+            <artifactId>jakarta.interceptor-api</artifactId>
+            <version>2.1.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+
+
+        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.10.1</version>
@@ -222,7 +345,6 @@
             <artifactId>jose4j</artifactId>
             <version>${jose4j.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -238,9 +360,20 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>RELEASE</version>
+            <version>4.8.3</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.googlecode.lanterna</groupId>
+            <artifactId>lanterna</artifactId>
+            <version>3.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.passay</groupId>
+            <artifactId>passay</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+
 
     </dependencies>
 

@@ -39,6 +39,12 @@ public class NonceManager {
      * @return true if the nonce already exists, false if it was added
      */
     public static boolean isNonceUsed(String nonce) {
+
+        if(Objects.equals(System.getenv("DEBUG"), "TRUE")){
+            //Nonce protection is disabled when DEBUG environment variable is set to TRUE
+            return false;
+        }
+
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             assert session != null;
             org.hibernate.Transaction transaction = session.beginTransaction();
