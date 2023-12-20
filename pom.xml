@@ -21,6 +21,27 @@
         <jose4j.version>0.9.3</jose4j.version>
     </properties>
 
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+            <comments>A free software license</comments>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Moritz Hofmann</name>
+            <url>https://morihofi.de</url>
+            <email>info@morihofi.de</email>
+            <timezone>Europe/Berlin</timezone>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+
     <build>
         <finalName>acmeserver</finalName>
         <resources>
