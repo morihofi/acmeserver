@@ -247,11 +247,14 @@ public class PostSetup extends WindowBase {
         appConfig.getServer().getPorts().setHttp(Integer.parseInt(httpPortTextBox.getText()));
         appConfig.getServer().getPorts().setHttps(Integer.parseInt(httpsPortTextBox.getText()));
 
-        //KeyStore, use PKCS12 with random password as default
-        PKCS12KeyStoreParams keyStoreParams = new PKCS12KeyStoreParams();
-        keyStoreParams.setLocation(filesDir.resolve("keystore.p12").toAbsolutePath().toString());
-        keyStoreParams.setPassword(SecurePasswordGenerator.generateSecurePassword());
-        appConfig.setKeyStore(keyStoreParams);
+        //KeyStore, use PKCS12 with random password as default. But only if user hasn't changed default
+        if(appConfig.getKeyStore().getPassword().equals("test") && appConfig.getKeyStore() instanceof PKCS12KeyStoreParams){
+            PKCS12KeyStoreParams keyStoreParams = new PKCS12KeyStoreParams();
+            keyStoreParams.setLocation(filesDir.resolve("keystore.p12").toAbsolutePath().toString());
+            keyStoreParams.setPassword(SecurePasswordGenerator.generateSecurePassword());
+            appConfig.setKeyStore(keyStoreParams);
+        }
+
 
 
         Gson gson = new Gson();
