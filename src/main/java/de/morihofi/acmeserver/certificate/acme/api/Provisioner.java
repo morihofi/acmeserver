@@ -5,6 +5,7 @@ import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.DomainNameRestrictionConfig;
 import de.morihofi.acmeserver.config.MetadataConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.security.*;
 import java.security.cert.X509Certificate;
@@ -41,6 +42,7 @@ public class Provisioner {
 
     private final DomainNameRestrictionConfig domainNameRestriction;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public Provisioner(String provisionerName, X509Certificate intermediateCaCertificate, KeyPair intermediateCaKeyPair, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager) {
         this.provisionerName = provisionerName;
         this.acmeMetadataConfig = acmeMetadataConfig;
@@ -58,14 +60,17 @@ public class Provisioner {
         this.wildcardAllowed = wildcardAllowed;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public DomainNameRestrictionConfig getDomainNameRestriction() {
         return domainNameRestriction;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public CertificateExpiration getGeneratedCertificateExpiration() {
         return generatedCertificateExpiration;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public void setGeneratedCertificateExpiration(CertificateExpiration generatedCertificateExpiration) {
         this.generatedCertificateExpiration = generatedCertificateExpiration;
     }
@@ -96,12 +101,11 @@ public class Provisioner {
         String alias = CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(provisionerName);
 
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
-        KeyPair keyPair = new KeyPair(
+
+        return new KeyPair(
                 keyStore.getCertificate(alias).getPublicKey(),
                 (PrivateKey) keyStore.getKey(alias, "".toCharArray())
         );
-
-        return keyPair;
     }
 
 
@@ -109,6 +113,7 @@ public class Provisioner {
         return acmeMetadataConfig;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public void setAcmeMetadataConfig(MetadataConfig acmeMetadataConfig) {
         this.acmeMetadataConfig = acmeMetadataConfig;
     }
