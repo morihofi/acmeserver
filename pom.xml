@@ -183,6 +183,8 @@
                                         <prefix>/opt/${project.artifactId}/serverdata</prefix>
                                         <type>perm</type>
                                         <filemode>644</filemode>
+                                        <user>www-data</user>
+                                        <group>www-data</group>
                                     </mapper>
                                 </data>
                                 <!-- systemd service file -->

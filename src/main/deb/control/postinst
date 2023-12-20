@@ -1,7 +1,8 @@
 #!/bin/sh
 
+
 # Run acme server post-setup wizard
-acmeserver --postsetup
+java -jar /opt/acmeserver/acmeserver.jar --postsetup
 
 # Reload systemd manager configuration
 systemctl daemon-reload

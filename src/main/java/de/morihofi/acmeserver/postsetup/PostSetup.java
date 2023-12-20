@@ -18,6 +18,8 @@ import de.morihofi.acmeserver.postsetup.inputcheck.InputChecker;
 import de.morihofi.acmeserver.postsetup.inputcheck.PortInputChecker;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.password.SecurePasswordGenerator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.annotations.Check;
 import org.json.JSONObject;
 
@@ -39,6 +41,7 @@ public class PostSetup extends WindowBase {
     private CryptoStoreManager cryptoStoreManager;
     private Config appConfig;
     private Path filesDir;
+    public static final Logger log = LogManager.getLogger(PostSetup.class);
 
     public static void run(CryptoStoreManager cryptoStoreManager, Config appConfig, Path filesDir, String[] args) throws IOException, InterruptedException {
         new PostSetup(cryptoStoreManager, appConfig, filesDir).run(args);
@@ -50,41 +53,6 @@ public class PostSetup extends WindowBase {
         this.filesDir = filesDir;
     }
 
-    int i = 0;
-
-    private String showDialog(WindowBasedTextGUI textGUI, String title, String initialContent, InputChecker checker) throws IOException {
-        final AtomicReference<String> result = new AtomicReference<>(initialContent);
-        final BasicWindow dialogWindow = new BasicWindow();
-        i++;
-        dialogWindow.setHints(List.of(Window.Hint.CENTERED));
-        dialogWindow.setTitle(i + "");
-        Panel dialogPanel = new Panel(new GridLayout(1));
-        TextBox inputBox = new TextBox(result.get());
-        dialogPanel.addComponent(inputBox.withBorder(Borders.singleLine(title)));
-
-        Panel buttonPanel = new Panel();
-        buttonPanel.addComponent(new Button("OK", () -> {
-            if (checker.isValid(inputBox.getText())) {
-                result.set(inputBox.getText());
-                dialogWindow.close();
-            } else {
-                //Input is invalid
-                MessageDialog.showMessageDialog(textGUI, "Invalid Input", "The input you have entered is invalid.");
-            }
-        }));
-        buttonPanel.setLayoutData(GridLayout.createLayoutData(
-                GridLayout.Alignment.END, GridLayout.Alignment.CENTER, false, false));
-        dialogPanel.addComponent(buttonPanel);
-        dialogWindow.setComponent(dialogPanel);
-
-        //textGUI.addWindowAndWait(dialogWindow);
-        textGUI.addWindow(dialogWindow);
-        textGUI.updateScreen();
-        textGUI.waitForWindowToClose(dialogWindow);
-
-
-        return result.get();
-    }
 
     private String fqdn = "";
     private int portHttp;
@@ -255,13 +223,23 @@ public class PostSetup extends WindowBase {
             appConfig.setKeyStore(keyStoreParams);
         }
 
+        //Set database, use H2 as default. But only if using default config
+        appConfig.getDatabase().setEngine("h2");
+        appConfig.getDatabase().setHost("");
+        appConfig.getDatabase().setPassword(SecurePasswordGenerator.generateSecurePassword());
+        appConfig.getDatabase().setName(filesDir.resolve("acmedatabase").toAbsolutePath().toString());
+        appConfig.getDatabase().setUser("acmeuser");
 
 
+        textGUI.getScreen().close();
+
+        log.info("Saving new configuration");
         Gson gson = new Gson();
         JSONObject jso = new JSONObject(gson.toJson(appConfig));
         String formattedJson = jso.toString(4);
 
         Files.writeString(filesDir.resolve("settings.json"), formattedJson);
+        log.info("Configuration has been saved successfully");
 
     }
 
