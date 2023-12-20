@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver.postsetup;
 
+import com.google.gson.Gson;
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
@@ -10,16 +11,21 @@ import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.config.Config;
+import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS11KeyStoreParams;
+import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS12KeyStoreParams;
 import de.morihofi.acmeserver.postsetup.inputcheck.FQDNInputChecker;
 import de.morihofi.acmeserver.postsetup.inputcheck.InputChecker;
 import de.morihofi.acmeserver.postsetup.inputcheck.PortInputChecker;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
+import de.morihofi.acmeserver.tools.password.SecurePasswordGenerator;
 import org.hibernate.annotations.Check;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -109,11 +115,11 @@ public class PostSetup extends WindowBase {
 
         Panel topPanel = new Panel();
         topPanel.addComponent(new Label("HTTP Port"));
-        topPanel.addComponent(new TextBox());
+        topPanel.addComponent(httpPortTextBox);
 
         Panel bottomPanel = new Panel();
         bottomPanel.addComponent(new Label("HTTPS Port"));
-        bottomPanel.addComponent(new TextBox());
+        bottomPanel.addComponent(httpsPortTextBox);
 
         httpHttpsPanel.addComponent(topPanel.withBorder(Borders.singleLine()));
         httpHttpsPanel.addComponent(bottomPanel.withBorder(Borders.singleLine()));
@@ -150,18 +156,25 @@ public class PostSetup extends WindowBase {
         topPanel.addComponent(label);
 
         // Erstellen eines TextBox-Elements, das die gesamte verfügbare Breite einnimmt
-        TextBox textBox = new TextBox();
-        textBox.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill)); // Setzt die TextBox so, dass sie den verfügbaren Platz ausfüllt
-        topPanel.addComponent(textBox);
+        fqdnTextBox.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill)); // Setzt die TextBox so, dass sie den verfügbaren Platz ausfüllt
+        topPanel.addComponent(fqdnTextBox);
 
         fqdnBoxPanel.addComponent(topPanel);
         return fqdnBoxPanel.withBorder(Borders.doubleLine("FQDN/DNS Name Setup"));
     }
 
+    TextBox fqdnTextBox = new TextBox();
+    TextBox httpPortTextBox = new TextBox();
+    TextBox httpsPortTextBox = new TextBox();
+
 
     @Override
     public void afterGUIThreadStarted(WindowBasedTextGUI textGUI) throws InterruptedException, IOException {
         super.afterGUIThreadStarted(textGUI);
+
+        fqdnTextBox.setText(fqdn);
+        httpPortTextBox.setText(String.valueOf(portHttp));
+        httpsPortTextBox.setText(String.valueOf(portHttps));
 
 
         final BasicWindow dialogWindow = new BasicWindow();
@@ -175,7 +188,7 @@ public class PostSetup extends WindowBase {
             {
                 Panel linePanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
                 linePanel.addComponent(getHttpHttpsBoxPanel());
-                linePanel.addComponent(getFqdnBoxPanel()                );
+                linePanel.addComponent(getFqdnBoxPanel());
                 //linePanel.addComponent(getKeyStorePanel().setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill)));
                 dialogPanel.addComponent(linePanel);
             }
@@ -192,6 +205,28 @@ public class PostSetup extends WindowBase {
 
         Panel buttonPanel = new Panel();
         buttonPanel.addComponent(new Button("Save", () -> {
+
+            InputChecker fqdnChecker = new FQDNInputChecker();
+            InputChecker portChecker = new PortInputChecker();
+
+            if (!fqdnChecker.isValid(fqdnTextBox.getText())) {
+                //Input is invalid
+                MessageDialog.showMessageDialog(textGUI, "[ ! ] Invalid FQDN", "The FQDN you have entered is invalid.");
+                return;
+            }
+            if (!portChecker.isValid(httpPortTextBox.getText())) {
+                //Input is invalid
+                MessageDialog.showMessageDialog(textGUI, "[ ! ] Invalid HTTP Port", "The insecure HTTP port you have entered is invalid.");
+                return;
+            }
+            if (!portChecker.isValid(httpsPortTextBox.getText())) {
+                //Input is invalid
+                MessageDialog.showMessageDialog(textGUI, "[ ! ] Invalid HTTPS Port", "The secure HTTPS port you have entered is invalid.");
+                return;
+            }
+
+            MessageDialog.showMessageDialog(textGUI, "[ i ] Configuration complete", "Basic configuration completed successfully.\nIf you want (recommended) you can edit \"settings.json\" in the \"serverdata\" folder");
+
             dialogWindow.close();
         }));
 
@@ -200,35 +235,31 @@ public class PostSetup extends WindowBase {
                 GridLayout.Alignment.END, GridLayout.Alignment.CENTER, false, false));
         dialogMain.addComponent(buttonPanel);
 
-
-        /*
-        TextBox fqdnInputBox = new TextBox(fqdn);
-        dialogPanel.addComponent(fqdnInputBox);
-
-        Panel buttonPanel = new Panel();
-        buttonPanel.addComponent(new Button("Save", () -> {
-           *//* if(checker.isValid(fqdnInputBox.getText())){
-                result.set(fqdnInputBox.getText());
-                dialogWindow.close();
-            }else{
-                //Input is invalid
-                MessageDialog.showMessageDialog(textGUI, "Invalid Input", "The input you have entered is invalid.");
-            }*//*
-        }));
-        buttonPanel.addComponent(new Button("I'll do it later", () -> {
-           dialogWindow.close();
-        }));
-        buttonPanel.setLayoutData(GridLayout.createLayoutData(
-                GridLayout.Alignment.END, GridLayout.Alignment.CENTER, false, false));
-        dialogPanel.addComponent(buttonPanel);
-        */
-
         dialogWindow.setComponent(dialogMain);
+        textGUI.addWindowAndWait(dialogWindow);
 
-        //textGUI.addWindowAndWait(dialogWindow);
-        textGUI.addWindow(dialogWindow);
-        textGUI.updateScreen();
-        textGUI.waitForWindowToClose(dialogWindow);
+        //User has set/changed configuration, now applying variables
+
+        //FQDN
+        appConfig.getServer().setDnsName(fqdnTextBox.getText());
+
+        //Network Ports
+        appConfig.getServer().getPorts().setHttp(Integer.parseInt(httpPortTextBox.getText()));
+        appConfig.getServer().getPorts().setHttps(Integer.parseInt(httpsPortTextBox.getText()));
+
+        //KeyStore, use PKCS12 with random password as default
+        PKCS12KeyStoreParams keyStoreParams = new PKCS12KeyStoreParams();
+        keyStoreParams.setLocation(filesDir.resolve("keystore.p12").toAbsolutePath().toString());
+        keyStoreParams.setPassword(SecurePasswordGenerator.generateSecurePassword());
+        appConfig.setKeyStore(keyStoreParams);
+
+
+        Gson gson = new Gson();
+        JSONObject jso = new JSONObject(gson.toJson(appConfig));
+        String formattedJson = jso.toString(4);
+
+        Files.writeString(filesDir.resolve("settings.json"), formattedJson);
+
     }
 
     private void prepareBackground(WindowBasedTextGUI textGUI) {
