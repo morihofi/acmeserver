@@ -70,15 +70,15 @@ public class PKCS11KeyStoreLoader {
             public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
 
                 for (Callback callback : callbacks) {
-                    if (callback instanceof PasswordCallback) {
-                        handlePasswordCallback((PasswordCallback) callback);
+                    if (callback instanceof PasswordCallback passwordCallback) {
+                        handlePasswordCallback(passwordCallback);
                     } else {
                         throw new UnsupportedCallbackException(callback, "Callback not supported " + callback.getClass().getName());
                     }
                 }
             }
 
-            private void handlePasswordCallback(PasswordCallback passCb) throws UnsupportedCallbackException {
+            private void handlePasswordCallback(PasswordCallback passCb) {
                 if (pin == null) {
                     throw new CancellationException("KeyStore Password is null");
                 }
