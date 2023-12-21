@@ -38,6 +38,7 @@ public class SendMail {
             emailProp.put("mail.smtp.starttls.enable", "true");
         } else if ("ssl".equals(emailConfig.getEncryption()) || "tls".equals(emailConfig.getEncryption())) {
             emailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            emailProp.put("mail.smtp.ssl.checkserveridentity", "true");
         } else {
             // No encryption, use a plain connection
             emailProp.put("mail.smtp.starttls.enable", "false");
@@ -66,7 +67,7 @@ public class SendMail {
 
         message.setContent(multipart);
 
-        log.info("Sending E-Mail with subject \"" + subject + "\" to \"" + toEmail + "\"");
+        log.info("Sending E-Mail with subject \"{}\" to \"{}\"", subject, toEmail);
         Transport.send(message);
         log.info("E-Mail has been sent");
     }
