@@ -94,12 +94,6 @@ public class Main {
         for (String arg : args) {
             CLIArgument cliArgument = new CLIArgument(argPrefix, splitCharacter, arg);
 
-            /*
-            System.out.println("ParameterName: " + cliArgument.getParameterName());
-            System.out.println("Value: " + cliArgument.getValue());
-            System.out.println("-----------------------------------");
-             */
-
             if (cliArgument.getParameterName().equals("normal")) {
                 selectedMode = MODE.NORMAL;
             }
@@ -126,7 +120,6 @@ public class Main {
                 initializeCoreComponents();
                 log.info("Starting in KeyStore migration Mode (PEM to KeyStore)");
                 KSMigrationTool.run(args, cryptoStoreManager, appConfig, FILES_DIR);
-                break;
             }
 
         }

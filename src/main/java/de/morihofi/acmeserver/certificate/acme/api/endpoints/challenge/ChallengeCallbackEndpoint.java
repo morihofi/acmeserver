@@ -66,8 +66,8 @@ public class ChallengeCallbackEndpoint implements Handler {
             throw new ACMEMalformedException("DNS-01 method is only valid for non wildcard domains");
         }
 
-        boolean challengePassed = false;
-        String possibleErrorReasonIfFailed = null;
+        boolean challengePassed;
+        String possibleErrorReasonIfFailed;
         switch (challengeType) {
             case "http-01" -> {
                 challengePassed = HTTPChallenge.check(identifier.getAuthorizationToken(), identifier.getDataValue(), identifier.getOrder().getAccount());

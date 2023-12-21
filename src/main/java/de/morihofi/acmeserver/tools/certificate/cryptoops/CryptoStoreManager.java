@@ -27,7 +27,7 @@ public class CryptoStoreManager {
         return KEYSTORE_ALIASPREFIX_INTERMEDIATECA + provisioner;
     }
 
-    private IKeyStoreConfig keyStoreConfig;
+    private final IKeyStoreConfig keyStoreConfig;
     private KeyStore keyStore;
 
 

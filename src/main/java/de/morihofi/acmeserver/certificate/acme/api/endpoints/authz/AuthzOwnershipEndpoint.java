@@ -27,7 +27,7 @@ public class AuthzOwnershipEndpoint implements Handler {
 
     private final Provisioner provisioner;
     private final Logger log = LogManager.getLogger(getClass());
-    private Gson gson;
+    private final Gson gson;
 
     public AuthzOwnershipEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;

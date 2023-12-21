@@ -13,8 +13,7 @@ public class Base64Tools {
      */
     public static String decodeBase64(String encodedString) {
         byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
-        String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
-        return decodedString;
+        return new String(decodedBytes, StandardCharsets.UTF_8);
     }
 
     /**
@@ -34,8 +33,7 @@ public class Base64Tools {
      * @return The Base64-encoded string.
      */
     public static String encodeBase64(byte[] originalInput) {
-        String encodedString = Base64.getEncoder().encodeToString(originalInput);
-        return encodedString;
+        return Base64.getEncoder().encodeToString(originalInput);
     }
 
     /**
@@ -75,9 +73,7 @@ public class Base64Tools {
         java.util.Base64.Encoder encoder = java.util.Base64.getUrlEncoder();
 
         // Encoding URL
-        String eStr = encoder.encodeToString(stringToEncode.getBytes(StandardCharsets.UTF_8));
-
-        return eStr;
+        return encoder.encodeToString(stringToEncode.getBytes(StandardCharsets.UTF_8));
     }
 
     private static final java.util.Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();

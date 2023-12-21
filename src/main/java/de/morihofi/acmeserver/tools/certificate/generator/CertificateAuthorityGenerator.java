@@ -46,7 +46,6 @@ public class CertificateAuthorityGenerator {
      * @return An X509Certificate representing the CA certificate.
      * @throws IOException               If an I/O error occurs during the certificate generation process.
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
-     * @throws NoSuchAlgorithmException  If the algorithm specified for key generation or signing is not available.
      * @throws CertificateException      If there's an error in processing the certificate data.
      */
     public static X509Certificate generateCertificateAuthorityCertificate(CertificateConfig certificateConfig, KeyPair keyPair) throws IOException, OperatorCreationException, CertificateException {

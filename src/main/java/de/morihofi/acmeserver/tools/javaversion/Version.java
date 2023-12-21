@@ -32,7 +32,7 @@ import java.util.StringTokenizer;
  */
 public class Version implements Comparable<Object>, Serializable {
     private static final long serialVersionUID = 775513157889646154L;
-    private List<Integer> iSections;
+    private final List<Integer> iSections;
 
     /**
      * Construct a Version object from the supplied string assuming that the

@@ -57,10 +57,8 @@ public class SendMail {
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
         message.setSubject(subject);
 
-        String msg = content;
-
         MimeBodyPart mimeBodyPart = new MimeBodyPart();
-        mimeBodyPart.setContent(msg, "text/html; charset=utf-8");
+        mimeBodyPart.setContent(content, "text/html; charset=utf-8");
 
         Multipart multipart = new MimeMultipart();
         multipart.addBodyPart(mimeBodyPart);

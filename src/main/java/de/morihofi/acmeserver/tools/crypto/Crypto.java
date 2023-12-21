@@ -14,17 +14,14 @@ public class Crypto {
      * @throws IllegalArgumentException If there is an issue creating the nonce.
      */
     public static String createNonce() {
-        String nonce = "";
-
         try {
             SecureRandom prng = SecureRandom.getInstance("SHA1PRNG");
             String randomNum = String.valueOf(prng.nextInt());
 
             MessageDigest sha = MessageDigest.getInstance("SHA-256");
             byte[] result = sha.digest(randomNum.getBytes(StandardCharsets.UTF_8));
-            nonce = Hashing.hexEncode(result);
 
-            return nonce;
+            return Hashing.hexEncode(result);
         } catch (Exception e) {
             throw new IllegalArgumentException("Unable to create nonce", e);
         }

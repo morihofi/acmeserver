@@ -6,12 +6,8 @@ import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.config.Config;
-import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS11KeyStoreParams;
 import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS12KeyStoreParams;
 import de.morihofi.acmeserver.postsetup.inputcheck.FQDNInputChecker;
 import de.morihofi.acmeserver.postsetup.inputcheck.InputChecker;
@@ -20,27 +16,20 @@ import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.password.SecurePasswordGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hibernate.annotations.Check;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Pattern;
 
 public class PostSetup extends WindowBase {
 
-    private CryptoStoreManager cryptoStoreManager;
-    private Config appConfig;
-    private Path filesDir;
+    private final CryptoStoreManager cryptoStoreManager;
+    private final Config appConfig;
+    private final Path filesDir;
     public static final Logger log = LogManager.getLogger(PostSetup.class);
 
     public static void run(CryptoStoreManager cryptoStoreManager, Config appConfig, Path filesDir, String[] args) throws IOException, InterruptedException {
@@ -216,7 +205,7 @@ public class PostSetup extends WindowBase {
         appConfig.getServer().getPorts().setHttps(Integer.parseInt(httpsPortTextBox.getText()));
 
         //KeyStore, use PKCS12 with random password as default. But only if user hasn't changed default
-        if(appConfig.getKeyStore().getPassword().equals("test") && appConfig.getKeyStore() instanceof PKCS12KeyStoreParams){
+        if (appConfig.getKeyStore().getPassword().equals("test") && appConfig.getKeyStore() instanceof PKCS12KeyStoreParams) {
             PKCS12KeyStoreParams keyStoreParams = new PKCS12KeyStoreParams();
             keyStoreParams.setLocation(filesDir.resolve("keystore.p12").toAbsolutePath().toString());
             keyStoreParams.setPassword(SecurePasswordGenerator.generateSecurePassword());
@@ -247,7 +236,7 @@ public class PostSetup extends WindowBase {
         textGUI.getBackgroundPane().setComponent(new EmptySpace(TextColor.ANSI.BLUE) {
             @Override
             protected ComponentRenderer<EmptySpace> createDefaultRenderer() {
-                return new ComponentRenderer<EmptySpace>() {
+                return new ComponentRenderer<>() {
                     @Override
                     public TerminalSize getPreferredSize(EmptySpace component) {
                         return TerminalSize.ONE;

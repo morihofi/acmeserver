@@ -4,9 +4,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class CLIArgument {
 
-    private String parameterName;
-    private String prefix;
-    private String value;
+    private final String parameterName;
+    private final String prefix;
+    private final String value;
 
     @SuppressFBWarnings("URF_UNREAD_FIELD")
     public CLIArgument(String prefix, char valueSplitCharacter, String argument) {

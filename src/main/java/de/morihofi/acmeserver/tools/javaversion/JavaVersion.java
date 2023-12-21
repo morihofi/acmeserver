@@ -36,11 +36,11 @@ import java.util.regex.Pattern;
 public class JavaVersion implements Comparable<Object> {
 
 
-    private String javaVersion;
+    private final String javaVersion;
 
-    private int major;
-    private int minor;
-    private int security;
+    private final int major;
+    private final int minor;
+    private final int security;
 
     private static final String VERSION_NUMBER_REGEXP = "([0-9]+(?:\\.[0-9]*)*)";
     private static final String REST_REGEXP = "(?:[_\\-\\.\\+a-zA-Z0-9]*)";

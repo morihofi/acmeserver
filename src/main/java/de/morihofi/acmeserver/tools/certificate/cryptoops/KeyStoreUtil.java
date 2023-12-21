@@ -30,7 +30,7 @@ public class KeyStoreUtil {
      * Load a keysstore inferring the type from the file name extension
      *
      * @param path if null we use PKCS11 as type
-     * @param pwd
+     * @param pwd password of the keystore
      * @return KeyStore (loaded)
      */
     public static KeyStore loadKeyStore(String path, char[] pwd) {
@@ -53,7 +53,7 @@ public class KeyStoreUtil {
     public static void transferCert(KeyStore src, String srcAlias, KeyStore dest, String destAlias) {
         throwingRunnableWrapper(() -> {
 
-            Certificate crt = null;
+            Certificate crt;
 
             if (!src.containsAlias(srcAlias) || (crt = src.getCertificate(srcAlias)) == null)
                 throw new RuntimeException("Alias " + srcAlias + " does not exist in src");
@@ -66,7 +66,7 @@ public class KeyStoreUtil {
     public static void transferKey(KeyStore src, String srcAlias, KeyStore dest, String destAlias, char[] pwd) {
         throwingRunnableWrapper(() -> {
 
-            Key key = null;
+            Key key;
 
             if ((key = src.getKey(srcAlias, pwd)) == null)
                 throw new RuntimeException("Alias " + srcAlias + " does not exist in src");

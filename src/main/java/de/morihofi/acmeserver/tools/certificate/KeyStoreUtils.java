@@ -73,7 +73,6 @@ public class KeyStoreUtils {
     public static void saveAsPKCS12KeyChain(KeyPair keyPair, String password, String alias, byte[][] certificates, Path targetLocation) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
 
         char[] keystorePassword = password.toCharArray();
-        String keyAlias = alias;
 
         ArrayList<X509Certificate> chain = new ArrayList<>(); // die Zertifikatskette, die gespeichert werden soll
         for (byte[] certificate : certificates) {
@@ -84,7 +83,7 @@ public class KeyStoreUtils {
             X509Certificate[] certificateChain = chain.toArray(new X509Certificate[0]);
             KeyStore keyStore = KeyStore.getInstance(PKCS12_INSTANCE_NAME);
             keyStore.load(null, keystorePassword); // Neuen, leeren KeyStore erstellen
-            keyStore.setKeyEntry(keyAlias, keyPair.getPrivate(), keystorePassword, certificateChain);
+            keyStore.setKeyEntry(alias, keyPair.getPrivate(), keystorePassword, certificateChain);
             keyStore.store(os, keystorePassword);
         }
 
@@ -105,18 +104,17 @@ public class KeyStoreUtils {
      * @throws NoSuchAlgorithmException  If the algorithm required for the keystore is not available.
      * @throws UnrecoverableKeyException If the key cannot be recovered.
      */
-    public static KeyStoreFileContent loadFromPKCS12(Path keyStorePath, String keyStorePassword, String certificateAlias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
+    public static KeyStoreFileContent loadFromPKCS12(Path keyStorePath, String keyStorePassword, String keyAlias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         try (InputStream is = Files.newInputStream(keyStorePath)) {
             // Laden des KeyPairs und des Zertifikats aus einem PKCS12-Keystore
             char[] keyStorePasswordCharArr = keyStorePassword.toCharArray();
-            String keyAlias = certificateAlias;
             KeyStore keyStore = KeyStore.getInstance(PKCS12_INSTANCE_NAME);
             keyStore.load(is, keyStorePasswordCharArr);
             PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, keyStorePasswordCharArr);
             X509Certificate cert = (X509Certificate) keyStore.getCertificate(keyAlias);
             KeyPair keyPair = new KeyPair(cert.getPublicKey(), privateKey);
 
-            return new KeyStoreFileContent(keyPair, cert, certificateAlias);
+            return new KeyStoreFileContent(keyPair, cert, keyAlias);
         }
     }
 

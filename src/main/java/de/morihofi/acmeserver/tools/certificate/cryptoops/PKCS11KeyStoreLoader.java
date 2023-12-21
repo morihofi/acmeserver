@@ -113,7 +113,7 @@ public class PKCS11KeyStoreLoader {
         ByteArrayInputStream confStream = new ByteArrayInputStream(pkcs11ConfigSettings.getBytes(StandardCharsets.UTF_8));
 
         // instantiate the provider
-        Provider p11Provider = null;
+        Provider p11Provider;
         if (JavaVersion.getJreVersion().isAtLeast(JavaVersion.JRE_VERSION_9)) {
             p11Provider = Security.getProvider("SunPKCS11");
             // add marker ("--") for inline config
