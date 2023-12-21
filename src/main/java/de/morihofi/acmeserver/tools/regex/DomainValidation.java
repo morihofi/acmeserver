@@ -22,11 +22,10 @@ public class DomainValidation {
         }
         String nonWildcardDomain = domain;
 
-        if (allowWildcard) {
-            // Check for wildcard domain
-            if (nonWildcardDomain.startsWith("*.")) {
-                nonWildcardDomain = domain.substring(2); // Remove wildcard part for validation
-            }
+        // Check for wildcard domain
+        if (allowWildcard && nonWildcardDomain.startsWith("*.")) {
+
+            nonWildcardDomain = domain.substring(2); // Remove wildcard part for validation
         }
 
         return PATTERN.matcher(nonWildcardDomain).matches();
