@@ -191,9 +191,7 @@ public class CertificateAuthorityGenerator {
         X509CertificateHolder holder = certBuilder.build(signer);
         JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
         converter.setProvider(BouncyCastleProvider.PROVIDER_NAME);
-        X509Certificate intermediateCaCertificate = converter.getCertificate(holder);
-
-        return intermediateCaCertificate;
+        return converter.getCertificate(holder);
     }
 
 
