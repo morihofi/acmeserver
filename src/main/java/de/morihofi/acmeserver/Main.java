@@ -116,13 +116,11 @@ public class Main {
                 initializeCoreComponents();
                 log.info("Starting normally");
                 AcmeApiServer.startServer(cryptoStoreManager, appConfig);
-                break;
             }
             case POSTSETUP -> {
                 //Do not init core components, due to changing passwords in UI
                 log.info("Starting Post Setup");
                 PostSetup.run(cryptoStoreManager, appConfig, FILES_DIR, args);
-                break;
             }
             case KEYSTORE_MIGRATION_PEM2KS -> {
                 initializeCoreComponents();
@@ -200,7 +198,7 @@ public class Main {
             Files.createDirectories(FILES_DIR);
         }
         if (!Files.exists(configPath)) {
-            log.fatal("No configuration was found. Please create a file called \"settings.json\" in \"" + FILES_DIR.toAbsolutePath() + "\". Then try again");
+            log.fatal("No configuration was found. Please create a file called \"settings.json\" in \"{}\". Then try again", FILES_DIR.toAbsolutePath());
             System.exit(1);
         }
     }
