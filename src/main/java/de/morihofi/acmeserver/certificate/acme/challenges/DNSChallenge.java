@@ -48,8 +48,8 @@ public class DNSChallenge {
 
             if (lookup.getResult() == Lookup.SUCCESSFUL) {
                 // Check TXT-Entries
-                for (Record record : lookup.getAnswers()) {
-                    TXTRecord txt = (TXTRecord) record;
+                for (Record dnsRecord : lookup.getAnswers()) {
+                    TXTRecord txt = (TXTRecord) dnsRecord;
                     for (Object value : txt.getStrings()) {
                         String txtValue = value.toString();
                         if (txtValue.equals(dnsExpectedValue)) {
