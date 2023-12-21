@@ -128,11 +128,11 @@ public class ACMEIdentifier implements Serializable {
         this.authorizationId = authorizationId;
     }
 
-    public Boolean isVerified() {
+    public boolean isVerified() {
         return verified;
     }
 
-    public void setVerified(Boolean verified) {
+    public void setVerified(boolean verified) {
         this.verified = verified;
     }
 
