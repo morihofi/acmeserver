@@ -116,13 +116,11 @@ public class Main {
                 initializeCoreComponents();
                 log.info("Starting normally");
                 AcmeApiServer.startServer(cryptoStoreManager, appConfig);
-                break;
             }
             case POSTSETUP -> {
                 //Do not init core components, due to changing passwords in UI
                 log.info("Starting Post Setup");
                 PostSetup.run(cryptoStoreManager, appConfig, FILES_DIR, args);
-                break;
             }
             case KEYSTORE_MIGRATION_PEM2KS -> {
                 initializeCoreComponents();
@@ -149,10 +147,11 @@ public class Main {
                 /_/   \\_\\___|_| |_| |_|\\___|____/ \\___|_|    \\_/ \\___|_|  \s
                 """);
     }
+
     private static boolean coreComponentsInitialized = false;
 
     private static void initializeCoreComponents() throws ClassNotFoundException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
-        if(coreComponentsInitialized){
+        if (coreComponentsInitialized) {
             return;
         }
 
@@ -199,7 +198,7 @@ public class Main {
             Files.createDirectories(FILES_DIR);
         }
         if (!Files.exists(configPath)) {
-            log.fatal("No configuration was found. Please create a file called \"settings.json\" in \"" + FILES_DIR.toAbsolutePath() + "\". Then try again");
+            log.fatal("No configuration was found. Please create a file called \"settings.json\" in \"{}\". Then try again", FILES_DIR.toAbsolutePath());
             System.exit(1);
         }
     }
@@ -269,13 +268,13 @@ public class Main {
             KeyPair caKeyPair = null;
             if (appConfig.getRootCA().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
                 log.info("Using RSA algorithm");
-                log.info("Generating RSA " + rsaParams.getKeySize() + "bit Key Pair for Root CA");
+                log.info("Generating RSA {} bit Key Pair for Root CA", rsaParams.getKeySize());
                 caKeyPair = KeyPairGenerator.generateRSAKeyPair(rsaParams.getKeySize(), caKeyStore.getProvider().getName());
             }
             if (appConfig.getRootCA().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
                 log.info("Using ECDSA algorithm (Elliptic curves");
 
-                log.info("Generating ECDSA Key Pair using curve " + ecdsaAlgorithmParams.getCurveName() + " for Root CA");
+                log.info("Generating ECDSA Key Pair using curve {} for Root CA", ecdsaAlgorithmParams.getCurveName());
                 caKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName(), caKeyStore.getProvider().getName());
 
             }

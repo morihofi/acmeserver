@@ -11,6 +11,7 @@ import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.tools.regex.EmailValidation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -29,6 +30,7 @@ public class AccountEndpoint implements Handler {
     public final Logger log = LogManager.getLogger(getClass());
     private final Gson gson;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public AccountEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
         this.gson = new Gson();
@@ -52,7 +54,7 @@ public class AccountEndpoint implements Handler {
         }
 
         // Update Account Settings, e.g., Email change
-        log.info("Update account settings for account \"" + accountId + "\"");
+        log.info("Update account settings for account {}", accountId);
 
         List<String> emails = acmeAccountRequestBody.getContact();
         if (emails != null) {
@@ -60,10 +62,10 @@ public class AccountEndpoint implements Handler {
                 email = email.replace("mailto:", "");
 
                 if (!EmailValidation.isValidEmail(email) || email.split("\\@")[0].equals("localhost")) {
-                    log.error("E-Mail validation failed for email \"" + email + "\"");
+                    log.error("E-Mail validation failed for email {}", email);
                     throw new ACMEInvalidContactException("E-Mail address is invalid");
                 }
-                log.info("E-Mail validation successful for email \"" + email + "\"");
+                log.info("E-Mail validation successful for email {}", email);
             }
 
             // Update Contact Emails in Database

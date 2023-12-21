@@ -24,14 +24,14 @@ public class CertificateRenewInitializer {
      * and renewing the certificate through the IntermediateCaRenew utility.
      *
      * @param cryptoStoreManager The manager responsible for cryptographic storage operations.
-     * @param alias The alias under which the certificate is stored in the KeyStore.
-     * @param provisioner The provisioner instance associated with the certificate.
-     * @param provisionerCfg Configuration details for the provisioner.
-     * @param caKeyPair The KeyPair associated with the CA.
-     * @param caCertificate The X509Certificate of the CA.
+     * @param alias              The alias under which the certificate is stored in the KeyStore.
+     * @param provisioner        The provisioner instance associated with the certificate.
+     * @param provisionerCfg     Configuration details for the provisioner.
+     * @param caKeyPair          The KeyPair associated with the CA.
+     * @param caCertificate      The X509Certificate of the CA.
      */
     public static void initializeIntermediateCertificateRenewWatcher(CryptoStoreManager cryptoStoreManager, String alias, Provisioner provisioner, ProvisionerConfig provisionerCfg, KeyPair caKeyPair, X509Certificate caCertificate) {
-        log.info("Initializing renew watcher for intermediate ca of " + provisioner.getProvisionerName() + " provisioner");
+        log.info("Initializing renew watcher for intermediate ca of {} provisioner", provisioner.getProvisionerName());
         new CertificateRenewWatcher(
                 cryptoStoreManager,
                 alias,
@@ -45,10 +45,10 @@ public class CertificateRenewInitializer {
                                 (PrivateKey) keyStore.getKey(alias, "".toCharArray())
                         );
 
-                        log.info("Renewing Intermediate Certificate for " + provisioner.getProvisionerName());
+                        log.info("Renewing Intermediate Certificate for {}", provisioner.getProvisionerName());
                         IntermediateCaRenew.renewIntermediateCertificate(keyPair, provisioner, provisionerCfg, cryptoStoreManager, alias);
                     } catch (Exception e) {
-                        log.error("Error renewing Intermediate Certificate for " + provisioner.getProvisionerName(), e);
+                        log.error("Error renewing Intermediate Certificate for {}", provisioner.getProvisionerName(), e);
                     }
                 }
         );

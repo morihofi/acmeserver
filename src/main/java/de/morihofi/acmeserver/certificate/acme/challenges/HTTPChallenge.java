@@ -125,18 +125,18 @@ public class HTTPChallenge {
 
                     if (expectedValue.equals(acmeTokenFromHost)) {
                         passed = true;
-                        log.info("HTTP Challenge has validated for host \"" + host + "\"");
+                        log.info("HTTP Challenge has validated for host {}", host);
                     } else {
-                        log.info("HTTP Challenge validation failed for host \"" + host + "\". Content doesn't match. Expected: " + authToken + "; Got: " + acmeTokenFromHost);
+                        log.info("HTTP Challenge validation failed for host {}. Content doesn't match. Expected: {}; Got: {}", host, authToken, acmeTokenFromHost);
                     }
                 } else {
-                    log.error("HTTP Challenge failed for host \"" + host + "\", got HTTP status code " + responseCode);
+                    log.error("HTTP Challenge failed for host {}}, got HTTP status code {}", host, responseCode);
                 }
             }
 
 
         } catch (IOException e) {
-            log.error("HTTP Challenge failed for host \"" + host + "\". Is it reachable?", e);
+            log.error("HTTP Challenge failed for host {}. Is it reachable?", host, e);
         }
 
         return passed;

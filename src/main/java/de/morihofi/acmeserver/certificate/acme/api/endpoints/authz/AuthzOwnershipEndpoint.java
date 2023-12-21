@@ -42,7 +42,6 @@ public class AuthzOwnershipEndpoint implements Handler {
         ctx.header("Replay-Nonce", Crypto.createNonce());
         ctx.status(200);
 
-        Gson gson = new Gson();
         ACMEIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 

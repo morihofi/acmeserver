@@ -10,6 +10,7 @@ import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.*;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -30,9 +31,12 @@ public class RevokeCertEndpoint implements Handler {
 
     private final Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
+    private final Gson gson;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public RevokeCertEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
+        this.gson = new Gson();
     }
 
 
@@ -41,7 +45,6 @@ public class RevokeCertEndpoint implements Handler {
 
 
         //Parse request body
-        Gson gson = new Gson();
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
         //Payload is Base64 Encoded
@@ -65,7 +68,7 @@ public class RevokeCertEndpoint implements Handler {
         ACMEAccount account = Database.getAccount(accountId);
         //Check if account exists
         if (account == null) {
-            log.error("Throwing API error: Account \"" + accountId + "\" not found");
+            log.error("Throwing API error: Account {} not found", accountId);
             throw new ACMEAccountNotFoundException("The account id was not found");
         }
         //Check signature
@@ -75,7 +78,7 @@ public class RevokeCertEndpoint implements Handler {
 
 
 
-        log.info("Account ID \"" + accountId + "\" wants to revoke a certificate");
+        log.info("Account ID {} wants to revoke a certificate", accountId);
 
         String certificateBase64 = reqBodyPayloadObj.getString("certificate");
 
@@ -88,7 +91,7 @@ public class RevokeCertEndpoint implements Handler {
         // Check certificate (optional)
         // You can perform various checks here, e.g. validity date, issuer, etc.
         // Check issuer information
-        log.debug("Issuer: " + certificate.getIssuerX500Principal());
+        log.debug("Issuer: {}", certificate.getIssuerX500Principal());
 
         // Read in root certificate
         X509Certificate intermediateCertificate = provisioner.getIntermediateCaCertificate();
@@ -154,7 +157,7 @@ public class RevokeCertEndpoint implements Handler {
             throw new ACMEBadRevocationReasonException("Invalid revokation reason: " + reason);
         }
 
-        log.info("Revoking certificate for reason " + reason);
+        log.info("Revoking certificate for reason {}", reason);
 
         //Revoke it
         Database.revokeCertificate(identifier, reason);

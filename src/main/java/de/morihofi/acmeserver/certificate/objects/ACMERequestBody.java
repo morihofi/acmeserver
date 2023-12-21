@@ -12,8 +12,7 @@ public class ACMERequestBody {
     private String signature;
 
     public String getDecodedProtected() {
-        String decoded = Base64Tools.decodeBase64(protectedHeader);
-        return decoded;
+        return Base64Tools.decodeBase64(protectedHeader);
     }
 
     public String getProtected() {
@@ -25,8 +24,7 @@ public class ACMERequestBody {
     }
 
     public String getDecodedPayload() {
-        String decoded = Base64Tools.decodeBase64(payload);
-        return decoded;
+        return Base64Tools.decodeBase64(payload);
     }
 
     public String getSignature() {

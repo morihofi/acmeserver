@@ -78,21 +78,21 @@ public class KSMigrationTool {
 
 
                 if (!Files.exists(intermediateKeyPairPublicFile) || !Files.exists(intermediateKeyPairPrivateFile) || !Files.exists(intermediateCertificateFile)) {
-                    log.info("Cannot use intermediate " + provisionerName + " cause not all required files are existing.");
+                    log.warn("Cannot use intermediate {} cause not all required files are existing.", provisionerName);
 
                     //Use next provisioner, we cannot import the certificates
                     continue;
                 }
 
-                log.info("Loading Intermediate CA for provisioner " + provisionerName + " from disk");
+                log.info("Loading Intermediate CA for provisioner {} from disk", provisionerName);
                 log.info("Loading Key Pair");
                 KeyPair intermediateKeyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
                 log.info("Loading Intermediate CA certificate");
                 byte[] intermediateCertificateBytes = CertTools.getCertificateBytes(intermediateCertificateFile, intermediateKeyPair);
                 X509Certificate intermediateCertificate = X509.convertToX509Cert(intermediateCertificateBytes);
 
-                log.info("Adding " + KeyStoreAliasName + " to KeyStore");
-                X509Certificate chain[] = new X509Certificate[]{
+                log.info("Adding {} to KeyStore", KeyStoreAliasName);
+                X509Certificate[] chain = new X509Certificate[]{
                         intermediateCertificate, caCertificate
                 };
                 keyStore.setKeyEntry(

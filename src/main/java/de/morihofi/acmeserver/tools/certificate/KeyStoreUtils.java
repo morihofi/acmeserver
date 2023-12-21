@@ -15,6 +15,8 @@ import java.util.ArrayList;
 public class KeyStoreUtils {
 
     public static final Logger log = LogManager.getLogger(KeyStoreUtils.class);
+    private static final String PKCS12_INSTANCE_NAME = "PKCS12";
+
 
     /**
      * Saves a KeyPair and X.509 certificate as a PKCS12 keystore.
@@ -35,7 +37,7 @@ public class KeyStoreUtils {
         char[] passwordCharArr = password.toCharArray();
 
         // Create or load a KeyStore object
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        KeyStore keyStore = KeyStore.getInstance(PKCS12_INSTANCE_NAME);
         if (Files.exists(targetLocation)) {
             // If the file exists, load the existing KeyStore
             try (InputStream is = Files.newInputStream(targetLocation)) {
@@ -80,7 +82,7 @@ public class KeyStoreUtils {
 
         try (OutputStream os = Files.newOutputStream(targetLocation)) {
             X509Certificate[] certificateChain = chain.toArray(new X509Certificate[0]);
-            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+            KeyStore keyStore = KeyStore.getInstance(PKCS12_INSTANCE_NAME);
             keyStore.load(null, keystorePassword); // Neuen, leeren KeyStore erstellen
             keyStore.setKeyEntry(keyAlias, keyPair.getPrivate(), keystorePassword, certificateChain);
             keyStore.store(os, keystorePassword);
@@ -108,7 +110,7 @@ public class KeyStoreUtils {
             // Laden des KeyPairs und des Zertifikats aus einem PKCS12-Keystore
             char[] keyStorePasswordCharArr = keyStorePassword.toCharArray();
             String keyAlias = certificateAlias;
-            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+            KeyStore keyStore = KeyStore.getInstance(PKCS12_INSTANCE_NAME);
             keyStore.load(is, keyStorePasswordCharArr);
             PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, keyStorePasswordCharArr);
             X509Certificate cert = (X509Certificate) keyStore.getCertificate(keyAlias);

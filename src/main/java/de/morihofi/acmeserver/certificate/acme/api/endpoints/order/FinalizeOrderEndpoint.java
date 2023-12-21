@@ -44,7 +44,6 @@ public class FinalizeOrderEndpoint implements Handler {
         this.gson = new Gson();
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         String orderId = ctx.pathParam("orderId");

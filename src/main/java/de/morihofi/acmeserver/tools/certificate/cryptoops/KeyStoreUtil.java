@@ -81,12 +81,10 @@ public class KeyStoreUtil {
             throw new IllegalArgumentException("Alias " + alias + " does not exist in KeyStore");
         }
 
-        KeyPair keyPair = new KeyPair(
+        return new KeyPair(
                 keyStore.getCertificate(alias).getPublicKey(),
                 (PrivateKey) keyStore.getKey(alias, "".toCharArray())
         );
-
-        return keyPair;
     }
 
     public static final String inferTypeFromFile(String file) {

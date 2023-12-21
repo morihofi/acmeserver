@@ -48,13 +48,13 @@ public class DNSChallenge {
 
             if (lookup.getResult() == Lookup.SUCCESSFUL) {
                 // Check TXT-Entries
-                for (Record record : lookup.getAnswers()) {
-                    TXTRecord txt = (TXTRecord) record;
+                for (Record dnsRecord : lookup.getAnswers()) {
+                    TXTRecord txt = (TXTRecord) dnsRecord;
                     for (Object value : txt.getStrings()) {
                         String txtValue = value.toString();
                         if (txtValue.equals(dnsExpectedValue)) {
                             passed = true;
-                            log.info("DNS Challenge has validated for domain \"" + domain + "\"");
+                            log.info("DNS Challenge has validated for domain {}", domain);
                             break;
                         }
                     }
@@ -65,13 +65,13 @@ public class DNSChallenge {
             }
 
             if (!passed) {
-                log.error("DNS Challenge validation failed for domain \"_acme-challenge." + domain + "\". TXT record not found or value doesn't match. Expected: " + dnsExpectedValue);
+                log.error("DNS Challenge validation failed for domain {}. TXT record not found or value doesn't match. Expected: {}", ("_acme-challenge." + domain), dnsExpectedValue);
             }
 
         } catch (TextParseException e) {
-            log.error("Error parsing domain name \"" + domain + "\"", e);
+            log.error("Error parsing domain name {}", domain, e);
         } catch (Exception e) {
-            log.error("DNS Challenge failed for domain \"" + domain + "\"", e);
+            log.error("DNS Challenge failed for domain {}", domain, e);
         }
 
         return passed;

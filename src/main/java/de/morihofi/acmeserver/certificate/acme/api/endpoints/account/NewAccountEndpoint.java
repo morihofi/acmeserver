@@ -53,7 +53,7 @@ public class NewAccountEndpoint implements Handler {
             for (String email : emails) {
                 email = email.replace("mailto:", "");
                 if (!EmailValidation.isValidEmail(email) || email.split("@")[0].equals("localhost")) {
-                    log.error("E-Mail validation failed for email \"" + email + "\"");
+                    log.error("E-Mail validation failed for email {}", email);
                     throw new ACMEInvalidContactException("Mail validation failed for email " + email);
                 }
             }

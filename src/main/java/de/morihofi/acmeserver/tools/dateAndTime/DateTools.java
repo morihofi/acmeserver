@@ -18,8 +18,6 @@ public class DateTools {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // Format the date and return it as a string
-        String formattedDate = dateFormat.format(date);
-
-        return formattedDate;
+        return dateFormat.format(date);
     }
 }

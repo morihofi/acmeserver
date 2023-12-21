@@ -3,6 +3,7 @@ package de.morihofi.acmeserver.certificate.acme.security;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.HttpNonces;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadNonceException;
+import de.morihofi.acmeserver.tools.safety.TypeSafetyHelper;
 import jakarta.persistence.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,7 +54,8 @@ public class NonceManager {
             String hql = "SELECT 1 FROM HttpNonces hn WHERE hn.nonce = :nonce";
             Query query = session.createQuery(hql, HttpNonces.class);
             query.setParameter("nonce", nonce);
-            List<HttpNonces> results = query.getResultList();
+            List<HttpNonces> results = TypeSafetyHelper.safeCastToClassOfType(query.getResultList(), HttpNonces.class);
+
             boolean nonceExists = !results.isEmpty();
 
             if (!nonceExists) {

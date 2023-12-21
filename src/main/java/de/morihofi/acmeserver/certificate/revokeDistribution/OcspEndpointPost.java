@@ -48,7 +48,7 @@ public class OcspEndpointPost implements Handler {
         }
 
         BigInteger serialNumber = requestList[0].getCertID().getSerialNumber();
-        log.info("Checking revokation status for serial number " + serialNumber);
+        log.info("Checking revokation status for serial number {}", serialNumber);
 
         // Processing the request and creating the OCSP response
         OCSPResp ocspResponse = OcspHelper.processOCSPRequest(serialNumber, crlGenerator, provisioner);
