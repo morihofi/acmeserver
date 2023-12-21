@@ -48,7 +48,7 @@ public class NewOrderEndpoint implements Handler {
         ACMEAccount account = Database.getAccount(accountId);
         //Check if account exists
         if (account == null) {
-            log.error("Throwing API error: Account \"" + accountId + "\" not found");
+            log.error("Throwing API error: Account {} not found", accountId);
             throw new ACMEAccountNotFoundException("The account id was not found");
         }
         //Check signature
@@ -83,7 +83,7 @@ public class NewOrderEndpoint implements Handler {
         for (ACMEIdentifier identifier : acmeIdentifiers) {
 
             if (!identifier.getType().equals("dns")) {
-                log.error("Throwing API error: Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
+                log.error("Throwing API error: Unknown identifier type {} for value {}", identifier.getType(), identifier.getDataValue());
                 throw new ACMERejectedIdentifierException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
             }
 

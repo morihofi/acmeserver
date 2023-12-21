@@ -83,9 +83,7 @@ public class JettySslHelper {
         sslContextFactory.start();
 
         // Erhalten Sie das SSLContext-Objekt von SslContextFactory
-        SSLContext sslContext = sslContextFactory.getSslContext();
-
-        return sslContext;
+        return sslContextFactory.getSslContext();
     }
     /**
      * Creates a Jetty server instance configured with SSL and/or HTTP connectors based on the provided ports and SSL context.

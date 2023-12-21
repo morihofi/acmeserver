@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -23,6 +24,7 @@ public class OcspEndpointPost implements Handler {
      * @param provisioner  the Provisioner object to be used with this endpoint
      * @param crlGenerator the CRL (Certificate Revocation List) generator for managing revoked certificates
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public OcspEndpointPost(Provisioner provisioner, CRL crlGenerator) {
         this.provisioner = provisioner;
         this.crlGenerator = crlGenerator;

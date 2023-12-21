@@ -147,7 +147,7 @@ public class AcmeApiServer {
             // Revoke certificate
             app.post(prefix + "/acme/revoke-cert", new RevokeCertEndpoint(provisioner));
 
-            log.info("Provisioner " + provisioner.getProvisionerName() + " registered");
+            log.info("Provisioner {} registered", provisioner.getProvisionerName());
         }
         app.start();
         log.info("\u2705 Configure Routes completed. Ready for incoming requests");
