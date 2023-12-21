@@ -1,11 +1,14 @@
 package de.morihofi.acmeserver.tools.cli;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 public class CLIArgument {
 
     private String parameterName;
     private String prefix;
     private String value;
 
+    @SuppressFBWarnings("URF_UNREAD_FIELD")
     public CLIArgument(String prefix, char valueSplitCharacter, String argument) {
         this.prefix = prefix;
 

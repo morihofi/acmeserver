@@ -18,6 +18,7 @@ import de.morihofi.acmeserver.tools.certificate.dataExtractor.CsrDataExtractor;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGenerator;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -39,6 +40,7 @@ public class FinalizeOrderEndpoint implements Handler {
     public final Logger log = LogManager.getLogger(getClass());
     private final Gson gson;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public FinalizeOrderEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
         this.gson = new Gson();

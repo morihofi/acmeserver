@@ -8,7 +8,6 @@ public class AppDirectoryHelper {
         try {
             return Paths.get(AppDirectoryHelper.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent().toString();
         } catch (URISyntaxException e) {
-            e.printStackTrace();
             return null;
         }
     }
