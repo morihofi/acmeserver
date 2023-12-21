@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate.acme.api.endpoints;
+package de.morihofi.acmeserver.certificate.acme.api.endpoints.objects;
 
 public class Identifier {
     private String type;

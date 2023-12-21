@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.AuthzResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.Challenge;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.Identifier;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;

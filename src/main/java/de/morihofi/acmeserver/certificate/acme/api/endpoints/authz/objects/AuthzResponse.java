@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects;
 
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.Identifier;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 
 import java.util.List;
 

@@ -1,17 +1,15 @@
-package de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects;
-
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
+package de.morihofi.acmeserver.certificate.acme.api.endpoints.objects;
 
 import java.util.List;
 
-public class ACMEOrderResponse {
+public class NewOrderResponse {
     private String status;
     private String expires;
-    private String issued;
-    private String finalize;
-    private String certificate;
+    private String notBefore;
+    private String notAfter;
     private List<Identifier> identifiers;
     private List<String> authorizations;
+    private String finalize;
 
     public String getStatus() {
         return status;
@@ -29,20 +27,20 @@ public class ACMEOrderResponse {
         this.expires = expires;
     }
 
-    public String getFinalize() {
-        return finalize;
+    public String getNotBefore() {
+        return notBefore;
     }
 
-    public void setFinalize(String finalize) {
-        this.finalize = finalize;
+    public void setNotBefore(String notBefore) {
+        this.notBefore = notBefore;
     }
 
-    public String getCertificate() {
-        return certificate;
+    public String getNotAfter() {
+        return notAfter;
     }
 
-    public void setCertificate(String certificate) {
-        this.certificate = certificate;
+    public void setNotAfter(String notAfter) {
+        this.notAfter = notAfter;
     }
 
     public List<Identifier> getIdentifiers() {
@@ -61,12 +59,11 @@ public class ACMEOrderResponse {
         this.authorizations = authorizations;
     }
 
-    public String getIssued() {
-        return issued;
+    public String getFinalize() {
+        return finalize;
     }
 
-    public void setIssued(String issued) {
-        this.issued = issued;
+    public void setFinalize(String finalize) {
+        this.finalize = finalize;
     }
-
 }
