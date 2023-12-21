@@ -28,7 +28,7 @@ public class Hashing {
     }
 
     /**
-     * Computes a SHA-256 hash of the given string.
+     * Computes an SHA-256 hash of the given string.
      *
      * @param z
      *            String to hash

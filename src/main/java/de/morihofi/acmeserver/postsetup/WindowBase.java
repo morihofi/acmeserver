@@ -50,6 +50,6 @@ public abstract class WindowBase {
 
     public abstract void init(WindowBasedTextGUI textGUI);
     public void afterGUIThreadStarted(WindowBasedTextGUI textGUI) throws InterruptedException, IOException {
-        // By default do nothing
+        // By default, do nothing
     }
 }

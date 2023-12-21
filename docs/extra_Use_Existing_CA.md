@@ -41,4 +41,4 @@ openssl x509 -pubkey -noout -in root_ca_certificate.pem  > public_key.pem
 
 
 
-Thats all!
+That's all!
