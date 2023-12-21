@@ -105,7 +105,7 @@ public class SignatureCheck {
 
         if (!isSignatureValid) {
             // Signature verification failed
-            log.error("Signature verification failed for account \"" + accountId + "\"");
+            log.error("Signature verification failed for account {}", accountId);
             throw new ACMEBadSignatureAlgorithmException("Signature does not match");
         }
     }

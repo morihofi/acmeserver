@@ -36,11 +36,11 @@ public class CryptoStoreManager {
         if (keyStoreConfig instanceof PKCS11KeyStoreConfig pkcs11Config) {
             String libraryLocation = pkcs11Config.getLibraryPath().toAbsolutePath().toString();
 
-            log.info("Using PKCS#11 KeyStore with native library at \"" + libraryLocation + "\" with slot " + pkcs11Config.getSlot());
+            log.info("Using PKCS#11 KeyStore with native library at {} with slot {}", libraryLocation, pkcs11Config.getSlot());
             keyStore = PKCS11KeyStoreLoader.loadPKCS11Keystore(pkcs11Config.getPassword(), pkcs11Config.getSlot(), libraryLocation);
         }
         if (keyStoreConfig instanceof PKCS12KeyStoreConfig pkcs12Config) {
-            log.info("Using PKCS#12 KeyStore at \"" + pkcs12Config.getPath().toAbsolutePath().toString() + "\"");
+            log.info("Using PKCS#12 KeyStore at {}", pkcs12Config.getPath().toAbsolutePath().toString());
             keyStore = KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
             if (Files.exists(pkcs12Config.getPath())) {
                 // If the file exists, load the existing KeyStore
