@@ -66,4 +66,11 @@ public class CertificateRenewWatcher {
         return daysUntilExpiry <= RENEWAL_THRESHOLD_DAYS;
     }
 
+    public int getPeriod() {
+        return period;
+    }
+
+    public TimeUnit getTimeUnit() {
+        return timeUnit;
+    }
 }

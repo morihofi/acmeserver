@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class AcmeApiServer {
+    private AcmeApiServer(){}
     public static final Logger log = LogManager.getLogger(AcmeApiServer.class);
 
     public static void startServer(CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
@@ -221,12 +222,8 @@ public class AcmeApiServer {
             }
             // Initialize the CertificateRenewWatcher for this provisioner
             KeyStore keyStore = cryptoStoreManager.getKeyStore();
-            KeyPair intermediateKeyPair2 = new KeyPair(
-                    keyStore.getCertificate(IntermediateKeyAlias).getPublicKey(),
-                    (PrivateKey) keyStore.getKey(IntermediateKeyAlias, "".toCharArray())
-            );
-            X509Certificate certificate = (X509Certificate) keyStore.getCertificate(IntermediateKeyAlias);
-            CertificateRenewInitializer.initializeIntermediateCertificateRenewWatcher(cryptoStoreManager, IntermediateKeyAlias, provisioner, config, intermediateKeyPair2, certificate);
+
+            CertificateRenewInitializer.initializeIntermediateCertificateRenewWatcher(cryptoStoreManager, IntermediateKeyAlias, provisioner, config);
 
 
             if (config.isUseThisProvisionerIntermediateForAcmeApi()) {
@@ -252,7 +249,7 @@ public class AcmeApiServer {
                             return JettySslHelper.getSslJetty(httpsPort, httpPort, cryptoStoreManager.getKeyStore(), CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI);
                         } catch (Exception e) {
                             log.error("Error applying certificate to API");
-                            throw new RuntimeException(e);
+                            throw new IllegalStateException(e);
                         }
                     });
 
@@ -275,7 +272,7 @@ public class AcmeApiServer {
                                     return JettySslHelper.getSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI);
                                 } catch (Exception e) {
                                     log.error("Error applying new certificate to API");
-                                    throw new RuntimeException(e);
+                                    throw new IllegalStateException(e);
                                 }
                             });
                             log.info("Certificate reload complete");

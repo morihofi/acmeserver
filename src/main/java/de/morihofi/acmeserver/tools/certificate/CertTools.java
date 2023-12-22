@@ -20,6 +20,8 @@ import java.security.spec.X509EncodedKeySpec;
 
 public class CertTools {
 
+    private CertTools(){}
+
     /**
      * Reads a certificate file in PEM format, converts it to X.509 format, and returns the certificate bytes.
      *

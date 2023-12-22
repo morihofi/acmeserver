@@ -6,6 +6,9 @@ import java.net.URISyntaxException;
 import java.nio.file.Paths;
 
 public class AppDirectoryHelper {
+
+    private AppDirectoryHelper(){}
+
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public static String getAppDirectory() {
         try {

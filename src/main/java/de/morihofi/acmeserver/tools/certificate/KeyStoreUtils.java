@@ -14,6 +14,8 @@ import java.util.ArrayList;
 
 public class KeyStoreUtils {
 
+    private KeyStoreUtils(){}
+
     public static final Logger log = LogManager.getLogger(KeyStoreUtils.class);
     private static final String PKCS12_INSTANCE_NAME = "PKCS12";
 
@@ -96,7 +98,6 @@ public class KeyStoreUtils {
      *
      * @param keyStorePath     The path to the PKCS12 keystore file.
      * @param keyStorePassword The password for the keystore.
-     * @param certificateAlias The alias of the certificate to load from the keystore.
      * @return A KeyStoreFileContent object containing the KeyPair and X.509 certificate.
      * @throws IOException               If there is an issue reading the keystore file.
      * @throws KeyStoreException         If there is a problem with the keystore.

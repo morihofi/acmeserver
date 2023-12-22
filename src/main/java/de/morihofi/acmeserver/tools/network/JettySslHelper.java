@@ -18,6 +18,8 @@ import java.util.List;
 
 public class JettySslHelper {
 
+    private JettySslHelper(){}
+
     public static final Logger log = LogManager.getLogger(JettySslHelper.class);
 
     /**
@@ -42,11 +44,11 @@ public class JettySslHelper {
         keyStore.load(null, null);
 
         // Add the certificate and key to the KeyStore
-        keyStore.setKeyEntry("server", keyPair.getPrivate(), "password".toCharArray(), certificateChain);
+        keyStore.setKeyEntry("server", keyPair.getPrivate(), "".toCharArray(), certificateChain);
 
         // Initialize the KeyManagerFactory with the KeyStore
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, "password".toCharArray());
+        keyManagerFactory.init(keyStore, "".toCharArray());
 
         // Initialize the TrustManagerFactory with the KeyStore
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());

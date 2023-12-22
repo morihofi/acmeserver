@@ -5,6 +5,8 @@ import org.passay.EnglishCharacterData;
 import org.passay.PasswordGenerator;
 
 public class SecurePasswordGenerator {
+
+    private SecurePasswordGenerator(){}
     public static String generateSecurePassword() {
 
         CharacterRule upperCaseRule = new CharacterRule(EnglishCharacterData.UpperCase);

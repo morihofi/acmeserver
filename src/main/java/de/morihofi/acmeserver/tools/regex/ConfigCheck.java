@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.tools.regex;
 
 public class ConfigCheck {
+
+    private ConfigCheck(){}
     public static boolean isValidProvisionerName(String provisionerName) {
         if (provisionerName == null) {
             return false;

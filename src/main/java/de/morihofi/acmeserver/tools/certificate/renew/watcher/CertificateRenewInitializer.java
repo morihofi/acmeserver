@@ -10,10 +10,11 @@ import org.apache.logging.log4j.Logger;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
 public class CertificateRenewInitializer {
+
+    private CertificateRenewInitializer(){}
 
     public static final Logger log = LogManager.getLogger(CertificateRenewInitializer.class);
 
@@ -27,10 +28,8 @@ public class CertificateRenewInitializer {
      * @param alias              The alias under which the certificate is stored in the KeyStore.
      * @param provisioner        The provisioner instance associated with the certificate.
      * @param provisionerCfg     Configuration details for the provisioner.
-     * @param caKeyPair          The KeyPair associated with the CA.
-     * @param caCertificate      The X509Certificate of the CA.
      */
-    public static void initializeIntermediateCertificateRenewWatcher(CryptoStoreManager cryptoStoreManager, String alias, Provisioner provisioner, ProvisionerConfig provisionerCfg, KeyPair caKeyPair, X509Certificate caCertificate) {
+    public static void initializeIntermediateCertificateRenewWatcher(CryptoStoreManager cryptoStoreManager, String alias, Provisioner provisioner, ProvisionerConfig provisionerCfg) {
         log.info("Initializing renew watcher for intermediate ca of {} provisioner", provisioner.getProvisionerName());
         new CertificateRenewWatcher(
                 cryptoStoreManager,

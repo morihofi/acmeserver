@@ -11,6 +11,8 @@ import java.util.Properties;
 
 public class SendMail {
 
+    private SendMail(){}
+
     public static final Logger log = LogManager.getLogger(SendMail.class);
 
     /**

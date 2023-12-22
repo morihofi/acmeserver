@@ -6,6 +6,8 @@ import java.util.TimeZone;
 
 public class DateTools {
 
+    private DateTools(){}
+
     /**
      * Formats a {@link Date} object as a string in the ACME date format.
      *

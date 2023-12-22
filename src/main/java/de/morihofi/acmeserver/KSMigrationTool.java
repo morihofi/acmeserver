@@ -22,6 +22,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 public class KSMigrationTool {
+    private KSMigrationTool(){}
     public static final Logger log = LogManager.getLogger(KSMigrationTool.class);
 
     public static void run(String[] args, CryptoStoreManager cryptoStoreManager, Config appConfig, Path filesDir) throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException {

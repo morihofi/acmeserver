@@ -27,6 +27,8 @@ import java.util.List;
 
 public class PemUtil {
 
+    private PemUtil(){}
+
     /**
      * Saves a KeyPair to PEM-encoded files.
      *
@@ -58,10 +60,10 @@ public class PemUtil {
             JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME);
             Object object = pemParser.readObject();
 
-            if (object instanceof PrivateKeyInfo) {
-                return converter.getPrivateKey((PrivateKeyInfo) object);
-            } else if (object instanceof PEMKeyPair) {
-                return converter.getPrivateKey(((PEMKeyPair) object).getPrivateKeyInfo());
+            if (object instanceof PrivateKeyInfo privateKeyInfo) {
+                return converter.getPrivateKey(privateKeyInfo);
+            } else if (object instanceof PEMKeyPair pemKeyPair) {
+                return converter.getPrivateKey(pemKeyPair.getPrivateKeyInfo());
             } else {
                 throw new IllegalArgumentException("File does not contain a valid private key");
             }
@@ -165,9 +167,9 @@ public class PemUtil {
      *
      * @param certificateBytesArray An array of byte arrays where each element represents a certificate in the chain.
      * @return The PEM-encoded representation of the certificate chain.
-     * @throws RuntimeException If there is an issue converting the certificate chain.
+     * @throws CertificateException If there is an issue converting the certificate chain.
      */
-    public static String certificatesChainToPEM(byte[][] certificateBytesArray) {
+    public static String certificatesChainToPEM(byte[][] certificateBytesArray) throws CertificateException {
         try {
             // Create a StringWriter to store the entire certificate chain
             StringWriter stringWriter = new StringWriter();
@@ -183,7 +185,7 @@ public class PemUtil {
             // Return the entire PEM-encoded representation of the certificate chain
             return stringWriter.toString();
         } catch (Exception e) {
-            throw new RuntimeException("Error converting the certificate chain to PEM format", e);
+            throw new CertificateException("Error converting the certificate chain to PEM format", e);
         }
     }
 

@@ -8,6 +8,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class Hashing {
 
+    private Hashing(){}
+
 
     /**
      * Calculates the SHA-256 hash of a given string.

@@ -7,6 +7,9 @@ import org.jose4j.lang.JoseException;
 import java.security.PublicKey;
 
 public class AcmeTokenCryptography {
+
+    private AcmeTokenCryptography(){}
+
     /**
      * Computes a thumbprint of the given public key.
      *

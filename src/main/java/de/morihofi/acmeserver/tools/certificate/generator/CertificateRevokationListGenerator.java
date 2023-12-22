@@ -20,6 +20,9 @@ import java.util.List;
 
 public class CertificateRevokationListGenerator {
 
+    private CertificateRevokationListGenerator(){}
+
+
     /**
      * Generates a Certificate Revocation List (CRL) using the provided list of revoked certificates,
      * the Certificate Authority (CA) certificate, and the CA's private key. The generated CRL will
@@ -47,7 +50,7 @@ public class CertificateRevokationListGenerator {
         );
 
         // Add an expiration date
-        crlBuilder.setNextUpdate(new Date(System.currentTimeMillis() + updateMinutes * 60 * 1000L)); //Update in 5 mins
+        crlBuilder.setNextUpdate(new Date(System.currentTimeMillis() + updateMinutes * 60 * 1000L)); //Update in 5 minutes
 
 
         // Add the revoked serial numbers

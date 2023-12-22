@@ -4,6 +4,8 @@ import java.util.regex.Pattern;
 
 public class EmailValidation {
 
+    private EmailValidation(){}
+
     /**
      * Check, if an email has a valid syntax
      *

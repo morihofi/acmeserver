@@ -7,6 +7,9 @@ import java.security.SecureRandom;
 
 public class Crypto {
 
+
+    private Crypto(){}
+
     /**
      * Generates a nonce (number used once) for security purposes.
      *
