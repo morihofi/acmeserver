@@ -19,10 +19,13 @@
  */
 package de.morihofi.acmeserver.tools.javaversion;
 
+import java.io.Serial;
+
 /**
  * Represents a version exception.
  */
 public class VersionException extends RuntimeException {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**

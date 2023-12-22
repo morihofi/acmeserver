@@ -22,8 +22,20 @@ import java.util.List;
 import java.util.UUID;
 
 public class NewAccountEndpoint implements Handler {
+
+    /**
+     * Logger
+     */
     public final Logger log = LogManager.getLogger(getClass());
+
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
+
+    /**
+     * Gson for JSON to POJO and POJO to JSON conversion
+     */
     private final Gson gson;
 
     public NewAccountEndpoint(Provisioner provisioner) {
@@ -31,6 +43,11 @@ public class NewAccountEndpoint implements Handler {
         this.gson = new Gson();
     }
 
+    /**
+     * Method for handling the request
+     * @param ctx Javalin Context
+     * @throws Exception thrown when there was an error processing the request
+     */
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
@@ -43,7 +60,7 @@ public class NewAccountEndpoint implements Handler {
         JSONObject reqBodyProtectedObj = new JSONObject(acmeRequestBody.getDecodedProtected());
 
         // Check terms of service agreement
-        if (payload.getTermsOfServiceAgreed() == null || !payload.getTermsOfServiceAgreed()) {
+        if (!payload.getTermsOfServiceAgreed()) {
             throw new ACMEMalformedException("Terms of Service not accepted. Unable to create account");
         }
 

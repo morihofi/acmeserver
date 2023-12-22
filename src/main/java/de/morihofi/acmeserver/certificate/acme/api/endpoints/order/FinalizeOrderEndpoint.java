@@ -36,16 +36,36 @@ import java.util.stream.Collectors;
 
 public class FinalizeOrderEndpoint implements Handler {
 
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
+
+    /**
+     * Logger
+     */
     public final Logger log = LogManager.getLogger(getClass());
+
+    /**
+     * Gson for JSON to POJO and POJO to JSON conversion
+     */
     private final Gson gson;
 
+    /**
+     * ACME Endpoint for finalize an order
+     * @param provisioner Provisioner instance
+     */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public FinalizeOrderEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
         this.gson = new Gson();
     }
 
+    /**
+     * Method for handling the request
+     * @param ctx Javalin Context
+     * @throws Exception thrown when there was an error processing the request
+     */
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         String orderId = ctx.pathParam("orderId");

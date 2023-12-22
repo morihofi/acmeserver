@@ -20,10 +20,24 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A handler endpoint for processing challenge callbacks.
+ */
 public class ChallengeCallbackEndpoint implements Handler {
 
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
+
+    /**
+     * Logger
+     */
     private final Logger log = LogManager.getLogger(getClass());
+
+    /**
+     * Gson for JSON to POJO and POJO to JSON conversion
+     */
     private final Gson gson;
 
     /**
@@ -36,6 +50,12 @@ public class ChallengeCallbackEndpoint implements Handler {
         this.gson = new Gson();
     }
 
+    /**
+     * Method for handling the request
+     *
+     * @param ctx Javalin Context
+     * @throws Exception thrown when there was an error processing the request
+     */
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         String challengeId = ctx.pathParam("challengeId");

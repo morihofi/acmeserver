@@ -18,23 +18,26 @@ import java.security.*;
 
 public class DNSChallenge {
 
+    /**
+     * Provides functionality for handling DNS challenges in the ACME (Automated Certificate Management Environment) protocol.
+     * This class includes methods for validating DNS challenges by querying DNS TXT records and comparing them to expected values.
+     * It is designed to validate domain control by ensuring that DNS records contain specific tokens.
+     */
     public static final Logger log = LogManager.getLogger(DNSChallenge.class);
 
-    private DNSChallenge(){
-
-    }
+    private DNSChallenge(){}
 
     /**
-     * Checks the validity of an ACME (Automated Certificate Management Environment) challenge by querying DNS TXT records
-     * for the specified domain and comparing them to the expected token value derived from the public key of an ACME account.
+     * Validates a DNS challenge by querying DNS TXT records for the specified domain.
+     * The method checks if the TXT records contain a token value that matches the expected value derived from the public key
+     * of an ACME account.
      *
-     * @param token      The token value associated with the ACME challenge.
-     * @param domain     The domain for which the ACME challenge is being validated.
+     * @param token The token value associated with the ACME challenge.
+     * @param domain The domain for which the ACME challenge is being validated.
      * @param acmeAccount The ACME account containing the public key used to derive the expected token value.
-     * @return True if the DNS challenge validation succeeds, indicating that the TXT record matches the expected token value;
-     *         otherwise, false.
-     * @throws IOException             if there is an issue with input/output operations.
-     * @throws GeneralSecurityException if there is a general security-related issue.
+     * @return {@code true} if the DNS challenge validation succeeds, otherwise {@code false}.
+     * @throws IOException If an I/O error occurs during DNS query.
+     * @throws GeneralSecurityException If a security-related error occurs.
      */
     public static boolean check(String token, String domain, ACMEAccount acmeAccount) throws IOException, GeneralSecurityException {
         boolean passed = false;

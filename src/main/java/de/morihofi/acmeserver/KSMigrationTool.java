@@ -21,10 +21,35 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+/**
+ * A utility class for migrating keys and certificates into a KeyStore.
+ *
+ * <p>
+ * The `KSMigrationTool` class provides methods to migrate keys and certificates into a KeyStore.
+ * It is used during the migration process to import the root CA certificate, intermediate CA certificates,
+ * and provisioner certificates into the KeyStore.
+ * </p>
+ */
 public class KSMigrationTool {
     private KSMigrationTool(){}
+
+    /**
+     * Logger for the `KSMigrationTool` class.
+     */
     public static final Logger log = LogManager.getLogger(KSMigrationTool.class);
 
+    /**
+     * Runs the migration process to import certificates into the KeyStore.
+     *
+     * @param args            Command-line arguments.
+     * @param cryptoStoreManager The CryptoStoreManager to manage the KeyStore.
+     * @param appConfig       The configuration of the application.
+     * @param filesDir        The directory containing certificate and key files.
+     * @throws IOException           If an I/O error occurs.
+     * @throws CertificateException   If a certificate error occurs.
+     * @throws KeyStoreException      If a KeyStore error occurs.
+     * @throws NoSuchAlgorithmException If a required algorithm is not available.
+     */
     public static void run(String[] args, CryptoStoreManager cryptoStoreManager, Config appConfig, Path filesDir) throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
         log.info("Starting in migration mode");
         KeyStore keyStore = cryptoStoreManager.getKeyStore();

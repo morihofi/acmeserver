@@ -14,7 +14,9 @@ import org.jetbrains.annotations.NotNull;
  * "Replay-Nonce" header generated using the provided ACMEProvisioner.
  */
 public class NewNonceEndpoint implements Handler {
-
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
 
     /**

@@ -15,12 +15,24 @@ import java.util.List;
 
 public class ServerInfoEndpoint implements Handler {
 
+    /**
+     * List of provisioners, specified in config
+     */
     private final List<ProvisionerConfig> provisionerConfigList;
 
+    /**
+     * Endpoint for getting server information
+     * @param provisionerConfigList List of provisioners, specified in config
+     */
     public ServerInfoEndpoint(List<ProvisionerConfig> provisionerConfigList) {
         this.provisionerConfigList = provisionerConfigList;
     }
 
+    /**
+     * Method for handling the request
+     * @param ctx Javalin Context
+     * @throws Exception thrown when there was an error processing the request
+     */
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         ctx.header("Content-Type", "application/json");

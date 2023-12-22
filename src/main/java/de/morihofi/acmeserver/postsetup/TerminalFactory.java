@@ -3,15 +3,31 @@ package de.morihofi.acmeserver.postsetup;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.MouseCaptureMode;
 
+/**
+ * Customized factory for creating terminal instances with configurable options.
+ */
 public class TerminalFactory extends DefaultTerminalFactory {
 
+    /**
+     * Default constructor for TerminalFactory.
+     */
     public TerminalFactory() {
     }
 
+    /**
+     * Constructor for TerminalFactory that parses command-line arguments to set terminal options.
+     *
+     * @param args Command-line arguments to configure terminal options.
+     */
     public TerminalFactory(String[] args) {
         parseArgs(args);
     }
 
+    /**
+     * Parse command-line arguments to set terminal options.
+     *
+     * @param args Command-line arguments.
+     */
     public void parseArgs(String[] args) {
         if (args == null) {
             return;

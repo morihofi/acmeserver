@@ -30,7 +30,6 @@ import java.util.Date;
 
 public class CertificateAuthorityGenerator {
     private CertificateAuthorityGenerator() {
-
     }
 
     /**

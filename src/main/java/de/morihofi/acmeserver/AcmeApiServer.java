@@ -45,9 +45,21 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class AcmeApiServer {
-    private AcmeApiServer(){}
+    private AcmeApiServer() {
+    }
+
+    /**
+     * Logger
+     */
     public static final Logger log = LogManager.getLogger(AcmeApiServer.class);
 
+    /**
+     * Method to start the ACME API Server
+     *
+     * @param appConfig          Configuration instance of the ACME Server
+     * @param cryptoStoreManager Instance of {@link CryptoStoreManager} for accessing KeyStores
+     * @throws Exception thrown when startup fails
+     */
     public static void startServer(CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
         log.info("Starting in Normal Mode");
         Main.initializeCA(cryptoStoreManager);
@@ -160,6 +172,8 @@ public class AcmeApiServer {
      *
      * @param provisionerConfigList A list of provisioner configurations.
      * @param javalinInstance       The Javalin instance.
+     * @param appConfig             Configuration instance of the ACME Server
+     * @param cryptoStoreManager    Instance of {@link CryptoStoreManager} for accessing KeyStores
      * @return A list of provisioners.
      * @throws Exception If an error occurs during provisioning or certificate generation.
      */
@@ -177,7 +191,7 @@ public class AcmeApiServer {
 
             KeyPair intermediateKeyPair = null;
             X509Certificate intermediateCertificate;
-            final Provisioner provisioner = new Provisioner(provisionerName, null, null, config.getMeta(), config.getIssuedCertificateExpiration(), config.getDomainNameRestriction(), config.isWildcardAllowed(), cryptoStoreManager);
+            final Provisioner provisioner = new Provisioner(provisionerName, config.getMeta(), config.getIssuedCertificateExpiration(), config.getDomainNameRestriction(), config.isWildcardAllowed(), cryptoStoreManager);
 
 
             //Check if root ca does exist
@@ -228,7 +242,7 @@ public class AcmeApiServer {
 
             if (config.isUseThisProvisionerIntermediateForAcmeApi()) {
 
-                generateAcmeApiClientCertificate(cryptoStoreManager, provisionerName, provisioner, appConfig);
+                generateAcmeApiClientCertificate(cryptoStoreManager, provisioner, appConfig);
 
 
                 javalinInstance.updateConfig(javalinConfig -> {
@@ -261,7 +275,7 @@ public class AcmeApiServer {
                             log.info("Renewing certificate...");
 
                             //Generate new certificate in place
-                            generateAcmeApiClientCertificate(cryptoStoreManager, provisionerName, provisioner, appConfig);
+                            generateAcmeApiClientCertificate(cryptoStoreManager, provisioner, appConfig);
 
                             log.info("Certificate renewed successfully.");
 
@@ -291,19 +305,23 @@ public class AcmeApiServer {
     }
 
     /**
-     * Generates or loads the ACME Web API client certificate and key pair.
+     * Generates an ACME API client certificate for the ACME Web Server API, if it doesn't already exist in the key store.
      *
-     * @param provisioner The provisioner for certificate generation.
-     * @throws CertificateException      If an issue occurs during certificate generation or loading.
-     * @throws IOException               If an I/O error occurs while creating or deleting files.
-     * @throws NoSuchAlgorithmException  If the specified algorithm is not available.
-     * @throws NoSuchProviderException   If the specified security provider is not available.
-     * @throws OperatorCreationException If there's an issue with operator creation during certificate generation.
+     * @param cryptoStoreManager The crypto store manager used for managing certificates and keys.
+     * @param provisioner The provisioner associated with the certificate generation.
+     * @param appConfig The application configuration containing settings for the ACME API and certificates.
+     * @throws CertificateException If there is an issue with certificate handling.
+     * @throws IOException If an I/O error occurs.
+     * @throws NoSuchAlgorithmException If a required cryptographic algorithm is not available.
+     * @throws NoSuchProviderException If a required cryptographic provider is not available.
+     * @throws OperatorCreationException If there is an issue creating a cryptographic operator.
+     * @throws KeyStoreException If there is an issue with the keystore.
+     * @throws UnrecoverableKeyException If a keystore key cannot be recovered.
      */
-    private static void generateAcmeApiClientCertificate(CryptoStoreManager cryptoStoreManager, String provisionerName, Provisioner provisioner, Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
-        String intermediateCaAlias = CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(provisionerName);
+    private static void generateAcmeApiClientCertificate(CryptoStoreManager cryptoStoreManager, Provisioner provisioner, Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
+        String intermediateCaAlias = CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(provisioner.getProvisionerName());
 
-        KeyPair intermediateCaKeyPair = cryptoStoreManager.getIntermediateCerificateAuthorityKeyPair(provisionerName);
+        KeyPair intermediateCaKeyPair = cryptoStoreManager.getIntermediateCerificateAuthorityKeyPair(provisioner.getProvisionerName());
 
         KeyPair acmeAPIKeyPair;
         if (!cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI)) {

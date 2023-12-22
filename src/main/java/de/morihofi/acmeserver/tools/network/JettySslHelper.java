@@ -20,6 +20,9 @@ public class JettySslHelper {
 
     private JettySslHelper(){}
 
+    /**
+     * Logger
+     */
     public static final Logger log = LogManager.getLogger(JettySslHelper.class);
 
     /**
@@ -61,32 +64,43 @@ public class JettySslHelper {
         return sslContext;
     }
 
+    /**
+     * Creates and configures an SSLContext for secure communication using the provided KeyStore,
+     * certificate alias, and key password.
+     *
+     * @param keyStore     The KeyStore containing the SSL certificate and private key.
+     * @param alias        The alias of the certificate in the KeyStore.
+     * @param keyPassword  The password for the private key.
+     * @return An SSLContext configured for secure communication.
+     * @throws Exception If an error occurs while creating or configuring the SSLContext.
+     */
     public static SSLContext createSSLContext(KeyStore keyStore, String alias, String keyPassword)
             throws Exception {
 
-        // Erstellen Sie eine Instanz von SslContextFactory
+        // Create an instance of SslContextFactory
         SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
 
-        // Setzen Sie den KeyStore und die Passwörter
+        // Set the KeyStore and passwords
         sslContextFactory.setKeyStore(keyStore);
         sslContextFactory.setKeyStorePassword(keyPassword);
         sslContextFactory.setKeyManagerPassword(keyPassword);
 
-        // Setzen Sie den Alias für das Zertifikat
+        // Set the alias for the certificate
         sslContextFactory.setCertAlias(alias);
 
         sslContextFactory.setProvider(BouncyCastleJsseProvider.PROVIDER_NAME);
         sslContextFactory.setProtocol("TLS");
 
-        // Setzen Sie den Algorithmus für den KeyManager
+        // Set the algorithm for the KeyManager
         sslContextFactory.setKeyManagerFactoryAlgorithm("PKIX");
 
-        // Initialisieren Sie SslContextFactory
+        // Initialize SslContextFactory
         sslContextFactory.start();
 
-        // Erhalten Sie das SSLContext-Objekt von SslContextFactory
+        // Get the SSLContext object from SslContextFactory
         return sslContextFactory.getSslContext();
     }
+
     /**
      * Creates a Jetty server instance configured with SSL and/or HTTP connectors based on the provided ports and SSL context.
      *
@@ -118,6 +132,16 @@ public class JettySslHelper {
         return getSslJetty(httpsPort, httpPort, sslContext);
     }
 
+    /**
+     * Creates a Jetty Server instance configured for both secure (HTTPS) and non-secure (HTTP) communication.
+     *
+     * @param httpsPort The port number for secure HTTPS communication.
+     * @param httpPort  The port number for non-secure HTTP communication.
+     * @param keyStore  The KeyStore containing the SSL certificate and private key.
+     * @param alias     The alias of the certificate in the KeyStore.
+     * @return A Jetty Server instance configured for both secure and non-secure communication.
+     * @throws Exception If an error occurs while creating or configuring the Jetty Server.
+     */
     public static Server getSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String alias)
             throws Exception {
 

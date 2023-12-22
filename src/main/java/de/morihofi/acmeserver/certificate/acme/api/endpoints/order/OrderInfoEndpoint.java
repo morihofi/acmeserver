@@ -23,8 +23,19 @@ import java.util.List;
 
 public class OrderInfoEndpoint implements Handler {
 
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
+
+    /**
+     * Logger
+     */
     public final Logger log = LogManager.getLogger(getClass());
+
+    /**
+     * Gson for JSON to POJO and POJO to JSON conversion
+     */
     private final Gson gson;
 
     public OrderInfoEndpoint(Provisioner provisioner) {

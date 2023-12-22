@@ -25,15 +25,35 @@ import java.util.List;
 
 public class AuthzOwnershipEndpoint implements Handler {
 
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
+
+    /**
+     * Logger
+     */
     private final Logger log = LogManager.getLogger(getClass());
+
+    /**
+     * Gson for JSON to POJO and POJO to JSON conversion
+     */
     private final Gson gson;
 
+    /**
+     *
+     * @param provisioner Provisioner instance
+     */
     public AuthzOwnershipEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
         this.gson = new Gson();
     }
 
+    /**
+     * Method for handling the request
+     * @param ctx Javalin Context
+     * @throws Exception thrown when there was an error processing the request
+     */
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         String authorizationId = ctx.pathParam("authorizationId");
@@ -85,6 +105,13 @@ public class AuthzOwnershipEndpoint implements Handler {
     }
 
 
+    /**
+     * Creates a challenge object of the specified type for the given ACME identifier.
+     *
+     * @param type The type of challenge to create.
+     * @param identifier The ACME identifier for which the challenge is created.
+     * @return A challenge object with the specified type, URL, token, and status if verified.
+     */
     private Challenge createChallenge(String type, ACMEIdentifier identifier) {
         Challenge challenge = new Challenge();
         challenge.setType(type);

@@ -28,11 +28,29 @@ import java.util.Base64;
 import java.util.Date;
 
 public class RevokeCertEndpoint implements Handler {
-
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
+
+    /**
+     * Logger
+     */
     public final Logger log = LogManager.getLogger(getClass());
+
+    /**
+     * Gson for JSON to POJO and POJO to JSON conversion
+     */
     private final Gson gson;
 
+    /**
+     * Constructs a new RevokeCertEndpoint instance.
+     * This constructor initializes the endpoint with a specific Provisioner instance.
+     * It sets up the necessary components for handling certificate revocation requests,
+     * including creating a new Gson instance for JSON processing.
+     *
+     * @param provisioner The {@link Provisioner} instance used for managing certificate operations.
+     */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public RevokeCertEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
@@ -40,6 +58,12 @@ public class RevokeCertEndpoint implements Handler {
     }
 
 
+    /**
+     * Method for handling the request
+     *
+     * @param ctx Javalin Context
+     * @throws Exception thrown when there was an error processing the request
+     */
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
 
@@ -75,7 +99,6 @@ public class RevokeCertEndpoint implements Handler {
         SignatureCheck.checkSignature(ctx, accountId, gson);
         //Check nonce
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
-
 
 
         log.info("Account ID {} wants to revoke a certificate", accountId);
@@ -129,12 +152,12 @@ public class RevokeCertEndpoint implements Handler {
         //Get the identifier, where the certificate belongs to
         ACMEIdentifier identifier = Database.getACMEIdentifierCertificateSerialNumber(serialNumber);
 
-        if(!identifier.getOrder().getAccount().getAccountId().equals(accountId)){
+        if (!identifier.getOrder().getAccount().getAccountId().equals(accountId)) {
             throw new ACMEServerInternalException("Rejected: You cannot revoke a certificate, that belongs to another account.");
         }
 
         //Check if already revoked
-        if(identifier.getRevokeStatusCode() != null && identifier.getRevokeTimestamp() != null){
+        if (identifier.getRevokeStatusCode() != null && identifier.getRevokeTimestamp() != null) {
             throw new ACMEAlreadyRevokedException("Error revoking certificate: The specified certificate is already revoked");
         }
 

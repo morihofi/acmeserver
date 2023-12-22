@@ -20,11 +20,9 @@ public class DirectoryEndpoint implements Handler {
     }
 
     /**
-     * Handles an HTTP request by generating and returning a JSON response containing ACME (Automated Certificate Management
-     * Environment) metadata and endpoint URLs for various ACME operations.
-     *
-     * @param ctx The Context object representing the HTTP request and response.
-     * @throws Exception if there is an issue with handling the HTTP request.
+     * Method for handling the request
+     * @param ctx Javalin Context
+     * @throws Exception thrown when there was an error processing the request
      */
     @Override
     public void handle(@NotNull Context ctx) throws Exception {

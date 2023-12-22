@@ -40,8 +40,14 @@ import java.util.Properties;
 
 public class Main {
 
+    /**
+     * Logger
+     */
     public static final Logger log = LogManager.getLogger(Main.class);
 
+    /**
+     * `serverdata` directory as an absolute path
+     */
     public static final Path FILES_DIR = Paths.get(Objects.requireNonNull(AppDirectoryHelper.getAppDirectory())).resolve("serverdata").toAbsolutePath();
 
     public static CryptoStoreManager cryptoStoreManager;

@@ -1,11 +1,30 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.objects;
 
 public class ACMEChallengeResponse {
+
+    /**
+     * Status of the ACME challenge
+     */
     private String status;
-    private String verified; // Datum als String formatiert
+
+    /**
+     * Verified date, formatted as a string
+     */
+    private String verified;
+
+    /**
+     * URL for challenge approval
+     */
     private String url;
+
+    /**
+     * Token to place
+     */
     private String token;
 
+    /**
+     * Type of the challenge
+     */
     private String type;
 
     public String getStatus() {

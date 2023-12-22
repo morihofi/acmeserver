@@ -26,16 +26,37 @@ import java.util.List;
  * URL: /acme/new-order
  */
 public class AccountEndpoint implements Handler {
+
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
+
+    /**
+     * Logger
+     */
     public final Logger log = LogManager.getLogger(getClass());
+
+    /**
+     * Gson for JSON to POJO and POJO to JSON conversion
+     */
     private final Gson gson;
 
+    /**
+     * Endpoint for managing ACME Account settings. Change E-Mail etc.
+     * @param provisioner Provisioner instance
+     */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public AccountEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
         this.gson = new Gson();
     }
 
+    /**
+     * Method for handling the request
+     * @param ctx Javalin Context
+     * @throws Exception thrown when there was an error processing the request
+     */
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         String accountId = ctx.pathParam("id");

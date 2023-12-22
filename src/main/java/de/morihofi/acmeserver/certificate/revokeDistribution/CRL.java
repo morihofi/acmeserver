@@ -14,6 +14,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Manages the creation and updating of a Certificate Revocation List (CRL).
+ * This class handles the generation of CRLs based on revoked certificates and maintains
+ * a cache of the current CRL. It also schedules regular updates to the CRL.
+ */
 public class CRL {
 
     private volatile byte[] currentCrlBytes = null;
@@ -21,8 +26,14 @@ public class CRL {
     private volatile LocalTime lastUpdate = null;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
 
+    /**
+     * Logger
+     */
     private final Logger log = LogManager.getLogger(getClass());
 
     private static final int UPDATE_MINUTES = 5;
@@ -82,20 +93,39 @@ public class CRL {
         }
     }
 
+    /**
+     * Retrieves the current CRL in byte array format.
+     *
+     * @return The current CRL as a byte array.
+     */
     public byte[] getCurrentCrlBytes() {
         return currentCrlBytes;
     }
 
+    /**
+     * Retrieves the current X509CRL object.
+     *
+     * @return The current X509CRL.
+     * @throws CRLException If retrieving the CRL fails.
+     */
     public X509CRL getCurrentCrl() throws CRLException {
         // Return the CRL as a byte array
         return currentCrl;
     }
 
+    /**
+     * Retrieves the time of the last CRL update.
+     *
+     * @return The time of the last update as a {@link LocalTime}.
+     */
     public LocalTime getLastUpdate() {
         return lastUpdate;
     }
 
-    // Make sure to shut down the executor service when it is no longer needed
+    /**
+     * Shuts down the executor service.
+     * Should be called when the CRL instance is no longer needed.
+     */
     public void shutdown() {
         scheduler.shutdown();
     }

@@ -19,12 +19,18 @@ import java.security.spec.InvalidKeySpecException;
 
 public class HTTPChallenge {
 
-    private HTTPChallenge() {
+    private HTTPChallenge() {}
 
-    }
-
+    /**
+     * Logger
+     */
     public static final Logger log = LogManager.getLogger(HTTPChallenge.class);
     private static final OkHttpClient httpClient = new OkHttpClient.Builder().proxy(getHTTPChallengeProxy()).build();
+
+    /**
+     * User Agent used for checking HTTP challenges
+     */
+    private static final String USER_AGENT = "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + " Java/" + System.getProperty("java.version");
 
     private static String proxyHost = "";
     private static int proxyPort = 0;
@@ -35,9 +41,10 @@ public class HTTPChallenge {
 
 
     /**
-     * Retrieves and configures an HTTP challenge proxy based on the application configuration settings.
+     * Retrieves and configures an HTTP challenge proxy based on application settings.
+     * The method configures the proxy settings and authentication details, if required.
      *
-     * @return A Proxy object representing the configured HTTP challenge proxy.
+     * @return A Proxy object configured based on application settings.
      */
     public static Proxy getHTTPChallengeProxy() {
         Proxy.Type proxyType = switch (Main.appConfig.getProxy().getHttpChallenge().getType()) {
@@ -85,16 +92,20 @@ public class HTTPChallenge {
         return proxy;
     }
 
-    private static final String USER_AGENT = "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + " Java/" + System.getProperty("java.version");
+
 
     /**
-     * Performs an HTTP challenge validation by sending a GET request to a specified host and checking the response
-     * for the expected authentication token value.
+     * Validates an HTTP challenge by sending a GET request to the specified host and verifying the response.
+     * The method checks whether the response body contains the expected token, which indicates successful validation.
      *
-     * @param authToken The expected authentication token value associated with the challenge.
-     * @param host      The host to which the GET request is sent for challenge validation.
-     * @return True if the HTTP challenge validation succeeds, indicating that the response contains the expected token value;
-     * otherwise, false.
+     * @param authToken The expected authentication token value for the challenge.
+     * @param host The target host for the HTTP GET request.
+     * @param acmeAccount The ACME account used in the challenge.
+     * @return {@code true} if the challenge validation is successful, otherwise {@code false}.
+     * @throws IOException If an I/O error occurs during the HTTP request.
+     * @throws NoSuchAlgorithmException If a requested cryptographic algorithm is not available.
+     * @throws InvalidKeySpecException If an invalid key specification is encountered.
+     * @throws NoSuchProviderException If a requested security provider is not available.
      */
     public static boolean check(String authToken, String host, ACMEAccount acmeAccount) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         boolean passed = false;

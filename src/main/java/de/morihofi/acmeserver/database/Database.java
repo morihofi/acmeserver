@@ -32,6 +32,9 @@ import java.util.*;
 
 public class Database {
 
+    /**
+     * Logger
+     */
     public static final Logger log = LogManager.getLogger(Database.class);
 
     /**

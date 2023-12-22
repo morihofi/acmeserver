@@ -12,6 +12,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A utility class for monitoring and renewing X.509 certificates before they expire.
+ * This class periodically checks if a certificate needs renewal based on the configured period and threshold.
+ * If the certificate is close to expiration, it triggers a renewal process by executing a provided runnable.
+ */
 public class CertificateRenewWatcher {
 
     private final Logger log = LogManager.getLogger(getClass());
@@ -25,6 +30,15 @@ public class CertificateRenewWatcher {
     private final Runnable execute;
 
 
+    /**
+     * Initializes the CertificateRenewWatcher.
+     *
+     * @param cryptoStoreManager The CryptoStoreManager responsible for managing the certificate.
+     * @param alias              The alias of the certificate to monitor and renew.
+     * @param period             The period at which to check for certificate renewal.
+     * @param timeUnit           The time unit for the period (e.g., TimeUnit.MINUTES).
+     * @param execute            A runnable to execute when certificate renewal is needed.
+     */
     public CertificateRenewWatcher(CryptoStoreManager cryptoStoreManager, String alias, int period, TimeUnit timeUnit, Runnable execute) {
         this.cryptoStoreManager = cryptoStoreManager;
         this.alias = alias;
@@ -38,6 +52,10 @@ public class CertificateRenewWatcher {
         scheduler.scheduleAtFixedRate(this::check, 0, period, timeUnit);
     }
 
+    /**
+     * Checks if the certificate needs to be renewed based on the configured threshold.
+     * If renewal is needed, the provided runnable is executed.
+     */
     private void check() {
         log.info("Checking if certificate needs to be renewed...");
 
@@ -58,7 +76,12 @@ public class CertificateRenewWatcher {
 
     }
 
-
+    /**
+     * Determines if the certificate should be renewed based on the configured threshold.
+     *
+     * @param certificate The X.509 certificate to check.
+     * @return True if the certificate should be renewed; otherwise, false.
+     */
     private boolean shouldRenew(X509Certificate certificate) {
         Date now = new Date();
         Date expiryDate = certificate.getNotAfter();
@@ -66,10 +89,20 @@ public class CertificateRenewWatcher {
         return daysUntilExpiry <= RENEWAL_THRESHOLD_DAYS;
     }
 
+    /**
+     * Gets the configured period for certificate renewal checks.
+     *
+     * @return The period in the specified time unit.
+     */
     public int getPeriod() {
         return period;
     }
 
+    /**
+     * Gets the configured time unit for the certificate renewal checks.
+     *
+     * @return The time unit (e.g., TimeUnit.MINUTES).
+     */
     public TimeUnit getTimeUnit() {
         return timeUnit;
     }

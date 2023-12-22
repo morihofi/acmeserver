@@ -15,8 +15,19 @@ import java.math.BigInteger;
 import java.util.Base64;
 
 public class OcspEndpointGet implements Handler {
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
+
+    /**
+     * Instance of the CRL Generator
+     */
     private final CRL crlGenerator;
+
+    /**
+     * Logger
+     */
     public final Logger log = LogManager.getLogger(getClass());
 
     /**

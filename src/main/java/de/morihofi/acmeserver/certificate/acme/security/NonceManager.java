@@ -15,6 +15,11 @@ import java.util.List;
 import java.util.Objects;
 
 public class NonceManager {
+
+
+    /**
+     * Logger
+     */
     public static final Logger log = LogManager.getLogger(NonceManager.class);
 
     /**

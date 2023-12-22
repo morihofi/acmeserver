@@ -51,7 +51,6 @@ public class CertificateRenewInitializer {
                     }
                 }
         );
-        // You might want to store the watcher reference if needed
     }
 
 }

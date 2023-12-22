@@ -12,6 +12,9 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
+/**
+ * Class for doing KeyStore related stuff
+ */
 public class KeyStoreUtils {
 
     private KeyStoreUtils(){}

@@ -3,10 +3,17 @@ package de.morihofi.acmeserver.exception.exceptions;
 import de.morihofi.acmeserver.exception.ACMEException;
 import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
+/**
+ * Exception thrown when an ACME account is not found.
+ */
 public class ACMEAccountNotFoundException extends ACMEException {
 
     private final String message;
 
+    /**
+     * Constructs an instance of ACMEAccountNotFoundException with the specified error message.
+     * @param message The error message that describes the exception.
+     */
     public ACMEAccountNotFoundException(String message) {
         super(message);
         this.message = message;

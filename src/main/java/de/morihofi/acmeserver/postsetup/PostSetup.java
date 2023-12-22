@@ -25,6 +25,10 @@ import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.List;
 
+/**
+ * The PostSetup class represents the post-setup configuration assistant for the ACME server.
+ * It allows users to configure server settings.
+ */
 public class PostSetup extends WindowBase {
 
     private final CryptoStoreManager cryptoStoreManager;
@@ -32,10 +36,28 @@ public class PostSetup extends WindowBase {
     private final Path filesDir;
     public static final Logger log = LogManager.getLogger(PostSetup.class);
 
+    /**
+     * Runs the PostSetup configuration assistant with the specified parameters.
+     *
+     * @param cryptoStoreManager The CryptoStoreManager used for certificate and key management.
+     * @param appConfig          The application configuration.
+     * @param filesDir           The directory where configuration files are stored.
+     * @param args               The command-line arguments passed to the application.
+     * @throws IOException        If an I/O error occurs.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public static void run(CryptoStoreManager cryptoStoreManager, Config appConfig, Path filesDir, String[] args) throws IOException, InterruptedException {
         new PostSetup(cryptoStoreManager, appConfig, filesDir).run(args);
     }
 
+
+    /**
+     * Creates a new instance of the PostSetup class.
+     *
+     * @param cryptoStoreManager The CryptoStoreManager used for certificate and key management.
+     * @param appConfig          The application configuration.
+     * @param filesDir           The directory where configuration files are stored.
+     */
     public PostSetup(CryptoStoreManager cryptoStoreManager, Config appConfig, Path filesDir) {
         this.cryptoStoreManager = cryptoStoreManager;
         this.appConfig = appConfig;
@@ -47,6 +69,12 @@ public class PostSetup extends WindowBase {
     private int portHttp;
     private int portHttps;
 
+    /**
+     * Initializes the PostSetup configuration assistant and sets up the initial values for FQDN, HTTP port,
+     * HTTPS port, and background appearance.
+     *
+     * @param textGUI The WindowBasedTextGUI for displaying the user interface.
+     */
     @Override
     public void init(WindowBasedTextGUI textGUI) {
 
@@ -66,6 +94,12 @@ public class PostSetup extends WindowBase {
 
     }
 
+    /**
+     * Creates and returns a panel for configuring HTTP and HTTPS ports, including input fields for
+     * HTTP and HTTPS port numbers.
+     *
+     * @return A panel containing input fields for HTTP and HTTPS port configuration.
+     */
     private Component getHttpHttpsBoxPanel() {
         Panel httpHttpsPanel = new Panel();
         httpHttpsPanel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
@@ -84,6 +118,11 @@ public class PostSetup extends WindowBase {
         return httpHttpsPanel.withBorder(Borders.doubleLine("Port configuration"));
     }
 
+    /**
+     * Creates and returns a panel for selecting the certificate and key storage method using a ComboBox.
+     *
+     * @return A panel with a ComboBox for selecting the certificate and key storage method.
+     */
     private Component getKeyStorePanel() {
         Panel keyStorePanel = new Panel();
         keyStorePanel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
@@ -102,6 +141,13 @@ public class PostSetup extends WindowBase {
         return keyStorePanel.withBorder(Borders.doubleLine("KeyStore"));
     }
 
+
+    /**
+     * Creates and returns a panel for entering the Fully Qualified Domain Name (FQDN) or DNS name of the server.
+     * This is essential for certificate generation.
+     *
+     * @return A panel with an input field for setting the server's FQDN or DNS name.
+     */
     private Component getFqdnBoxPanel() {
         Panel fqdnBoxPanel = new Panel();
         fqdnBoxPanel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
@@ -125,6 +171,13 @@ public class PostSetup extends WindowBase {
     TextBox httpsPortTextBox = new TextBox();
 
 
+    /**
+     * Overrides the method from the parent class to handle the GUI setup after the GUI thread has started.
+     *
+     * @param textGUI The WindowBasedTextGUI instance used for GUI interactions.
+     * @throws InterruptedException If the thread is interrupted while waiting.
+     * @throws IOException        If an I/O error occurs.
+     */
     @Override
     public void afterGUIThreadStarted(WindowBasedTextGUI textGUI) throws InterruptedException, IOException {
         super.afterGUIThreadStarted(textGUI);
@@ -232,6 +285,11 @@ public class PostSetup extends WindowBase {
 
     }
 
+    /**
+     * Prepares and sets the background for the given WindowBasedTextGUI with customized styling.
+     *
+     * @param textGUI The WindowBasedTextGUI instance for which the background is prepared.
+     */
     private void prepareBackground(WindowBasedTextGUI textGUI) {
         textGUI.getBackgroundPane().setComponent(new EmptySpace(TextColor.ANSI.BLUE) {
             @Override

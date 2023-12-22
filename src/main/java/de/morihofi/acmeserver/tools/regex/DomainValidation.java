@@ -2,9 +2,19 @@ package de.morihofi.acmeserver.tools.regex;
 
 import java.util.regex.Pattern;
 
+/**
+ * Utility class for domain and hostname validation.
+ * This class provides methods to validate domain and hostname strings.
+ */
 public class DomainValidation {
 
-    private DomainValidation(){}
+    private DomainValidation() {
+    }
+
+    /**
+     * Regular expression pattern for validating domain and hostname strings.
+     * This pattern enforces certain rules for domain and hostname format.
+     */
     private static final String DOMAIN_AND_HOSTNAME_PATTERN
             = "^(?!-)([A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z0-9-]{2,}$|^[A-Za-z0-9-]{1,63}(?<!-)$";
 

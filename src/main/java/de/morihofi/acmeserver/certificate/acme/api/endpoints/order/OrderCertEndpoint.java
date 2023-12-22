@@ -13,8 +13,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class OrderCertEndpoint implements Handler {
-
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
+    /**
+     * Logger
+     */
     public final Logger log = LogManager.getLogger(getClass());
 
     public OrderCertEndpoint(Provisioner provisioner) {

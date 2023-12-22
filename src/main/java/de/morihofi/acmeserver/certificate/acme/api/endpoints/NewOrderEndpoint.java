@@ -30,8 +30,20 @@ import java.util.List;
 import java.util.UUID;
 
 public class NewOrderEndpoint implements Handler {
+
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
+
+    /**
+     * Logger
+     */
     public final Logger log = LogManager.getLogger(getClass());
+
+    /**
+     * Gson for JSON to POJO and POJO to JSON conversion
+     */
     private final Gson gson;
 
     public NewOrderEndpoint(Provisioner provisioner) {
@@ -39,6 +51,12 @@ public class NewOrderEndpoint implements Handler {
         this.gson = new Gson();
     }
 
+    /**
+     * Method for handling the request
+     *
+     * @param ctx Javalin Context
+     * @throws Exception thrown when there was an error processing the request
+     */
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         //Parse request body

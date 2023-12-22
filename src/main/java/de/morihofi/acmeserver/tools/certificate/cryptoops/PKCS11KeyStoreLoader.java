@@ -20,6 +20,11 @@ import java.util.concurrent.CancellationException;
 
 public class PKCS11KeyStoreLoader {
 
+    /**
+     * Demo for loading a PKCS#11 HSM KeyStore
+     * @param args app args
+     * @throws Exception if something goes wrong
+     */
     public static void main(String[] args) throws Exception {
         String libraryLocation = "C:\\SoftHSM2\\lib\\softhsm2-x64.dll";
         int slot = 0;

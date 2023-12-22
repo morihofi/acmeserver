@@ -107,7 +107,8 @@
                     <verbose>true</verbose>
                     <offline>true</offline>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties
+                    </generateGitPropertiesFilename>
                     <includeOnlyProperties>
                         <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>
                         <includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>
@@ -162,7 +163,8 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <target>
-                                <copy file="${project.basedir}/settings.sample.json" tofile="${project.build.directory}/settings.json"/>
+                                <copy file="${project.basedir}/settings.sample.json"
+                                      tofile="${project.build.directory}/settings.json"/>
                             </target>
                         </configuration>
                         <goals>
@@ -171,6 +173,17 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <configuration>
+                    <show>private</show>
+                    <nohelp>true</nohelp>
+                </configuration>
+            </plugin>
+
 
             <plugin>
                 <artifactId>jdeb</artifactId>
@@ -348,7 +361,6 @@
             <version>2.1.0</version>
             <scope>compile</scope>
         </dependency>
-
 
 
         <dependency>
