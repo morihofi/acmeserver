@@ -7,7 +7,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.AccountEndp
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.NewAccountEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.AuthzOwnershipEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.ChallengeCallbackEndpoint;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.download.DownloadCaEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.download.DownloadCaEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.ServerInfoEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderCertEndpoint;

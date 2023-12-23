@@ -2,22 +2,18 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.account;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestBody;
-import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.tools.regex.EmailValidation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
-import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 
 /**
@@ -25,12 +21,7 @@ import java.util.List;
  * <p>
  * URL: /acme/new-order
  */
-public class AccountEndpoint implements Handler {
-
-    /**
-     * Instance for accessing the current provisioner
-     */
-    private final Provisioner provisioner;
+public class AccountEndpoint extends AbstractAcmeEndpoint {
 
     /**
      * Logger
@@ -38,35 +29,21 @@ public class AccountEndpoint implements Handler {
     public final Logger log = LogManager.getLogger(getClass());
 
     /**
-     * Gson for JSON to POJO and POJO to JSON conversion
-     */
-    private final Gson gson;
-
-    /**
      * Endpoint for managing ACME Account settings. Change E-Mail etc.
      * @param provisioner Provisioner instance
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public AccountEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
-        this.gson = new Gson();
+        super(provisioner);
     }
 
-    /**
-     * Method for handling the request
-     * @param ctx Javalin Context
-     * @throws Exception thrown when there was an error processing the request
-     */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = ctx.pathParam("id");
 
-        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
-        ACMEAccountRequestBody acmeAccountRequestBody = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestBody.class);
+        ACMEAccountRequestPayload acmeAccountRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);
 
-        // Check signature and nonce
-        SignatureCheck.checkSignature(ctx, accountId, gson);
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        performSignatureAndNonceCheck(ctx, accountId, acmeRequestBody);
 
         // Check if account exists
         ACMEAccount account = Database.getAccount(accountId);
@@ -77,7 +54,7 @@ public class AccountEndpoint implements Handler {
         // Update Account Settings, e.g., Email change
         log.info("Update account settings for account {}", accountId);
 
-        List<String> emails = acmeAccountRequestBody.getContact();
+        List<String> emails = acmeAccountRequestPayload.getContact();
         if (emails != null) {
             for (String email : emails) {
                 email = email.replace("mailto:", "");
@@ -97,5 +74,6 @@ public class AccountEndpoint implements Handler {
         ctx.status(200);
         ctx.result("{}"); // Empty JSON response
     }
+
 
 }

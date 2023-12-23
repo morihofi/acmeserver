@@ -3,8 +3,10 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.order;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.FinalizeOrderRequestPayload;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
@@ -34,12 +36,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FinalizeOrderEndpoint implements Handler {
-
-    /**
-     * Instance for accessing the current provisioner
-     */
-    private final Provisioner provisioner;
+public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
     /**
      * Logger
@@ -47,41 +44,27 @@ public class FinalizeOrderEndpoint implements Handler {
     public final Logger log = LogManager.getLogger(getClass());
 
     /**
-     * Gson for JSON to POJO and POJO to JSON conversion
-     */
-    private final Gson gson;
-
-    /**
      * ACME Endpoint for finalize an order
+     *
      * @param provisioner Provisioner instance
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public FinalizeOrderEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
-        this.gson = new Gson();
+        super(provisioner);
     }
 
-    /**
-     * Method for handling the request
-     * @param ctx Javalin Context
-     * @throws Exception thrown when there was an error processing the request
-     */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
-        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
-
-        JSONObject reqBodyPayloadObj = new JSONObject(acmeRequestBody.getDecodedPayload());
-
-
-        String csr = reqBodyPayloadObj.getString("csr");
-
-        // Check signature
         ACMEAccount account = Database.getAccountByOrderId(orderId);
-        SignatureCheck.checkSignature(ctx, account, gson);
-        // Check nonce
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        // Check signature and nonce
+        assert account != null;
+        performSignatureAndNonceCheck(ctx, account, acmeRequestBody);
+
+        //After check parse payload
+        FinalizeOrderRequestPayload reqBodyPayloadObj = gson.fromJson(acmeRequestBody.getDecodedPayload(), FinalizeOrderRequestPayload.class);
+        String csr = reqBodyPayloadObj.getCsr();
 
         List<String> csrDomainNames = CsrDataExtractor.getDomainsFromCSR(csr);
         if (csrDomainNames.isEmpty()) {
@@ -146,4 +129,6 @@ public class FinalizeOrderEndpoint implements Handler {
             throw new ACMEBadCsrException("Unable to process requested CSR. Is the CSR valid? Otherwise try again later, if the problem persists contact support.");
         }
     }
+
+
 }

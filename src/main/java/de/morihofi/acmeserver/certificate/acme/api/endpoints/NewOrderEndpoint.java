@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderRequestPayload;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderResponse;
@@ -29,39 +30,21 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-public class NewOrderEndpoint implements Handler {
+public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
-    /**
-     * Instance for accessing the current provisioner
-     */
-    private final Provisioner provisioner;
 
     /**
      * Logger
      */
     public final Logger log = LogManager.getLogger(getClass());
 
-    /**
-     * Gson for JSON to POJO and POJO to JSON conversion
-     */
-    private final Gson gson;
 
     public NewOrderEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
-        this.gson = new Gson();
+        super(provisioner);
     }
 
-    /**
-     * Method for handling the request
-     *
-     * @param ctx Javalin Context
-     * @throws Exception thrown when there was an error processing the request
-     */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
-        //Parse request body
-        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
-
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
         ACMEAccount account = Database.getAccount(accountId);
         //Check if account exists
@@ -69,11 +52,10 @@ public class NewOrderEndpoint implements Handler {
             log.error("Throwing API error: Account {} not found", accountId);
             throw new ACMEAccountNotFoundException("The account id was not found");
         }
-        //Check signature
-        SignatureCheck.checkSignature(ctx, accountId, gson);
-        //Check nonce
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        //Check signature and nonce
+        performSignatureAndNonceCheck(ctx,accountId,acmeRequestBody);
 
+        //Convert payload into object
         NewOrderRequestPayload newOrderRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), NewOrderRequestPayload.class);
 
         ArrayList<ACMEIdentifier> acmeIdentifiers = new ArrayList<>();
@@ -181,12 +163,12 @@ public class NewOrderEndpoint implements Handler {
      */
     private boolean checkIfDomainIsAllowed(final String domain) {
         // Check if domain name restrictions are disabled
-        if (!provisioner.getDomainNameRestriction().getEnabled()) {
+        if (!getProvisioner().getDomainNameRestriction().getEnabled()) {
             // Restriction is disabled, so any domain is allowed
             return true;
         }
 
-        List<String> mustSuffix = provisioner.getDomainNameRestriction().getMustEndWith();
+        List<String> mustSuffix = getProvisioner().getDomainNameRestriction().getMustEndWith();
 
         for (String suffix : mustSuffix) {
             if (domain.endsWith(suffix)) {

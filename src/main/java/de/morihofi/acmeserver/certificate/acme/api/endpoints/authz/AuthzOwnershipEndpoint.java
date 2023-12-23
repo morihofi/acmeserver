@@ -2,33 +2,25 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.authz;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.AuthzResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.Challenge;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
-import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import io.javalin.http.Context;
-import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class AuthzOwnershipEndpoint implements Handler {
-
-    /**
-     * Instance for accessing the current provisioner
-     */
-    private final Provisioner provisioner;
+public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
     /**
      * Logger
@@ -36,26 +28,14 @@ public class AuthzOwnershipEndpoint implements Handler {
     private final Logger log = LogManager.getLogger(getClass());
 
     /**
-     * Gson for JSON to POJO and POJO to JSON conversion
-     */
-    private final Gson gson;
-
-    /**
-     *
      * @param provisioner Provisioner instance
      */
     public AuthzOwnershipEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
-        this.gson = new Gson();
+        super(provisioner);
     }
 
-    /**
-     * Method for handling the request
-     * @param ctx Javalin Context
-     * @throws Exception thrown when there was an error processing the request
-     */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String authorizationId = ctx.pathParam("authorizationId");
 
         ctx.header("Content-Type", "application/jose+json");
@@ -63,17 +43,16 @@ public class AuthzOwnershipEndpoint implements Handler {
         ctx.status(200);
 
         ACMEIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
-        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
         // Not found handling
         if (identifier == null) {
-            log.error("Throwing API error: For the requested authorization id was no identifier found");
+            log.error("Throwing API error: For the requested authorization id {} was no identifier found", authorizationId);
             throw new ACMEMalformedException("For the requested authorization id was no identifier found");
         }
 
         // Check signature and nonce
-        SignatureCheck.checkSignature(ctx, identifier.getOrder().getAccount(), gson);
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        performSignatureAndNonceCheck(ctx, identifier.getOrder().getAccount(), acmeRequestBody);
+
 
         boolean isWildcardDomain = identifier.getDataValue().startsWith("*.");
         String nonWildcardDomain = identifier.getDataValue();
@@ -105,17 +84,19 @@ public class AuthzOwnershipEndpoint implements Handler {
     }
 
 
+
+
     /**
      * Creates a challenge object of the specified type for the given ACME identifier.
      *
-     * @param type The type of challenge to create.
+     * @param type       The type of challenge to create.
      * @param identifier The ACME identifier for which the challenge is created.
      * @return A challenge object with the specified type, URL, token, and status if verified.
      */
     private Challenge createChallenge(String type, ACMEIdentifier identifier) {
         Challenge challenge = new Challenge();
         challenge.setType(type);
-        challenge.setUrl(provisioner.getApiURL() + "/acme/chall/" + identifier.getChallengeId() + "/" + type);
+        challenge.setUrl(getProvisioner().getApiURL() + "/acme/chall/" + identifier.getChallengeId() + "/" + type);
         challenge.setToken(identifier.getAuthorizationToken());
         if (identifier.isVerified()) {
             challenge.setStatus("valid");

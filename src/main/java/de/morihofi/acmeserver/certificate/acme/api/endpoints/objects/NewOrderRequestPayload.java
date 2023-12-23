@@ -3,8 +3,13 @@
 // YApi QuickType插件生成，具体参考文档:https://plugins.jetbrains.com/plugin/18847-yapi-quicktype/documentation
 
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.objects;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.NewOrderEndpoint;
+
 import java.util.List;
 
+/**
+ * Request payload object for a new order, used in {@link NewOrderEndpoint}
+ */
 public class NewOrderRequestPayload {
 
     /**

@@ -1,6 +1,9 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.order;
 
+import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
@@ -12,23 +15,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class OrderCertEndpoint implements Handler {
-    /**
-     * Instance for accessing the current provisioner
-     */
-    private final Provisioner provisioner;
+public class OrderCertEndpoint extends AbstractAcmeEndpoint {
+
     /**
      * Logger
      */
     public final Logger log = LogManager.getLogger(getClass());
 
     public OrderCertEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
+        super(provisioner);
     }
 
-
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/pem-certificate-chain");
@@ -52,4 +51,6 @@ public class OrderCertEndpoint implements Handler {
         String responseCertificateChain = responseCertificateChainBuilder.toString();
         ctx.result(responseCertificateChain);
     }
+
+
 }

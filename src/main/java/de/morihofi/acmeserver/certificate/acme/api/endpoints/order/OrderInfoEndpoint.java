@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.order;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
@@ -21,30 +22,20 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class OrderInfoEndpoint implements Handler {
-
-    /**
-     * Instance for accessing the current provisioner
-     */
-    private final Provisioner provisioner;
+public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
 
     /**
      * Logger
      */
     public final Logger log = LogManager.getLogger(getClass());
 
-    /**
-     * Gson for JSON to POJO and POJO to JSON conversion
-     */
-    private final Gson gson;
 
     public OrderInfoEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
-        this.gson = new Gson();
+        super(provisioner);
     }
 
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/json");
@@ -54,8 +45,6 @@ public class OrderInfoEndpoint implements Handler {
         if (identifiers.isEmpty()) {
             throw new IllegalArgumentException("Identifiers empty, FIXME");
         }
-
-        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
         // Check signature and nonce
         SignatureCheck.checkSignature(ctx, identifiers.get(0).getOrder().getAccount(), gson);
@@ -84,4 +73,6 @@ public class OrderInfoEndpoint implements Handler {
 
         ctx.result(gson.toJson(response));
     }
+
+
 }

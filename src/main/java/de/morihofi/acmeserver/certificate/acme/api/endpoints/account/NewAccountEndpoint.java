@@ -2,7 +2,8 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.account;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestBody;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.AccountResponse;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
@@ -21,42 +22,25 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.UUID;
 
-public class NewAccountEndpoint implements Handler {
+public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
     /**
      * Logger
      */
     public final Logger log = LogManager.getLogger(getClass());
 
-    /**
-     * Instance for accessing the current provisioner
-     */
-    private final Provisioner provisioner;
-
-    /**
-     * Gson for JSON to POJO and POJO to JSON conversion
-     */
-    private final Gson gson;
 
     public NewAccountEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
-        this.gson = new Gson();
+        super(provisioner);
     }
 
-    /**
-     * Method for handling the request
-     * @param ctx Javalin Context
-     * @throws Exception thrown when there was an error processing the request
-     */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
-        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
-
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         // Check nonce
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
         // Deserialize payload and protected objects
-        ACMEAccountRequestBody payload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestBody.class);
+        ACMEAccountRequestPayload payload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);
         JSONObject reqBodyProtectedObj = new JSONObject(acmeRequestBody.getDecodedProtected());
 
         // Check terms of service agreement
@@ -94,5 +78,6 @@ public class NewAccountEndpoint implements Handler {
 
         ctx.result(gson.toJson(response));
     }
+
 
 }

@@ -9,7 +9,7 @@ import java.util.List;
  * Represents the HTTP request body for creating or managing an account in the {@link AccountEndpoint} and {@link NewAccountEndpoint}.
  * This class encapsulates the details required for ACME account operations, such as contact information and agreement to terms of service.
  */
-public class ACMEAccountRequestBody {
+public class ACMEAccountRequestPayload {
 
     /**
      * List of E-Mail contacts in the ACME account.

@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
@@ -27,21 +28,14 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Date;
 
-public class RevokeCertEndpoint implements Handler {
-    /**
-     * Instance for accessing the current provisioner
-     */
-    private final Provisioner provisioner;
+public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
     /**
      * Logger
      */
     public final Logger log = LogManager.getLogger(getClass());
 
-    /**
-     * Gson for JSON to POJO and POJO to JSON conversion
-     */
-    private final Gson gson;
+
 
     /**
      * Constructs a new RevokeCertEndpoint instance.
@@ -53,23 +47,13 @@ public class RevokeCertEndpoint implements Handler {
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public RevokeCertEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
-        this.gson = new Gson();
+        super(provisioner);
     }
 
-
-    /**
-     * Method for handling the request
-     *
-     * @param ctx Javalin Context
-     * @throws Exception thrown when there was an error processing the request
-     */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
 
 
-        //Parse request body
-        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
         //Payload is Base64 Encoded
         JSONObject reqBodyPayloadObj = new JSONObject(acmeRequestBody.getDecodedPayload());
@@ -95,11 +79,9 @@ public class RevokeCertEndpoint implements Handler {
             log.error("Throwing API error: Account {} not found", accountId);
             throw new ACMEAccountNotFoundException("The account id was not found");
         }
-        //Check signature
-        SignatureCheck.checkSignature(ctx, accountId, gson);
-        //Check nonce
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
+        //Check signature and nonce
+        performSignatureAndNonceCheck(ctx,account, acmeRequestBody);
 
         log.info("Account ID {} wants to revoke a certificate", accountId);
 
@@ -192,6 +174,7 @@ public class RevokeCertEndpoint implements Handler {
         ctx.header("Content-Length", "0");
 
         ctx.result();
-
     }
+
+
 }

@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate.acme.api.endpoints.download;
+package de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.download;
 
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
@@ -39,7 +39,11 @@ public class DownloadCaEndpoint implements Handler {
     public void handle(@NotNull Context ctx) throws Exception {
         ctx.header("Content-Type", "application/x-x509-ca-cert");
 
-        String pem = PemUtil.certificateToPEM(cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA).getEncoded());
+        String pem = PemUtil.certificateToPEM(
+                cryptoStoreManager.getKeyStore()
+                        .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
+                        .getEncoded()
+        );
 
         ctx.result(pem);
     }

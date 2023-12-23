@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.objects.ACMEChallengeResponse;
 import de.morihofi.acmeserver.certificate.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
@@ -23,22 +24,13 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A handler endpoint for processing challenge callbacks.
  */
-public class ChallengeCallbackEndpoint implements Handler {
-
-    /**
-     * Instance for accessing the current provisioner
-     */
-    private final Provisioner provisioner;
+public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
 
     /**
      * Logger
      */
     private final Logger log = LogManager.getLogger(getClass());
 
-    /**
-     * Gson for JSON to POJO and POJO to JSON conversion
-     */
-    private final Gson gson;
 
     /**
      * Constructs a NewNonce handler with the specified ACME provisioner.
@@ -46,18 +38,11 @@ public class ChallengeCallbackEndpoint implements Handler {
      * @param provisioner The ACME provisioner to use for generating nonces.
      */
     public ChallengeCallbackEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
-        this.gson = new Gson();
+        super(provisioner);
     }
 
-    /**
-     * Method for handling the request
-     *
-     * @param ctx Javalin Context
-     * @throws Exception thrown when there was an error processing the request
-     */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String challengeId = ctx.pathParam("challengeId");
         String challengeType = ctx.pathParam("challengeType"); //dns-01 or http-01
 
@@ -67,13 +52,8 @@ public class ChallengeCallbackEndpoint implements Handler {
         // Check if challenge is valid
         ACMEIdentifier identifier = Database.getACMEIdentifierByChallengeId(challengeId);
 
-        Gson gson = new Gson();
-        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
-
-        // Check signature
-        SignatureCheck.checkSignature(ctx, identifier.getOrder().getAccount(), gson);
-        // Check nonce
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        // Check signature and nonce
+        performSignatureAndNonceCheck(ctx, identifier.getOrder().getAccount(), acmeRequestBody);
 
         boolean isWildcardDomain = false;
         String nonWildcardDomain = identifier.getDataValue();
