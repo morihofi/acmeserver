@@ -6,7 +6,6 @@ import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEnd
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderRequestPayload;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderResponse;
-import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
@@ -20,10 +19,8 @@ import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import de.morihofi.acmeserver.tools.email.SendMail;
 import de.morihofi.acmeserver.tools.regex.DomainValidation;
 import io.javalin.http.Context;
-import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Date;

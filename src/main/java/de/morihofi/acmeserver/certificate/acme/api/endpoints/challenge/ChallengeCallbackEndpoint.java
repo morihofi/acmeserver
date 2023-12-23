@@ -6,20 +6,16 @@ import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEnd
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.objects.ACMEChallengeResponse;
 import de.morihofi.acmeserver.certificate.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
-import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import io.javalin.http.Context;
-import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A handler endpoint for processing challenge callbacks.

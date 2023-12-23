@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.util.function.Supplier;
 
 /**
  * A class handling KeyStore operations.
