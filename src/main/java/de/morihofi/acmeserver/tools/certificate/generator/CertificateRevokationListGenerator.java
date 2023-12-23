@@ -60,6 +60,7 @@ public class CertificateRevokationListGenerator {
 
         // Sign the CRL with the CA's private key
         JcaContentSignerBuilder signerBuilder = new JcaContentSignerBuilder(CertMisc.getSignatureAlgorithmBasedOnKeyType(caPrivateKey));
+        signerBuilder.setProvider(BouncyCastleProvider.PROVIDER_NAME);
         X509CRLHolder crlHolder = crlBuilder.build(signerBuilder.build(caPrivateKey));
 
         // Convert the CRL to a Java CRL object
