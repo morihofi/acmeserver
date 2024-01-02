@@ -18,7 +18,7 @@
 
         <bouncycastle.version>1.77</bouncycastle.version>
         <javalin.version>5.6.3</javalin.version>
-        <jose4j.version>0.9.3</jose4j.version>
+        <jose4j.version>0.9.4</jose4j.version>
     </properties>
 
     <build>
