@@ -6,7 +6,8 @@
 
     <groupId>de.morihofi.acmeserver</groupId>
     <artifactId>acmeserver</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.2</version>
+    <inceptionYear>2023</inceptionYear>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -37,6 +38,7 @@
             <email>info@morihofi.de</email>
             <timezone>Europe/Berlin</timezone>
             <roles>
+                <role>maintainer</role>
                 <role>developer</role>
             </roles>
         </developer>
