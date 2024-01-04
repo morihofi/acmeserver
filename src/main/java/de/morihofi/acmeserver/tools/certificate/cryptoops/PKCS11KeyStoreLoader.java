@@ -1,8 +1,6 @@
 package de.morihofi.acmeserver.tools.certificate.cryptoops;
 
 import de.morihofi.acmeserver.tools.javaversion.JavaVersion;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -22,6 +20,11 @@ import java.util.concurrent.CancellationException;
 
 public class PKCS11KeyStoreLoader {
 
+    /**
+     * Demo for loading a PKCS#11 HSM KeyStore
+     * @param args app args
+     * @throws Exception if something goes wrong
+     */
     public static void main(String[] args) throws Exception {
         String libraryLocation = "C:\\SoftHSM2\\lib\\softhsm2-x64.dll";
         int slot = 0;
@@ -72,15 +75,15 @@ public class PKCS11KeyStoreLoader {
             public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
 
                 for (Callback callback : callbacks) {
-                    if (callback instanceof PasswordCallback) {
-                        handlePasswordCallback((PasswordCallback) callback);
+                    if (callback instanceof PasswordCallback passwordCallback) {
+                        handlePasswordCallback(passwordCallback);
                     } else {
                         throw new UnsupportedCallbackException(callback, "Callback not supported " + callback.getClass().getName());
                     }
                 }
             }
 
-            private void handlePasswordCallback(PasswordCallback passCb) throws UnsupportedCallbackException {
+            private void handlePasswordCallback(PasswordCallback passCb) {
                 if (pin == null) {
                     throw new CancellationException("KeyStore Password is null");
                 }
@@ -115,7 +118,7 @@ public class PKCS11KeyStoreLoader {
         ByteArrayInputStream confStream = new ByteArrayInputStream(pkcs11ConfigSettings.getBytes(StandardCharsets.UTF_8));
 
         // instantiate the provider
-        Provider p11Provider = null;
+        Provider p11Provider;
         if (JavaVersion.getJreVersion().isAtLeast(JavaVersion.JRE_VERSION_9)) {
             p11Provider = Security.getProvider("SunPKCS11");
             // add marker ("--") for inline config

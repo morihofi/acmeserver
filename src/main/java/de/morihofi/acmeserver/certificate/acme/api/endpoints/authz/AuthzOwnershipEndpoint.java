@@ -2,99 +2,105 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.authz;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
-import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.AuthzResponse;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.Challenge;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import io.javalin.http.Context;
-import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
-public class AuthzOwnershipEndpoint implements Handler {
+public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
-    private final Provisioner provisioner;
+    /**
+     * Logger
+     */
     private final Logger log = LogManager.getLogger(getClass());
 
+    /**
+     * @param provisioner Provisioner instance
+     */
     public AuthzOwnershipEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
+        super(provisioner);
     }
 
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String authorizationId = ctx.pathParam("authorizationId");
 
         ctx.header("Content-Type", "application/jose+json");
         ctx.header("Replay-Nonce", Crypto.createNonce());
         ctx.status(200);
 
-        Gson gson = new Gson();
         ACMEIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
-        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
 
         // Not found handling
         if (identifier == null) {
-            log.error("Throwing API error: For the requested authorization id was no identifier found");
+            log.error("Throwing API error: For the requested authorization id {} was no identifier found", authorizationId);
             throw new ACMEMalformedException("For the requested authorization id was no identifier found");
         }
 
         // Check signature and nonce
-        SignatureCheck.checkSignature(ctx, identifier.getOrder().getAccount(), gson);
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        performSignatureAndNonceCheck(ctx, identifier.getOrder().getAccount(), acmeRequestBody);
 
 
         boolean isWildcardDomain = identifier.getDataValue().startsWith("*.");
         String nonWildcardDomain = identifier.getDataValue();
-        if (nonWildcardDomain.startsWith("*.")) {
+        if (isWildcardDomain) {
             nonWildcardDomain = nonWildcardDomain.substring(2); // Remove wildcard part for validation
         }
 
+        Identifier idObj = new Identifier();
+        idObj.setType(identifier.getType());
+        idObj.setValue(nonWildcardDomain);
 
-        JSONObject identifierObj = new JSONObject();
-        identifierObj.put("type", identifier.getType());
-        identifierObj.put("value", nonWildcardDomain);
+        List<Challenge> challenges = new ArrayList<>();
 
-        JSONArray challengeArr = new JSONArray();
-
-
-
-        //HTTP-01 Challenge does only work on non-wildcard domains
+        // HTTP-01 Challenge only for non-wildcard domains
         if (!isWildcardDomain) {
-            // HTTP-01 Challenge
-            JSONObject challengeHTTP = createChallengeObj("http-01", identifier);
-            challengeArr.put(challengeHTTP);
+            challenges.add(createChallenge("http-01", identifier));
         }
 
         // DNS-01 Challenge
-        JSONObject challengeDNS = createChallengeObj("dns-01", identifier);
-        challengeArr.put(challengeDNS);
+        challenges.add(createChallenge("dns-01", identifier));
 
-        JSONObject returnObj = new JSONObject();
-        returnObj.put("status", identifier.isVerified() ? "valid" : "pending");
-        returnObj.put("expires", DateTools.formatDateForACME(new Date()));
-        returnObj.put("identifier", identifierObj);
-        returnObj.put("challenges", challengeArr);
+        AuthzResponse response = new AuthzResponse();
+        response.setStatus(identifier.isVerified() ? "valid" : "pending");
+        response.setExpires(DateTools.formatDateForACME(new Date()));
+        response.setIdentifier(idObj);
+        response.setChallenges(challenges);
 
-        ctx.result(returnObj.toString());
+        ctx.result(gson.toJson(response));
     }
 
-    private JSONObject createChallengeObj(String type, ACMEIdentifier identifier) {
-        JSONObject challenge = new JSONObject();
-        challenge.put("type", type);
-        challenge.put("url", provisioner.getApiURL() + "/acme/chall/" + identifier.getChallengeId() + "/" + type);
-        challenge.put("token", identifier.getAuthorizationToken());
+
+
+
+    /**
+     * Creates a challenge object of the specified type for the given ACME identifier.
+     *
+     * @param type       The type of challenge to create.
+     * @param identifier The ACME identifier for which the challenge is created.
+     * @return A challenge object with the specified type, URL, token, and status if verified.
+     */
+    private Challenge createChallenge(String type, ACMEIdentifier identifier) {
+        Challenge challenge = new Challenge();
+        challenge.setType(type);
+        challenge.setUrl(getProvisioner().getApiURL() + "/acme/chall/" + identifier.getChallengeId() + "/" + type);
+        challenge.setToken(identifier.getAuthorizationToken());
         if (identifier.isVerified()) {
-            challenge.put("status", "valid");
-            challenge.put("validated", DateTools.formatDateForACME(identifier.getVerifiedTime()));
+            challenge.setStatus("valid");
+            challenge.setValidated(DateTools.formatDateForACME(identifier.getVerifiedTime()));
         }
         return challenge;
     }

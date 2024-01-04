@@ -2,85 +2,78 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.account;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
-import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.tools.regex.EmailValidation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
-import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * New Order Endpoint
  * <p>
  * URL: /acme/new-order
  */
-public class AccountEndpoint implements Handler {
-    private final Provisioner provisioner;
+public class AccountEndpoint extends AbstractAcmeEndpoint {
+
+    /**
+     * Logger
+     */
     public final Logger log = LogManager.getLogger(getClass());
 
+    /**
+     * Endpoint for managing ACME Account settings. Change E-Mail etc.
+     * @param provisioner Provisioner instance
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public AccountEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
+        super(provisioner);
     }
 
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = ctx.pathParam("id");
 
-        Gson gson = new Gson();
-        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
-        //Check signature
-        SignatureCheck.checkSignature(ctx, accountId, gson);
-        //Check nonce
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        ACMEAccountRequestPayload acmeAccountRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);
 
-        //Check if account exists
+        performSignatureAndNonceCheck(ctx, accountId, acmeRequestBody);
+
+        // Check if account exists
         ACMEAccount account = Database.getAccount(accountId);
         if (account == null) {
             throw new ACMEAccountNotFoundException("Account with ID " + accountId + " not found!");
         }
-        JSONObject reqBodyPayloadObj = new JSONObject(acmeRequestBody.getDecodedPayload());
 
-        // Update Account Settings, e.g. E-Mail change
-        log.info("Update account settings for account \"" + accountId + "\"");
+        // Update Account Settings, e.g., Email change
+        log.info("Update account settings for account {}", accountId);
 
-
-        ArrayList<String> emailsFromPayload = new ArrayList<>();
-        // Has email? (This can be updated later)
-        if (reqBodyPayloadObj.has("contact")) {
-            for (int i = 0; i < reqBodyPayloadObj.getJSONArray("contact").length(); i++) {
-                String email = reqBodyPayloadObj.getJSONArray("contact").getString(i);
+        List<String> emails = acmeAccountRequestPayload.getContact();
+        if (emails != null) {
+            for (String email : emails) {
                 email = email.replace("mailto:", "");
 
                 if (!EmailValidation.isValidEmail(email) || email.split("\\@")[0].equals("localhost")) {
-                    log.error("E-Mail validation failed for email \"" + email + "\"");
+                    log.error("E-Mail validation failed for email {}", email);
                     throw new ACMEInvalidContactException("E-Mail address is invalid");
                 }
-                log.info("E-Mail validation successful for email \"" + email + "\"");
-                emailsFromPayload.add(email);
+                log.info("E-Mail validation successful for email {}", email);
             }
 
-            //reqPayloadContactEmail = reqBodyPayloadObj.getJSONArray("contact").getString(0);
-            //reqPayloadContactEmail = reqPayloadContactEmail.replace("mailto:", "");
-
+            // Update Contact Emails in Database
+            Database.updateAccountEmail(account, emails);
         }
 
-        //Update Contact Emails
-        Database.updateAccountEmail(account, emailsFromPayload);
-
-
-        JSONObject responseJSON = new JSONObject();
         ctx.header("Content-Type", "application/jose+json");
         ctx.status(200);
-        ctx.result(responseJSON.toString());
+        ctx.result("{}"); // Empty JSON response
     }
+
+
 }

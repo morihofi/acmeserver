@@ -1,0 +1,17 @@
+Package: [[name]]
+Version: [[version]]
+Homepage: https://github.com/morihofi/acmeserver
+Section: misc
+Priority: optional
+Architecture: all
+Depends: jdk (>= 17)
+Maintainer: Moritz Hofmann <info@morihofi.de>
+Distribution: development
+Depends: default-jre | openjdk-17-jre
+Description: ACME Server - Java-based ACME V2 Protocol Implementation
+ This package contains the ACME Server, a proof-of-concept implementation
+ of the Automatic Certificate Management Environment (ACME) Server, fully
+ written in Java. It supports SSL/TLS certificate management using the ACME
+ V2 protocol and is compatible with any JDBC and Hibernate-compatible
+ database, including H2 and MariaDB. The server also features proxy support
+ for HTTP challenges.

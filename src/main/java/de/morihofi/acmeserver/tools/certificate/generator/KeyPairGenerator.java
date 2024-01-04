@@ -1,7 +1,5 @@
 package de.morihofi.acmeserver.tools.certificate.generator;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
 

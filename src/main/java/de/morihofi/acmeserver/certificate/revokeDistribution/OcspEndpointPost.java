@@ -1,33 +1,41 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
-import de.morihofi.acmeserver.tools.certificate.CertMisc;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bouncycastle.asn1.x509.CRLReason;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.ocsp.*;
-import org.bouncycastle.operator.DigestCalculator;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.jetbrains.annotations.NotNull;
 import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.cert.*;
-import java.util.Date;
 
 public class OcspEndpointPost implements Handler {
 
+    /**
+     * Instance for accessing the current provisioner
+     */
     private final Provisioner provisioner;
+
+    /**
+     * Instance of the CRL Generator
+     */
     private final CRL crlGenerator;
+
+    /**
+     * Logger
+     */
     public final Logger log = LogManager.getLogger(getClass());
 
 
+    /**
+     * Constructor for OcspEndpointPost class. Processes POST Requests.
+     * Initializes an instance with a specified Provisioner and CRL generator.
+     *
+     * @param provisioner  the Provisioner object to be used with this endpoint
+     * @param crlGenerator the CRL (Certificate Revocation List) generator for managing revoked certificates
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public OcspEndpointPost(Provisioner provisioner, CRL crlGenerator) {
         this.provisioner = provisioner;
         this.crlGenerator = crlGenerator;
@@ -53,7 +61,7 @@ public class OcspEndpointPost implements Handler {
         }
 
         BigInteger serialNumber = requestList[0].getCertID().getSerialNumber();
-        log.info("Checking revokation status for serial number " + serialNumber);
+        log.info("Checking revokation status for serial number {}", serialNumber);
 
         // Processing the request and creating the OCSP response
         OCSPResp ocspResponse = OcspHelper.processOCSPRequest(serialNumber, crlGenerator, provisioner);

@@ -3,10 +3,17 @@ package de.morihofi.acmeserver.exception.exceptions;
 import de.morihofi.acmeserver.exception.ACMEException;
 import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
+/**
+ * Exception thrown when the ACME server encounters an internal error or failure.
+ */
 public class ACMEServerInternalException extends ACMEException {
 
     private final String message;
 
+    /**
+     * Constructs an instance of ACMEServerInternalException with the specified error message.
+     * @param message The error message that describes the exception.
+     */
     public ACMEServerInternalException(String message) {
         super(message);
         this.message = message;

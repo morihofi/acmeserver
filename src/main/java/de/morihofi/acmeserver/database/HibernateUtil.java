@@ -11,11 +11,17 @@ import jakarta.persistence.*;
 
 import java.util.Locale;
 
+/**
+ * Utility class for Hibernate configuration and session management.
+ */
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
 
 
-
+    /**
+     * Initializes the database connection and Hibernate configuration.
+     * This method should be called once during application startup.
+     */
     public static void initDatabase(){
         if (sessionFactory == null) {
             DatabaseType dbType = switch (Main.appConfig.getDatabase().getEngine().toLowerCase(Locale.ROOT)) {
@@ -64,10 +70,17 @@ public class HibernateUtil {
         }
     }
 
+    /**
+     * Get the Hibernate SessionFactory for database operations.
+     * @return The SessionFactory instance.
+     */
     public static SessionFactory getSessionFactory() {
         return sessionFactory;
     }
 
+    /**
+     * Enumeration of supported database types.
+     */
     public enum DatabaseType {
         H2, MARIADB
     }

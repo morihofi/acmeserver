@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import java.io.OutputStream;
@@ -11,6 +12,14 @@ public class CRLEndpoint implements Handler {
     private final Provisioner provisioner;
     private final CRL crl;
 
+    /**
+     * Constructor for the CRLEndpoint class.
+     * Initializes a new instance with a given Provisioner and CRL (Certificate Revocation List) object.
+     *
+     * @param provisioner the Provisioner instance to be associated with this endpoint
+     * @param crl the CRL instance for handling certificate revocation related operations
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public CRLEndpoint(Provisioner provisioner, CRL crl) {
         this.provisioner = provisioner;
         this.crl = crl;

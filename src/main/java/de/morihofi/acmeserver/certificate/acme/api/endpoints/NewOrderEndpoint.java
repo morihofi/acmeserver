@@ -2,10 +2,13 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderRequestPayload;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderResponse;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
@@ -13,97 +16,87 @@ import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMERejectedIdentifierException;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
-import de.morihofi.acmeserver.tools.regex.DomainValidation;
 import de.morihofi.acmeserver.tools.email.SendMail;
+import de.morihofi.acmeserver.tools.regex.DomainValidation;
 import io.javalin.http.Context;
-import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-public class NewOrderEndpoint implements Handler {
-    private final Provisioner provisioner;
+public class NewOrderEndpoint extends AbstractAcmeEndpoint {
+
+
+    /**
+     * Logger
+     */
     public final Logger log = LogManager.getLogger(getClass());
 
+
     public NewOrderEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
+        super(provisioner);
     }
 
-
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
-        //Parse request body
-        Gson gson = new Gson();
-        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
-
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
         ACMEAccount account = Database.getAccount(accountId);
         //Check if account exists
         if (account == null) {
-            log.error("Throwing API error: Account \"" + accountId + "\" not found");
+            log.error("Throwing API error: Account {} not found", accountId);
             throw new ACMEAccountNotFoundException("The account id was not found");
         }
-        //Check signature
-        SignatureCheck.checkSignature(ctx, accountId, gson);
-        //Check nonce
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        //Check signature and nonce
+        performSignatureAndNonceCheck(ctx,accountId,acmeRequestBody);
 
-        JSONArray identifiersArr = new JSONObject(acmeRequestBody.getDecodedPayload()).getJSONArray("identifiers");
+        //Convert payload into object
+        NewOrderRequestPayload newOrderRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), NewOrderRequestPayload.class);
 
         ArrayList<ACMEIdentifier> acmeIdentifiers = new ArrayList<>();
 
-        for (int i = 0; i < identifiersArr.length(); i++) {
-            JSONObject identifier = identifiersArr.getJSONObject(i);
-            String type = identifier.getString("type");
-            String value = identifier.getString("value");
+        for (Identifier identifier : newOrderRequestPayload.getIdentifiers()) {
+            String type = identifier.getType();
+            String value = identifier.getValue();
 
             acmeIdentifiers.add(new ACMEIdentifier(type, value));
         }
 
-        JSONObject returnObj = new JSONObject();
-
         // Create order in Database
         String orderId = UUID.randomUUID().toString();
 
-        if (account.getEmails().size() == 0) {
+        if (account.getEmails().isEmpty()) {
             throw new ACMEInvalidContactException("This account doesn't have any E-Mail addresses. Please set at least one E-Mail address and try again.");
         }
 
 
-        JSONArray respIdentifiersArr = new JSONArray();
-        JSONArray respAuthorizationsArr = new JSONArray();
+        List<Identifier> respIdentifiers = new ArrayList<>();
+        List<String> respAuthorizations = new ArrayList<>();
 
-        ArrayList<ACMEIdentifier> acmeIdentifiersWithAuthorizationData = new ArrayList<>();
+        List<ACMEIdentifier> acmeIdentifiersWithAuthorizationData = new ArrayList<>();
 
         for (ACMEIdentifier identifier : acmeIdentifiers) {
 
             if (!identifier.getType().equals("dns")) {
-                log.error("Throwing API error: Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
+                log.error("Throwing API error: Unknown identifier type {} for value {}", identifier.getType(), identifier.getDataValue());
                 throw new ACMERejectedIdentifierException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
             }
 
-            if(!DomainValidation.isValidDomain(identifier.getDataValue(), provisioner.isWildcardAllowed())){
+            if (!DomainValidation.isValidDomain(identifier.getDataValue(), provisioner.isWildcardAllowed())) {
                 throw new ACMERejectedIdentifierException("Identifier \"" + identifier.getDataValue() + "\" is invalid (Wildcard allowed: " + provisioner.isWildcardAllowed() + ")");
 
             }
 
-            if(!checkIfDomainIsAllowed(identifier.getDataValue())){
+            if (!checkIfDomainIsAllowed(identifier.getDataValue())) {
                 throw new ACMERejectedIdentifierException("Domain identifier \"" + identifier.getDataValue() + "\" is not allowed");
             }
 
-            JSONObject identifierObj = new JSONObject();
-            identifierObj.put("type", identifier.getType());
-            identifierObj.put("value", identifier.getDataValue());
-
-
-            respIdentifiersArr.put(identifierObj);
+            Identifier identifierObj = new Identifier();
+            identifierObj.setType(identifier.getType());
+            identifierObj.setValue(identifier.getDataValue());
+            respIdentifiers.add(identifierObj);
 
             // Unique value for each domain
             String authorizationId = Crypto.generateRandomId();
@@ -122,7 +115,7 @@ public class NewOrderEndpoint implements Handler {
 
             acmeIdentifiersWithAuthorizationData.add(identifier);
 
-            respAuthorizationsArr.put(provisioner.getApiURL() + "/acme/authz/" + authorizationId);
+            respAuthorizations.add(provisioner.getApiURL() + "/acme/authz/" + authorizationId);
 
 
         }
@@ -138,13 +131,15 @@ public class NewOrderEndpoint implements Handler {
 
 
         //TODO: Set better Date/Time
-        returnObj.put("status", "pending");
-        returnObj.put("expires", DateTools.formatDateForACME(new Date()));
-        returnObj.put("notBefore", DateTools.formatDateForACME(new Date()));
-        returnObj.put("notAfter", DateTools.formatDateForACME(new Date()));
-        returnObj.put("identifiers", respIdentifiersArr);
-        returnObj.put("authorizations", respAuthorizationsArr);
-        returnObj.put("finalize", provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
+        NewOrderResponse response = new NewOrderResponse();
+        response.setStatus("pending");
+        response.setExpires(DateTools.formatDateForACME(new Date()));
+        response.setNotBefore(DateTools.formatDateForACME(new Date()));
+        response.setNotAfter(DateTools.formatDateForACME(new Date()));
+        response.setIdentifiers(respIdentifiers);
+        response.setAuthorizations(respAuthorizations);
+        response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
+
 
         ctx.status(201);
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
@@ -152,7 +147,7 @@ public class NewOrderEndpoint implements Handler {
         ctx.header("Content-Type", "application/jose+json");
         ctx.header("Location", provisioner.getApiURL() + "/acme/order/" + orderId);
 
-        ctx.result(returnObj.toString());
+        ctx.result(gson.toJson(response));
     }
 
 
@@ -161,16 +156,16 @@ public class NewOrderEndpoint implements Handler {
      *
      * @param domain The domain to be checked for permission.
      * @return True if the domain is allowed based on the configured restrictions or if restrictions are disabled;
-     *         otherwise, false.
+     * otherwise, false.
      */
     private boolean checkIfDomainIsAllowed(final String domain) {
         // Check if domain name restrictions are disabled
-        if (!provisioner.getDomainNameRestriction().getEnabled()) {
+        if (!getProvisioner().getDomainNameRestriction().getEnabled()) {
             // Restriction is disabled, so any domain is allowed
             return true;
         }
 
-        List<String> mustSuffix = provisioner.getDomainNameRestriction().getMustEndWith();
+        List<String> mustSuffix = getProvisioner().getDomainNameRestriction().getMustEndWith();
 
         for (String suffix : mustSuffix) {
             if (domain.endsWith(suffix)) {

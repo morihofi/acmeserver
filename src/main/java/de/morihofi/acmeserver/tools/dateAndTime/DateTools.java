@@ -6,6 +6,8 @@ import java.util.TimeZone;
 
 public class DateTools {
 
+    private DateTools(){}
+
     /**
      * Formats a {@link Date} object as a string in the ACME date format.
      *
@@ -18,8 +20,6 @@ public class DateTools {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // Format the date and return it as a string
-        String formattedDate = dateFormat.format(date);
-
-        return formattedDate;
+        return dateFormat.format(date);
     }
 }

@@ -19,12 +19,18 @@ import java.security.spec.InvalidKeySpecException;
 
 public class HTTPChallenge {
 
-    private HTTPChallenge(){
+    private HTTPChallenge() {}
 
-    }
-
+    /**
+     * Logger
+     */
     public static final Logger log = LogManager.getLogger(HTTPChallenge.class);
     private static final OkHttpClient httpClient = new OkHttpClient.Builder().proxy(getHTTPChallengeProxy()).build();
+
+    /**
+     * User Agent used for checking HTTP challenges
+     */
+    private static final String USER_AGENT = "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + " Java/" + System.getProperty("java.version");
 
     private static String proxyHost = "";
     private static int proxyPort = 0;
@@ -35,9 +41,10 @@ public class HTTPChallenge {
 
 
     /**
-     * Retrieves and configures an HTTP challenge proxy based on the application configuration settings.
+     * Retrieves and configures an HTTP challenge proxy based on application settings.
+     * The method configures the proxy settings and authentication details, if required.
      *
-     * @return A Proxy object representing the configured HTTP challenge proxy.
+     * @return A Proxy object configured based on application settings.
      */
     public static Proxy getHTTPChallengeProxy() {
         Proxy.Type proxyType = switch (Main.appConfig.getProxy().getHttpChallenge().getType()) {
@@ -54,12 +61,10 @@ public class HTTPChallenge {
             if (!Main.appConfig.getProxy().getHttpChallenge().getEnabled()) {
                 // Set to direct if there is no proxy enabled
                 proxy = Proxy.NO_PROXY;
-            }else{
+            } else {
                 SocketAddress socketAddress = new InetSocketAddress(proxyHost, proxyPort);
                 proxy = new Proxy(proxyType, socketAddress);
             }
-
-
 
 
             if (Main.appConfig.getProxy().getHttpChallenge().getAuthentication().isEnabled()) {
@@ -70,7 +75,7 @@ public class HTTPChallenge {
                     @Override
                     protected PasswordAuthentication getPasswordAuthentication() {
                         if (getRequestingHost().equalsIgnoreCase(proxyHost) && proxyPort == getRequestingPort()) {
-                                return new PasswordAuthentication(proxyUser, proxyPassword.toCharArray());
+                            return new PasswordAuthentication(proxyUser, proxyPassword.toCharArray());
                         }
                         return null;
                     }
@@ -87,16 +92,20 @@ public class HTTPChallenge {
         return proxy;
     }
 
-    private static final String USER_AGENT = "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + " Java/" + System.getProperty("java.version");
+
 
     /**
-     * Performs an HTTP challenge validation by sending a GET request to a specified host and checking the response
-     * for the expected authentication token value.
+     * Validates an HTTP challenge by sending a GET request to the specified host and verifying the response.
+     * The method checks whether the response body contains the expected token, which indicates successful validation.
      *
-     * @param authToken The expected authentication token value associated with the challenge.
-     * @param host                   The host to which the GET request is sent for challenge validation.
-     * @return True if the HTTP challenge validation succeeds, indicating that the response contains the expected token value;
-     *         otherwise, false.
+     * @param authToken The expected authentication token value for the challenge.
+     * @param host The target host for the HTTP GET request.
+     * @param acmeAccount The ACME account used in the challenge.
+     * @return {@code true} if the challenge validation is successful, otherwise {@code false}.
+     * @throws IOException If an I/O error occurs during the HTTP request.
+     * @throws NoSuchAlgorithmException If a requested cryptographic algorithm is not available.
+     * @throws InvalidKeySpecException If an invalid key specification is encountered.
+     * @throws NoSuchProviderException If a requested security provider is not available.
      */
     public static boolean check(String authToken, String host, ACMEAccount acmeAccount) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         boolean passed = false;
@@ -115,27 +124,30 @@ public class HTTPChallenge {
             }
 
             // Execute the HTTP GET request and retrieve the response
-            Response response = httpClient.newCall(request).execute();
+            try (Response response = httpClient.newCall(request).execute()) {
+                int responseCode = response.code();
 
-            int responseCode = response.code();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    // Successful response, check the token in the response
+                    log.debug("Got response, checking token in response");
+                    assert response.body() != null;
+                    String acmeTokenFromHost = response.body().string();
+                    String expectedValue = AcmeTokenCryptography.keyAuthorizationFor(authToken, acmeAccountPublicKey);
 
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                // Successful response, check the token in the response
-                log.debug("Got response, checking token in response");
-                String acmeTokenFromHost = response.body().string();
-                String expectedValue = AcmeTokenCryptography.keyAuthorizationFor(authToken, acmeAccountPublicKey);
-
-                if (expectedValue.equals(acmeTokenFromHost)) {
-                    passed = true;
-                    log.info("HTTP Challenge has validated for host \"" + host + "\"");
+                    if (expectedValue.equals(acmeTokenFromHost)) {
+                        passed = true;
+                        log.info("HTTP Challenge has validated for host {}", host);
+                    } else {
+                        log.info("HTTP Challenge validation failed for host {}. Content doesn't match. Expected: {}; Got: {}", host, authToken, acmeTokenFromHost);
+                    }
                 } else {
-                    log.info("HTTP Challenge validation failed for host \"" + host + "\". Content doesn't match. Expected: " + authToken + "; Got: " + acmeTokenFromHost);
+                    log.error("HTTP Challenge failed for host {}}, got HTTP status code {}", host, responseCode);
                 }
-            } else {
-                log.error("HTTP Challenge failed for host \"" + host + "\", got HTTP status code " + responseCode);
             }
+
+
         } catch (IOException e) {
-            log.error("HTTP Challenge failed for host \"" + host + "\". Is it reachable?", e);
+            log.error("HTTP Challenge failed for host {}. Is it reachable?", host, e);
         }
 
         return passed;

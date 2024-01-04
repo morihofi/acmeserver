@@ -6,7 +6,8 @@
 
     <groupId>de.morihofi.acmeserver</groupId>
     <artifactId>acmeserver</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.2</version>
+    <inceptionYear>2023</inceptionYear>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -18,10 +19,33 @@
 
         <bouncycastle.version>1.77</bouncycastle.version>
         <javalin.version>5.6.3</javalin.version>
-        <jose4j.version>0.9.3</jose4j.version>
+        <jose4j.version>0.9.4</jose4j.version>
     </properties>
 
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+            <comments>A free software license</comments>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Moritz Hofmann</name>
+            <url>https://morihofi.de</url>
+            <email>info@morihofi.de</email>
+            <timezone>Europe/Berlin</timezone>
+            <roles>
+                <role>maintainer</role>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+
     <build>
+        <finalName>acmeserver</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -85,7 +109,8 @@
                     <verbose>true</verbose>
                     <offline>true</offline>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties
+                    </generateGitPropertiesFilename>
                     <includeOnlyProperties>
                         <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>
                         <includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>
@@ -131,6 +156,99 @@
                     </dependency>
                 </dependencies>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target>
+                                <copy file="${project.basedir}/settings.sample.json"
+                                      tofile="${project.build.directory}/settings.json"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <configuration>
+                    <show>private</show>
+                    <nohelp>true</nohelp>
+                </configuration>
+            </plugin>
+
+
+            <plugin>
+                <artifactId>jdeb</artifactId>
+                <groupId>org.vafer</groupId>
+                <version>1.10</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jdeb</goal>
+                        </goals>
+                        <configuration>
+                            <controlDir>${project.basedir}/src/main/deb/control</controlDir>
+                            <dataSet>
+                                <data>
+                                    <src>${project.basedir}/target/${project.build.finalName}.jar</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/opt/${project.artifactId}/</prefix>
+                                        <filemode>644</filemode>
+                                        <user>www-data</user>
+                                        <group>www-data</group>
+                                    </mapper>
+                                </data>
+                                <!-- default settings file for ACME Server -->
+                                <data>
+                                    <src>${project.build.directory}/settings.json</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <prefix>/opt/${project.artifactId}/serverdata</prefix>
+                                        <type>perm</type>
+                                        <filemode>644</filemode>
+                                        <user>www-data</user>
+                                        <group>www-data</group>
+                                    </mapper>
+                                </data>
+                                <!-- systemd service file -->
+                                <data>
+                                    <src>${project.basedir}/src/main/deb/acmeserver.service</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <prefix>/etc/systemd/system/</prefix>
+                                        <type>perm</type>
+                                        <filemode>644</filemode>
+                                    </mapper>
+                                </data>
+                                <!-- cli wrapper script -->
+                                <data>
+                                    <src>${project.basedir}/src/main/deb/acmeserver</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <prefix>/usr/local/bin/</prefix>
+                                        <type>perm</type>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+                            </dataSet>
+                            <postinst>${project.basedir}/src/main/deb/postinst</postinst>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
 
         </plugins>
@@ -172,19 +290,19 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.20.0</version>
+            <version>2.22.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>2.20.0</version>
+            <version>2.22.0</version>
         </dependency>
         <!-- SLF4J Bridge -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j2-impl</artifactId>
-            <version>2.20.0</version>
+            <version>2.22.0</version>
         </dependency>
         <!-- java.util Logger to SLF4J -->
         <dependency>
@@ -197,7 +315,7 @@
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
-            <version>3.1.2</version>
+            <version>3.3.1</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -209,7 +327,7 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>4.10.0</version>
+            <version>4.12.0</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.angus</groupId>
@@ -220,7 +338,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.3.1.Final</version>
+            <version>6.4.0.Final</version>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>
@@ -230,13 +348,13 @@
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
-            <version>9.0.0</version>
+            <version>9.1.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>jakarta.enterprise</groupId>
             <artifactId>jakarta.enterprise.cdi-api</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -245,7 +363,6 @@
             <version>2.1.0</version>
             <scope>compile</scope>
         </dependency>
-
 
 
         <dependency>
@@ -263,7 +380,6 @@
             <artifactId>jose4j</artifactId>
             <version>${jose4j.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -279,9 +395,20 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>RELEASE</version>
+            <version>4.8.3</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.googlecode.lanterna</groupId>
+            <artifactId>lanterna</artifactId>
+            <version>3.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.passay</groupId>
+            <artifactId>passay</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+
 
     </dependencies>
 

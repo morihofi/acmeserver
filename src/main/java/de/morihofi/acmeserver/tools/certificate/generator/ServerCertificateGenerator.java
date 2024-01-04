@@ -26,9 +26,7 @@ import java.util.Date;
 
 public class ServerCertificateGenerator {
 
-    private ServerCertificateGenerator() {
-
-    }
+    private ServerCertificateGenerator() {}
 
     /**
      * Generates an X509 server certificate using provided parameters and cryptographic elements.

@@ -11,6 +11,8 @@ import java.util.Properties;
 
 public class SendMail {
 
+    private SendMail(){}
+
     public static final Logger log = LogManager.getLogger(SendMail.class);
 
     /**
@@ -38,6 +40,7 @@ public class SendMail {
             emailProp.put("mail.smtp.starttls.enable", "true");
         } else if ("ssl".equals(emailConfig.getEncryption()) || "tls".equals(emailConfig.getEncryption())) {
             emailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            emailProp.put("mail.smtp.ssl.checkserveridentity", "true");
         } else {
             // No encryption, use a plain connection
             emailProp.put("mail.smtp.starttls.enable", "false");
@@ -56,17 +59,15 @@ public class SendMail {
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
         message.setSubject(subject);
 
-        String msg = content;
-
         MimeBodyPart mimeBodyPart = new MimeBodyPart();
-        mimeBodyPart.setContent(msg, "text/html; charset=utf-8");
+        mimeBodyPart.setContent(content, "text/html; charset=utf-8");
 
         Multipart multipart = new MimeMultipart();
         multipart.addBodyPart(mimeBodyPart);
 
         message.setContent(multipart);
 
-        log.info("Sending E-Mail with subject \"" + subject + "\" to \"" + toEmail + "\"");
+        log.info("Sending E-Mail with subject \"{}\" to \"{}\"", subject, toEmail);
         Transport.send(message);
         log.info("E-Mail has been sent");
     }

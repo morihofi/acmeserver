@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.json.JSONObject;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +19,11 @@ import java.security.*;
 import java.security.spec.*;
 import java.util.Base64;
 
+/**
+ * Provides methods for verifying the signatures of ACME requests.
+ * This class includes functionality to validate request signatures against public keys associated with ACME accounts,
+ * ensuring the authenticity and integrity of the requests.
+ */
 public class SignatureCheck {
 
     public static final Logger log = LogManager.getLogger(SignatureCheck.class);
@@ -26,10 +32,11 @@ public class SignatureCheck {
     }
 
     /**
-     * Verifies the signature of an ACME request using an ACME account.
+     * Verifies the signature of an ACME request using an ACME account's public key.
+     * The method checks the signature against the public key to ensure the request's authenticity and integrity.
      *
      * @param ctx     The Javalin context containing the request data.
-     * @param account The ACME account for which to verify the signature.
+     * @param account The ACME account whose public key is used for signature verification.
      * @param gson    The Gson instance for JSON parsing.
      * @throws NoSuchAlgorithmException           If the specified signature algorithm is not available.
      * @throws SignatureException                 If an issue occurs during signature verification.
@@ -44,16 +51,17 @@ public class SignatureCheck {
     }
 
     /**
-     * Verifies the signature of an ACME request.
+     * Verifies the signature of an ACME request using an ACME account's public key.
+     * The method checks the signature against the public key to ensure the request's authenticity and integrity.
      *
      * @param ctx       The Javalin context containing the request data.
-     * @param accountId The account ID associated with the request.
+     * @param accountId The ACME account id whose public key is used for signature verification.
      * @param gson      The Gson instance for JSON parsing.
-     * @throws InvalidKeyException                If the public key is invalid.
      * @throws NoSuchAlgorithmException           If the specified signature algorithm is not available.
      * @throws SignatureException                 If an issue occurs during signature verification.
      * @throws IOException                        If an I/O error occurs during decoding or parsing.
      * @throws InvalidKeySpecException            If the provided key specifications are invalid.
+     * @throws InvalidKeyException                If the public key is invalid.
      * @throws NoSuchProviderException            If the specified provider is not available.
      * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
      */
@@ -105,7 +113,7 @@ public class SignatureCheck {
 
         if (!isSignatureValid) {
             // Signature verification failed
-            log.error("Signature verification failed for account \"" + accountId + "\"");
+            log.error("Signature verification failed for account {}", accountId);
             throw new ACMEBadSignatureAlgorithmException("Signature does not match");
         }
     }

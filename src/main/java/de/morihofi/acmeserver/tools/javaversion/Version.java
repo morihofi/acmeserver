@@ -19,11 +19,11 @@
  */
 package de.morihofi.acmeserver.tools.javaversion;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 
 /**
@@ -32,8 +32,9 @@ import java.util.StringTokenizer;
  * separated by dots or something similar.
  */
 public class Version implements Comparable<Object>, Serializable {
+    @Serial
     private static final long serialVersionUID = 775513157889646154L;
-    private List<Integer> iSections;
+    private final List<Integer> iSections;
 
     /**
      * Construct a Version object from the supplied string assuming that the

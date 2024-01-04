@@ -1,17 +1,18 @@
 package de.morihofi.acmeserver.database;
 
-import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
-import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
-import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
+import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
+import de.morihofi.acmeserver.tools.safety.TypeSafetyHelper;
+import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,27 +21,20 @@ import org.hibernate.Transaction;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import jakarta.persistence.*;
-
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.security.KeyStoreException;
-import java.security.Provider;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.sql.*;
+import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
+import java.util.*;
 
 public class Database {
 
+    /**
+     * Logger
+     */
     public static final Logger log = LogManager.getLogger(Database.class);
 
     /**
@@ -62,7 +56,7 @@ public class Database {
             account.setDeactivated(false);
             session.persist(account);
             transaction.commit();
-            log.info("New ACME account created with account id \"" + accountId + "\"");
+            log.info("New ACME account created with account id {}", accountId);
         } catch (Exception e) {
             log.error("Unable to create new ACME account", e);
             throw new ACMEServerInternalException(e.getMessage());
@@ -104,7 +98,7 @@ public class Database {
 
                 log.info("Stored certificate successful");
             } else {
-                log.error("Unable to find ACME Identifier with Order ID \"" + orderId + "\" and DNS Value \"" + dnsValue + "\"");
+                log.error("Unable to find ACME Identifier with Order ID {} and DNS Value {}", orderId, dnsValue);
             }
         } catch (Exception e) {
             log.error("Unable to store certificate", e);
@@ -130,9 +124,9 @@ public class Database {
                 orderIdentifier.setVerifiedTime(Timestamp.from(Instant.now()));
                 session.merge(orderIdentifier);
                 transaction.commit();
-                log.info("ACME challenge with id \"" + challengeId + "\" was marked as passed");
+                log.info("ACME challenge {} was marked as passed", challengeId);
             } else {
-                log.warn("No ACME challenge found with id \"" + challengeId + "\"");
+                log.warn("No ACME challenge found with id {}", challengeId);
             }
 
         } catch (Exception e) {
@@ -160,12 +154,16 @@ public class Database {
                     .uniqueResult();
 
             if (identifier != null) {
-                log.info("(Challenge ID: \"" + challengeId + "\") Got ACME identifier of type \"" +
-                        identifier.getType() + "\" with value \"" + identifier.getDataValue() + "\"");
+                log.info("(Challenge ID: {}) Got ACME identifier of type {} with value {}",
+                        challengeId,
+                        identifier.getType(),
+                        identifier.getDataValue()
+
+                );
             }
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable get ACME identifiers for challenge id \"" + challengeId + "\"", e);
+            log.error("Unable get ACME identifiers for challenge id {}", challengeId, e);
         }
         return identifier;
     }
@@ -187,12 +185,15 @@ public class Database {
                     .getSingleResult();
 
             if (identifier != null) {
-                log.info("(Authorization ID: \"" + authorizationId + "\") Got ACME identifier of type \"" +
-                        identifier.getType() + "\" with value \"" + identifier.getDataValue() + "\"");
+                log.info("(Authorization ID: {}) Got ACME identifier of type {} with value {}",
+                        authorizationId,
+                        identifier.getType(),
+                        identifier.getDataValue()
+                );
             }
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable get ACME identifiers for authorization id \"" + authorizationId + "\"", e);
+            log.error("Unable get ACME identifiers for authorization id {}", authorizationId, e);
         }
         return identifier;
     }
@@ -214,12 +215,15 @@ public class Database {
                     .getSingleResult();
 
             if (identifier != null) {
-                log.info("(Certificate Serial Number: \"" + serialNumber + "\") Got ACME identifier of type \"" +
-                        identifier.getType() + "\" with value \"" + identifier.getDataValue() + "\"");
+                log.info("(Certificate Serial Number: {}) Got ACME identifier of type {} with value {}",
+                        serialNumber,
+                        identifier.getType(),
+                        identifier.getDataValue()
+                );
             }
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable get ACME identifiers for certificate serial number id \"" + serialNumber + "\"", e);
+            log.error("Unable get ACME identifiers for certificate serial number id {}", serialNumber, e);
         }
         return identifier;
     }
@@ -240,13 +244,16 @@ public class Database {
                     .getResultList();
 
             identifiers.forEach(identifier ->
-                    log.info("(Order ID: \"" + orderId + "\") Got ACME identifier of type \"" +
-                            identifier.getType() + "\" with value \"" + identifier.getDataValue() + "\"")
+                    log.info("(Order ID: {}) Got ACME identifier of type {} with value {}",
+                            orderId,
+                            identifier.getType(),
+                            identifier.getDataValue()
+                    )
             );
 
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable get ACME identifiers for order id \"" + orderId + "\"", e);
+            log.error("Unable get ACME identifiers for order id {}", orderId, e);
         }
         return identifiers;
     }
@@ -273,7 +280,7 @@ public class Database {
             order.setCreated(Timestamp.from(Instant.now()));
             session.persist(order);
 
-            log.info("Created new order \"" + orderId + "\"");
+            log.info("Created new order {}", orderId);
 
             // Create order identifiers
             for (ACMEIdentifier identifier : identifierList) {
@@ -287,12 +294,16 @@ public class Database {
                 identifier.setVerified(false);
                 session.persist(identifier);
 
-                log.info("Added identifier \"" + identifier.getDataValue() + "\" of type \"" + identifier.getType() + "\" to order \"" + orderId + "\"");
+                log.info("Added identifier {} of type {} to order {}",
+                        identifier.getDataValue(),
+                        identifier.getType(),
+                        orderId
+                );
             }
 
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable to create new ACME Order with id \"" + orderId + "\" for account \"" + account.getAccountId() + "\"", e);
+            log.error("Unable to create new ACME Order with id {} for account {}", orderId, account.getAccountId(), e);
             throw new ACMEServerInternalException("Unable to create new ACME Order");
         }
     }
@@ -324,10 +335,10 @@ public class Database {
 
             transaction.commit();
 
-            log.info("ACME account \"" + account.getAccountId() + "\" updated emails to \"" + String.join(",", emails) + "\"");
+            log.info("ACME account {} updated emails to {}", account.getAccountId(), String.join(",", emails));
 
         } catch (Exception e) {
-            log.error("Unable to update emails for account \"" + account.getAccountId() + "\"", e);
+            log.error("Unable to update emails for account {}", account.getAccountId(), e);
             throw new ACMEInvalidContactException("Unable to update emails");
         }
     }
@@ -338,13 +349,13 @@ public class Database {
      * and then appends each certificate in the CA certificate chain. If the issued certificate is not found,
      * it throws an IllegalArgumentException.
      *
-     * @param authorizationId The authorization ID associated with the ACME entity.
+     * @param authorizationId              The authorization ID associated with the ACME entity.
      * @param intermediateCertificateBytes The byte array of the intermediate certificate.
-     * @param provisioner The provisioner instance used for cryptographic operations.
+     * @param provisioner                  The provisioner instance used for cryptographic operations.
      * @return A string representation of the certificate chain in PEM format.
      * @throws CertificateEncodingException if an error occurs during the encoding of certificates.
-     * @throws IOException if an I/O error occurs during certificate processing.
-     * @throws KeyStoreException if an error occurs while accessing the keystore.
+     * @throws IOException                  if an I/O error occurs during certificate processing.
+     * @throws KeyStoreException            if an error occurs while accessing the keystore.
      */
     public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId, byte[] intermediateCertificateBytes, Provisioner provisioner) throws CertificateEncodingException, IOException, KeyStoreException {
         StringBuilder pemBuilder = new StringBuilder();
@@ -359,15 +370,13 @@ public class Database {
             query.setParameter("authorizationId", authorizationId);
             Object result = query.getSingleResult();
 
-            if (result != null) {
+            if (result instanceof ACMEIdentifier acmeIdentifier) {
                 certFound = true;
 
-                // Assuming you have a class OrderIdentifier with these fields
-                ACMEIdentifier oi = (ACMEIdentifier) result;
-                String certificatePEM = oi.getCertificatePem();
-                Date certificateExpires = oi.getCertificateExpires();
+                String certificatePEM = acmeIdentifier.getCertificatePem();
+                Date certificateExpires = acmeIdentifier.getCertificateExpires();
 
-                log.info("Getting Certificate for authorization Id \"" + authorizationId + "\" -> Expires at " + certificateExpires.toString());
+                log.info("Getting Certificate for authorization Id {} -> Expires at {}", authorizationId, certificateExpires);
 
                 pemBuilder.append(certificatePEM);
             }
@@ -383,21 +392,23 @@ public class Database {
         log.info("Adding Intermediate and CA certificate");
         pemBuilder.append("\n");
 
-        for (Certificate certificate :
-                provisioner.getCryptoStoreManager().getKeyStore().getCertificateChain(
-                        CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(
-                                provisioner.getProvisionerName()
+        List<X509Certificate> certificateChain = TypeSafetyHelper.safeCastToClassOfType(
+                Arrays.stream(
+                        provisioner.getCryptoStoreManager().getKeyStore().getCertificateChain(
+                                CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(
+                                        provisioner.getProvisionerName()
+                                )
                         )
-                )
-        ) {
-            X509Certificate x509Certificate = (X509Certificate) certificate;
-            pemBuilder.append(PemUtil.certificateToPEM(x509Certificate.getEncoded()));
-            pemBuilder.append("\n");
+                ).toList(),
+                X509Certificate.class);
 
+        for (X509Certificate certificate : certificateChain) {
+            pemBuilder.append(PemUtil.certificateToPEM(certificate.getEncoded()));
+            pemBuilder.append("\n");
         }
 
 
-        log.info("Returning certificate chain");
+        log.info("Returning certificate chain {}", certificateChain);
         return pemBuilder.toString();
     }
 
@@ -425,7 +436,7 @@ public class Database {
 
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable to get ACME Account \"" + accountId + "\"", e);
+            log.error("Unable to get ACME Account {}", accountId, e);
         }
 
         return acmeAccount;
@@ -452,7 +463,7 @@ public class Database {
 
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable to get ACME Account for order \"" + orderId + "\"", e);
+            log.error("Unable to get ACME Account for order {}", orderId, e);
         }
 
         return null;
@@ -475,7 +486,7 @@ public class Database {
             //Certificates are revoked when they have a statusCode and a timestamp
             Query query = session.createQuery("FROM ACMEIdentifier WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL AND provisioner = :provisionerName", ACMEIdentifier.class);
             query.setParameter("provisionerName", provisionerName);
-            List<ACMEIdentifier> result = query.getResultList();
+            List<ACMEIdentifier> result = TypeSafetyHelper.safeCastToClassOfType(query.getResultList(), ACMEIdentifier.class);
 
             if (!result.isEmpty()) {
                 for (ACMEIdentifier revokedIdentifier : result) {
@@ -514,9 +525,9 @@ public class Database {
             session.merge(identifier);
 
             transaction.commit();
-            log.info("Revoked certificate with serial number " + identifier.getCertificateSerialNumber() + " (Provisioner " + identifier.getProvisioner() + ")");
+            log.info("Revoked certificate with serial number {} (Provisioner {})", identifier.getCertificateSerialNumber(), identifier.getProvisioner());
         } catch (Exception e) {
-            log.error("Unable to revoke certificate with serial number " + identifier.getCertificateSerialNumber() + " (Provisioner " + identifier.getProvisioner() + ")", e);
+            log.error("Unable to revoke certificate with serial number {} (Provisioner {})", identifier.getCertificateSerialNumber(), identifier.getProvisioner(), e);
             throw new ACMEServerInternalException("Unable to revoke certificate");
         }
     }

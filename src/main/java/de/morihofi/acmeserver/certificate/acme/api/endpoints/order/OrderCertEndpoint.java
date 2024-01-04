@@ -1,29 +1,31 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.order;
 
+import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import io.javalin.http.Context;
-import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class OrderCertEndpoint implements Handler {
+public class OrderCertEndpoint extends AbstractAcmeEndpoint {
 
-    private final Provisioner provisioner;
+    /**
+     * Logger
+     */
     public final Logger log = LogManager.getLogger(getClass());
 
     public OrderCertEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
+        super(provisioner);
     }
 
-
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/pem-certificate-chain");
@@ -36,7 +38,7 @@ public class OrderCertEndpoint implements Handler {
         for (ACMEIdentifier identifier : identifiers) {
             String individualCertificateChain = Database.getCertificateChainPEMofACMEbyAuthorizationId(
                     identifier.getAuthorizationId(),
-                    provisioner.getIntermediateCertificate().getEncoded(),
+                    provisioner.getIntermediateCaCertificate().getEncoded(),
                     provisioner
             );
 
@@ -47,4 +49,6 @@ public class OrderCertEndpoint implements Handler {
         String responseCertificateChain = responseCertificateChainBuilder.toString();
         ctx.result(responseCertificateChain);
     }
+
+
 }

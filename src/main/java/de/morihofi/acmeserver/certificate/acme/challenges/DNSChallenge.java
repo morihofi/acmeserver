@@ -7,8 +7,6 @@ import de.morihofi.acmeserver.tools.crypto.AcmeTokenCryptography;
 import de.morihofi.acmeserver.tools.crypto.Hashing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jose4j.jwk.PublicJsonWebKey;
-import org.jose4j.lang.JoseException;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.TXTRecord;
 import org.xbill.DNS.TextParseException;
@@ -17,29 +15,29 @@ import org.xbill.DNS.Record;
 
 import java.io.IOException;
 import java.security.*;
-import java.util.Base64;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class DNSChallenge {
 
+    /**
+     * Provides functionality for handling DNS challenges in the ACME (Automated Certificate Management Environment) protocol.
+     * This class includes methods for validating DNS challenges by querying DNS TXT records and comparing them to expected values.
+     * It is designed to validate domain control by ensuring that DNS records contain specific tokens.
+     */
     public static final Logger log = LogManager.getLogger(DNSChallenge.class);
 
-    private DNSChallenge(){
-
-    }
+    private DNSChallenge(){}
 
     /**
-     * Checks the validity of an ACME (Automated Certificate Management Environment) challenge by querying DNS TXT records
-     * for the specified domain and comparing them to the expected token value derived from the public key of an ACME account.
+     * Validates a DNS challenge by querying DNS TXT records for the specified domain.
+     * The method checks if the TXT records contain a token value that matches the expected value derived from the public key
+     * of an ACME account.
      *
-     * @param token      The token value associated with the ACME challenge.
-     * @param domain     The domain for which the ACME challenge is being validated.
+     * @param token The token value associated with the ACME challenge.
+     * @param domain The domain for which the ACME challenge is being validated.
      * @param acmeAccount The ACME account containing the public key used to derive the expected token value.
-     * @return True if the DNS challenge validation succeeds, indicating that the TXT record matches the expected token value;
-     *         otherwise, false.
-     * @throws IOException             if there is an issue with input/output operations.
-     * @throws GeneralSecurityException if there is a general security-related issue.
+     * @return {@code true} if the DNS challenge validation succeeds, otherwise {@code false}.
+     * @throws IOException If an I/O error occurs during DNS query.
+     * @throws GeneralSecurityException If a security-related error occurs.
      */
     public static boolean check(String token, String domain, ACMEAccount acmeAccount) throws IOException, GeneralSecurityException {
         boolean passed = false;
@@ -53,13 +51,13 @@ public class DNSChallenge {
 
             if (lookup.getResult() == Lookup.SUCCESSFUL) {
                 // Check TXT-Entries
-                for (Record record : lookup.getAnswers()) {
-                    TXTRecord txt = (TXTRecord) record;
+                for (Record dnsRecord : lookup.getAnswers()) {
+                    TXTRecord txt = (TXTRecord) dnsRecord;
                     for (Object value : txt.getStrings()) {
                         String txtValue = value.toString();
                         if (txtValue.equals(dnsExpectedValue)) {
                             passed = true;
-                            log.info("DNS Challenge has validated for domain \"" + domain + "\"");
+                            log.info("DNS Challenge has validated for domain {}", domain);
                             break;
                         }
                     }
@@ -70,13 +68,13 @@ public class DNSChallenge {
             }
 
             if (!passed) {
-                log.error("DNS Challenge validation failed for domain \"_acme-challenge." + domain + "\". TXT record not found or value doesn't match. Expected: " + dnsExpectedValue);
+                log.error("DNS Challenge validation failed for domain {}. TXT record not found or value doesn't match. Expected: {}", ("_acme-challenge." + domain), dnsExpectedValue);
             }
 
         } catch (TextParseException e) {
-            log.error("Error parsing domain name \"" + domain + "\"", e);
+            log.error("Error parsing domain name {}", domain, e);
         } catch (Exception e) {
-            log.error("DNS Challenge failed for domain \"" + domain + "\"", e);
+            log.error("DNS Challenge failed for domain {}", domain, e);
         }
 
         return passed;

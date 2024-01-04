@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
@@ -13,16 +14,15 @@ public class DirectoryEndpoint implements Handler {
     private final Provisioner provisioner;
     public final Logger log = LogManager.getLogger(getClass());
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public DirectoryEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
     }
 
     /**
-     * Handles an HTTP request by generating and returning a JSON response containing ACME (Automated Certificate Management
-     * Environment) metadata and endpoint URLs for various ACME operations.
-     *
-     * @param ctx The Context object representing the HTTP request and response.
-     * @throws Exception if there is an issue with handling the HTTP request.
+     * Method for handling the request
+     * @param ctx Javalin Context
+     * @throws Exception thrown when there was an error processing the request
      */
     @Override
     public void handle(@NotNull Context ctx) throws Exception {

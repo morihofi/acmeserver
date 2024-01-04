@@ -11,9 +11,7 @@ import java.security.cert.X509Certificate;
 
 public class X509 {
 
-    private X509() {
-
-    }
+    private X509() {}
 
     /**
      * Extracts the X.500 Distinguished Name (DN) from an X.509 certificate.

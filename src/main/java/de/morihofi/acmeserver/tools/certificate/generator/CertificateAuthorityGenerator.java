@@ -30,7 +30,6 @@ import java.util.Date;
 
 public class CertificateAuthorityGenerator {
     private CertificateAuthorityGenerator() {
-
     }
 
     /**
@@ -46,7 +45,6 @@ public class CertificateAuthorityGenerator {
      * @return An X509Certificate representing the CA certificate.
      * @throws IOException               If an I/O error occurs during the certificate generation process.
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
-     * @throws NoSuchAlgorithmException  If the algorithm specified for key generation or signing is not available.
      * @throws CertificateException      If there's an error in processing the certificate data.
      */
     public static X509Certificate generateCertificateAuthorityCertificate(CertificateConfig certificateConfig, KeyPair keyPair) throws IOException, OperatorCreationException, CertificateException {
@@ -191,9 +189,7 @@ public class CertificateAuthorityGenerator {
         X509CertificateHolder holder = certBuilder.build(signer);
         JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
         converter.setProvider(BouncyCastleProvider.PROVIDER_NAME);
-        X509Certificate intermediateCaCertificate = converter.getCertificate(holder);
-
-        return intermediateCaCertificate;
+        return converter.getCertificate(holder);
     }
 
 

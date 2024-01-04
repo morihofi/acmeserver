@@ -3,10 +3,17 @@ package de.morihofi.acmeserver.exception.exceptions;
 import de.morihofi.acmeserver.exception.ACMEException;
 import de.morihofi.acmeserver.exception.objects.ErrorResponse;
 
-public class ACMEInvalidContactException  extends ACMEException {
+/**
+ * Exception thrown when the contact information provided to ACME is considered invalid or unsupported.
+ */
+public class ACMEInvalidContactException extends ACMEException {
 
     private final String message;
 
+    /**
+     * Constructs an instance of ACMEInvalidContactException with the specified error message.
+     * @param message The error message that describes the exception.
+     */
     public ACMEInvalidContactException(String message) {
         super(message);
         this.message = message;

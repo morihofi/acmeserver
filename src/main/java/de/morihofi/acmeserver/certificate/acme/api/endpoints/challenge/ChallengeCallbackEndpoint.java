@@ -2,28 +2,31 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.objects.ACMEChallengeResponse;
 import de.morihofi.acmeserver.certificate.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
-import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import io.javalin.http.Context;
-import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONObject;
 
-public class ChallengeCallbackEndpoint implements Handler {
+/**
+ * A handler endpoint for processing challenge callbacks.
+ */
+public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
 
-    private final Provisioner provisioner;
+    /**
+     * Logger
+     */
     private final Logger log = LogManager.getLogger(getClass());
+
 
     /**
      * Constructs a NewNonce handler with the specified ACME provisioner.
@@ -31,29 +34,22 @@ public class ChallengeCallbackEndpoint implements Handler {
      * @param provisioner The ACME provisioner to use for generating nonces.
      */
     public ChallengeCallbackEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
+        super(provisioner);
     }
 
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String challengeId = ctx.pathParam("challengeId");
         String challengeType = ctx.pathParam("challengeType"); //dns-01 or http-01
-
 
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", Crypto.createNonce());
 
-        // check if challenge is valid
+        // Check if challenge is valid
         ACMEIdentifier identifier = Database.getACMEIdentifierByChallengeId(challengeId);
 
-        Gson gson = new Gson();
-        ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
-
-
-        //Check signature
-        SignatureCheck.checkSignature(ctx, identifier.getOrder().getAccount(), gson);
-        //Check nonce
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        // Check signature and nonce
+        performSignatureAndNonceCheck(ctx, identifier.getOrder().getAccount(), acmeRequestBody);
 
         boolean isWildcardDomain = false;
         String nonWildcardDomain = identifier.getDataValue();
@@ -62,11 +58,11 @@ public class ChallengeCallbackEndpoint implements Handler {
             isWildcardDomain = true;
         }
 
-        if(!"dns-01".equals(challengeType) && isWildcardDomain){
+        if (!"dns-01".equals(challengeType) && isWildcardDomain) {
             throw new ACMEMalformedException("DNS-01 method is only valid for non wildcard domains");
         }
 
-        boolean challengePassed = false;
+        boolean challengePassed;
         String possibleErrorReasonIfFailed;
         switch (challengeType) {
             case "http-01" -> {
@@ -83,40 +79,34 @@ public class ChallengeCallbackEndpoint implements Handler {
             }
         }
 
-
-        log.info("Validating ownership of host \"" + nonWildcardDomain + "\"");
+        log.info("Validating ownership of host {}", nonWildcardDomain);
         if (challengePassed) {
-            //mark challenge has passed
+            // Mark challenge as passed
             Database.passChallenge(challengeId);
         } else {
-            log.error("Throwing API error: Host verification failed with method " + challengeType);
+            log.error("Throwing API error: Host verification failed with method {}", challengeType);
             throw new ACMEConnectionErrorException(possibleErrorReasonIfFailed);
-
             // TODO: Fail challenge in database
             //Database.failChallenge(challengeId);
         }
 
-
-        //Reload identifier, e.g. host has validated
+        // Reload identifier, e.g., host has validated
         identifier = Database.getACMEIdentifierByChallengeId(challengeId);
 
-
-        JSONObject responseJSON = new JSONObject();
-        responseJSON.put("type", challengeType);
+        // Creating response object
+        ACMEChallengeResponse response = new ACMEChallengeResponse();
+        response.setType(challengeType);
         if (identifier.isVerified()) {
-            responseJSON.put("status", "valid");
-            responseJSON.put("verified", DateTools.formatDateForACME(identifier.getVerifiedTime()));
+            response.setStatus("valid");
+            response.setVerified(DateTools.formatDateForACME(identifier.getVerifiedTime()));
         } else {
-            responseJSON.put("status", "pending");
+            response.setStatus("pending");
         }
+        response.setUrl(provisioner.getApiURL() + "/acme/chall/" + challengeId + "/" + challengeType);
+        response.setToken(identifier.getAuthorizationToken());
 
-
-        //"Up"-Link header is required for certbot
+        // "Up"-Link header is required for certbot
         ctx.header("Link", "<" + provisioner.getApiURL() + "/acme/authz/" + identifier.getAuthorizationId() + ">;rel=\"up\"");
-        responseJSON.put("url", provisioner.getApiURL() + "/acme/chall/" + challengeId + "/" + challengeType);
-        responseJSON.put("token", identifier.getAuthorizationToken());
-
-        ctx.result(responseJSON.toString());
-
+        ctx.result(gson.toJson(response));
     }
 }

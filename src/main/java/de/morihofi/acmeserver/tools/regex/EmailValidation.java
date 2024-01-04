@@ -2,13 +2,20 @@ package de.morihofi.acmeserver.tools.regex;
 
 import java.util.regex.Pattern;
 
+/**
+ * Utility class for email address validation.
+ * This class provides a method to validate email addresses based on their syntax.
+ */
 public class EmailValidation {
 
+    private EmailValidation(){}
+
+
     /**
-     * Check, if an email has a valid syntax
+     * Check if an email has a valid syntax.
      *
-     * @param email email address to check
-     * @return is it a valid email or not
+     * @param email The email address to check.
+     * @return True if it is a valid email address, otherwise false.
      */
     public static boolean isValidEmail(String email) {
         // Regular expression pattern to match an email address
