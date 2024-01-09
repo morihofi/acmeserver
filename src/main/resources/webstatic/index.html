@@ -32,14 +32,14 @@
           //Parse JSON
           var responseJSON = JSON.parse(this.responseText);
 
-          document.getElementById("version").innerHTML = responseJSON.version;
+          document.getElementById("version").innerHTML = responseJSON.metadataInfo.version;
           document.getElementById("buildtime").innerHTML =
-            responseJSON.buildtime;
+            responseJSON.metadataInfo.buildtime;
           document.getElementById("gitcommit").innerHTML =
-            responseJSON.gitcommit;
+            responseJSON.metadataInfo.gitcommit;
           document.getElementById("javaversion").innerHTML =
-            responseJSON.javaversion;
-          document.getElementById("os").innerHTML = responseJSON.os;
+            responseJSON.metadataInfo.javaversion;
+          document.getElementById("os").innerHTML = responseJSON.metadataInfo.os;
 
           const container = document.getElementById("provisioner-container");
           const ul = document.createElement("ul");
