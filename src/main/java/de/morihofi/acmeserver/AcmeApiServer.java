@@ -41,6 +41,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -203,6 +204,7 @@ public class AcmeApiServer {
                 // Create Intermediate Certificate
 
 
+
                 if (config.getIntermediate().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
                     log.info("Using RSA algorithm");
                     log.info("Generating RSA {} bit Key Pair for Intermediate CA", rsaParams.getKeySize());
@@ -324,7 +326,10 @@ public class AcmeApiServer {
         KeyPair intermediateCaKeyPair = cryptoStoreManager.getIntermediateCerificateAuthorityKeyPair(provisioner.getProvisionerName());
 
         KeyPair acmeAPIKeyPair;
-        if (!cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI)) {
+        if (!cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) ||
+                (cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) &&
+                        isCertificateValid(((X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA))))
+        ) {
 
             // *****************************************
             // Create Certificate for our ACME Web Server API (Client Certificate)
@@ -353,6 +358,7 @@ public class AcmeApiServer {
                     rootCertificate
             };
 
+            cryptoStoreManager.getKeyStore().deleteEntry(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI);
             cryptoStoreManager.getKeyStore().setKeyEntry(
                     CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI,
                     acmeAPIKeyPair.getPrivate(),
@@ -361,6 +367,15 @@ public class AcmeApiServer {
             );
             cryptoStoreManager.saveKeystore();
 
+        }
+    }
+
+    private static boolean isCertificateValid(X509Certificate certificate) {
+        try {
+            certificate.checkValidity(new Date());
+            return true;
+        }catch (Exception ex){
+            return false;
         }
     }
 
