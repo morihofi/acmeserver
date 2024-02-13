@@ -6,7 +6,7 @@
 
     <groupId>de.morihofi.acmeserver</groupId>
     <artifactId>acmeserver</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3-SNAPSHOT</version>
     <inceptionYear>2023</inceptionYear>
 
     <properties>
