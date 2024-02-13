@@ -1,13 +1,17 @@
 package de.morihofi.acmeserver.tools.network;
 
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
+import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
+import io.javalin.jetty.JettyServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-import javax.net.ssl.*;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.*;
@@ -129,7 +133,7 @@ public class JettySslHelper {
 
         SSLContext sslContext = createSSLContext(certificateChain, jettyKeyPair);
 
-        return getSslJetty(httpsPort, httpPort, sslContext);
+        return getSslJetty(httpsPort, httpPort, sslContext, null);
     }
 
     /**
@@ -142,29 +146,38 @@ public class JettySslHelper {
      * @return A Jetty Server instance configured for both secure and non-secure communication.
      * @throws Exception If an error occurs while creating or configuring the Jetty Server.
      */
-    public static Server getSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String alias)
+    public static Server getSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String alias, JettyServer jettyServer)
             throws Exception {
 
 
         SSLContext sslContext = createSSLContext(keyStore, alias, "");
 
-        return getSslJetty(httpsPort, httpPort, sslContext);
+        return getSslJetty(httpsPort, httpPort, sslContext, jettyServer);
     }
 
+    public static void updateSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String keystoreAliasAcmeapi, JettyServer jettyServer) throws Exception {
+    getSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, jettyServer);
+    }
 
     /**
      * Creates a Jetty server instance configured with SSL and/or HTTP connectors based on the provided ports and SSL context.
      *
-     * @param httpsPort  The port for HTTPS. Set to 0 to disable HTTPS.
-     * @param httpPort   The port for HTTP. Set to 0 to disable HTTP.
-     * @param sslContext The SSL context to be used for HTTPS. Pass null to disable HTTPS.
+     * @param httpsPort   The port for HTTPS. Set to 0 to disable HTTPS.
+     * @param httpPort    The port for HTTP. Set to 0 to disable HTTP.
+     * @param sslContext  The SSL context to be used for HTTPS. Pass null to disable HTTPS.
+     * @param jettyServer
      * @return A configured Jetty Server instance.
      */
-    public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext) {
+    public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext, JettyServer jettyServer) {
     /*
         If the port is not 0, the Service (e.g., HTTP/HTTPS) is enabled. Otherwise, it is disabled.
     */
-        Server server = new Server();
+        Server server;
+        if(jettyServer != null){
+            server = jettyServer.server();
+        }else {
+            server = new Server();
+        }
         List<Connector> connectors = new ArrayList<>();
 
         if (httpsPort != 0 && sslContext != null) {
@@ -199,5 +212,6 @@ public class JettySslHelper {
         server.setConnectors(connectors.toArray(new Connector[0]));
         return server;
     }
+
 
 }

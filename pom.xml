@@ -18,7 +18,7 @@
         <maven.build.timestamp.format>dd-MM-yyyy HH:mm</maven.build.timestamp.format>
 
         <bouncycastle.version>1.77</bouncycastle.version>
-        <javalin.version>5.6.3</javalin.version>
+        <javalin.version>6.0.1</javalin.version>
         <jose4j.version>0.9.4</jose4j.version>
     </properties>
 

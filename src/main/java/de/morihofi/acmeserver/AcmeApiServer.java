@@ -246,57 +246,45 @@ public class AcmeApiServer {
 
                 generateAcmeApiClientCertificate(cryptoStoreManager, provisioner, appConfig);
 
+                log.info("Updating Javalin's TLS configuration");
 
-                javalinInstance.updateConfig(javalinConfig -> {
-                    log.info("Updating Javalin's TLS configuration");
+                int httpPort = appConfig.getServer().getPorts().getHttp();
+                int httpsPort = appConfig.getServer().getPorts().getHttps();
 
-                    int httpPort = appConfig.getServer().getPorts().getHttp();
-                    int httpsPort = appConfig.getServer().getPorts().getHttps();
+                /*
+                 * Why we don't use Javalin's official SSL Plugin?
+                 * The official SSL plugin depends on Google's Conscrypt provider, which uses native code
+                 * and is platform dependent. This workaround implementation uses the built-in Java security
+                 * libraries and Bouncy Castle, which is platform independent.
+                 */
 
-                    /*
-                     * Why we don't use Javalin's official SSL Plugin?
-                     * The official SSL plugin depends on Google's Conscrypt provider, which uses native code
-                     * and is platform dependent. This workaround implementation uses the built-in Java security
-                     * libraries and Bouncy Castle, which is platform independent.
-                     */
+                JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, javalinInstance.jettyServer());
 
-                    javalinConfig.jetty.server(() -> {
-                        try {
-                            return JettySslHelper.getSslJetty(httpsPort, httpPort, cryptoStoreManager.getKeyStore(), CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI);
-                        } catch (Exception e) {
-                            log.error("Error applying certificate to API");
-                            throw new IllegalStateException(e);
-                        }
-                    });
+                log.info("Registering ACME API certificate expiration watcher");
+                CertificateRenewWatcher watcher = new CertificateRenewWatcher(cryptoStoreManager, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, 6, TimeUnit.HOURS, () -> {
+                    //Executed when certificate needs to be renewed
 
-                    log.info("Registering ACME API certificate expiration watcher");
-                    CertificateRenewWatcher watcher = new CertificateRenewWatcher(cryptoStoreManager, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, 6, TimeUnit.HOURS, () -> {
-                        //Executed when certificate needs to be renewed
+                    try {
+                        log.info("Renewing certificate...");
 
-                        try {
-                            log.info("Renewing certificate...");
+                        //Generate new certificate in place
+                        generateAcmeApiClientCertificate(cryptoStoreManager, provisioner, appConfig);
 
-                            //Generate new certificate in place
-                            generateAcmeApiClientCertificate(cryptoStoreManager, provisioner, appConfig);
+                        log.info("Certificate renewed successfully.");
 
-                            log.info("Certificate renewed successfully.");
+                        log.info("Reloading ACME API certificate");
 
-                            log.info("Reloading ACME API certificate");
+                        JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, javalinInstance.jettyServer());
 
-                            javalinConfig.jetty.server(() -> {
-                                try {
-                                    return JettySslHelper.getSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI);
-                                } catch (Exception e) {
-                                    log.error("Error applying new certificate to API");
-                                    throw new IllegalStateException(e);
-                                }
-                            });
-                            log.info("Certificate reload complete");
-                        } catch (Exception e) {
-                            log.error("Error renewing certificates", e);
-                        }
-                    });
+
+
+                        log.info("Certificate reload complete");
+                    } catch (Exception e) {
+                        log.error("Error renewing certificates", e);
+                    }
                 });
+
+
             }
 
             provisioners.add(provisioner);
