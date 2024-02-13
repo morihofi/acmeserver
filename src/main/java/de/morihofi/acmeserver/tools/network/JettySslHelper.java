@@ -22,7 +22,8 @@ import java.util.List;
 
 public class JettySslHelper {
 
-    private JettySslHelper(){}
+    private JettySslHelper() {
+    }
 
     /**
      * Logger
@@ -72,9 +73,9 @@ public class JettySslHelper {
      * Creates and configures an SSLContext for secure communication using the provided KeyStore,
      * certificate alias, and key password.
      *
-     * @param keyStore     The KeyStore containing the SSL certificate and private key.
-     * @param alias        The alias of the certificate in the KeyStore.
-     * @param keyPassword  The password for the private key.
+     * @param keyStore    The KeyStore containing the SSL certificate and private key.
+     * @param alias       The alias of the certificate in the KeyStore.
+     * @param keyPassword The password for the private key.
      * @return An SSLContext configured for secure communication.
      * @throws Exception If an error occurs while creating or configuring the SSLContext.
      */
@@ -139,10 +140,11 @@ public class JettySslHelper {
     /**
      * Creates a Jetty Server instance configured for both secure (HTTPS) and non-secure (HTTP) communication.
      *
-     * @param httpsPort The port number for secure HTTPS communication.
-     * @param httpPort  The port number for non-secure HTTP communication.
-     * @param keyStore  The KeyStore containing the SSL certificate and private key.
-     * @param alias     The alias of the certificate in the KeyStore.
+     * @param httpsPort   The port number for secure HTTPS communication.
+     * @param httpPort    The port number for non-secure HTTP communication.
+     * @param keyStore    The KeyStore containing the SSL certificate and private key.
+     * @param alias       The alias of the certificate in the KeyStore.
+     * @param jettyServer Jetty server wrapper of Javalin
      * @return A Jetty Server instance configured for both secure and non-secure communication.
      * @throws Exception If an error occurs while creating or configuring the Jetty Server.
      */
@@ -156,7 +158,7 @@ public class JettySslHelper {
     }
 
     public static void updateSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String keystoreAliasAcmeapi, JettyServer jettyServer) throws Exception {
-    getSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, jettyServer);
+        getSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, jettyServer);
     }
 
     /**
@@ -165,7 +167,7 @@ public class JettySslHelper {
      * @param httpsPort   The port for HTTPS. Set to 0 to disable HTTPS.
      * @param httpPort    The port for HTTP. Set to 0 to disable HTTP.
      * @param sslContext  The SSL context to be used for HTTPS. Pass null to disable HTTPS.
-     * @param jettyServer
+     * @param jettyServer Jetty server wrapper of Javalin
      * @return A configured Jetty Server instance.
      */
     public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext, JettyServer jettyServer) {
@@ -173,9 +175,9 @@ public class JettySslHelper {
         If the port is not 0, the Service (e.g., HTTP/HTTPS) is enabled. Otherwise, it is disabled.
     */
         Server server;
-        if(jettyServer != null){
+        if (jettyServer != null) {
             server = jettyServer.server();
-        }else {
+        } else {
             server = new Server();
         }
         List<Connector> connectors = new ArrayList<>();
