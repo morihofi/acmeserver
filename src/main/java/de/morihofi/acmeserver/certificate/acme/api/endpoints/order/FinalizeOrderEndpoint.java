@@ -15,9 +15,9 @@ import de.morihofi.acmeserver.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.dataExtractor.CsrDataExtractor;
+import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGenerator;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
-import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGenerator;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
@@ -29,7 +29,6 @@ import java.math.BigInteger;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
@@ -57,15 +56,17 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         assert account != null;
         performSignatureAndNonceCheck(ctx, account, acmeRequestBody);
 
-        //After check parse payload
+        // After check parse payload
         FinalizeOrderRequestPayload reqBodyPayloadObj = gson.fromJson(acmeRequestBody.getDecodedPayload(), FinalizeOrderRequestPayload.class);
         String csr = reqBodyPayloadObj.getCsr();
 
+        // Extract CSR Domain Names
         List<String> csrDomainNames = CsrDataExtractor.getDomainsFromCSR(csr);
         if (csrDomainNames.isEmpty()) {
             throw new ACMEBadCsrException("CSR does not contain any domain names");
         }
 
+        // Get our ACME identifiers
         List<ACMEIdentifier> identifiers = Database.getACMEIdentifiersByOrderId(orderId);
         for (String domain : csrDomainNames) {
             if (identifiers.stream().noneMatch(id -> domain.equals(id.getDataValue()))) {
@@ -75,18 +76,23 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
         List<Identifier> identifierList = identifiers.stream()
                 .map(id -> new Identifier(id.getType(), id.getDataValue()))
-                .collect(Collectors.toList());
+                .toList();
 
         List<String> authorizationsList = identifiers.stream()
                 .map(id -> provisioner.getApiURL() + "/acme/authz/" + id.getAuthorizationId())
-                .collect(Collectors.toList());
+                .toList();
 
         try {
+            // Decode the CSR from the Request
             byte[] csrBytes = Base64Tools.decodeBase64URLAsBytes(csr);
             PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
             PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
 
-            log.info("Creating Certificate for order \"" + orderId + "\" with DNS Names " + String.join(", ", csrDomainNames));
+            /*
+                We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using the Basic Constrain etc.
+             */
+
+            log.info("Creating Certificate for order \"{}\" with DNS Names {}", orderId, String.join(", ", csrDomainNames));
             X509Certificate acmeGeneratedCertificate = ServerCertificateGenerator.createServerCertificate(
                     provisioner.getIntermediateCaKeyPair(),
                     provisioner.getIntermediateCaCertificate(),
@@ -100,7 +106,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
             Timestamp expiresAt = new Timestamp(acmeGeneratedCertificate.getNotAfter().getTime());
             Timestamp issuedAt = new Timestamp(acmeGeneratedCertificate.getNotBefore().getTime());
 
-            // Speichern des Zertifikats für jeden Identifier in der Datenbank
+            // Saving the certificate for each identifier in the database
             for (ACMEIdentifier identifier : identifiers) {
                 Database.storeCertificateInDatabase(orderId, identifier.getDataValue(), csr, pemCertificate, issuedAt, expiresAt, serialNumber);
             }
@@ -121,7 +127,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
             ctx.result(gson.toJson(response));
         } catch (Exception ex) {
             log.error("Throwing API error: CSR processing error", ex);
-            throw new ACMEBadCsrException("Unable to process requested CSR. Is the CSR valid? Otherwise try again later, if the problem persists contact support.");
+            throw new ACMEBadCsrException("Unable to process requested CSR. Is the CSR valid? Otherwise try again later, if the problem persists contact support. If you're the server administrator, check the logs for more information.");
         }
     }
 
