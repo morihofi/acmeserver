@@ -32,6 +32,9 @@ import java.util.*;
 
 public class Database {
 
+
+    private Database(){}
+
     /**
      * Logger
      */
@@ -286,7 +289,7 @@ public class Database {
             for (ACMEIdentifier identifier : identifierList) {
 
                 if (identifier.getAuthorizationId() == null || identifier.getAuthorizationToken() == null) {
-                    throw new RuntimeException("Authorization Id or Token is null");
+                    throw new IllegalStateException("Authorization Id or Token is null");
                 }
 
                 identifier.setProvisioner(provisioner);
@@ -350,14 +353,13 @@ public class Database {
      * it throws an IllegalArgumentException.
      *
      * @param authorizationId              The authorization ID associated with the ACME entity.
-     * @param intermediateCertificateBytes The byte array of the intermediate certificate.
      * @param provisioner                  The provisioner instance used for cryptographic operations.
      * @return A string representation of the certificate chain in PEM format.
      * @throws CertificateEncodingException if an error occurs during the encoding of certificates.
      * @throws IOException                  if an I/O error occurs during certificate processing.
      * @throws KeyStoreException            if an error occurs while accessing the keystore.
      */
-    public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId, byte[] intermediateCertificateBytes, Provisioner provisioner) throws CertificateEncodingException, IOException, KeyStoreException {
+    public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId, Provisioner provisioner) throws CertificateEncodingException, IOException, KeyStoreException {
         StringBuilder pemBuilder = new StringBuilder();
         boolean certFound = false;
 

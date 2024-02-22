@@ -38,7 +38,6 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
         for (ACMEIdentifier identifier : identifiers) {
             String individualCertificateChain = Database.getCertificateChainPEMofACMEbyAuthorizationId(
                     identifier.getAuthorizationId(),
-                    provisioner.getIntermediateCaCertificate().getEncoded(),
                     provisioner
             );
 
