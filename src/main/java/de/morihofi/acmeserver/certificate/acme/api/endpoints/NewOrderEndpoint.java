@@ -79,8 +79,8 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         for (ACMEIdentifier identifier : acmeIdentifiers) {
 
-            if (!identifier.getType().equals("dns")) {
-                log.error("Throwing API error: Unknown identifier type {} for value {}", identifier.getType(), identifier.getDataValue());
+            if (!(identifier.getType().equals("dns") || identifier.getType().equals("ip"))) {
+                log.error("Throwing API error: Unknown or not allowed identifier type {} for value {}", identifier.getType(), identifier.getDataValue());
                 throw new ACMERejectedIdentifierException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
             }
 

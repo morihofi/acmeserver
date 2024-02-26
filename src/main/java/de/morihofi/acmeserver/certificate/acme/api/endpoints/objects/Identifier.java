@@ -1,12 +1,14 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.objects;
 
+import java.util.Locale;
+
 /**
  * ACME Identifier used in Requests from ACME Clients
  */
 public class Identifier {
 
     /**
-     * Type of the DNS identifier, mostly <code>dns</code>
+     * Type of the DNS identifier, mostly <code>dns</code>. Can also be <code>ip</code>
      */
     private String type;
 
@@ -54,6 +56,10 @@ public class Identifier {
         this.type = type;
     }
 
+    public IDENTIFIER_TYPE getTypeAsEnumConstant(){
+        return IDENTIFIER_TYPE.getTypeByName(type.toLowerCase(Locale.ROOT));
+    }
+
     /**
      * Retrieves the value of this identifier.
      * The value is specific to the type of the identifier (e.g., a DNS name for type 'dns').
@@ -73,4 +79,24 @@ public class Identifier {
     public void setValue(String value) {
         this.value = value;
     }
+
+
+    public enum IDENTIFIER_TYPE {
+        DNS, IP;
+
+        public static IDENTIFIER_TYPE getTypeByName(String name){
+            switch (name){
+                case "dns" -> {
+                    return DNS;
+                }
+                case "ip" -> {
+                    return IP;
+                }
+                default -> {
+                    throw new IllegalArgumentException("Unknown or unsupported identifier type " + name);
+                }
+            }
+        }
+    }
+
 }

@@ -61,7 +61,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         String csr = reqBodyPayloadObj.getCsr();
 
         // Extract CSR Domain Names
-        List<String> csrDomainNames = CsrDataExtractor.getDomainsFromCSR(csr);
+        List<String> csrDomainNames = CsrDataExtractor.getDomainsAndIPsFromCSR(csr);
         if (csrDomainNames.isEmpty()) {
             throw new ACMEBadCsrException("CSR does not contain any domain names");
         }

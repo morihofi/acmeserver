@@ -6,6 +6,7 @@ import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEnd
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.AuthzResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.Challenge;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
+import de.morihofi.acmeserver.certificate.acme.challenges.AcmeChallengeType;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
@@ -64,15 +65,25 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         idObj.setType(identifier.getType());
         idObj.setValue(nonWildcardDomain);
 
+
         List<Challenge> challenges = new ArrayList<>();
 
-        // HTTP-01 Challenge only for non-wildcard domains
-        if (!isWildcardDomain) {
-            challenges.add(createChallenge("http-01", identifier));
+        if (idObj.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.DNS) {
+            // HTTP-01 Challenge only for non-wildcard domains
+            if (!isWildcardDomain) {
+                challenges.add(createChallenge(AcmeChallengeType.HTTP_01, identifier));
+            }
+
+            // DNS-01 Challenge
+            challenges.add(createChallenge(AcmeChallengeType.DNS_01, identifier));
+        } else if (idObj.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.IP) {
+            // HTTP-01 Challenge is the only allowed for IP addresses
+            challenges.add(createChallenge(AcmeChallengeType.HTTP_01, identifier));
+
+            //This is just a placeholder for the currently unsupported TLS-ALPN Challenge
+            //challenges.add(createChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
         }
 
-        // DNS-01 Challenge
-        challenges.add(createChallenge("dns-01", identifier));
 
         AuthzResponse response = new AuthzResponse();
         response.setStatus(identifier.isVerified() ? "valid" : "pending");
@@ -84,8 +95,6 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
     }
 
 
-
-
     /**
      * Creates a challenge object of the specified type for the given ACME identifier.
      *
@@ -93,9 +102,9 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
      * @param identifier The ACME identifier for which the challenge is created.
      * @return A challenge object with the specified type, URL, token, and status if verified.
      */
-    private Challenge createChallenge(String type, ACMEIdentifier identifier) {
+    private Challenge createChallenge(AcmeChallengeType type, ACMEIdentifier identifier) {
         Challenge challenge = new Challenge();
-        challenge.setType(type);
+        challenge.setType(type.getName());
         challenge.setUrl(getProvisioner().getApiURL() + "/acme/chall/" + identifier.getChallengeId() + "/" + type);
         challenge.setToken(identifier.getAuthorizationToken());
         if (identifier.isVerified()) {
@@ -104,4 +113,6 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         }
         return challenge;
     }
+
+
 }

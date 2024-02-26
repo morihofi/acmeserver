@@ -81,7 +81,7 @@ public class AcmeApiServer {
             ctx.header("Access-Control-Allow-Headers", "*");
             ctx.header("Access-Control-Max-Age", "3600");
 
-            log.info("API Call [{}}] {}", ctx.method(), ctx.path());
+            log.info("API Call [{}] {}", ctx.method(), ctx.path());
         });
         app.options("/*", ctx -> {
             ctx.status(204); // No Content
