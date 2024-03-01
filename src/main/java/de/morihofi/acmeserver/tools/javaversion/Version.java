@@ -19,6 +19,8 @@
  */
 package de.morihofi.acmeserver.tools.javaversion;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.text.MessageFormat;
@@ -88,7 +90,7 @@ public class Version implements Comparable<Object>, Serializable {
     }
 
     @Override
-    public int compareTo(Object object) {
+    public int compareTo(@NotNull Object object) {
         Version cmpVersion = (Version) object;
 
         List<Integer> cmpSections = cmpVersion.getSections();

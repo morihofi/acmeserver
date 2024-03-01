@@ -19,6 +19,8 @@
  */
 package de.morihofi.acmeserver.tools.javaversion;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.text.MessageFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -167,7 +169,7 @@ public class JavaVersion implements Comparable<Object> {
     }
 
     @Override
-    public int compareTo(Object object) {
+    public int compareTo(@NotNull Object object) {
         JavaVersion cmpJavaVersion = (JavaVersion) object;
 
         if (major > cmpJavaVersion.getMajor()) {

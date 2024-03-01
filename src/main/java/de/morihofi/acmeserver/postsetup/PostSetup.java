@@ -86,7 +86,7 @@ public class PostSetup extends WindowBase {
             if (fqdn == null) {
                 fqdn = appConfig.getServer().getDnsName();
             }
-        } catch (SocketException e) {
+        } catch (SocketException ignored) {
         }
         portHttp = appConfig.getServer().getPorts().getHttp();
         portHttps = appConfig.getServer().getPorts().getHttps();
@@ -201,16 +201,8 @@ public class PostSetup extends WindowBase {
                 Panel linePanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
                 linePanel.addComponent(getHttpHttpsBoxPanel());
                 linePanel.addComponent(getFqdnBoxPanel());
-                //linePanel.addComponent(getKeyStorePanel().setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill)));
                 dialogPanel.addComponent(linePanel);
             }
-            /*{
-                Panel linePanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
-                linePanel.addComponent(getFqdnBoxPanel()
-                        .setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Center))
-                );
-                dialogPanel.addComponent(linePanel);
-            }*/
 
             dialogMain.addComponent(dialogPanel);
         }

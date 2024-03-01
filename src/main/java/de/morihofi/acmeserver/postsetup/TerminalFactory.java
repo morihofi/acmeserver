@@ -60,14 +60,14 @@ public class TerminalFactory extends DefaultTerminalFactory {
                 int port = 1024; // default for option w/o param
                 try {
                     port = Integer.parseInt(par);
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException ignored) {
                 }
                 setTelnetPort(port);
             } else if ("--with-timeout".equals(arg)) {
                 int inputTimeout = 40; // default for option w/o param
                 try {
                     inputTimeout = Integer.parseInt(par);
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException ignored) {
                 }
                 setInputTimeout(inputTimeout);
             }
