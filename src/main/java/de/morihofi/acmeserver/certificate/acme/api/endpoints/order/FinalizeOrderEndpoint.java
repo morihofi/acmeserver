@@ -47,6 +47,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         super(provisioner);
     }
 
+    @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");

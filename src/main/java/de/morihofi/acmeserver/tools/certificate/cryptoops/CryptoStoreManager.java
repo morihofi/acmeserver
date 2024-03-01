@@ -3,6 +3,7 @@ package de.morihofi.acmeserver.tools.certificate.cryptoops;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.IKeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
+import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.Vector;
 
 /**
  * The CryptoStoreManager class manages cryptographic operations, including loading and saving
@@ -52,6 +54,11 @@ public class CryptoStoreManager {
      * The loaded keystore instance for cryptographic operations.
      */
     private KeyStore keyStore;
+
+    /**
+     * Instance for referencing all certificate renew watchers
+     */
+    private Vector<CertificateRenewWatcher> certificateRenewWatchers = new Vector<>();
 
     public static String getKeyStoreAliasForProvisionerIntermediate(String provisioner) {
         return KEYSTORE_ALIASPREFIX_INTERMEDIATECA + provisioner;
@@ -160,4 +167,9 @@ public class CryptoStoreManager {
     }
 
 
+
+
+    public Vector<CertificateRenewWatcher> getCertificateRenewWatchers() {
+        return certificateRenewWatchers;
+    }
 }

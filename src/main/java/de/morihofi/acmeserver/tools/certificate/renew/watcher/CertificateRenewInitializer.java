@@ -31,7 +31,7 @@ public class CertificateRenewInitializer {
      */
     public static void initializeIntermediateCertificateRenewWatcher(CryptoStoreManager cryptoStoreManager, String alias, Provisioner provisioner, ProvisionerConfig provisionerCfg) {
         log.info("Initializing renew watcher for intermediate ca of {} provisioner", provisioner.getProvisionerName());
-        new CertificateRenewWatcher(
+        CertificateRenewWatcher watcher = new CertificateRenewWatcher(
                 cryptoStoreManager,
                 alias,
                 6, TimeUnit.HOURS,
@@ -51,6 +51,7 @@ public class CertificateRenewInitializer {
                     }
                 }
         );
+        cryptoStoreManager.getCertificateRenewWatchers().add(watcher);
     }
 
 }

@@ -283,6 +283,7 @@ public class AcmeApiServer {
                         log.error("Error renewing certificates", e);
                     }
                 });
+                cryptoStoreManager.getCertificateRenewWatchers().add(watcher);
 
 
             }
