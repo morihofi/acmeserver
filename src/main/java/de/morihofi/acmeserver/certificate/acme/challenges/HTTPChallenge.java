@@ -37,8 +37,6 @@ public class HTTPChallenge {
     private static String proxyUser = "";
     private static String proxyPassword = "";
 
-    private static Proxy proxy;
-
 
     /**
      * Retrieves and configures an HTTP challenge proxy based on application settings.
@@ -52,6 +50,7 @@ public class HTTPChallenge {
             case "http" -> Proxy.Type.HTTP;
             default -> Proxy.Type.DIRECT;
         };
+        Proxy proxy = Proxy.NO_PROXY;
 
         try {
             proxyPort = Main.appConfig.getProxy().getHttpChallenge().getPort();
