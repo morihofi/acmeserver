@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects;
 
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.NewAccountEndpoint;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.List;
 
@@ -8,6 +9,7 @@ import java.util.List;
  * Represents the response structure for an ACME account, used primarily in the {@link NewAccountEndpoint}.
  * This class encapsulates the account details such as its status, contact information, and a link to the order endpoint.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class AccountResponse {
 
     /**

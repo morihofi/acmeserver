@@ -1,10 +1,13 @@
 package de.morihofi.acmeserver.config.proxy;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.io.Serializable;
 
 /**
  * Represents an HTTP challenge configuration.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class HttpChallenge implements Serializable {
     private Integer port;
 

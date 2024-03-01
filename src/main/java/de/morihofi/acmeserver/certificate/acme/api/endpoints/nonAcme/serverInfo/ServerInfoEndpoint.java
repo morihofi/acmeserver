@@ -6,6 +6,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ProvisionerResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class ServerInfoEndpoint implements Handler {
 
     /**

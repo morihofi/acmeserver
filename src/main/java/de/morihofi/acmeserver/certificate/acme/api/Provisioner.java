@@ -19,6 +19,7 @@ import java.security.cert.X509Certificate;
  * The Provisioner class is responsible for handling various aspects of certificate provisioning and management,
  * ensuring adherence to specified security and operational policies.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class Provisioner {
 
 

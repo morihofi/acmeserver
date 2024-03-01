@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver.database.objects;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -10,6 +11,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "accounts")
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ACMEAccount implements Serializable {
 
     @Id

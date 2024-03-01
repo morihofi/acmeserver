@@ -1,5 +1,7 @@
 package de.morihofi.acmeserver.config;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.io.Serializable;
 import java.lang.Boolean;
 import java.lang.String;
@@ -8,6 +10,7 @@ import java.util.List;
 /**
  * Represents configuration for domain name restrictions, including a list of required suffixes and an enabled flag.
  */
+@SuppressFBWarnings("EI_EXPOSE_REP")
 public class DomainNameRestrictionConfig implements Serializable {
   private List<String> mustEndWith;
   private Boolean enabled;

@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects;
 
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.AccountEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.NewAccountEndpoint;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.List;
 
@@ -9,6 +10,7 @@ import java.util.List;
  * Represents the HTTP request body for creating or managing an account in the {@link AccountEndpoint} and {@link NewAccountEndpoint}.
  * This class encapsulates the details required for ACME account operations, such as contact information and agreement to terms of service.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ACMEAccountRequestPayload {
 
     /**

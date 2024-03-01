@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * by providing appropriate HTTP statuses and headers, including a new
  * "Replay-Nonce" header generated using the provided ACMEProvisioner.
  */
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class NewNonceEndpoint implements Handler {
     /**
      * Instance for accessing the current provisioner

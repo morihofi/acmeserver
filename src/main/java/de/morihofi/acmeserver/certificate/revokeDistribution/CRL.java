@@ -4,6 +4,7 @@ import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateRevokationListGenerator;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.security.cert.CRLException;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  * This class handles the generation of CRLs based on revoked certificates and maintains
  * a cache of the current CRL. It also schedules regular updates to the CRL.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class CRL {
 
     private volatile byte[] currentCrlBytes = null;

@@ -1,12 +1,14 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects;
 
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.List;
 
 /**
  * Represents a response from the ACME server for an order request.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ACMEOrderResponse {
     private String status;
     private String expires;

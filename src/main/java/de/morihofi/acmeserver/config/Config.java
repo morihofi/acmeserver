@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.config;
 
 import de.morihofi.acmeserver.config.keyStoreHelpers.KeyStoreParams;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serializable;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
 /**
  * Represents a configuration for a system with various components.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class Config implements Serializable {
   private List<ProvisionerConfig> provisioner;
   private KeyStoreParams keyStore;

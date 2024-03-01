@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.objects;
 
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.NewOrderEndpoint;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
  * It includes information such as the order status, expiration, validity period, identifiers,
  * authorization details, and finalization URL.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class NewOrderResponse {
     private String status;
     private String expires;

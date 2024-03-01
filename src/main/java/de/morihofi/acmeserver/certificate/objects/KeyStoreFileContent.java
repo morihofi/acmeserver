@@ -1,5 +1,7 @@
 package de.morihofi.acmeserver.certificate.objects;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 
@@ -7,6 +9,7 @@ import java.security.cert.X509Certificate;
  * Represents the contents of a KeyStore file.
  * This class encapsulates a key pair, a certificate, and the alias used for the certificate within the KeyStore.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class KeyStoreFileContent {
     private final KeyPair keyPair;
     private final X509Certificate cert;

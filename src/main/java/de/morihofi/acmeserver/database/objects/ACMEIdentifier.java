@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.database.objects;
 
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -12,6 +13,7 @@ import java.sql.Timestamp;
  */
 @Entity
 @Table(name = "orderidentifiers")
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ACMEIdentifier implements Serializable {
 
     @Id

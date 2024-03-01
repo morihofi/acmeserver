@@ -1,5 +1,7 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution.objects;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.math.BigInteger;
 import java.util.Date;
 
@@ -8,6 +10,7 @@ import java.util.Date;
  * This class stores information about a certificate that has been revoked,
  * including its serial number, the date of revocation, and the reason for revocation.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class RevokedCertificate {
     private BigInteger serialNumber;
     private Date revokationDate;

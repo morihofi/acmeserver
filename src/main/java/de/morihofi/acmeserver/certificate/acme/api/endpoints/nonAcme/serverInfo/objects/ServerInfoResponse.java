@@ -1,5 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.List;
 
 
@@ -7,6 +9,7 @@ import java.util.List;
  * Represents the response structure for server information.
  * This class encapsulates details about the server, including metadata information and a list of provisioners.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ServerInfoResponse {
 
     /**

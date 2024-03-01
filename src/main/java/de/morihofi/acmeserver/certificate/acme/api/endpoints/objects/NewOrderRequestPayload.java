@@ -4,12 +4,14 @@
 
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.objects;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.NewOrderEndpoint;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.List;
 
 /**
  * Request payload object for a new order, used in {@link NewOrderEndpoint}
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class NewOrderRequestPayload {
 
     /**
@@ -35,6 +37,7 @@ public class NewOrderRequestPayload {
      *
      * @param value A list of {@link Identifier} objects to set as the new identifiers.
      */
+
     public void setIdentifiers(List<Identifier> value) {
         this.identifiers = value;
     }

@@ -1,11 +1,14 @@
 package de.morihofi.acmeserver.config;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.io.Serializable;
 
 /**
  * Represents configuration for a provisioner, including its name, intermediate certificate, metadata, issued certificate expiration,
  * domain name restrictions, and wildcard allowance.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ProvisionerConfig implements Serializable {
     private String name;
     private boolean useThisProvisionerIntermediateForAcmeApi;

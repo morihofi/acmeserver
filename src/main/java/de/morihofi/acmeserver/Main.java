@@ -19,6 +19,7 @@ import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGe
 import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
 import de.morihofi.acmeserver.tools.cli.CLIArgument;
 import de.morihofi.acmeserver.tools.path.AppDirectoryHelper;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -50,19 +51,25 @@ public class Main {
      */
     public static final Path FILES_DIR = Paths.get(Objects.requireNonNull(AppDirectoryHelper.getAppDirectory())).resolve("serverdata").toAbsolutePath();
 
+    @SuppressFBWarnings({"MS_PKGPROTECT"})
     public static CryptoStoreManager cryptoStoreManager;
 
     //Build Metadata
+    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataVersion;
+    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataBuildTime;
+    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataGitCommit;
 
+    @SuppressFBWarnings({"MS_PKGPROTECT", "MS_CANNOT_BE_FINAL"})
     public static Config appConfig;
 
     public static enum MODE {
         NORMAL, POSTSETUP, KEYSTORE_MIGRATION_PEM2KS
     }
 
+    @SuppressFBWarnings("MS_PKGPROTECT")
     public static MODE selectedMode = MODE.NORMAL;
 
     public static void main(String[] args) throws Exception {

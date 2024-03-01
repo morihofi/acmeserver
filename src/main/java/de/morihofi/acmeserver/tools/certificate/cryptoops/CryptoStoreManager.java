@@ -23,6 +23,7 @@ import java.util.Vector;
  * key stores, providing access to key pairs, and handling various keystore configurations.
  * It supports both PKCS#11 and PKCS#12 keystore configurations.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class CryptoStoreManager {
 
     /**

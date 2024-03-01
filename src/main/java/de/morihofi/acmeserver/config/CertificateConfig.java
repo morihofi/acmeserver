@@ -1,12 +1,14 @@
 package de.morihofi.acmeserver.config;
 
 import de.morihofi.acmeserver.config.certificateAlgorithms.AlgorithmParams;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serializable;
 
 /**
  * Represents a configuration for certificates.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class CertificateConfig implements Serializable {
     private CertificateMetadata metadata;
     private AlgorithmParams algorithm;
@@ -24,6 +26,7 @@ public class CertificateConfig implements Serializable {
      * Set the metadata for the certificate.
      * @param metadata The certificate metadata to set.
      */
+
     public void setMetadata(CertificateMetadata metadata) {
         this.metadata = metadata;
     }

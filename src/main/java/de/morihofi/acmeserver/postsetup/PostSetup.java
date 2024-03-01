@@ -14,6 +14,7 @@ import de.morihofi.acmeserver.postsetup.inputcheck.InputChecker;
 import de.morihofi.acmeserver.postsetup.inputcheck.PortInputChecker;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.password.SecurePasswordGenerator;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
@@ -29,6 +30,7 @@ import java.util.List;
  * The PostSetup class represents the post-setup configuration assistant for the ACME server.
  * It allows users to configure server settings.
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP2"})
 public class PostSetup extends WindowBase {
 
     private final CryptoStoreManager cryptoStoreManager;
