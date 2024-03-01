@@ -42,20 +42,7 @@ public class OcspHelper {
      * @throws OperatorCreationException if there is an issue with operator creation.
      */
     public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRL crlGenerator, Provisioner provisioner) throws OCSPException, CRLException, CertificateEncodingException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
-        X509CRL crl = crlGenerator.getCurrentCrl(); // Current CRL
-
-        CertificateStatus certStatus;
-        X509CRLEntry revokedCertificate = crl.getRevokedCertificate(serialNumber);
-        // Checking the certificate status using the CRL
-        if (revokedCertificate != null) {
-            // Certificate has been revoked
-            Date revocationDate = revokedCertificate.getRevocationDate();
-            int revocationReason = revokedCertificate.hasExtensions() ? revokedCertificate.getRevocationReason().ordinal() : CRLReason.unspecified;
-            certStatus = new RevokedStatus(revocationDate, revocationReason);
-        } else {
-            // Certificate is valid
-            certStatus = CertificateStatus.GOOD;
-        }
+        CertificateStatus certStatus = getCertificateStatus(serialNumber, crlGenerator);
 
         log.info("Status for serial number {} is: {}", serialNumber, (certStatus != null ? "revoked" : "valid"));
 
@@ -77,5 +64,40 @@ public class OcspHelper {
                 new Date());
 
         return new OCSPRespBuilder().build(OCSPRespBuilder.SUCCESSFUL, basicResp);
+    }
+
+    /**
+     * Determines the status of a certificate by its serial number, using a provided Certificate Revocation List (CRL).
+     * This method checks if the specified certificate has been revoked according to the current CRL provided by the
+     * {@code crlGenerator}. If the certificate is found in the CRL, it is considered revoked, and the method returns a
+     * {@link RevokedStatus} instance containing the revocation date and reason. If the certificate is not found in the CRL,
+     * it is considered valid, and the method returns {@link CertificateStatus#GOOD}.
+     * <p>
+     * The method uses the {@code serialNumber} to look up the certificate in the CRL. The revocation reason is determined
+     * by checking if the revoked certificate entry has extensions; if so, it uses the ordinal of the {@link CRLReason} enum
+     * value. If there are no extensions, the reason defaults to {@code CRLReason.unspecified}.
+     *
+     * @param serialNumber The serial number of the certificate to check the status for.
+     * @param crlGenerator The CRL generator instance used to obtain the current CRL.
+     * @return A {@link CertificateStatus} indicating whether the certificate is valid or revoked. If revoked, additional
+     *         details such as the revocation date and reason are provided.
+     * @throws CRLException If there is an issue obtaining the current CRL from the {@code crlGenerator}.
+     */
+    private static CertificateStatus getCertificateStatus(BigInteger serialNumber, CRL crlGenerator) throws CRLException {
+        X509CRL crl = crlGenerator.getCurrentCrl(); // Current CRL
+
+        CertificateStatus certStatus;
+        X509CRLEntry revokedCertificate = crl.getRevokedCertificate(serialNumber);
+        // Checking the certificate status using the CRL
+        if (revokedCertificate != null) {
+            // Certificate has been revoked
+            Date revocationDate = revokedCertificate.getRevocationDate();
+            int revocationReason = revokedCertificate.hasExtensions() ? revokedCertificate.getRevocationReason().ordinal() : CRLReason.unspecified;
+            certStatus = new RevokedStatus(revocationDate, revocationReason);
+        } else {
+            // Certificate is valid
+            certStatus = CertificateStatus.GOOD;
+        }
+        return certStatus;
     }
 }

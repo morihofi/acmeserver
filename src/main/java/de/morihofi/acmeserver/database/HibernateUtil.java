@@ -5,6 +5,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
+import org.jetbrains.annotations.NotNull;
 import org.reflections.Reflections;
 
 import jakarta.persistence.*;
@@ -32,27 +33,7 @@ public class HibernateUtil {
             };
 
             try {
-                Configuration configuration = new Configuration();
-
-                // Settings based on the selected database
-                switch (dbType) {
-                    case H2 -> {
-                        configuration.setProperty(Environment.DRIVER, "org.h2.Driver");
-                        configuration.setProperty(Environment.URL, "jdbc:h2:" + Main.appConfig.getDatabase().getName() + ";DB_CLOSE_DELAY=-1");
-                        configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.H2Dialect");
-                    }
-                    case MARIADB -> {
-                        configuration.setProperty(Environment.DRIVER, "org.mariadb.jdbc.Driver");
-                        configuration.setProperty(Environment.URL, "jdbc:mariadb://" + Main.appConfig.getDatabase().getHost() + "/" + Main.appConfig.getDatabase().getName());
-                        configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.MariaDBDialect");
-                    }
-                }
-                configuration.setProperty(Environment.USER, Main.appConfig.getDatabase().getUser());
-                configuration.setProperty(Environment.PASS, Main.appConfig.getDatabase().getPassword());
-                configuration.setProperty(Environment.SHOW_SQL, "true");
-                configuration.setProperty(Environment.HBM2DDL_AUTO, "update");
-
-                configuration.setProperty(Environment.ENABLE_LAZY_LOAD_NO_TRANS, "true");
+                Configuration configuration = getConfigurationFor(dbType);
 
                 // Scan Entity classes
                 Reflections reflections = new Reflections("de.morihofi.acmeserver");
@@ -68,6 +49,52 @@ public class HibernateUtil {
                 throw new ExceptionInInitializerError(e);
             }
         }
+    }
+
+    /**
+     * Retrieves a {@link Configuration} object configured for a specific {@link DatabaseType}. This
+     * method configures the database connection properties based on the type of database specified
+     * by {@code dbType}. It sets properties such as the JDBC driver, connection URL, dialect, as well
+     * as user credentials and additional Hibernate settings.
+     * <p>
+     * The method supports configuration for H2 and MariaDB databases. Depending on the {@code dbType},
+     * it sets the appropriate JDBC driver, URL format, and Hibernate dialect. Common settings like
+     * username, password, SQL logging, schema auto-update, and lazy loading are configured for all
+     * database types.
+     * <p>
+     * Note: The database name, host, user, and password are obtained from the application's main
+     * configuration, accessed via {@code Main.appConfig.getDatabase()}.
+     *
+     * @param dbType The {@link DatabaseType} enum indicating the type of database for which the
+     *               configuration is to be created.
+     * @return A {@link Configuration} object with properties set according to the specified
+     *         {@code dbType} and the application's main configuration.
+     * @throws NullPointerException if {@code dbType} is null.
+     */
+    @NotNull
+    private static Configuration getConfigurationFor(DatabaseType dbType) {
+        Configuration configuration = new Configuration();
+
+        // Settings based on the selected database
+        switch (dbType) {
+            case H2 -> {
+                configuration.setProperty(Environment.DRIVER, "org.h2.Driver");
+                configuration.setProperty(Environment.URL, "jdbc:h2:" + Main.appConfig.getDatabase().getName() + ";DB_CLOSE_DELAY=-1");
+                configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.H2Dialect");
+            }
+            case MARIADB -> {
+                configuration.setProperty(Environment.DRIVER, "org.mariadb.jdbc.Driver");
+                configuration.setProperty(Environment.URL, "jdbc:mariadb://" + Main.appConfig.getDatabase().getHost() + "/" + Main.appConfig.getDatabase().getName());
+                configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.MariaDBDialect");
+            }
+        }
+        configuration.setProperty(Environment.USER, Main.appConfig.getDatabase().getUser());
+        configuration.setProperty(Environment.PASS, Main.appConfig.getDatabase().getPassword());
+        configuration.setProperty(Environment.SHOW_SQL, "true");
+        configuration.setProperty(Environment.HBM2DDL_AUTO, "update");
+
+        configuration.setProperty(Environment.ENABLE_LAZY_LOAD_NO_TRANS, "true");
+        return configuration;
     }
 
     /**

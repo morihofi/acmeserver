@@ -19,6 +19,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -53,26 +54,7 @@ public class CertificateAuthorityGenerator {
         calendar.add(Calendar.MONTH, certificateConfig.getExpiration().getMonths());
         calendar.add(Calendar.DATE, certificateConfig.getExpiration().getDays());
 
-        String organisation = certificateConfig.getMetadata().getOrganisation();
-        String organisationalUnit = certificateConfig.getMetadata().getOrganisationalUnit();
-        String countryCode = certificateConfig.getMetadata().getCountryCode();
-
-        if (certificateConfig.getMetadata().getCommonName() == null || "".equals(certificateConfig.getMetadata().getCommonName())) {
-            throw new IllegalArgumentException("A common name is required in root CA. Please change it in your settings.");
-        }
-        String issuerNameString = "CN=" + certificateConfig.getMetadata().getCommonName();
-        if (organisation != null && !organisation.isEmpty()) {
-            issuerNameString += ", O=" + organisation;
-        }
-        if (organisationalUnit != null && !organisationalUnit.isEmpty()) {
-            issuerNameString += ", OU=" + organisationalUnit;
-        }
-        if (countryCode != null && !countryCode.isEmpty()) {
-            issuerNameString += ", C=" + countryCode;
-        }
-
-
-        X500Name issuerName = new X500Name(issuerNameString);
+        X500Name issuerName = getX500Name(certificateConfig.getMetadata(), "A common name is required in root CA. Please change it in your settings.");
         BigInteger serialNumber = CertMisc.generateSerialNumber();
 
         X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(
@@ -99,6 +81,53 @@ public class CertificateAuthorityGenerator {
         X509CertificateHolder certHolder = certBuilder.build(signer);
 
         return new JcaX509CertificateConverter().getCertificate(certHolder);
+    }
+
+    /**
+     * Constructs an {@link X500Name} instance for a certificate issuer based on the provided
+     * {@link CertificateMetadata} and a string identifier. The {@link X500Name} includes information
+     * such as Common Name (CN), Organisation (O), Organisational Unit (OU), and Country Code (C).
+     * <p>
+     * This method validates the Common Name (CN) from the provided {@code certificateConfig}.
+     * If the Common Name is null or empty, it throws an {@link IllegalArgumentException} with
+     * the provided {@code s} as the message.
+     * <p>
+     * The resulting {@link X500Name} is built by concatenating the validated and non-empty fields
+     * from {@code certificateConfig}, formatted according to the X.500 standard.
+     *
+     * @param certificateConfig The {@link CertificateMetadata} containing the certificate
+     *                          configuration details such as organisation, organisational unit,
+     *                          country code, and common name.
+     * @param s                 A {@link String} message to be used in the exception thrown if the
+     *                          Common Name is missing or invalid.
+     * @return                  An {@link X500Name} instance representing the issuer's name, constructed
+     *                          from the provided {@code certificateConfig}.
+     * @throws IllegalArgumentException if the Common Name (CN) in {@code certificateConfig} is null or empty.
+     * @see CertificateMetadata for details on the metadata used to construct the {@link X500Name}.
+     */
+    @NotNull
+    private static X500Name getX500Name(CertificateMetadata certificateConfig, String s) {
+        String organisation = certificateConfig.getOrganisation();
+        String organisationalUnit = certificateConfig.getOrganisationalUnit();
+        String countryCode = certificateConfig.getCountryCode();
+
+        if (certificateConfig.getCommonName() == null || "".equals(certificateConfig.getCommonName())) {
+            throw new IllegalArgumentException(s);
+        }
+        String issuerNameString = "CN=" + certificateConfig.getCommonName();
+        if (organisation != null && !organisation.isEmpty()) {
+            issuerNameString += ", O=" + organisation;
+        }
+        if (organisationalUnit != null && !organisationalUnit.isEmpty()) {
+            issuerNameString += ", OU=" + organisationalUnit;
+        }
+        if (countryCode != null && !countryCode.isEmpty()) {
+            issuerNameString += ", C=" + countryCode;
+        }
+
+
+        X500Name issuerName = new X500Name(issuerNameString);
+        return issuerName;
     }
 
     /**
@@ -138,25 +167,7 @@ public class CertificateAuthorityGenerator {
         calendar.add(Calendar.DATE, expiration.getDays());
         Date endDate = calendar.getTime();
 
-        String organisation = certificateMetadata.getOrganisation();
-        String organisationalUnit = certificateMetadata.getOrganisationalUnit();
-        String countryCode = certificateMetadata.getCountryCode();
-
-        if (certificateMetadata.getCommonName() == null || "".equals(certificateMetadata.getCommonName())) {
-            throw new IllegalArgumentException("A common name is required in intermediate CA. Please change it in your settings.");
-        }
-        String issuerNameString = "CN=" + certificateMetadata.getCommonName();
-        if (organisation != null && !organisation.isEmpty()) {
-            issuerNameString += ", O=" + organisation;
-        }
-        if (organisationalUnit != null && !organisationalUnit.isEmpty()) {
-            issuerNameString += ", OU=" + organisationalUnit;
-        }
-        if (countryCode != null && !countryCode.isEmpty()) {
-            issuerNameString += ", C=" + countryCode;
-        }
-
-        X500Name subjectName = new X500Name(issuerNameString);
+        X500Name subjectName = getX500Name(certificateMetadata, "A common name is required in intermediate CA. Please change it in your settings.");
         X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(
                 issuerName, serialNumber, startDate, endDate, subjectName,
                 SubjectPublicKeyInfo.getInstance(intermediateKeyPair.getPublic().getEncoded())
