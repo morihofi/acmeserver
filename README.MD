@@ -1,4 +1,9 @@
 # ACME Server
+[![Get latest Release here](https://img.shields.io/badge/Get_lastest_Release-here-blue?style=flat)
+](https://github.com/morihofi/acmeserver/releases/latest) 
+[![Report a bug](https://img.shields.io/badge/Report_a-bug-red?style=flat)
+](https://github.com/morihofi/acmeserver/issues)
+
 This is a proof-of-concept Automatic Certificate Management Environment (ACME) Server, fully written in Java
 
 - Java 17 and up
