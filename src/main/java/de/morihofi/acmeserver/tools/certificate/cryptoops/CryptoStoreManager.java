@@ -59,7 +59,7 @@ public class CryptoStoreManager {
     /**
      * Instance for referencing all certificate renew watchers
      */
-    private Vector<CertificateRenewWatcher> certificateRenewWatchers = new Vector<>();
+    private final Vector<CertificateRenewWatcher> certificateRenewWatchers = new Vector<>();
 
     public static String getKeyStoreAliasForProvisionerIntermediate(String provisioner) {
         return KEYSTORE_ALIASPREFIX_INTERMEDIATECA + provisioner;

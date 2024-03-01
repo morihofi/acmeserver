@@ -92,9 +92,7 @@ public class Identifier {
                 case "ip" -> {
                     return IP;
                 }
-                default -> {
-                    throw new IllegalArgumentException("Unknown or unsupported identifier type " + name);
-                }
+                default -> throw new IllegalArgumentException("Unknown or unsupported identifier type " + name);
             }
         }
     }

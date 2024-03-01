@@ -65,7 +65,7 @@ public class Main {
     @SuppressFBWarnings({"MS_PKGPROTECT", "MS_CANNOT_BE_FINAL"})
     public static Config appConfig;
 
-    public static enum MODE {
+    public enum MODE {
         NORMAL, POSTSETUP, KEYSTORE_MIGRATION_PEM2KS
     }
 

@@ -64,4 +64,12 @@ public class CLIArgument {
     public String getValue() {
         return value;
     }
+
+    /**
+     * Get the prefix
+     * @return command prefix
+     */
+    public String getPrefix() {
+        return prefix;
+    }
 }
