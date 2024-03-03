@@ -361,7 +361,6 @@ public class Database {
      */
     public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId, Provisioner provisioner) throws CertificateEncodingException, IOException, KeyStoreException {
         StringBuilder pemBuilder = new StringBuilder();
-        boolean certFound = false;
 
         // Get Issued certificate
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
@@ -373,10 +372,14 @@ public class Database {
             Object result = query.getSingleResult();
 
             if (result instanceof ACMEIdentifier acmeIdentifier) {
-                certFound = true;
+
 
                 String certificatePEM = acmeIdentifier.getCertificatePem();
                 Date certificateExpires = acmeIdentifier.getCertificateExpires();
+
+                if(certificatePEM == null){
+                    throw new IllegalArgumentException("No certificate was found for authorization id \"" + authorizationId + "\". Have you already submitted a CSR? There is no certificate without a CSR.");
+                }
 
                 log.info("Getting Certificate for authorization Id {} -> Expires at {}", authorizationId, certificateExpires);
 
@@ -386,9 +389,7 @@ public class Database {
             transaction.commit();
         }
 
-        if (!certFound) {
-            throw new IllegalArgumentException("No certificate was found for authorization id \"" + authorizationId + "\"");
-        }
+
 
         //Certificate chain
         log.info("Adding Intermediate and CA certificate");
@@ -411,6 +412,7 @@ public class Database {
 
 
         log.info("Returning certificate chain {}", certificateChain);
+
         return pemBuilder.toString();
     }
 
