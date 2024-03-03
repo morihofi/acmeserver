@@ -23,7 +23,7 @@ public class HibernateUtil {
      * Initializes the database connection and Hibernate configuration.
      * This method should be called once during application startup.
      */
-    public static void initDatabase(){
+    public static void initDatabase() {
         if (sessionFactory == null) {
             DatabaseType dbType = switch (Main.appConfig.getDatabase().getEngine().toLowerCase(Locale.ROOT)) {
                 case "h2" -> DatabaseType.H2;
@@ -68,7 +68,7 @@ public class HibernateUtil {
      * @param dbType The {@link DatabaseType} enum indicating the type of database for which the
      *               configuration is to be created.
      * @return A {@link Configuration} object with properties set according to the specified
-     *         {@code dbType} and the application's main configuration.
+     * {@code dbType} and the application's main configuration.
      * @throws NullPointerException if {@code dbType} is null.
      */
     @NotNull
@@ -90,7 +90,7 @@ public class HibernateUtil {
         }
         configuration.setProperty(Environment.USER, Main.appConfig.getDatabase().getUser());
         configuration.setProperty(Environment.PASS, Main.appConfig.getDatabase().getPassword());
-        configuration.setProperty(Environment.SHOW_SQL, "true");
+       // configuration.setProperty(Environment.SHOW_SQL, "true");
         configuration.setProperty(Environment.HBM2DDL_AUTO, "update");
 
         configuration.setProperty(Environment.ENABLE_LAZY_LOAD_NO_TRANS, "true");
@@ -99,6 +99,7 @@ public class HibernateUtil {
 
     /**
      * Get the Hibernate SessionFactory for database operations.
+     *
      * @return The SessionFactory instance.
      */
     public static SessionFactory getSessionFactory() {

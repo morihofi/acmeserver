@@ -51,6 +51,15 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         // Check signature and nonce
         performSignatureAndNonceCheck(ctx, identifier.getOrder().getAccount(), acmeRequestBody);
 
+        {
+            //TODO: Let user decide to enable compatibility mode or not for cases like this
+
+            // This is a bugfix for Win ACME (https://www.win-acme.com/),
+            // cause it sends HTTP_01 instead of HTTP-01 which is RFC compliant
+            challengeType = challengeType.toLowerCase().replace("http_01","http-01");
+            challengeType = challengeType.toLowerCase().replace("dns_01","dns-01"); //Same goes for DNS-01
+        }
+
         boolean isWildcardDomain = false;
         String nonWildcardDomain = identifier.getDataValue();
         if (nonWildcardDomain.startsWith("*.")) {
