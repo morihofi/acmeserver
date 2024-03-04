@@ -56,12 +56,16 @@ This version is not fully RFC 8555 compliant, but should work with most clients.
 - [acme.sh](https://github.com/acmesh-official/acme.sh)
 - [Certbot](https://certbot.eff.org)
 - [Traefik](https://github.com/traefik/traefik)
-- [win-acme](https://www.win-acme.com/) (using compatibility fix)
+- [win-acme](https://www.win-acme.com/)
 
 ## 💻 Tested Operating Systems
 - Debian 11, 12
 - Windows 10
 - FreeBSD 13.2
+
+## 🐛 Debug Mode
+Enable debug mode by set environment variable `DEBUG` to `TRUE` or start ACME Server with `--debug`.
+Do not use this in production as it disables some security mechanisms and can lead to misuse of your CA.
 
 ## 🌟 Use Cases for a Self-Hosted ACME Server
 

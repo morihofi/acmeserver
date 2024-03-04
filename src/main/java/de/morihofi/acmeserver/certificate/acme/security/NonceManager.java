@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver.certificate.acme.security;
 
+import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.HttpNonces;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadNonceException;
@@ -46,7 +47,7 @@ public class NonceManager {
      */
     public static boolean isNonceUsed(String nonce) {
 
-        if(Objects.equals(System.getenv("DEBUG"), "TRUE")){
+        if(Main.debug){
             //Nonce protection is disabled when DEBUG environment variable is set to TRUE
             return false;
         }
