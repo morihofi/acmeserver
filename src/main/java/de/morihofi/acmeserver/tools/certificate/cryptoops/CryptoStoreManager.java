@@ -61,6 +61,12 @@ public class CryptoStoreManager {
      */
     private final Vector<CertificateRenewWatcher> certificateRenewWatchers = new Vector<>();
 
+    /**
+     * Check if the ACME Server is running for the first time, so the user can upload its existing CA
+     */
+    private boolean firstRun = false;
+
+
     public static String getKeyStoreAliasForProvisionerIntermediate(String provisioner) {
         return KEYSTORE_ALIASPREFIX_INTERMEDIATECA + provisioner;
     }
@@ -88,6 +94,10 @@ public class CryptoStoreManager {
 
             log.info("Using PKCS#11 KeyStore with native library at {} with slot {}", libraryLocation, pkcs11Config.getSlot());
             keyStore = PKCS11KeyStoreLoader.loadPKCS11Keystore(pkcs11Config.getPassword(), pkcs11Config.getSlot(), libraryLocation);
+
+            if(!keyStore.containsAlias(KEYSTORE_ALIAS_ROOTCA)){
+                firstRun = true;
+            }
         }
         if (keyStoreConfig instanceof PKCS12KeyStoreConfig pkcs12Config) {
             log.info("Using PKCS#12 KeyStore at {}", pkcs12Config.getPath().toAbsolutePath().toString());
@@ -102,7 +112,14 @@ public class CryptoStoreManager {
                 // Otherwise, initialize a new KeyStore
                 log.info("KeyStore does not exist, creating new KeyStore");
                 keyStore.load(null, pkcs12Config.getPassword().toCharArray());
+
+                firstRun = true;
             }
+        }
+
+
+        if(firstRun){
+            log.info("KeyStore is used for the first time");
         }
     }
 
@@ -167,8 +184,21 @@ public class CryptoStoreManager {
         }
     }
 
+    /**
+     * Returns if the keystore is used the first time
+     * @return is running first time
+     */
+    public boolean isFirstRun() {
+        return firstRun;
+    }
 
-
+    /**
+     * Sets the first-run in the keystore manager to false, so you can't update
+     */
+    public void disableFirstRunFlag(){
+        firstRun = false;
+        log.info("KeyStore first time use has been disabled (if not been done before)");
+    }
 
     public Vector<CertificateRenewWatcher> getCertificateRenewWatchers() {
         return certificateRenewWatchers;
