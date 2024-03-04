@@ -39,6 +39,14 @@ public class ServerInfoEndpoint implements Handler {
     public void handle(@NotNull Context ctx) throws Exception {
         ctx.header("Content-Type", "application/json");
 
+        ServerInfoResponse responseData = getServerInfoResponse(provisionerConfigList);
+
+        Gson gson = new Gson();
+        String jsonResponse = gson.toJson(responseData);
+        ctx.result(jsonResponse);
+    }
+
+    public static ServerInfoResponse getServerInfoResponse(List<ProvisionerConfig> provisionerConfigList) {
         MetadataInfoResponse metadataInfo = new MetadataInfoResponse();
         metadataInfo.setVersion(Main.buildMetadataVersion);
         metadataInfo.setBuildTime(Main.buildMetadataBuildTime);
@@ -57,8 +65,7 @@ public class ServerInfoEndpoint implements Handler {
         responseData.setMetadataInfo(metadataInfo);
         responseData.setProvisioners(provisioners);
 
-        Gson gson = new Gson();
-        String jsonResponse = gson.toJson(responseData);
-        ctx.result(jsonResponse);
+        return responseData;
     }
+
 }

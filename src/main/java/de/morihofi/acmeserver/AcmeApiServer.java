@@ -9,6 +9,9 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.AuthzOwnershi
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.ChallengeCallbackEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.download.DownloadCaEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.ServerInfoEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.MetadataInfoResponse;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ProvisionerResponse;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
@@ -32,6 +35,7 @@ import de.morihofi.acmeserver.tools.network.JettySslHelper;
 import de.morihofi.acmeserver.tools.regex.ConfigCheck;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
+import io.javalin.rendering.template.JavalinJte;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -43,6 +47,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class AcmeApiServer {
@@ -68,10 +73,14 @@ public class AcmeApiServer {
         log.info("Initializing database");
         HibernateUtil.initDatabase();
 
+        //log.info("Initializing JTE Template Engine");
+        //JavalinJte.init();
+
         log.info("Starting ACME API WebServer");
         Javalin app = Javalin.create(javalinConfig -> {
             //TODO: Make it compatible again with modules
             javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
+            javalinConfig.fileRenderer(new JavalinJte());
         });
 
 
@@ -106,7 +115,9 @@ public class AcmeApiServer {
         app.get("/serverinfo", new ServerInfoEndpoint(appConfig.getProvisioner()));
         app.get("/ca.crt", new DownloadCaEndpoint(cryptoStoreManager));
 
+
         List<Provisioner> provisioners = getProvisioners(appConfig.getProvisioner(), app, cryptoStoreManager, appConfig);
+        app.get("/",context -> context.render("index.jte", Map.of("serverInfoResponse", ServerInfoEndpoint.getServerInfoResponse(appConfig.getProvisioner()))));
 
 
         for (Provisioner provisioner : provisioners) {
@@ -163,6 +174,8 @@ public class AcmeApiServer {
 
             log.info("Provisioner {} registered", provisioner.getProvisionerName());
         }
+
+
         app.start();
         log.info("\u2705 Configure Routes completed. Ready for incoming requests");
     }
@@ -367,5 +380,8 @@ public class AcmeApiServer {
             return false;
         }
     }
+
+
+
 
 }
