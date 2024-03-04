@@ -38,6 +38,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.function.Consumer;
 
 public class Main {
 
@@ -68,6 +69,8 @@ public class Main {
     public enum MODE {
         NORMAL, POSTSETUP, KEYSTORE_MIGRATION_PEM2KS
     }
+
+    public static boolean debug = false;
 
     @SuppressFBWarnings("MS_PKGPROTECT")
     public static MODE selectedMode = MODE.NORMAL;
@@ -116,7 +119,24 @@ public class Main {
             if (cliArgument.getParameterName().equals("postsetup")) {
                 selectedMode = MODE.POSTSETUP;
             }
+            if (cliArgument.getParameterName().equals("debug")) {
+                debug = true;
+                log.info("Debug mode activated by cli argument");
+
+            }
         }
+
+
+        if(Objects.equals(System.getenv("DEBUG"), "TRUE")){
+            debug = true;
+            log.info("Debug mode activated by DEBUG environment variable set to TRUE");
+        }
+
+
+        if(debug){
+            log.warn("!!! RUNNING IN DEBUG MODE - BEHAVIOR CAN BE DIFFERENT. DO NOT USE IN PRODUCTION !!!");
+        }
+
 
         switch (selectedMode) {
             case NORMAL -> {
@@ -213,31 +233,30 @@ public class Main {
      * Loads build and Git metadata from resource files and populates corresponding variables.
      */
     private static void loadBuildAndGitMetadata() {
-        try (InputStream is = Main.class.getResourceAsStream("/build.properties")) {
-            if (is != null) {
-                Properties buildMetadataProperties = new Properties();
-                buildMetadataProperties.load(is);
-                buildMetadataVersion = buildMetadataProperties.getProperty("build.version");
-                buildMetadataBuildTime = buildMetadataProperties.getProperty("build.date") + " UTC";
-            } else {
-                log.warn("Unable to load build metadata");
-            }
-        } catch (Exception e) {
-            log.error("Unable to load build metadata", e);
-        }
-        try (InputStream is = Main.class.getResourceAsStream("/git.properties")) {
-            if (is != null) {
-                Properties gitMetadataProperties = new Properties();
-                gitMetadataProperties.load(is);
-                buildMetadataGitCommit = gitMetadataProperties.getProperty("git.commit.id.full");
-            } else {
-                log.warn("Unable to load git metadata");
-            }
+        loadMetadata("/build.properties", properties -> {
+            buildMetadataVersion = properties.getProperty("build.version");
+            buildMetadataBuildTime = properties.getProperty("build.date") + " UTC";
+        });
 
-        } catch (Exception e) {
-            log.error("Unable to load git metadata", e);
+        loadMetadata("/git.properties", properties -> {
+            buildMetadataGitCommit = properties.getProperty("git.commit.id.full");
+        });
+    }
+
+    private static void loadMetadata(String fileName, Consumer<Properties> propertiesConsumer) {
+        try (InputStream is = Main.class.getResourceAsStream(fileName)) {
+            if (is != null) {
+                Properties properties = new Properties();
+                properties.load(is);
+                propertiesConsumer.accept(properties);
+            } else {
+                log.warn("Unable to load metadata from {}", fileName);
+            }
+        } catch (IOException e) {
+            log.error("Unable to load metadata from " + fileName, e);
         }
     }
+
 
     /**
      * Initializes database drivers for MariaDB and H2.
