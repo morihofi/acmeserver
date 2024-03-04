@@ -90,7 +90,10 @@ public class HibernateUtil {
         }
         configuration.setProperty(Environment.USER, Main.appConfig.getDatabase().getUser());
         configuration.setProperty(Environment.PASS, Main.appConfig.getDatabase().getPassword());
-       // configuration.setProperty(Environment.SHOW_SQL, "true");
+        if (Main.debug) {
+            //Show verbose SQL only on debug
+            configuration.setProperty(Environment.SHOW_SQL, "true");
+        }
         configuration.setProperty(Environment.HBM2DDL_AUTO, "update");
 
         configuration.setProperty(Environment.ENABLE_LAZY_LOAD_NO_TRANS, "true");
