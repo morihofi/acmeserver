@@ -119,7 +119,7 @@ public class HTTPChallenge {
                     .build();
 
             if (log.isDebugEnabled()) {
-                log.debug("Performing GET request to \"" + request.url() + "\"");
+                log.debug("Performing GET request to \"{}\"", request.url());
             }
 
             // Execute the HTTP GET request and retrieve the response
