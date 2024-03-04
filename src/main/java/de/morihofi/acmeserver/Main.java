@@ -83,7 +83,6 @@ public class Main {
 
         printBanner();
 
-        System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
 
