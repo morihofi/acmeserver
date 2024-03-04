@@ -63,7 +63,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
 
         ACMEOrderResponse response = new ACMEOrderResponse();
         response.setExpires(DateTools.formatDateForACME(new Date()));
-        response.setStatus(allVerified ? "valid" : "pending");
+        response.setStatus(allVerified ? "ready" : "pending"); // instead of "ready", "valid" was used before. Ready means, that all authorizations are done
         response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
         response.setCertificate(provisioner.getApiURL() + "/acme/order/" + orderId + "/cert");
         response.setIdentifiers(identifierList);
