@@ -3,8 +3,10 @@
 @import java.util.List
 @import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ProvisionerResponse
 @import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse
+@import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager
 
 @param ServerInfoResponse serverInfoResponse
+@param CryptoStoreManager cryptoStoreManager
 
 <!DOCTYPE html>
 <html lang="en">
@@ -20,6 +22,11 @@ If you see this 🔒-Icon in your address bar of your browser, everything is
 correct configured. Otherwise, you have to import
 <a href="/ca.crt">this CA Certificate</a> onto your PC or Browser.<br/>
 <br/>
+
+
+@if(cryptoStoreManager.isFirstRun())
+Firstrun
+@endif
 
 <h2>Available ACME Provisioners</h2>
 You can't do much here, but you can view all available provisioners or create a certificate with GetHTTPSForFree<br/>

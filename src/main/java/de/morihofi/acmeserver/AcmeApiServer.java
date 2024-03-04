@@ -117,7 +117,11 @@ public class AcmeApiServer {
 
 
         List<Provisioner> provisioners = getProvisioners(appConfig.getProvisioner(), app, cryptoStoreManager, appConfig);
-        app.get("/",context -> context.render("index.jte", Map.of("serverInfoResponse", ServerInfoEndpoint.getServerInfoResponse(appConfig.getProvisioner()))));
+        app.get("/",context -> context.render("index.jte",
+                Map.of(
+                        "serverInfoResponse", ServerInfoEndpoint.getServerInfoResponse(appConfig.getProvisioner()),
+                        "cryptoStoreManager", cryptoStoreManager
+                )));
 
 
         for (Provisioner provisioner : provisioners) {
