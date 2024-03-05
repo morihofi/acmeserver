@@ -47,6 +47,7 @@ java -jar acmeserver-VERSION.jar
 - Supported challenges:
   - HTTP-01
   - DNS-01
+- WebUI has multiple language support (currently `de` and `en` as a fallback) 
 
 ## 📒 Disclaimer
 This version is not fully RFC 8555 compliant, but should work with most clients. 
