@@ -19,7 +19,7 @@
 <body>
 @template.layout.navigation(
 localizer = localizer,
-context = context,
+context = context
 )
 
 <main class="container">
