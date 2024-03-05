@@ -61,7 +61,7 @@ This version is not fully RFC 8555 compliant, but should work with most clients.
 ## 💻 Tested Operating Systems
 - Debian 11, 12
 - Windows 10
-- FreeBSD 13.2
+- FreeBSD 13.2, 14
 
 ## 🐛 Debug Mode
 Enable debug mode by set environment variable `DEBUG` to `TRUE` or start ACME Server with `--debug`.
