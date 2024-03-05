@@ -131,7 +131,7 @@ public class AcmeApiServer {
 
 
             CRL crlGenerator = new CRL(provisioner);
-            String prefix = "/" + provisioner.getProvisionerName();
+            String prefix = "/acme/" + provisioner.getProvisionerName();
 
             // CRL distribution
             app.get(provisioner.getCrlPath(), new CRLEndpoint(provisioner, crlGenerator));

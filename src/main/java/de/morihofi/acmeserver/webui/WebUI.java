@@ -13,6 +13,7 @@ package de.morihofi.acmeserver.webui;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.ServerInfoEndpoint;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.Javalin;
+import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -24,24 +25,61 @@ public class WebUI {
 
     public static final String ATTR_LOCALE = "locale";
 
+    public enum FRONTEND_PAGES {
+        INDEX("/", "web.core.menu.home", "fa-solid fa-house-chimney"),
+        STATISTICS("/stats", "web.core.menu.stats", "fa-solid fa-chart-simple"),
+        COMMAND_BUILDER("/cmd-builder", "web.core.menu.commandBuilder", "fa-solid fa-terminal");
+
+
+        private String route;
+        private String translationKey;
+        private String iconClass;
+
+
+        FRONTEND_PAGES(String route, String translationKey, String iconClass) {
+            this.route = route;
+            this.translationKey = translationKey;
+            this.iconClass = iconClass;
+        }
+
+        public String getRoute() {
+            return route;
+        }
+
+        public String getTranslationKey() {
+            return translationKey;
+        }
+
+        public String getIconClass() {
+            return iconClass;
+        }
+    }
+
     /**
      * Logger
      */
     public static final Logger log = LogManager.getLogger(WebUI.class);
 
+    public static Map<String, Object> getDefaultFrontendMap(CryptoStoreManager cryptoStoreManager, Context context){
+        return Map.of(
+                "serverInfoResponse", ServerInfoEndpoint.getServerInfoResponse(appConfig.getProvisioner()),
+                "cryptoStoreManager", cryptoStoreManager,
+                "localizer", JteLocalizer.getLocalizerFromContext(context),
+                "context", context
+        );
+    }
+
     public static void init(Javalin app, CryptoStoreManager cryptoStoreManager) {
         log.info("Initializing WebUI and registering routes ...");
-        app.get("/", context -> {
 
+        // Default routes
+        app.get(FRONTEND_PAGES.INDEX.getRoute(), context -> context.render("pages/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
+        app.get(FRONTEND_PAGES.STATISTICS.getRoute(), context -> context.render("pages/stats.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
+        app.get(FRONTEND_PAGES.COMMAND_BUILDER.getRoute(), context -> context.render("pages/cmd-builder.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
 
+        // Admin routes
+        app.get("/admin", context -> context.render("pages/admin/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
 
-            context.render("pages/index.jte",
-                    Map.of(
-                            "serverInfoResponse", ServerInfoEndpoint.getServerInfoResponse(appConfig.getProvisioner()),
-                            "cryptoStoreManager", cryptoStoreManager,
-                            "localizer", JteLocalizer.getLocalizerFromContext(context)
-                    ));
-        });
 
     }
 }

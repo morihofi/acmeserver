@@ -29,7 +29,7 @@ public class Provisioner {
      * @return Full url (including HTTPS prefix) and port to this server
      */
     public String getApiURL() {
-        return "https://" + Main.appConfig.getServer().getDnsName() + ":" + Main.appConfig.getServer().getPorts().getHttps() + "/" + provisionerName;
+        return "https://" + Main.appConfig.getServer().getDnsName() + ":" + Main.appConfig.getServer().getPorts().getHttps() + "/acme/" + provisionerName;
     }
 
     /**
@@ -180,7 +180,7 @@ public class Provisioner {
      * @return A {@code String} representing the path for the CRL file, specific to the provisioner.
      */
     public String getCrlPath() {
-        return "/crl/" + getProvisionerName() + ".crl";
+        return "/acme/crl/" + getProvisionerName() + ".crl";
     }
 
     /**
@@ -191,7 +191,7 @@ public class Provisioner {
      * @return A {@code String} representing the OCSP service path, associated with the provisioner.
      */
     public String getOcspPath() {
-        return "/" + getProvisionerName() + "/ocsp";
+        return "/acme/" + getProvisionerName() + "/ocsp";
     }
 
     /**
