@@ -11,6 +11,7 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,6 +54,9 @@ public class ServerInfoEndpoint implements Handler {
         metadataInfo.setGitCommit(Main.buildMetadataGitCommit);
         metadataInfo.setJavaVersion(System.getProperty("java.version"));
         metadataInfo.setOperatingSystem(System.getProperty("os.name"));
+        metadataInfo.setJvmUptime(ManagementFactory.getRuntimeMXBean().getUptime() / 1000L);
+        metadataInfo.setJvmStartTime(ManagementFactory.getRuntimeMXBean().getStartTime() / 1000L);
+        metadataInfo.setStartupTime(Main.startupTime); //already in seconds
 
         List<ProvisionerResponse> provisioners = new ArrayList<>();
         for (ProvisionerConfig provisionerConfig : provisionerConfigList) {

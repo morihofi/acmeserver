@@ -44,6 +44,20 @@
         </tr>
         <tr>
             <td class="icon-text">
+                <i class="fa-solid fa-stopwatch"></i>
+                ${localizer.lookup("web.core.component.serverInfo.jvmUptime")}
+            </td>
+            <td>${serverInfoResponse.getMetadataInfo().getJvmUptime()} sec.</td>
+        </tr>
+        <tr>
+            <td class="icon-text">
+                <i class="fa-solid fa-hourglass"></i>
+                ${localizer.lookup("web.core.component.serverInfo.startupTime")}
+            </td>
+            <td>${serverInfoResponse.getMetadataInfo().getStartupTime()} sec.</td>
+        </tr>
+        <tr>
+            <td class="icon-text">
                 <i class="fa-solid fa-server"></i>&nbsp;
                 ${localizer.lookup("web.core.component.serverInfo.os")}
             </td>

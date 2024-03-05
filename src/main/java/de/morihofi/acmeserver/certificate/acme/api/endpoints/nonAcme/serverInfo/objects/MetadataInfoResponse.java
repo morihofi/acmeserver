@@ -19,6 +19,39 @@ public class MetadataInfoResponse {
     @SerializedName("os")
     private String operatingSystem;
 
+    @SerializedName("jvmUptime")
+    private long jvmUptime;
+
+    @SerializedName("jvmStartTime")
+    private long jvmStartTime;
+
+    @SerializedName("startupTime")
+    private long startupTime;
+
+    public void setJvmUptime(long jvmUptime) {
+        this.jvmUptime = jvmUptime;
+    }
+
+    public long getStartupTime() {
+        return startupTime;
+    }
+
+    public void setStartupTime(long startupTime) {
+        this.startupTime = startupTime;
+    }
+
+    public long getJvmUptime() {
+        return jvmUptime;
+    }
+
+    public long getJvmStartTime() {
+        return jvmStartTime;
+    }
+
+    public void setJvmStartTime(long jvmStartTime) {
+        this.jvmStartTime = jvmStartTime;
+    }
+
     /**
      * Retrieves the version information.
      *

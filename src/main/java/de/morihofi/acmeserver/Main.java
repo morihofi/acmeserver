@@ -75,7 +75,11 @@ public class Main {
     @SuppressFBWarnings("MS_PKGPROTECT")
     public static MODE selectedMode = MODE.NORMAL;
 
+    public static long startedAt;
+    public static long startupTime = 0; // Set after all routes are ready
+
     public static void main(String[] args) throws Exception {
+        startedAt = System.currentTimeMillis();
         Gson configGson = new GsonBuilder()
                 .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
                 .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())

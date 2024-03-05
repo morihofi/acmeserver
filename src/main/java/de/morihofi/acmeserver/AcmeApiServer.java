@@ -185,6 +185,7 @@ public class AcmeApiServer {
 
         app.start();
         log.info("\u2705 Configure Routes completed. Ready for incoming requests");
+        Main.startupTime = (System.currentTimeMillis() - Main.startedAt) / 1000L; //in seconds
     }
 
 

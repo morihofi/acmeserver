@@ -30,13 +30,41 @@ public class WebUI {
         STATISTICS("/stats", "web.core.menu.stats", "fa-solid fa-chart-simple"),
         COMMAND_BUILDER("/cmd-builder", "web.core.menu.commandBuilder", "fa-solid fa-terminal");
 
+        private String route;
+        private String translationKey;
+        private String iconClass;
+
+        FRONTEND_PAGES(String route, String translationKey, String iconClass) {
+            this.route = route;
+            this.translationKey = translationKey;
+            this.iconClass = iconClass;
+        }
+
+        public String getRoute() {
+            return route;
+        }
+
+        public String getTranslationKey() {
+            return translationKey;
+        }
+
+        public String getIconClass() {
+            return iconClass;
+        }
+    }
+
+    public enum FRONTEND_ADMIN_PAGES {
+        DASHBOARD("/admin", "web.admin.menu.dashboard", "me-2 fa-solid fa-gauge-high"),
+        SECURITY("/admin/security", "web.admin.menu.security", "me-2 fa-solid fa-shield-halved"),
+        ISSUED_CERTIFICATES("/admin/issues-certificates", "web.admin.menu.issuedCertificates", "me-2 fa-solid fa-certificate"),
+        LOGS("/admin/logs", "web.admin.menu.logs", "me-2 fa-solid fa-book"),
+        CONFIGURATION("/admin/configuration", "web.admin.menu.configuration", "me-2 fa-solid fa-wrench");
 
         private String route;
         private String translationKey;
         private String iconClass;
 
-
-        FRONTEND_PAGES(String route, String translationKey, String iconClass) {
+        FRONTEND_ADMIN_PAGES(String route, String translationKey, String iconClass) {
             this.route = route;
             this.translationKey = translationKey;
             this.iconClass = iconClass;
