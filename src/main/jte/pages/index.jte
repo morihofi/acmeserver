@@ -53,8 +53,12 @@ ${localizer.lookup("web.index.provisioners.intro")}
             <li>
                 ${provisioner.getName()}
                 <ul>
-                    <li>➡️ <a href="/${provisioner.getName()}/directory">${localizer.lookup("web.index.provisioners.list.goToDirectory", provisioner.getName())}</a></li>
-                    <li>➡️ <a href="/gethttpsforfree/?provisioner=${provisioner.getName()}">${localizer.lookup("web.index.provisioners.list.goToGetHttpsForFree")}</a></li>
+                    <li>➡️
+                        <a href="/${provisioner.getName()}/directory">${localizer.lookup("web.index.provisioners.list.goToDirectory", provisioner.getName())}</a>
+                    </li>
+                    <li>➡️
+                        <a href="/gethttpsforfree/?provisioner=${provisioner.getName()}">${localizer.lookup("web.index.provisioners.list.goToGetHttpsForFree")}</a>
+                    </li>
                 </ul>
             </li>
         @endfor
@@ -62,11 +66,11 @@ ${localizer.lookup("web.index.provisioners.intro")}
 </div>
 
 <hr/>
-<h2>💡 Server Info</h2>
-<b>ℹ️ Server Version: </b><label>${serverInfoResponse.getMetadataInfo().getVersion()}</label><br/>
-<b>⌚ Build at: </b><label>${serverInfoResponse.getMetadataInfo().getBuildTime()}</label><br/>
-<b>📝 Git Commit: </b><label>${serverInfoResponse.getMetadataInfo().getGitCommit()}</label><br/>
-<b>☕ Java Version: </b><label>${serverInfoResponse.getMetadataInfo().getJavaVersion()}</label><br/>
-<b>🖥️ Operating System: </b><label>${serverInfoResponse.getMetadataInfo().getOperatingSystem()}</label><br/>
+<h2>${localizer.lookup("web.core.serverInfo.title")}</h2>
+<b>${localizer.lookup("web.core.serverInfo.version")} </b><label>${serverInfoResponse.getMetadataInfo().getVersion()}</label><br/>
+<b>${localizer.lookup("web.core.serverInfo.buildTime")} </b><label>${serverInfoResponse.getMetadataInfo().getBuildTime()}</label><br/>
+<b>${localizer.lookup("web.core.serverInfo.gitCommit")} </b><label>${serverInfoResponse.getMetadataInfo().getGitCommit()}</label><br/>
+<b>${localizer.lookup("web.core.serverInfo.jvmVersion")} </b><label>${serverInfoResponse.getMetadataInfo().getJavaVersion()}</label><br/>
+<b>${localizer.lookup("web.core.serverInfo.os")} </b><label>${serverInfoResponse.getMetadataInfo().getOperatingSystem()}</label><br/>
 </body>
 </html>
