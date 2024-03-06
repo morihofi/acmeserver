@@ -105,7 +105,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
     private Challenge createChallenge(AcmeChallengeType type, ACMEIdentifier identifier) {
         Challenge challenge = new Challenge();
         challenge.setType(type.getName());
-        challenge.setUrl(getProvisioner().getApiURL() + "/acme/chall/" + identifier.getChallengeId() + "/" + type);
+        challenge.setUrl(getProvisioner().getApiURL() + "/acme/chall/" + identifier.getChallengeId() + "/" + type.getName());
         challenge.setToken(identifier.getAuthorizationToken());
         if (identifier.isVerified()) {
             challenge.setStatus("valid");
