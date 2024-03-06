@@ -54,20 +54,22 @@ public class WebUI {
     }
 
     public enum FRONTEND_ADMIN_PAGES {
-        DASHBOARD("/admin", "web.admin.menu.dashboard", "me-2 fa-solid fa-gauge-high"),
-        SECURITY("/admin/security", "web.admin.menu.security", "me-2 fa-solid fa-shield-halved"),
-        ISSUED_CERTIFICATES("/admin/issues-certificates", "web.admin.menu.issuedCertificates", "me-2 fa-solid fa-certificate"),
-        LOGS("/admin/logs", "web.admin.menu.logs", "me-2 fa-solid fa-book"),
-        CONFIGURATION("/admin/configuration", "web.admin.menu.configuration", "me-2 fa-solid fa-wrench");
+        DASHBOARD("/mgmt", "web.admin.menu.dashboard", "me-2 fa-solid fa-gauge-high", false),
+        SECURITY("/mgmt/security", "web.admin.menu.security", "me-2 fa-solid fa-shield-halved", true),
+        ISSUED_CERTIFICATES("/mgmt/issues-certificates", "web.admin.menu.issuedCertificates", "me-2 fa-solid fa-certificate", false),
+        LOGS("/mgmt/logs", "web.admin.menu.logs", "me-2 fa-solid fa-book", true),
+        CONFIGURATION("/mgmt/configuration", "web.admin.menu.configuration", "me-2 fa-solid fa-wrench", true);
 
         private String route;
         private String translationKey;
         private String iconClass;
+        private boolean onlyAdmin;
 
-        FRONTEND_ADMIN_PAGES(String route, String translationKey, String iconClass) {
+        FRONTEND_ADMIN_PAGES(String route, String translationKey, String iconClass, boolean onlyAdmin) {
             this.route = route;
             this.translationKey = translationKey;
             this.iconClass = iconClass;
+            this.onlyAdmin = onlyAdmin;
         }
 
         public String getRoute() {
@@ -105,8 +107,18 @@ public class WebUI {
         app.get(FRONTEND_PAGES.STATISTICS.getRoute(), context -> context.render("pages/stats.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
         app.get(FRONTEND_PAGES.COMMAND_BUILDER.getRoute(), context -> context.render("pages/cmd-builder.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
 
+        //Login
+        app.get("/login", new LoginUiHandler(cryptoStoreManager));
+        app.post("/login", new LoginUiHandler(cryptoStoreManager));
+
+
         // Admin routes
-        app.get("/admin", context -> context.render("pages/admin/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
+        app.get(FRONTEND_ADMIN_PAGES.DASHBOARD.getRoute(), context -> context.render("pages/mgmt/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
+        app.get(FRONTEND_ADMIN_PAGES.SECURITY.getRoute(), context -> context.render("pages/mgmt/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
+        app.get(FRONTEND_ADMIN_PAGES.ISSUED_CERTIFICATES.getRoute(), context -> context.render("pages/mgmt/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
+        app.get(FRONTEND_ADMIN_PAGES.LOGS.getRoute(), context -> context.render("pages/mgmt/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
+        app.get(FRONTEND_ADMIN_PAGES.CONFIGURATION.getRoute(), context -> context.render("pages/mgmt/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
+
 
 
     }

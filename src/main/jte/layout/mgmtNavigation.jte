@@ -1,10 +1,11 @@
+@import de.morihofi.acmeserver.database.objects.Users
 @import de.morihofi.acmeserver.webui.JteLocalizer
-@import de.morihofi.acmeserver.webui.WebUI
 @import io.javalin.http.Context
 @import de.morihofi.acmeserver.webui.WebUI.FRONTEND_ADMIN_PAGES
 
 @param JteLocalizer localizer
 @param Context context
+@param Users user
 
 <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark vh-100" style="width: 280px;">
     <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
@@ -14,7 +15,7 @@
     <ul class="nav nav-pills flex-column mb-auto">
         @for(FRONTEND_ADMIN_PAGES page : FRONTEND_ADMIN_PAGES.values())
         <li class="nav-item">
-            <a href="${page.getRoute()}" class="nav-link @if(context.path().equals(page.getRoute())) active @endif" aria-current="page">
+            <a href="${page.getRoute()}" class="nav-link @if(context.path().equals(page.getRoute())) active @endif text-white" aria-current="page">
                 <i class="${page.getIconClass()}"></i>
                 ${localizer.lookup(page.getTranslationKey())}
             </a>
