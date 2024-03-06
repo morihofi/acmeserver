@@ -13,6 +13,7 @@ import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.safety.TypeSafetyHelper;
 import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -519,6 +520,22 @@ public class Database {
         } catch (Exception e) {
             log.error("Unable to revoke certificate with serial number {} (Provisioner {})", identifier.getCertificateSerialNumber(), identifier.getProvisioner(), e);
             throw new ACMEServerInternalException("Unable to revoke certificate");
+        }
+    }
+
+
+    /**
+     * Get all ACMEAccounts for an given email
+     * @param email email to get accounts from
+     * @return list of ACME Accounts
+     */
+    public static List<ACMEAccount> getAllACMEAccountsForEmail(String email){
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            TypedQuery<ACMEAccount> query = session.createQuery(
+                    "SELECT a FROM ACMEAccount a JOIN a.emails e WHERE e = :email", ACMEAccount.class);
+            query.setParameter("email", email);
+
+            return query.getResultList();
         }
     }
 }
