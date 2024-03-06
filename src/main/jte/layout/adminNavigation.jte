@@ -14,7 +14,7 @@
     <ul class="nav nav-pills flex-column mb-auto">
         @for(FRONTEND_ADMIN_PAGES page : FRONTEND_ADMIN_PAGES.values())
         <li class="nav-item">
-            <a href="${page.getRoute()}" class="nav-link @if(context.path().equals(page.getRoute())) active @endif" aria-current="page">
+            <a href="${page.getRoute()}" class="nav-link @if(context.path().equals(page.getRoute())) active @endif text-white" aria-current="page">
                 <i class="${page.getIconClass()}"></i>
                 ${localizer.lookup(page.getTranslationKey())}
             </a>
