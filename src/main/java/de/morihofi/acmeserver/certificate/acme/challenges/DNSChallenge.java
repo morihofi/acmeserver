@@ -48,13 +48,13 @@ public class DNSChallenge {
             // Abfrage des TXT-Eintrags für die ACME Challenge
             Lookup lookup = new Lookup("_acme-challenge." + domain, Type.TXT);
             lookup.run();
-
+            String txtValue = "";
             if (lookup.getResult() == Lookup.SUCCESSFUL) {
                 // Check TXT-Entries
                 for (Record dnsRecord : lookup.getAnswers()) {
                     TXTRecord txt = (TXTRecord) dnsRecord;
                     for (Object value : txt.getStrings()) {
-                        String txtValue = value.toString();
+                        txtValue = value.toString();
                         if (txtValue.equals(dnsExpectedValue)) {
                             passed = true;
                             log.info("DNS Challenge has validated for domain {}", domain);
@@ -68,7 +68,7 @@ public class DNSChallenge {
             }
 
             if (!passed) {
-                log.error("DNS Challenge validation failed for domain {}. TXT record not found or value doesn't match. Expected: {}", ("_acme-challenge." + domain), dnsExpectedValue);
+                log.error("DNS Challenge validation failed for domain {}. TXT record not found or value doesn't match. Expected: {} but got {}", ("_acme-challenge." + domain), dnsExpectedValue, txtValue);
             }
 
         } catch (TextParseException e) {

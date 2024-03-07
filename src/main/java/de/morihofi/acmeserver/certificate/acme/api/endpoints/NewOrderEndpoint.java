@@ -49,6 +49,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             log.error("Throwing API error: Account {} not found", accountId);
             throw new ACMEAccountNotFoundException("The account id was not found");
         }
+        log.info("Account {} wants to create a new order", accountId);
         //Check signature and nonce
         performSignatureAndNonceCheck(ctx,accountId,acmeRequestBody);
 
