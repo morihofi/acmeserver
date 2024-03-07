@@ -300,7 +300,7 @@ public class Main {
                 caKeyPair = KeyPairGenerator.generateRSAKeyPair(rsaParams.getKeySize(), caKeyStore.getProvider().getName());
             }
             if (appConfig.getRootCA().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
-                log.info("Using ECDSA algorithm (Elliptic curves");
+                log.info("Using ECDSA algorithm (Elliptic curves)");
 
                 log.info("Generating ECDSA Key Pair using curve {} for Root CA", ecdsaAlgorithmParams.getCurveName());
                 caKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName(), caKeyStore.getProvider().getName());
