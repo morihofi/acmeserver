@@ -1772,7 +1772,7 @@ function checkAuthorization(e){
                 }
 
                 // authorization valid, so proceed to next set of challenges or finalize
-                else if(auth_obj['status'] === "valid"){
+                else if(auth_obj['status'] === "valid" || auth_obj['status'] === "ready"){
 
                     // find the next authorization that doesn't have a recheck status
                     var next_auth_i = undefined;
