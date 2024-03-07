@@ -105,19 +105,18 @@ public class Database {
 
 
                 //Mark all other challenges as invalid
-                //FIXME
-                /*assert orderIdentifierChallenge != null;
-                for (ACMEOrderIdentifierChallenge challenge : orderIdentifierChallenge.getIdentifier().getChallenges()){
-                    if(challenge.getChallengeId().equals(challengeId)){
-                        //We don't want so set our we passed to invalid, so skip these
-                        continue;
-                    }
+                //TODO: Check if working correctly
+                for (ACMEOrderIdentifierChallenge challenge : orderIdentifierChallenge.getIdentifier()
+                        .getChallenges()
+                        .stream()
+                        .filter(acmeOrderIdentifierChallenge -> acmeOrderIdentifierChallenge.getStatus() != AcmeStatus.VALID)
+                        .toList()){
 
                     log.debug("ACME challenge {} was marked as invalid, cause other challenge passed -> not more needed", challengeId);
                     orderIdentifierChallenge.setStatus(AcmeStatus.INVALID);
 
                     session.merge(challenge);
-                }*/
+                }
 
 
 
