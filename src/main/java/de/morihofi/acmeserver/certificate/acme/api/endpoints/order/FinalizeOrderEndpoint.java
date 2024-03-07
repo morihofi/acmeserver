@@ -11,7 +11,7 @@ import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
-import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
+import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
@@ -30,6 +30,7 @@ import java.math.BigInteger;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
@@ -69,19 +70,21 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         }
 
         // Get our ACME identifiers
-        List<ACMEIdentifier> identifiers = Database.getACMEIdentifiersByOrderId(orderId);
+        List<ACMEOrderIdentifier> identifiers = Database.getACMEOrder(orderId).getOrderIdentifiers();
         for (String domain : csrDomainNames) {
             if (identifiers.stream().noneMatch(id -> domain.equals(id.getDataValue()))) {
                 throw new ACMEBadCsrException("One or more CSR domains do not match the ACME identifiers");
             }
         }
 
+        // Convert ACMEOrderIdentifier into simple identifier
         List<Identifier> identifierList = identifiers.stream()
                 .map(id -> new Identifier(id.getType(), id.getDataValue()))
                 .toList();
 
+        // One authorization per identifier
         List<String> authorizationsList = identifiers.stream()
-                .map(id -> provisioner.getApiURL() + "/acme/authz/" + id.getAuthorizationId())
+                .map(acmeOrderIdentifier -> provisioner.getApiURL() + "/acme/authz/" + acmeOrderIdentifier.getAuthorizationId())
                 .toList();
 
         try {
@@ -109,7 +112,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
             Timestamp issuedAt = new Timestamp(acmeGeneratedCertificate.getNotBefore().getTime());
 
             // Saving the certificate for each identifier in the database
-            for (ACMEIdentifier identifier : identifiers) {
+            for (ACMEOrderIdentifier identifier : identifiers) {
                 Database.storeCertificateInDatabase(orderId, identifier.getDataValue(), csr, pemCertificate, issuedAt, expiresAt, serialNumber);
             }
 

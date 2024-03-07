@@ -1,16 +1,16 @@
 package de.morihofi.acmeserver.database;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
-import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
-import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
-import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.database.objects.ACMEOrder;
+import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
+import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.safety.TypeSafetyHelper;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
@@ -20,7 +20,6 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -34,37 +33,14 @@ import java.util.*;
 public class Database {
 
 
-    private Database(){}
+    private Database() {
+    }
 
     /**
      * Logger
      */
     public static final Logger log = LogManager.getLogger(Database.class);
 
-    /**
-     * Creates a new ACME (Automated Certificate Management Environment) account in the database with the provided parameters.
-     *
-     * @param accountId The unique identifier for the ACME account.
-     * @param jwk       The JSON Web Key (JWK) representing the account's public key.
-     * @param emails    A list of email addresses associated with the account.
-     * @throws ACMEServerInternalException If an error occurs while creating the ACME account.
-     */
-    public static void createAccount(String accountId, String jwk, List<String> emails) {
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            Transaction transaction = session.beginTransaction();
-            ACMEAccount account = new ACMEAccount();
-            account.setAccountId(accountId);
-            account.setPublicKeyPEM(PemUtil.convertToPem(SignatureCheck.convertJWKToPublicKey(new JSONObject(jwk))));
-            account.setEmails(emails);
-            account.setDeactivated(false);
-            session.persist(account);
-            transaction.commit();
-            log.info("New ACME account created with account id {}", accountId);
-        } catch (Exception e) {
-            log.error("Unable to create new ACME account", e);
-            throw new ACMEServerInternalException(e.getMessage());
-        }
-    }
 
     /**
      * Stores a certificate and related information in the database for a specific ACME order and DNS value.
@@ -82,20 +58,20 @@ public class Database {
             Transaction transaction = session.beginTransaction();
 
             // Using ACMEIdentifier class
-            Query query = session.createQuery("FROM ACMEIdentifier a WHERE a.order.orderId = :orderId AND a.dataValue = :dnsValue", ACMEIdentifier.class);
+            Query query = session.createQuery("FROM ACMEOrderIdentifier a WHERE a.order.orderId = :orderId AND a.dataValue = :dnsValue", ACMEOrderIdentifier.class);
             query.setParameter("orderId", orderId);
             query.setParameter("dnsValue", dnsValue);
 
-            ACMEIdentifier acmeIdentifier = (ACMEIdentifier) query.getSingleResult();
+            ACMEOrderIdentifier acmeOrderIdentifier = (ACMEOrderIdentifier) query.getSingleResult();
 
-            if (acmeIdentifier != null) {
-                acmeIdentifier.setCertificateCSR(csr);
-                acmeIdentifier.setCertificateIssued(issueDate);
-                acmeIdentifier.setCertificateExpires(expireDate);
-                acmeIdentifier.setCertificatePem(pemCertificate);
-                acmeIdentifier.setCertificateSerialNumber(serialNumber);
+            if (acmeOrderIdentifier != null) {
+                acmeOrderIdentifier.setCertificateCSR(csr);
+                acmeOrderIdentifier.setCertificateIssued(issueDate);
+                acmeOrderIdentifier.setCertificateExpires(expireDate);
+                acmeOrderIdentifier.setCertificatePem(pemCertificate);
+                acmeOrderIdentifier.setCertificateSerialNumber(serialNumber);
 
-                session.merge(acmeIdentifier);
+                session.merge(acmeOrderIdentifier);
                 transaction.commit();
 
                 log.info("Stored certificate successful");
@@ -119,17 +95,42 @@ public class Database {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
 
-            ACMEOrderIdentifier orderIdentifier = session.get(ACMEOrderIdentifier.class, challengeId);
-            if (orderIdentifier != null) {
-                orderIdentifier.setVerified(true);
-                orderIdentifier.setVerifiedTime(Timestamp.from(Instant.now()));
-                session.merge(orderIdentifier);
-                transaction.commit();
+            ACMEOrderIdentifierChallenge orderIdentifierChallenge = session.get(ACMEOrderIdentifierChallenge.class, challengeId);
+            if (orderIdentifierChallenge != null) {
+                orderIdentifierChallenge.setStatus(AcmeStatus.VALID);
+                orderIdentifierChallenge.setVerifiedTime(Timestamp.from(Instant.now()));
+                session.merge(orderIdentifierChallenge);
+
                 log.info("ACME challenge {} was marked as passed", challengeId);
+
+
+                //Mark all other challenges as invalid
+                //FIXME
+                /*assert orderIdentifierChallenge != null;
+                for (ACMEOrderIdentifierChallenge challenge : orderIdentifierChallenge.getIdentifier().getChallenges()){
+                    if(challenge.getChallengeId().equals(challengeId)){
+                        //We don't want so set our we passed to invalid, so skip these
+                        continue;
+                    }
+
+                    log.debug("ACME challenge {} was marked as invalid, cause other challenge passed -> not more needed", challengeId);
+                    orderIdentifierChallenge.setStatus(AcmeStatus.INVALID);
+
+                    session.merge(challenge);
+                }*/
+
+
+
+
             } else {
                 log.warn("No ACME challenge found with id {}", challengeId);
             }
 
+
+
+
+
+            transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
@@ -144,28 +145,30 @@ public class Database {
      * @param challengeId The unique identifier of the challenge associated with the ACME identifier.
      * @return The ACME identifier matching the provided challenge ID, or null if not found.
      */
-    public static ACMEIdentifier getACMEIdentifierByChallengeId(String challengeId) {
-        ACMEIdentifier identifier = null;
+    public static ACMEOrderIdentifierChallenge getACMEIdentifierChallenge(String challengeId) {
+        ACMEOrderIdentifierChallenge challenge = null;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
-            identifier = session.createQuery("FROM ACMEIdentifier WHERE challengeId = :challengeId", ACMEIdentifier.class)
+            challenge = session.createQuery("FROM ACMEOrderIdentifierChallenge WHERE challengeId = :challengeId", ACMEOrderIdentifierChallenge.class)
                     .setParameter("challengeId", challengeId)
                     .setMaxResults(1)
                     .uniqueResult();
 
-            if (identifier != null) {
+            if (challenge != null) {
                 log.info("(Challenge ID: {}) Got ACME identifier of type {} with value {}",
                         challengeId,
-                        identifier.getType(),
-                        identifier.getDataValue()
+                        challenge.getIdentifier().getType(),
+                        challenge.getIdentifier().getDataValue()
 
                 );
+            }else {
+                log.error("Challenge ID {} returns null for the ACMEOrderIdentifierChallenge, must be something went wrong", challengeId);
             }
             transaction.commit();
         } catch (Exception e) {
             log.error("Unable get ACME identifiers for challenge id {}", challengeId, e);
         }
-        return identifier;
+        return challenge;
     }
 
     /**
@@ -174,11 +177,11 @@ public class Database {
      * @param authorizationId The unique identifier of the authorization associated with the ACME identifier.
      * @return The ACME identifier matching the provided authorization ID, or null if not found.
      */
-    public static ACMEIdentifier getACMEIdentifierByAuthorizationId(String authorizationId) {
-        ACMEIdentifier identifier = null;
+    public static ACMEOrderIdentifier getACMEIdentifierByAuthorizationId(String authorizationId) {
+        ACMEOrderIdentifier identifier = null;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
-            identifier = session.createQuery("FROM ACMEIdentifier WHERE authorizationId = :authorizationId", ACMEIdentifier.class)
+            identifier = session.createQuery("FROM ACMEOrderIdentifier WHERE authorizationId = :authorizationId", ACMEOrderIdentifier.class)
                     .setParameter("authorizationId", authorizationId)
                     .setMaxResults(1)
                     .getSingleResult();
@@ -203,11 +206,11 @@ public class Database {
      * @param serialNumber The serial number of the certificate associated with the ACME identifier.
      * @return The ACME identifier matching the provided certificate serial number, or null if not found.
      */
-    public static ACMEIdentifier getACMEIdentifierCertificateSerialNumber(BigInteger serialNumber) {
-        ACMEIdentifier identifier = null;
+    public static ACMEOrderIdentifier getACMEIdentifierCertificateSerialNumber(BigInteger serialNumber) {
+        ACMEOrderIdentifier identifier = null;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
-            identifier = session.createQuery("FROM ACMEIdentifier WHERE certificateSerialNumber = :certificateSerialNumber", ACMEIdentifier.class)
+            identifier = session.createQuery("FROM ACMEOrderIdentifier WHERE certificateSerialNumber = :certificateSerialNumber", ACMEOrderIdentifier.class)
                     .setParameter("certificateSerialNumber", serialNumber)
                     .setMaxResults(1)
                     .getSingleResult();
@@ -232,27 +235,17 @@ public class Database {
      * @param orderId The unique identifier of the ACME order for which identifiers are to be retrieved.
      * @return A list of ACME identifiers associated with the provided order ID.
      */
-    public static List<ACMEIdentifier> getACMEIdentifiersByOrderId(String orderId) {
-        List<ACMEIdentifier> identifiers = new ArrayList<>();
+    public static ACMEOrder getACMEOrder(String orderId) {
+        ACMEOrder order = null;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            Transaction transaction = session.beginTransaction();
-            identifiers = session.createQuery("FROM ACMEIdentifier ai WHERE ai.order.orderId = :orderId", ACMEIdentifier.class)
+            order = session.createQuery("FROM ACMEOrder a WHERE a.orderId = :orderId", ACMEOrder.class)
                     .setParameter("orderId", orderId)
-                    .getResultList();
+                    .getSingleResult();
 
-            identifiers.forEach(identifier ->
-                    log.info("(Order ID: {}) Got ACME identifier of type {} with value {}",
-                            orderId,
-                            identifier.getType(),
-                            identifier.getDataValue()
-                    )
-            );
-
-            transaction.commit();
         } catch (Exception e) {
-            log.error("Unable get ACME identifiers for order id {}", orderId, e);
+            log.error("Unable get ACMEOrder for order id {}", orderId, e);
         }
-        return identifiers;
+        return order;
     }
 
     /**
@@ -265,7 +258,7 @@ public class Database {
      * @throws ACMEServerInternalException If an error occurs while creating the ACME order.
      */
     @Transactional
-    public static void createOrder(ACMEAccount account, String orderId, List<ACMEIdentifier> identifierList, String provisioner) {
+    public static void createOrder(ACMEAccount account, String orderId, List<ACMEOrderIdentifier> identifierList, String provisioner, String authorizationId) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
@@ -279,15 +272,11 @@ public class Database {
             log.info("Created new order {}", orderId);
 
             // Create order identifiers
-            for (ACMEIdentifier identifier : identifierList) {
-
-                if (identifier.getAuthorizationId() == null || identifier.getAuthorizationToken() == null) {
-                    throw new IllegalStateException("Authorization Id or Token is null");
-                }
-
+            for (ACMEOrderIdentifier identifier : identifierList) {
+                identifier.setIdentifierId(Crypto.generateRandomId());
                 identifier.setProvisioner(provisioner);
                 identifier.setOrder(order);
-                identifier.setVerified(false);
+                identifier.setAuthorizationId(authorizationId);
                 session.persist(identifier);
 
                 log.info("Added identifier {} of type {} to order {}",
@@ -339,47 +328,46 @@ public class Database {
     }
 
     /**
-     * Retrieves the PEM-encoded certificate chain of an ACME entity by its authorization ID.
+     * Retrieves the PEM-encoded certificate chain of an ACME entity by its certificate ID.
      * This method fetches the issued certificate from a database using Hibernate, appends the intermediate certificate,
      * and then appends each certificate in the CA certificate chain. If the issued certificate is not found,
      * it throws an IllegalArgumentException.
      *
-     * @param authorizationId              The authorization ID associated with the ACME entity.
-     * @param provisioner                  The provisioner instance used for cryptographic operations.
+     * @param certificateId The authorization ID associated with the ACME entity.
+     * @param provisioner     The provisioner instance used for cryptographic operations.
      * @return A string representation of the certificate chain in PEM format.
      * @throws CertificateEncodingException if an error occurs during the encoding of certificates.
      * @throws IOException                  if an I/O error occurs during certificate processing.
      * @throws KeyStoreException            if an error occurs while accessing the keystore.
      */
-    public static String getCertificateChainPEMofACMEbyAuthorizationId(String authorizationId, Provisioner provisioner) throws CertificateEncodingException, IOException, KeyStoreException {
+    public static String getCertificateChainPEMofACMEbyCertificateId(String certificateId, Provisioner provisioner) throws CertificateEncodingException, IOException, KeyStoreException {
         StringBuilder pemBuilder = new StringBuilder();
 
         // Get Issued certificate
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
-            Query query = session.createQuery("SELECT ai FROM ACMEIdentifier ai WHERE ai.authorizationId = :authorizationId", ACMEIdentifier.class);
-            query.setParameter("authorizationId", authorizationId);
+            Query query = session.createQuery("SELECT ai FROM ACMEOrderIdentifier ai WHERE ai.certificateId = :certificateId", ACMEOrderIdentifier.class);
+            query.setParameter("certificateId", certificateId);
             Object result = query.getSingleResult();
 
-            if (result instanceof ACMEIdentifier acmeIdentifier) {
+            if (result instanceof ACMEOrderIdentifier acmeOrderIdentifier) {
 
 
-                String certificatePEM = acmeIdentifier.getCertificatePem();
-                Date certificateExpires = acmeIdentifier.getCertificateExpires();
+                String certificatePEM = acmeOrderIdentifier.getCertificatePem();
+                Date certificateExpires = acmeOrderIdentifier.getCertificateExpires();
 
-                if(certificatePEM == null){
-                    throw new IllegalArgumentException("No certificate was found for authorization id \"" + authorizationId + "\". Have you already submitted a CSR? There is no certificate without a CSR.");
+                if (certificatePEM == null) {
+                    throw new IllegalArgumentException("No certificate was found for authorization id \"" + certificateId + "\". Have you already submitted a CSR? There is no certificate without a CSR.");
                 }
 
-                log.info("Getting Certificate for authorization Id {} -> Expires at {}", authorizationId, certificateExpires);
+                log.info("Getting Certificate for authorization Id {} -> Expires at {}", certificateId, certificateExpires);
 
                 pemBuilder.append(certificatePEM);
             }
 
             transaction.commit();
         }
-
 
 
         //Certificate chain
@@ -476,12 +464,12 @@ public class Database {
             Transaction transaction = session.beginTransaction();
 
             //Certificates are revoked when they have a statusCode and a timestamp
-            Query query = session.createQuery("FROM ACMEIdentifier WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL AND provisioner = :provisionerName", ACMEIdentifier.class);
+            Query query = session.createQuery("FROM ACMEOrderIdentifier WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL AND provisioner = :provisionerName", ACMEOrderIdentifier.class);
             query.setParameter("provisionerName", provisionerName);
-            List<ACMEIdentifier> result = TypeSafetyHelper.safeCastToClassOfType(query.getResultList(), ACMEIdentifier.class);
+            List<ACMEOrderIdentifier> result = TypeSafetyHelper.safeCastToClassOfType(query.getResultList(), ACMEOrderIdentifier.class);
 
             if (!result.isEmpty()) {
-                for (ACMEIdentifier revokedIdentifier : result) {
+                for (ACMEOrderIdentifier revokedIdentifier : result) {
                     certificates.add(new RevokedCertificate(
                             revokedIdentifier.getCertificateSerialNumber(),
                             revokedIdentifier.getRevokeTimestamp(),
@@ -505,7 +493,7 @@ public class Database {
      * @param reason     The reason code for revoking the certificate.
      * @throws ACMEServerInternalException If an error occurs while revoking the certificate.
      */
-    public static void revokeCertificate(ACMEIdentifier identifier, int reason) {
+    public static void revokeCertificate(ACMEOrderIdentifier identifier, int reason) {
         identifier.setRevokeTimestamp(Timestamp.from(Instant.now()));
         identifier.setRevokeStatusCode(reason);
 
@@ -526,10 +514,11 @@ public class Database {
 
     /**
      * Get all ACMEAccounts for an given email
+     *
      * @param email email to get accounts from
      * @return list of ACME Accounts
      */
-    public static List<ACMEAccount> getAllACMEAccountsForEmail(String email){
+    public static List<ACMEAccount> getAllACMEAccountsForEmail(String email) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             TypedQuery<ACMEAccount> query = session.createQuery(
                     "SELECT a FROM ACMEAccount a JOIN a.emails e WHERE e = :email", ACMEAccount.class);

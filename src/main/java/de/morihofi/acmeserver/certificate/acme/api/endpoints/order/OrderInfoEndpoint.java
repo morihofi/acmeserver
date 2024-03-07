@@ -10,7 +10,8 @@ import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
-import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
+import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import io.javalin.http.Context;
@@ -40,7 +41,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", Crypto.createNonce());
 
-        List<ACMEIdentifier> identifiers = Database.getACMEIdentifiersByOrderId(orderId);
+        List<ACMEOrderIdentifier> identifiers = Database.getACMEOrder(orderId).getOrderIdentifiers();
         if (identifiers.isEmpty()) {
             throw new IllegalArgumentException("Identifiers empty, FIXME");
         }
@@ -54,23 +55,26 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         boolean allCertificateExists = true;
         List<Identifier> identifierList = new ArrayList<>();
         List<String> authorizationsList = new ArrayList<>();
+        Date orderExpires = new Date();
 
-        for (ACMEIdentifier identifier : identifiers) {
-            if (!identifier.isVerified()) {
+        for (ACMEOrderIdentifier identifier : identifiers) {
+            if (identifier.getChallengeStatus() != AcmeStatus.VALID) {
                 allVerified = false;
             }
             if (identifier.getCertificatePem() == null) {
                 allCertificateExists = false;
             }
             identifierList.add(new Identifier(identifier.getType(), identifier.getDataValue()));
+
             authorizationsList.add(provisioner.getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
+
         }
 
         ACMEOrderResponse response = new ACMEOrderResponse();
-        response.setExpires(DateTools.formatDateForACME(new Date()));
-        if(!allCertificateExists){
+        response.setExpires(DateTools.formatDateForACME(orderExpires));
+        if (!allCertificateExists) {
             response.setStatus(allVerified ? AcmeStatus.READY.getRfcName() : AcmeStatus.PENDING.getRfcName()); // Ready means, that all authorizations are done
-        }else {
+        } else {
             response.setStatus(AcmeStatus.VALID.getRfcName());
         }
         response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");

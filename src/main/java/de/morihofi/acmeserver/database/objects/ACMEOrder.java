@@ -4,12 +4,12 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * Represents an ACME order entity used for managing certificate orders.
  */
 @Entity
-@Table(name = "orders")
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ACMEOrder implements Serializable {
 
@@ -26,6 +26,12 @@ public class ACMEOrder implements Serializable {
 
     @Column(name = "created")
     private Timestamp created;
+
+    @Column(name = "expires")
+    private Timestamp expires;
+
+    @OneToMany(mappedBy = "order")
+    private List<ACMEOrderIdentifier> orderIdentifiers;
 
     /**
      * Get the unique identifier of the ACME order.
@@ -73,5 +79,25 @@ public class ACMEOrder implements Serializable {
      */
     public void setCreated(Timestamp created) {
         this.created = created;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Timestamp getExpires() {
+        return expires;
+    }
+
+    public void setExpires(Timestamp expires) {
+        this.expires = expires;
+    }
+
+    public List<ACMEOrderIdentifier> getOrderIdentifiers() {
+        return orderIdentifiers;
     }
 }

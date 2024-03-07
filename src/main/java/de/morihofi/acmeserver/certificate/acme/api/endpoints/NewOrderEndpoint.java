@@ -11,7 +11,7 @@ import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
-import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
+import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMERejectedIdentifierException;
@@ -57,13 +57,13 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         //Convert payload into object
         NewOrderRequestPayload newOrderRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), NewOrderRequestPayload.class);
 
-        ArrayList<ACMEIdentifier> acmeIdentifiers = new ArrayList<>();
+        ArrayList<ACMEOrderIdentifier> acmeOrderIdentifiers = new ArrayList<>();
 
         for (Identifier identifier : newOrderRequestPayload.getIdentifiers()) {
             String type = identifier.getType();
             String value = identifier.getValue();
 
-            acmeIdentifiers.add(new ACMEIdentifier(type, value));
+            acmeOrderIdentifiers.add(new ACMEOrderIdentifier(type, value));
         }
 
         // Create order in Database
@@ -77,9 +77,15 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         List<Identifier> respIdentifiers = new ArrayList<>();
         List<String> respAuthorizations = new ArrayList<>();
 
-        List<ACMEIdentifier> acmeIdentifiersWithAuthorizationData = new ArrayList<>();
+        List<ACMEOrderIdentifier> acmeOrderIdentifiersWithAuthorizationData = new ArrayList<>();
 
-        for (ACMEIdentifier identifier : acmeIdentifiers) {
+        // Unique value for each domain
+        String authorizationId = Crypto.generateRandomId();
+
+        // Unique certificate id
+        String certificateId = Crypto.generateRandomId();
+
+        for (ACMEOrderIdentifier identifier : acmeOrderIdentifiers) {
 
             if (!(identifier.getType().equals("dns") || identifier.getType().equals("ip"))) {
                 log.error("Throwing API error: Unknown or not allowed identifier type {} for value {}", identifier.getType(), identifier.getDataValue());
@@ -100,35 +106,24 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             identifierObj.setValue(identifier.getDataValue());
             respIdentifiers.add(identifierObj);
 
-            // Unique value for each domain
-            String authorizationId = Crypto.generateRandomId();
-            // Random authorization token
-            String authorizationToken = Crypto.generateRandomId();
-            // Unique challenge id
-            String challengeId = Crypto.generateRandomId();
-            // Unique certificate id
-            String certificateId = Crypto.generateRandomId();
 
 
-            identifier.setAuthorizationToken(authorizationToken);
-            identifier.setAuthorizationId(authorizationId);
-            identifier.setChallengeId(challengeId);
+
             identifier.setCertificateId(certificateId);
 
-            acmeIdentifiersWithAuthorizationData.add(identifier);
+            acmeOrderIdentifiersWithAuthorizationData.add(identifier);
 
             respAuthorizations.add(provisioner.getApiURL() + "/acme/authz/" + authorizationId);
 
 
         }
 
-
         // Add authorizations to Database
-        Database.createOrder(account, orderId, acmeIdentifiersWithAuthorizationData, provisioner.getProvisionerName());
+        Database.createOrder(account, orderId, acmeOrderIdentifiersWithAuthorizationData, provisioner.getProvisionerName(), authorizationId);
 
         //Send E-Mail if order was created
         try {
-            SendMail.sendMail(account.getEmails().get(0), "New ACME order created", "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeIdentifiers.get(0).getDataValue() + "</i> was created.");
+            SendMail.sendMail(account.getEmails().get(0), "New ACME order created", "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeOrderIdentifiers.get(0).getDataValue() + "</i> was created.");
         } catch (Exception ex) {
             log.error("Unable to send email", ex);
         }
