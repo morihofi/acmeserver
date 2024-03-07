@@ -390,7 +390,7 @@ public class Database {
         }
 
 
-        log.info("Returning certificate chain {}", certificateChain);
+        log.info("Returning certificate chain of intermediate and root-ca {}", certificateChain);
 
         return pemBuilder.toString();
     }
