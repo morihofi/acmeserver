@@ -50,6 +50,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
 
 
         boolean allVerified = true;
+        boolean allCertificateExists = true;
         List<Identifier> identifierList = new ArrayList<>();
         List<String> authorizationsList = new ArrayList<>();
 
@@ -57,13 +58,20 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
             if (!identifier.isVerified()) {
                 allVerified = false;
             }
+            if (identifier.getCertificatePem() == null) {
+                allCertificateExists = false;
+            }
             identifierList.add(new Identifier(identifier.getType(), identifier.getDataValue()));
             authorizationsList.add(provisioner.getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
         }
 
         ACMEOrderResponse response = new ACMEOrderResponse();
         response.setExpires(DateTools.formatDateForACME(new Date()));
-        response.setStatus(allVerified ? "ready" : "pending"); // instead of "ready", "valid" was used before. Ready means, that all authorizations are done
+        if(!allCertificateExists){
+            response.setStatus(allVerified ? "ready" : "pending"); // Ready means, that all authorizations are done
+        }else {
+            response.setStatus("valid");
+        }
         response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
         response.setCertificate(provisioner.getApiURL() + "/acme/order/" + orderId + "/cert");
         response.setIdentifiers(identifierList);
