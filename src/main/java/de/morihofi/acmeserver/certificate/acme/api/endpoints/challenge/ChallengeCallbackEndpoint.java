@@ -7,6 +7,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.objects.A
 import de.morihofi.acmeserver.certificate.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEConnectionErrorException;
@@ -97,10 +98,10 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         ACMEChallengeResponse response = new ACMEChallengeResponse();
         response.setType(challengeType);
         if (identifier.isVerified()) {
-            response.setStatus("valid");
+            response.setStatus(AcmeStatus.VALID.getRfcName());
             response.setVerified(DateTools.formatDateForACME(identifier.getVerifiedTime()));
         } else {
-            response.setStatus("pending");
+            response.setStatus(AcmeStatus.PENDING.getRfcName());
         }
         response.setUrl(provisioner.getApiURL() + "/acme/chall/" + challengeId + "/" + challengeType);
         response.setToken(identifier.getAuthorizationToken());

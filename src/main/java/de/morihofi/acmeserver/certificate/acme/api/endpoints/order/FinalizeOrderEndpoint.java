@@ -8,6 +8,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.FinalizeOrderRequestPayload;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
@@ -117,7 +118,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
             ctx.header("Location", provisioner.getApiURL() + "/acme/order/" + orderId);
 
             ACMEOrderResponse response = new ACMEOrderResponse();
-            response.setStatus("valid");
+            response.setStatus(AcmeStatus.VALID.getRfcName());
             response.setExpires(DateTools.formatDateForACME(expiresAt));
             response.setIssued(DateTools.formatDateForACME(issuedAt));
             response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");

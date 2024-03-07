@@ -8,6 +8,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.Chall
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.challenges.AcmeChallengeType;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
@@ -86,7 +87,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
 
         AuthzResponse response = new AuthzResponse();
-        response.setStatus(identifier.isVerified() ? "valid" : "pending");
+        response.setStatus(identifier.isVerified() ? AcmeStatus.VALID.getRfcName() : AcmeStatus.PENDING.getRfcName());
         response.setExpires(DateTools.formatDateForACME(new Date()));
         response.setIdentifier(idObj);
         response.setChallenges(challenges);
@@ -108,7 +109,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         challenge.setUrl(getProvisioner().getApiURL() + "/acme/chall/" + identifier.getChallengeId() + "/" + type.getName());
         challenge.setToken(identifier.getAuthorizationToken());
         if (identifier.isVerified()) {
-            challenge.setStatus("valid");
+            challenge.setStatus(AcmeStatus.VALID.getRfcName());
             challenge.setValidated(DateTools.formatDateForACME(identifier.getVerifiedTime()));
         }
         return challenge;

@@ -7,6 +7,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
@@ -68,9 +69,9 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         ACMEOrderResponse response = new ACMEOrderResponse();
         response.setExpires(DateTools.formatDateForACME(new Date()));
         if(!allCertificateExists){
-            response.setStatus(allVerified ? "ready" : "pending"); // Ready means, that all authorizations are done
+            response.setStatus(allVerified ? AcmeStatus.READY.getRfcName() : AcmeStatus.PENDING.getRfcName()); // Ready means, that all authorizations are done
         }else {
-            response.setStatus("valid");
+            response.setStatus(AcmeStatus.VALID.getRfcName());
         }
         response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
         response.setCertificate(provisioner.getApiURL() + "/acme/order/" + orderId + "/cert");

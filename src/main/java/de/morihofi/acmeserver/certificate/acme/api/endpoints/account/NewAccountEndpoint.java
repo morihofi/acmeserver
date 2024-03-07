@@ -6,6 +6,7 @@ import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEnd
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.AccountResponse;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
@@ -70,7 +71,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         ctx.status(201); // Created
 
         AccountResponse response = new AccountResponse();
-        response.setStatus("valid");
+        response.setStatus(AcmeStatus.VALID.getRfcName());
         response.setContact(emails);
         response.setOrders(provisioner.getApiURL() + "/acme/acct/" + accountId + "/orders");
 

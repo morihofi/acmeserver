@@ -8,6 +8,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderReq
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderResponse;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
@@ -120,6 +121,8 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
 
         }
+
+
         // Add authorizations to Database
         Database.createOrder(account, orderId, acmeIdentifiersWithAuthorizationData, provisioner.getProvisionerName());
 
@@ -133,7 +136,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         //TODO: Set better Date/Time
         NewOrderResponse response = new NewOrderResponse();
-        response.setStatus("pending");
+        response.setStatus(AcmeStatus.PENDING.getRfcName());
         response.setExpires(DateTools.formatDateForACME(new Date()));
         response.setNotBefore(DateTools.formatDateForACME(new Date()));
         response.setNotAfter(DateTools.formatDateForACME(new Date()));
@@ -145,7 +148,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         ctx.status(201);
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
         ctx.header("Replay-Nonce", Crypto.createNonce());
-        ctx.header("Content-Type", "application/jose+json");
+        ctx.header("Content-Type", "application/json");
         ctx.header("Location", provisioner.getApiURL() + "/acme/order/" + orderId);
 
         ctx.result(gson.toJson(response));
