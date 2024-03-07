@@ -70,7 +70,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
             Database.updateAccountEmail(account, emails);
         }
 
-        ctx.header("Content-Type", "application/jose+json");
+        ctx.header("Content-Type", "application/json");
         ctx.status(200);
         ctx.result("{}"); // Empty JSON response
     }
