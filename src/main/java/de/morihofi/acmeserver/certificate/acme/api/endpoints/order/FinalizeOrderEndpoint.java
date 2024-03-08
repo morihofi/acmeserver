@@ -18,9 +18,7 @@ import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
-import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.dataExtractor.CsrDataExtractor;
-import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGenerator;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -34,9 +32,6 @@ import org.hibernate.Transaction;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.security.cert.X509Certificate;
-import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
 
@@ -77,7 +72,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         List<ACMEOrderIdentifier> identifiers = Database.getACMEOrder(orderId).getOrderIdentifiers();
 
         //We just use the verification, that throws exceptions, here not the resulting identifiers
-        getCsrDomainNamesAndVerifyWithIdentifiers(csr, identifiers);
+        getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
 
         // Convert ACMEOrderIdentifier into simple identifier
         List<Identifier> identifierList = identifiers.stream()
@@ -152,9 +147,9 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
     }
 
     @NotNull
-    public static List<String> getCsrDomainNamesAndVerifyWithIdentifiers(String csr, List<ACMEOrderIdentifier> identifiers) throws IOException {
+    public static List<Identifier> getCsrIdentifiersAndVerifyWithIdentifiers(String csr, List<ACMEOrderIdentifier> identifiers) throws IOException {
         // Extract CSR Domain Names
-        List<String> csrDomainNames = CsrDataExtractor.getDomainsAndIPsFromCSR(csr);
+        List<Identifier> csrDomainNames = CsrDataExtractor.getDomainsAndIPsFromCSR(csr);
         if (csrDomainNames.isEmpty()) {
             throw new ACMEBadCsrException("CSR does not contain any domain names");
         }
@@ -164,7 +159,10 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEServerInternalException("Not all ACME Identifiers were validated");
         }
 
-        for (String domain : csrDomainNames) {
+        for (String domain : csrDomainNames.stream()
+                .map(identifier -> identifier.getValue())
+                .toList()
+        ) {
             if (identifiers.stream().noneMatch(id -> domain.equals(id.getDataValue()))) {
                 throw new ACMEBadCsrException("One or more CSR domains do not match the ACME identifiers");
             }

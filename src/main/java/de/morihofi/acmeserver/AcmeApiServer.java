@@ -12,6 +12,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.AuthzOwnershi
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.ChallengeCallbackEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.download.DownloadCaEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.ServerInfoEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
@@ -358,8 +359,8 @@ public class AcmeApiServer {
                     intermediateCaKeyPair,
                     intermediateCertificate,
                     acmeAPIKeyPair.getPublic().getEncoded(),
-                    new String[]{
-                            appConfig.getServer().getDnsName()
+                    new Identifier[]{
+                            new Identifier(Identifier.IDENTIFIER_TYPE.DNS.name(), appConfig.getServer().getDnsName())
                     },
                     provisioner);
 

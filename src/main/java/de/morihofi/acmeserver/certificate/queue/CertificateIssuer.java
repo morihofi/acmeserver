@@ -1,12 +1,12 @@
 package de.morihofi.acmeserver.certificate.queue;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
-import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
@@ -75,19 +75,25 @@ public class CertificateIssuer {
                         PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
                         PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
 
-                        List<String> csrDomainNames = FinalizeOrderEndpoint.getCsrDomainNamesAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
+                        List<Identifier> csrIdentifiers = FinalizeOrderEndpoint.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
                         Provisioner provisioner = cryptoStoreManager.getProvisionerForName(order.getProvisioner());
 
                         /*
                             We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using the Basic Constrain etc.
                          */
 
-                        log.info("Creating Certificate for order \"{}\" with DNS Names {}", order.getOrderId(), String.join(", ", csrDomainNames));
+                        log.info("Creating Certificate for order \"{}\" with DNS Names {}", order.getOrderId(),
+                                String.join(", ", csrIdentifiers.stream()
+                                        .map(identifier -> identifier.getTypeAsEnumConstant().toString() + ":" + identifier.getValue())
+                                        .toList()
+                                )
+                        );
+
                         X509Certificate acmeGeneratedCertificate = ServerCertificateGenerator.createServerCertificate(
                                 provisioner.getIntermediateCaKeyPair(),
                                 provisioner.getIntermediateCaCertificate(),
                                 pkPemObject.getContent(),
-                                csrDomainNames.toArray(new String[0]),
+                                csrIdentifiers.toArray(new Identifier[0]),
                                 provisioner);
 
                         BigInteger serialNumber = acmeGeneratedCertificate.getSerialNumber();
