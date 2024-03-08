@@ -1,9 +1,11 @@
 package de.morihofi.acmeserver.tools.certificate.cryptoops;
 
+import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.IKeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
+import de.morihofi.acmeserver.tools.collectors.SingletonCollector;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,7 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.security.*;
 import java.security.cert.CertificateException;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * The CryptoStoreManager class manages cryptographic operations, including loading and saving
@@ -65,6 +67,8 @@ public class CryptoStoreManager {
      * Check if the ACME Server is running for the first time, so the user can upload its existing CA
      */
     private boolean firstRun = false;
+
+    private Set<Provisioner> provisioners = new HashSet<>();
 
 
     public static String getKeyStoreAliasForProvisionerIntermediate(String provisioner) {
@@ -121,6 +125,16 @@ public class CryptoStoreManager {
         if(firstRun){
             log.info("KeyStore is used for the first time");
         }
+    }
+
+    public void registerProvisioner(Provisioner provisioner){
+        provisioners.add(provisioner);
+    }
+
+    public Provisioner getProvisionerForName(String provisionerName) {
+        return provisioners.stream()
+                .filter(provisioner -> provisioner.getProvisionerName().equals(provisionerName))
+                .collect(SingletonCollector.toSingleton());
     }
 
     /**

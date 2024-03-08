@@ -5,7 +5,13 @@ public enum AcmeStatus {
     READY("ready"),
     PROCESSING("processing"),
     VALID("valid"),
-    INVALID("invalid");
+    INVALID("invalid"),
+
+    REVOKED("revoked"),
+
+    DEACTIVATED("deactivated"),
+
+    EXPIRED("expired");
 
 
     private final String rfcName;

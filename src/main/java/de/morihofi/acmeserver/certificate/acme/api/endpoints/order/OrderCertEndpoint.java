@@ -5,6 +5,7 @@ import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import io.javalin.http.Context;
@@ -32,18 +33,16 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Replay-Nonce", Crypto.createNonce());
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
 
-        List<ACMEOrderIdentifier> identifiers = Database.getACMEOrder(orderId).getOrderIdentifiers();
+        ACMEOrder order = Database.getACMEOrder(orderId);
         StringBuilder responseCertificateChainBuilder = new StringBuilder();
 
-        for (ACMEOrderIdentifier identifier : identifiers) {
-            String individualCertificateChain = Database.getCertificateChainPEMofACMEbyCertificateId(
-                    identifier.getCertificateId(),
-                    provisioner
-            );
+        String individualCertificateChain = Database.getCertificateChainPEMofACMEbyCertificateId(
+                order.getCertificateId(),
+                provisioner
+        );
 
-            responseCertificateChainBuilder.append(individualCertificateChain);
-            responseCertificateChainBuilder.append("\n"); // Separator zwischen den Zertifikaten
-        }
+        responseCertificateChainBuilder.append(individualCertificateChain);
+        responseCertificateChainBuilder.append("\n"); // Separator zwischen den Zertifikaten
 
         String responseCertificateChain = responseCertificateChainBuilder.toString();
         ctx.result(responseCertificateChain);

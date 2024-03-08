@@ -7,7 +7,7 @@ import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
-import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.exception.exceptions.*;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -123,14 +123,14 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         BigInteger serialNumber = certificate.getSerialNumber();
 
         //Get the identifier, where the certificate belongs to
-        ACMEOrderIdentifier identifier = Database.getACMEIdentifierCertificateSerialNumber(serialNumber);
+        ACMEOrder order = Database.getACMEOrderCertificateSerialNumber(serialNumber);
 
-        if (!identifier.getOrder().getAccount().getAccountId().equals(accountId)) {
+        if (!order.getAccount().getAccountId().equals(accountId)) {
             throw new ACMEServerInternalException("Rejected: You cannot revoke a certificate, that belongs to another account.");
         }
 
         //Check if already revoked
-        if (identifier.getRevokeStatusCode() != null && identifier.getRevokeTimestamp() != null) {
+        if (order.getRevokeStatusCode() != null && order.getRevokeTimestamp() != null) {
             throw new ACMEAlreadyRevokedException("Error revoking certificate: The specified certificate is already revoked");
         }
 
@@ -156,7 +156,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         log.info("Revoking certificate for reason {}", reason);
 
         //Revoke it
-        Database.revokeCertificate(identifier, reason);
+        Database.revokeCertificate(order, reason);
 
         ctx.status(200);
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");

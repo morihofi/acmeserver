@@ -15,6 +15,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
+import de.morihofi.acmeserver.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointGet;
@@ -71,8 +72,8 @@ public class AcmeApiServer {
         log.info("Initializing database");
         HibernateUtil.initDatabase();
 
-        //log.info("Initializing JTE Template Engine");
-        //JavalinJte.init();
+        log.info("Starting Certificate Issuer");
+        CertificateIssuer.startThread(cryptoStoreManager);
 
         log.info("Starting ACME API WebServer");
         Javalin app = Javalin.create(javalinConfig -> {
@@ -129,8 +130,12 @@ public class AcmeApiServer {
 
         for (Provisioner provisioner : provisioners) {
 
+            //Register in CryptoStoreManager
+            cryptoStoreManager.registerProvisioner(provisioner);
 
+            //CRL generator
             CRL crlGenerator = new CRL(provisioner);
+
             String prefix = "/acme/" + provisioner.getProvisionerName();
 
             // CRL distribution

@@ -43,48 +43,6 @@ public class Database {
 
 
     /**
-     * Stores a certificate and related information in the database for a specific ACME order and DNS value.
-     *
-     * @param orderId        The unique identifier of the ACME order associated with the certificate.
-     * @param dnsValue       The DNS value for which the certificate is issued.
-     * @param csr            The Certificate Signing Request (CSR) used to request the certificate.
-     * @param pemCertificate The PEM-encoded certificate to be stored.
-     * @param issueDate      The timestamp when the certificate was issued.
-     * @param expireDate     The timestamp when the certificate will expire.
-     * @param serialNumber   The serial number of the certificate.
-     */
-    public static void storeCertificateInDatabase(String orderId, String dnsValue, String csr, String pemCertificate, Timestamp issueDate, Timestamp expireDate, BigInteger serialNumber) {
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            Transaction transaction = session.beginTransaction();
-
-            // Using ACMEIdentifier class
-            Query query = session.createQuery("FROM ACMEOrderIdentifier a WHERE a.order.orderId = :orderId AND a.dataValue = :dnsValue", ACMEOrderIdentifier.class);
-            query.setParameter("orderId", orderId);
-            query.setParameter("dnsValue", dnsValue);
-
-            ACMEOrderIdentifier acmeOrderIdentifier = (ACMEOrderIdentifier) query.getSingleResult();
-
-            if (acmeOrderIdentifier != null) {
-                acmeOrderIdentifier.setCertificateCSR(csr);
-                acmeOrderIdentifier.setCertificateIssued(issueDate);
-                acmeOrderIdentifier.setCertificateExpires(expireDate);
-                acmeOrderIdentifier.setCertificatePem(pemCertificate);
-                acmeOrderIdentifier.setCertificateSerialNumber(serialNumber);
-
-                session.merge(acmeOrderIdentifier);
-                transaction.commit();
-
-                log.info("Stored certificate successful");
-            } else {
-                log.error("Unable to find ACME Identifier with Order ID {} and DNS Value {}", orderId, dnsValue);
-            }
-        } catch (Exception e) {
-            log.error("Unable to store certificate", e);
-        }
-    }
-
-
-    /**
      * This function marks an ACME challenge as passed
      *
      * @param challengeId id of the Challenge, provided in URL
@@ -107,14 +65,9 @@ public class Database {
                 transaction.commit();
 
 
-
             } else {
                 log.warn("No ACME challenge found with id {}", challengeId);
             }
-
-
-
-
 
 
         } catch (Exception e) {
@@ -147,7 +100,7 @@ public class Database {
                         challenge.getIdentifier().getDataValue()
 
                 );
-            }else {
+            } else {
                 log.error("Challenge ID {} returns null for the ACMEOrderIdentifierChallenge, must be something went wrong", challengeId);
             }
             transaction.commit();
@@ -192,31 +145,27 @@ public class Database {
      * @param serialNumber The serial number of the certificate associated with the ACME identifier.
      * @return The ACME identifier matching the provided certificate serial number, or null if not found.
      */
-    public static ACMEOrderIdentifier getACMEIdentifierCertificateSerialNumber(BigInteger serialNumber) {
-        ACMEOrderIdentifier identifier = null;
+    public static ACMEOrder getACMEOrderCertificateSerialNumber(BigInteger serialNumber) {
+        ACMEOrder order = null;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
-            identifier = session.createQuery("FROM ACMEOrderIdentifier WHERE certificateSerialNumber = :certificateSerialNumber", ACMEOrderIdentifier.class)
+            order = session.createQuery("FROM ACMEOrder WHERE certificateSerialNumber = :certificateSerialNumber", ACMEOrder.class)
                     .setParameter("certificateSerialNumber", serialNumber)
                     .setMaxResults(1)
                     .getSingleResult();
 
-            if (identifier != null) {
-                log.info("(Certificate Serial Number: {}) Got ACME identifier of type {} with value {}",
-                        serialNumber,
-                        identifier.getType(),
-                        identifier.getDataValue()
-                );
+            if (order != null) {
+                log.info("Got ACME certificate with serial number {} in database", serialNumber);
             }
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable get ACME identifiers for certificate serial number id {}", serialNumber, e);
+            log.error("Unable get ACME order for certificate serial number id {}", serialNumber, e);
         }
-        return identifier;
+        return order;
     }
 
     /**
-     * Retrieves a list of ACME (Automated Certificate Management Environment) identifiers associated with a specific order ID.
+     * Retrieves a ACME ORder (Automated Certificate Management Environment) with a specific order ID.
      *
      * @param orderId The unique identifier of the ACME order for which identifiers are to be retrieved.
      * @return A list of ACME identifiers associated with the provided order ID.
@@ -234,6 +183,19 @@ public class Database {
         return order;
     }
 
+    public static List<ACMEOrder> getAllACMEOrdersWithState(AcmeOrderState orderState) {
+        List<ACMEOrder> orders = null;
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            orders = session.createQuery("FROM ACMEOrder a WHERE a.orderState = :orderState", ACMEOrder.class)
+                    .setParameter("orderState", orderState)
+                    .getResultList();
+
+        } catch (Exception e) {
+            log.error("Unable get ACMEOrders for with oder State {}", orderState, e);
+        }
+        return orders;
+    }
+
     /**
      * Creates a new ACME (Automated Certificate Management Environment) order and associates it with an ACME account.
      *
@@ -241,10 +203,11 @@ public class Database {
      * @param orderId        The unique identifier for the new ACME order.
      * @param identifierList A list of ACME identifiers to be associated with the order.
      * @param provisioner    The provisioner responsible for creating the order.
+     * @param certificateId
      * @throws ACMEServerInternalException If an error occurs while creating the ACME order.
      */
     @Transactional
-    public static void createOrder(ACMEAccount account, String orderId, List<ACMEOrderIdentifier> identifierList, String provisioner, String authorizationId) {
+    public static void createOrder(ACMEAccount account, String orderId, List<ACMEOrderIdentifier> identifierList, String provisioner, String authorizationId, String certificateId) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
@@ -252,7 +215,9 @@ public class Database {
             ACMEOrder order = new ACMEOrder();
             order.setOrderId(orderId);
             order.setAccount(account);
+            order.setProvisioner(provisioner);
             order.setCreated(Timestamp.from(Instant.now()));
+            order.setCertificateId(certificateId);
             session.persist(order);
 
             log.info("Created new order {}", orderId);
@@ -260,7 +225,6 @@ public class Database {
             // Create order identifiers
             for (ACMEOrderIdentifier identifier : identifierList) {
                 identifier.setIdentifierId(Crypto.generateRandomId());
-                identifier.setProvisioner(provisioner);
                 identifier.setOrder(order);
                 identifier.setAuthorizationId(authorizationId);
                 session.persist(identifier);
@@ -320,7 +284,7 @@ public class Database {
      * it throws an IllegalArgumentException.
      *
      * @param certificateId The authorization ID associated with the ACME entity.
-     * @param provisioner     The provisioner instance used for cryptographic operations.
+     * @param provisioner   The provisioner instance used for cryptographic operations.
      * @return A string representation of the certificate chain in PEM format.
      * @throws CertificateEncodingException if an error occurs during the encoding of certificates.
      * @throws IOException                  if an I/O error occurs during certificate processing.
@@ -333,15 +297,15 @@ public class Database {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
-            Query query = session.createQuery("SELECT ai FROM ACMEOrderIdentifier ai WHERE ai.certificateId = :certificateId", ACMEOrderIdentifier.class);
+            Query query = session.createQuery("SELECT a FROM ACMEOrder a WHERE a.certificateId = :certificateId", ACMEOrder.class);
             query.setParameter("certificateId", certificateId);
             Object result = query.getSingleResult();
 
-            if (result instanceof ACMEOrderIdentifier acmeOrderIdentifier) {
+            if (result instanceof ACMEOrder acmeOrder) {
 
 
-                String certificatePEM = acmeOrderIdentifier.getCertificatePem();
-                Date certificateExpires = acmeOrderIdentifier.getCertificateExpires();
+                String certificatePEM = acmeOrder.getCertificatePem();
+                Date certificateExpires = acmeOrder.getCertificateExpires();
 
                 if (certificatePEM == null) {
                     throw new IllegalArgumentException("No certificate was found for authorization id \"" + certificateId + "\". Have you already submitted a CSR? There is no certificate without a CSR.");
@@ -450,12 +414,12 @@ public class Database {
             Transaction transaction = session.beginTransaction();
 
             //Certificates are revoked when they have a statusCode and a timestamp
-            Query query = session.createQuery("FROM ACMEOrderIdentifier WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL AND provisioner = :provisionerName", ACMEOrderIdentifier.class);
+            Query query = session.createQuery("FROM ACMEOrder WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL AND provisioner = :provisionerName", ACMEOrder.class);
             query.setParameter("provisionerName", provisionerName);
-            List<ACMEOrderIdentifier> result = TypeSafetyHelper.safeCastToClassOfType(query.getResultList(), ACMEOrderIdentifier.class);
+            List<ACMEOrder> result = TypeSafetyHelper.safeCastToClassOfType(query.getResultList(), ACMEOrder.class);
 
             if (!result.isEmpty()) {
-                for (ACMEOrderIdentifier revokedIdentifier : result) {
+                for (ACMEOrder revokedIdentifier : result) {
                     certificates.add(new RevokedCertificate(
                             revokedIdentifier.getCertificateSerialNumber(),
                             revokedIdentifier.getRevokeTimestamp(),
@@ -475,24 +439,24 @@ public class Database {
     /**
      * Revokes an ACME (Automated Certificate Management Environment) certificate associated with an ACME identifier.
      *
-     * @param identifier The ACME identifier for which the certificate is to be revoked.
-     * @param reason     The reason code for revoking the certificate.
+     * @param order  The ACME order for which the certificate is to be revoked.
+     * @param reason The reason code for revoking the certificate.
      * @throws ACMEServerInternalException If an error occurs while revoking the certificate.
      */
-    public static void revokeCertificate(ACMEOrderIdentifier identifier, int reason) {
-        identifier.setRevokeTimestamp(Timestamp.from(Instant.now()));
-        identifier.setRevokeStatusCode(reason);
+    public static void revokeCertificate(ACMEOrder order, int reason) {
+        order.setRevokeTimestamp(Timestamp.from(Instant.now()));
+        order.setRevokeStatusCode(reason);
 
         Transaction transaction;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
 
-            session.merge(identifier);
+            session.merge(order);
 
             transaction.commit();
-            log.info("Revoked certificate with serial number {} (Provisioner {})", identifier.getCertificateSerialNumber(), identifier.getProvisioner());
+            log.info("Revoked certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(), order.getProvisioner());
         } catch (Exception e) {
-            log.error("Unable to revoke certificate with serial number {} (Provisioner {})", identifier.getCertificateSerialNumber(), identifier.getProvisioner(), e);
+            log.error("Unable to revoke certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(), order.getProvisioner(), e);
             throw new ACMEServerInternalException("Unable to revoke certificate");
         }
     }
