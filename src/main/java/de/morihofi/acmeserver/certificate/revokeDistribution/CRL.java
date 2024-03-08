@@ -55,6 +55,28 @@ public class CRL {
         log.info("Initialized CRL Generation Task");
         // Start the scheduled task to update the CRL every 5 minutes (must be same as in generateCRL() function)
         scheduler.scheduleAtFixedRate(this::updateCRLCache, 0, UPDATE_MINUTES, TimeUnit.MINUTES);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+
+            @Override
+            public void run() {
+                this.setName("CRL Shutdown Thread");
+                super.run();
+
+
+                final String provisionerName = provisioner.getProvisionerName(); // Retrieve the name of the provisioner in advance to keep the code clean
+
+                log.info("Initiating shutdown of CRL Generator for Provisioner '{}'.", provisionerName);
+
+                try {
+                    shutdown();
+                    log.info("Shutdown of CRL Generator for Provisioner '{}' completed successfully.", provisionerName);
+                } catch (Exception e) {
+                    log.error("An error occurred during the shutdown of CRL Generator for Provisioner '{}': {}", provisionerName, e.getMessage(), e);
+                }
+            }
+        });
+
     }
 
 
