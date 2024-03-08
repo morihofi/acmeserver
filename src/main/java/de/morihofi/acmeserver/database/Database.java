@@ -104,20 +104,7 @@ public class Database {
                 log.info("ACME challenge {} was marked as passed", challengeId);
 
 
-                //Mark all other challenges as invalid
-                //TODO: Check if working correctly
-                for (ACMEOrderIdentifierChallenge challenge : orderIdentifierChallenge.getIdentifier()
-                        .getChallenges()
-                        .stream()
-                        .filter(acmeOrderIdentifierChallenge -> acmeOrderIdentifierChallenge.getStatus() != AcmeStatus.VALID)
-                        .toList()){
-
-                    log.debug("ACME challenge {} was marked as invalid, cause other challenge passed -> not more needed", challengeId);
-                    orderIdentifierChallenge.setStatus(AcmeStatus.INVALID);
-
-                    session.merge(challenge);
-                }
-
+                transaction.commit();
 
 
 
@@ -129,7 +116,7 @@ public class Database {
 
 
 
-            transaction.commit();
+
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
