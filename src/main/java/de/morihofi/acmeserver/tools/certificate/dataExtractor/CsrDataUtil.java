@@ -1,20 +1,26 @@
 package de.morihofi.acmeserver.tools.certificate.dataExtractor;
 
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
+import de.morihofi.acmeserver.database.AcmeStatus;
+import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.exception.exceptions.ACMEBadCsrException;
+import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class CsrDataExtractor {
+public class CsrDataUtil {
 
     /**
      * Extracts domain names from a Certificate Signing Request (CSR) in PEM format.
@@ -64,6 +70,37 @@ public class CsrDataExtractor {
     private static String convertToIP(byte[] ip) throws UnknownHostException {
         InetAddress ipAddress = InetAddress.getByAddress(ip);
         return ipAddress.getHostAddress();
+    }
+
+    public static List<Identifier> getCsrIdentifiersAndVerifyWithIdentifiers(
+            String csr, List<ACMEOrderIdentifier> identifiers) throws IOException {
+        // Extract CSR Domain Names
+        List<Identifier> csrDomainNames = getDomainsAndIPsFromCSR(csr);
+        if (csrDomainNames.isEmpty()) {
+            throw new ACMEBadCsrException("CSR does not contain any domain names");
+        }
+
+        // Verify all ACME Identifiers are validated
+        boolean allIdentifiersValid = identifiers.stream()
+                .allMatch(acmeOrderIdentifier -> acmeOrderIdentifier.getChallengeStatus() == AcmeStatus.VALID);
+        if (!allIdentifiersValid) {
+            throw new ACMEServerInternalException("Not all ACME Identifiers were validated");
+        }
+
+        // Verify CSR domains match ACME identifiers
+        List<String> identifierValues = identifiers.stream()
+                .map(ACMEOrderIdentifier::getDataValue)
+                .toList();
+
+        boolean allDomainsMatch = csrDomainNames.stream()
+                .map(Identifier::getValue)
+                .allMatch(identifierValues::contains);
+
+        if (!allDomainsMatch) {
+            throw new ACMEBadCsrException("One or more CSR domains do not match the ACME identifiers");
+        }
+
+        return csrDomainNames;
     }
 
 }

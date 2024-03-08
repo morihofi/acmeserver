@@ -16,9 +16,8 @@ import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadCsrException;
-import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
-import de.morihofi.acmeserver.tools.certificate.dataExtractor.CsrDataExtractor;
+import de.morihofi.acmeserver.tools.certificate.dataExtractor.CsrDataUtil;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -29,9 +28,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
@@ -72,7 +69,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         List<ACMEOrderIdentifier> identifiers = Database.getACMEOrder(orderId).getOrderIdentifiers();
 
         //We just use the verification, that throws exceptions, here not the resulting identifiers
-        getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
+        CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
 
         // Convert ACMEOrderIdentifier into simple identifier
         List<Identifier> identifierList = identifiers.stream()
@@ -95,7 +92,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
             // Try if we can deserialize the CSR
             PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
-            PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
+            new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
         } catch (Exception ex) {
             throw new ACMEBadCsrException("Unable to process requested CSR. Is the CSR valid and deserializable?");
         }
@@ -146,29 +143,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
     }
 
-    @NotNull
-    public static List<Identifier> getCsrIdentifiersAndVerifyWithIdentifiers(String csr, List<ACMEOrderIdentifier> identifiers) throws IOException {
-        // Extract CSR Domain Names
-        List<Identifier> csrDomainNames = CsrDataExtractor.getDomainsAndIPsFromCSR(csr);
-        if (csrDomainNames.isEmpty()) {
-            throw new ACMEBadCsrException("CSR does not contain any domain names");
-        }
 
-
-        if (!identifiers.stream().allMatch(acmeOrderIdentifier -> acmeOrderIdentifier.getChallengeStatus() == AcmeStatus.VALID)) {
-            throw new ACMEServerInternalException("Not all ACME Identifiers were validated");
-        }
-
-        for (String domain : csrDomainNames.stream()
-                .map(identifier -> identifier.getValue())
-                .toList()
-        ) {
-            if (identifiers.stream().noneMatch(id -> domain.equals(id.getDataValue()))) {
-                throw new ACMEBadCsrException("One or more CSR domains do not match the ACME identifiers");
-            }
-        }
-        return csrDomainNames;
-    }
 
 
 }

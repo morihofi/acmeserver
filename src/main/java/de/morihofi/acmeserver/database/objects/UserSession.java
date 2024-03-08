@@ -10,12 +10,14 @@
 
 package de.morihofi.acmeserver.database.objects;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
 
 @Entity
 @Table(name = "user_session")
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class UserSession {
 
     @Id

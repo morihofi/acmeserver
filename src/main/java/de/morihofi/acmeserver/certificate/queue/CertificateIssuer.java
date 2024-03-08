@@ -10,7 +10,9 @@ import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
+import de.morihofi.acmeserver.tools.certificate.dataExtractor.CsrDataUtil;
 import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGenerator;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -51,6 +53,7 @@ public class CertificateIssuer {
             this.cryptoStoreManager = cryptoStoreManager;
         }
 
+        @SuppressFBWarnings("REC_CATCH_EXCEPTION")
         @Override
         public void run() {
             log.info("Certificate issuing thread started!");
@@ -75,7 +78,7 @@ public class CertificateIssuer {
                         PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
                         PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
 
-                        List<Identifier> csrIdentifiers = FinalizeOrderEndpoint.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
+                        List<Identifier> csrIdentifiers = CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
                         Provisioner provisioner = cryptoStoreManager.getProvisionerForName(order.getProvisioner());
 
                         /*

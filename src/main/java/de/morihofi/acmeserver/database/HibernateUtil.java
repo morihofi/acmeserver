@@ -97,7 +97,6 @@ public class HibernateUtil {
      * {@code dbType} and the application's main configuration.
      * @throws NullPointerException if {@code dbType} is null.
      */
-    @NotNull
     private static Configuration getConfigurationFor(DatabaseType dbType) {
         Configuration configuration = new Configuration();
 
