@@ -107,8 +107,9 @@ public class HTTPChallenge {
      * @throws InvalidKeySpecException  If an invalid key specification is encountered.
      * @throws NoSuchProviderException  If a requested security provider is not available.
      */
-    public static boolean check(String authToken, String host, ACMEAccount acmeAccount) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
+    public static ChallengeResult check(String authToken, String host, ACMEAccount acmeAccount) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         boolean passed = false;
+        String lastError = "";
 
         PublicKey acmeAccountPublicKey = PemUtil.readPublicKeyFromPem(acmeAccount.getPublicKeyPEM());
 
@@ -144,19 +145,25 @@ public class HTTPChallenge {
                         passed = true;
                         log.info("HTTP Challenge has validated for host {}", host);
                     } else {
-                        log.info("HTTP Challenge validation failed for host {}. Content doesn't match. Expected: {}; Got: {}", host, authToken, acmeTokenFromHost);
+                        log.error("HTTP Challenge validation failed for host {}. Content doesn't match. Expected: {}; Got: {}", host, authToken, acmeTokenFromHost);
+                        lastError = "HTTP Challenge validation failed, cause content doesn't match";
                     }
                 } else {
-                    log.error("HTTP Challenge failed for host {}}, got HTTP status code {}", host, responseCode);
+                    log.error("HTTP Challenge failed for host {}, got HTTP status code {}", host, responseCode);
+                    lastError = "HTTP Challenge failed, got HTTP status code " + responseCode;
                 }
             }
 
 
         } catch (IOException e) {
             log.error("HTTP Challenge failed for host {}. Is it reachable?", host, e);
+            if(e instanceof ConnectException){
+                lastError = e.getMessage();
+            }
         }
 
-        return passed;
+
+        return new ChallengeResult(passed, lastError);
     }
 
 }

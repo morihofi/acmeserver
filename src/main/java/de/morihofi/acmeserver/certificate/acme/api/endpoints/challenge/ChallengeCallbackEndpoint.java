@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.objects.ACMEChallengeResponse;
+import de.morihofi.acmeserver.certificate.acme.challenges.ChallengeResult;
 import de.morihofi.acmeserver.certificate.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
@@ -66,16 +67,13 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEMalformedException("DNS-01 method is only valid for non wildcard domains");
         }
 
-        boolean challengePassed;
-        String possibleErrorReasonIfFailed;
+        ChallengeResult result;
         switch (challengeType) {
             case "http-01" -> {
-                challengePassed = HTTPChallenge.check(identifierChallenge.getAuthorizationToken(), identifierChallenge.getIdentifier().getDataValue(), identifierChallenge.getIdentifier().getOrder().getAccount());
-                possibleErrorReasonIfFailed = "Unable to reach host \"" + identifierChallenge.getIdentifier().getDataValue() + "\" or invalid token. Is the host reachable? Is the http server on port 80 running? If it is running, check your access logs";
-            }
+                result = HTTPChallenge.check(identifierChallenge.getAuthorizationToken(), identifierChallenge.getIdentifier().getDataValue(), identifierChallenge.getIdentifier().getOrder().getAccount());
+           }
             case "dns-01" -> {
-                challengePassed = DNSChallenge.check(identifierChallenge.getAuthorizationToken(), nonWildcardDomain, identifierChallenge.getIdentifier().getOrder().getAccount());
-                possibleErrorReasonIfFailed = "Unable to verify DNS TXT entry for host \"" + nonWildcardDomain + "\"";
+                result = DNSChallenge.check(identifierChallenge.getAuthorizationToken(), nonWildcardDomain, identifierChallenge.getIdentifier().getOrder().getAccount());
             }
             default -> {
                 log.error("Unsupported challenge type: " + challengeType);
@@ -84,12 +82,12 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         }
 
         log.info("Validating ownership of host {}", nonWildcardDomain);
-        if (challengePassed) {
+        if (result.isSuccessful()) {
             // Mark challenge as passed
             Database.passChallenge(challengeId);
         } else {
             log.error("Throwing API error: Host verification failed with method {}", challengeType);
-            throw new ACMEConnectionErrorException(possibleErrorReasonIfFailed);
+            throw new ACMEConnectionErrorException(result.getErrorReason());
             // TODO: Fail challenge in database
             //Database.failChallenge(challengeId);
         }
