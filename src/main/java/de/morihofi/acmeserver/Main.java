@@ -70,6 +70,7 @@ public class Main {
         NORMAL, POSTSETUP, KEYSTORE_MIGRATION_PEM2KS
     }
 
+    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static boolean debug = false;
 
     @SuppressFBWarnings("MS_PKGPROTECT")
