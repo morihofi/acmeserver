@@ -207,7 +207,7 @@ public class Database {
      * @throws ACMEServerInternalException If an error occurs while creating the ACME order.
      */
     @Transactional
-    public static void createOrder(ACMEAccount account, String orderId, List<ACMEOrderIdentifier> identifierList, String provisioner, String authorizationId, String certificateId) {
+    public static void createOrder(ACMEAccount account, String orderId, List<ACMEOrderIdentifier> identifierList, String provisioner, String certificateId) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
@@ -226,7 +226,6 @@ public class Database {
             for (ACMEOrderIdentifier identifier : identifierList) {
                 identifier.setIdentifierId(Crypto.generateRandomId());
                 identifier.setOrder(order);
-                identifier.setAuthorizationId(authorizationId);
                 session.persist(identifier);
 
                 log.info("Added identifier {} of type {} to order {}",

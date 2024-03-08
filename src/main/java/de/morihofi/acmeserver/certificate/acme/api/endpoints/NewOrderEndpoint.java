@@ -79,14 +79,15 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         List<ACMEOrderIdentifier> acmeOrderIdentifiersWithAuthorizationData = new ArrayList<>();
 
-        // Unique value for each domain
-        String authorizationId = Crypto.generateRandomId();
 
-        // Unique certificate id
+
+        // Unique certificate id per order
         String certificateId = Crypto.generateRandomId();
 
 
         for (ACMEOrderIdentifier identifier : acmeOrderIdentifiers) {
+            // Unique value for each domain
+            String authorizationId = Crypto.generateRandomId();
 
             //Only IP and DNS
             if (!(identifier.getType().equals("dns") || identifier.getType().equals("ip"))) {
@@ -113,6 +114,8 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
                 }
             }
 
+            identifier.setAuthorizationId(authorizationId);
+
             Identifier identifierObj = new Identifier();
             identifierObj.setType(identifier.getType());
             identifierObj.setValue(identifier.getDataValue());
@@ -126,7 +129,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         }
 
         // Add authorizations to Database
-        Database.createOrder(account, orderId, acmeOrderIdentifiersWithAuthorizationData, provisioner.getProvisionerName(), authorizationId, certificateId);
+        Database.createOrder(account, orderId, acmeOrderIdentifiersWithAuthorizationData, provisioner.getProvisionerName(), certificateId);
 
         //Send E-Mail if order was created
         try {
