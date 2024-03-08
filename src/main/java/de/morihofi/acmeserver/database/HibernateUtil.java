@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.database;
 
 import de.morihofi.acmeserver.Main;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
@@ -18,6 +20,10 @@ import java.util.Locale;
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
 
+    /**
+     * Logger
+     */
+    private static final Logger log = LogManager.getLogger(HibernateUtil.class);
 
     /**
      * Initializes the database connection and Hibernate configuration.
@@ -48,6 +54,26 @@ public class HibernateUtil {
             } catch (Exception e) {
                 throw new ExceptionInInitializerError(e);
             }
+
+
+
+            Runtime.getRuntime().addShutdownHook(new Thread(){
+                @Override
+                public void run() {
+                    this.setName("Database Shutdown Thread");
+                    super.run();
+
+                    log.info("Initiating shutdown of Hibernate Database");
+
+                    try {
+                        sessionFactory.close();
+                        log.info("Shutdown of Hibernate Database completed successfully.");
+                    } catch (Exception e) {
+                        log.error("An error occurred during the shutdown of the Hibernate Database: {}", e.getMessage(), e);
+                    }
+                }
+            });
+
         }
     }
 
