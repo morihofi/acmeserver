@@ -18,7 +18,7 @@ import de.morihofi.acmeserver.exception.exceptions.ACMERejectedIdentifierExcepti
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import de.morihofi.acmeserver.tools.email.SendMail;
-import de.morihofi.acmeserver.tools.regex.DomainValidation;
+import de.morihofi.acmeserver.tools.regex.DomainAndIpValidation;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -88,18 +88,29 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         for (ACMEOrderIdentifier identifier : acmeOrderIdentifiers) {
 
+            //Only IP and DNS
             if (!(identifier.getType().equals("dns") || identifier.getType().equals("ip"))) {
                 log.error("Throwing API error: Unknown or not allowed identifier type {} for value {}", identifier.getType(), identifier.getDataValue());
                 throw new ACMERejectedIdentifierException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
             }
 
-            if (!DomainValidation.isValidDomain(identifier.getDataValue(), provisioner.isWildcardAllowed())) {
-                throw new ACMERejectedIdentifierException("Identifier \"" + identifier.getDataValue() + "\" is invalid (Wildcard allowed: " + provisioner.isWildcardAllowed() + ")");
+            //Check DNS if type is DNS
+            if(identifier.getType().equals("dns")){
+                if (!DomainAndIpValidation.isValidDomain(identifier.getDataValue(), provisioner.isWildcardAllowed())) {
+                    throw new ACMERejectedIdentifierException("Identifier \"" + identifier.getDataValue() + "\" is invalid (Wildcard allowed: " + provisioner.isWildcardAllowed() + ")");
 
+                }
+
+                if (!checkIfDomainIsAllowed(identifier.getDataValue())) {
+                    throw new ACMERejectedIdentifierException("Domain identifier \"" + identifier.getDataValue() + "\" is not allowed");
+                }
             }
 
-            if (!checkIfDomainIsAllowed(identifier.getDataValue())) {
-                throw new ACMERejectedIdentifierException("Domain identifier \"" + identifier.getDataValue() + "\" is not allowed");
+            //Check IP if type is IP
+            if(identifier.getType().equals("ip")){
+                if (!DomainAndIpValidation.isIpAddress(identifier.getDataValue())) {
+                    throw new ACMERejectedIdentifierException("Identifier IP \"" + identifier.getDataValue() + "\" is invalid");
+                }
             }
 
             Identifier identifierObj = new Identifier();
