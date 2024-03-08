@@ -7,13 +7,11 @@ import de.morihofi.acmeserver.tools.crypto.AcmeTokenCryptography;
 import de.morihofi.acmeserver.tools.crypto.Hashing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbill.DNS.Lookup;
-import org.xbill.DNS.TXTRecord;
-import org.xbill.DNS.TextParseException;
-import org.xbill.DNS.Type;
+import org.xbill.DNS.*;
 import org.xbill.DNS.Record;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.security.*;
 
 public class DNSChallenge {
@@ -93,5 +91,25 @@ public class DNSChallenge {
         return Base64Tools.base64UrlEncode(Hashing.sha256hash(AcmeTokenCryptography.keyAuthorizationFor(token,pk)));
     }
 
+    /**
+     * Setting the DNS resolver manually
+     * @param dnsServerIP DNS Server to use
+     * @throws UnknownHostException
+     */
+    public static void setManualDNSResolver(String dnsServerIP) throws UnknownHostException {
+        // Setting the DNS resolver manually
+        SimpleResolver resolver = new SimpleResolver(dnsServerIP);
+        Lookup.setDefaultResolver(resolver);
+    }
+
+    /**
+     * Reset to the system resolver
+     */
+    public static void setSystemDNSResolver() {
+        // Reset to the system resolver
+        // This is achieved by setting the DefaultResolver to null, since dnsjava
+        // then uses the system's resolver configuration
+        Lookup.setDefaultResolver(null);
+    }
 
 }
