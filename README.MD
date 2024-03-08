@@ -47,6 +47,7 @@ java -jar acmeserver-VERSION.jar
 - Supported challenges:
   - HTTP-01
   - DNS-01
+- WebUI has multiple language support (currently `de` and `en` as a fallback) 
 
 ## 📒 Disclaimer
 This version is not fully RFC 8555 compliant, but should work with most clients. 
@@ -54,7 +55,7 @@ This version is not fully RFC 8555 compliant, but should work with most clients.
 ## ✅ Tested and working ACME Clients
 - [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree)
 - [acme.sh](https://github.com/acmesh-official/acme.sh)
-- [Certbot](https://certbot.eff.org)
+- ~~[Certbot](https://certbot.eff.org)~~ (currently buggy with this ACME Server)
 - [Traefik](https://github.com/traefik/traefik)
 - [win-acme](https://www.win-acme.com/)
 

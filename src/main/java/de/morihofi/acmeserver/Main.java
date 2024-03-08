@@ -70,12 +70,19 @@ public class Main {
         NORMAL, POSTSETUP, KEYSTORE_MIGRATION_PEM2KS
     }
 
+    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static boolean debug = false;
 
     @SuppressFBWarnings("MS_PKGPROTECT")
     public static MODE selectedMode = MODE.NORMAL;
 
+    @SuppressFBWarnings("MS_PKGPROTECT")
+    public static long startedAt;
+    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
+    public static long startupTime = 0; // Set after all routes are ready
+
     public static void main(String[] args) throws Exception {
+        startedAt = System.currentTimeMillis();
         Gson configGson = new GsonBuilder()
                 .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
                 .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())

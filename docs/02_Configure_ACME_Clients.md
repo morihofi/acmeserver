@@ -15,9 +15,18 @@ Certbot is a free, open-source software tool for automatically using Let's Encry
 
 Sample command for issue a certificate for a [nginx](http://nginx.org/)-WebServer
 ```bash
-certbot -n --nginx -d sample.example.com --server https://acme.example.com/myprovisioner/directory --agree-tos --email your.email@example.com
+certbot -n --nginx -d sample.example.com --server https://acme.example.com/acme/myprovisioner/directory --agree-tos --email your.email@example.com
 ```
 You can find a detailed guide [for use with nginx here](https://www.nginx.com/blog/using-free-ssltls-certificates-from-lets-encrypt-with-nginx/) and a [guide to certbot here](https://eff-certbot.readthedocs.io/en/latest/using.html). 
 
 The only important thing is, that you use the `--server`-argument. Otherwise, it goes to the official Let's Encrypt one.
 If you want to do it manually, just replace `--nginx` with `--manual`
+
+## acme.sh
+acme.sh is another client implementation of the ACME Protocol
+
+```bash
+acme.sh --register-account --server https://acme.example.com/acme/myprovisioner/directory
+acme.sh --update-account --server https://acme.example.com/acme/myprovisioner/directory --accountemail your.email@example.com
+acme.sh --issue --server https://acme.example.com/acme/myprovisioner/directory -d sample.example.com --nginx
+```

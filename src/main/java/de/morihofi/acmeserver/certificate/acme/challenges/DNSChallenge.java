@@ -39,45 +39,49 @@ public class DNSChallenge {
      * @throws IOException If an I/O error occurs during DNS query.
      * @throws GeneralSecurityException If a security-related error occurs.
      */
-    public static boolean check(String token, String domain, ACMEAccount acmeAccount) throws IOException, GeneralSecurityException {
+    public static ChallengeResult check(String token, String domain, ACMEAccount acmeAccount) throws IOException, GeneralSecurityException {
         boolean passed = false;
+        String lastError = "";
 
         String dnsExpectedValue = getDigest(token, PemUtil.readPublicKeyFromPem(acmeAccount.getPublicKeyPEM()));
 
         try {
+
             // Abfrage des TXT-Eintrags für die ACME Challenge
             Lookup lookup = new Lookup("_acme-challenge." + domain, Type.TXT);
             lookup.run();
-
+            String txtValue = "";
             if (lookup.getResult() == Lookup.SUCCESSFUL) {
                 // Check TXT-Entries
                 for (Record dnsRecord : lookup.getAnswers()) {
                     TXTRecord txt = (TXTRecord) dnsRecord;
                     for (Object value : txt.getStrings()) {
-                        String txtValue = value.toString();
+                        txtValue = value.toString();
                         if (txtValue.equals(dnsExpectedValue)) {
-                            passed = true;
-                            log.info("DNS Challenge has validated for domain {}", domain);
-                            break;
+                            return new ChallengeResult(true, "");
+                        }else {
+                            lastError = "TXT record value doesn't match";
+                            log.error(" TXT record value doesn't match. Expected: {} but got {}", dnsExpectedValue, txtValue);
                         }
                     }
-                    if (passed) {
-                        break;
-                    }
                 }
-            }
+                log.error("DNS Challenge validation failed for challenge domain {}. TXT record not found", ("_acme-challenge." + domain));
 
-            if (!passed) {
-                log.error("DNS Challenge validation failed for domain {}. TXT record not found or value doesn't match. Expected: {}", ("_acme-challenge." + domain), dnsExpectedValue);
+
+            }else {
+                log.error("DNS Challenge validation failed for challenge domain {}. Lookup wasn't successful.", ("_acme-challenge." + domain));
+
             }
 
         } catch (TextParseException e) {
             log.error("Error parsing domain name {}", domain, e);
+            lastError = "Error parsing domain name";
         } catch (Exception e) {
             log.error("DNS Challenge failed for domain {}", domain, e);
+            lastError = "Unknown exception. Server logs show more information";
         }
 
-        return passed;
+        return new ChallengeResult(false, lastError);
     }
 
 

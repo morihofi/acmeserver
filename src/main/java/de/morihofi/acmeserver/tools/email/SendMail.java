@@ -79,7 +79,6 @@ public class SendMail {
      * @return A {@link Properties} object with SMTP settings configured per the given {@code emailConfig}.
      * @throws NullPointerException if {@code emailConfig} is null.
      */
-    @NotNull
     private static Properties getEmailProperties(EmailConfig emailConfig) {
         Properties emailProp = new Properties();
         emailProp.put("mail.smtp.auth", "true");

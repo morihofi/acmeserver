@@ -2,19 +2,21 @@ package de.morihofi.acmeserver;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.*;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.DirectoryEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.NewNonceEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.NewOrderEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.RevokeCertEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.AccountEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.NewAccountEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.AuthzOwnershipEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.ChallengeCallbackEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.download.DownloadCaEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.ServerInfoEndpoint;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.MetadataInfoResponse;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ProvisionerResponse;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
+import de.morihofi.acmeserver.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointGet;
@@ -33,6 +35,7 @@ import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewIn
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
 import de.morihofi.acmeserver.tools.network.JettySslHelper;
 import de.morihofi.acmeserver.tools.regex.ConfigCheck;
+import de.morihofi.acmeserver.webui.WebUI;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.rendering.template.JavalinJte;
@@ -44,10 +47,7 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class AcmeApiServer {
@@ -73,8 +73,8 @@ public class AcmeApiServer {
         log.info("Initializing database");
         HibernateUtil.initDatabase();
 
-        //log.info("Initializing JTE Template Engine");
-        //JavalinJte.init();
+        log.info("Starting Certificate Issuer");
+        CertificateIssuer.startThread(cryptoStoreManager);
 
         log.info("Starting ACME API WebServer");
         Javalin app = Javalin.create(javalinConfig -> {
@@ -89,6 +89,14 @@ public class AcmeApiServer {
             ctx.header("Access-Control-Allow-Methods", "*");
             ctx.header("Access-Control-Allow-Headers", "*");
             ctx.header("Access-Control-Max-Age", "3600");
+
+            //This is for the WebUI to auto use same language as browser, if supported
+            {
+                String acceptLanguage = ctx.header("Accept-Language");
+                Locale locale = Locale.forLanguageTag(acceptLanguage != null ? acceptLanguage.split(",")[0] : "en-US");
+
+                ctx.attribute(WebUI.ATTR_LOCALE, locale);
+            }
 
             log.info("API Call [{}] {}", ctx.method(), ctx.path());
         });
@@ -117,14 +125,19 @@ public class AcmeApiServer {
 
 
         List<Provisioner> provisioners = getProvisioners(appConfig.getProvisioner(), app, cryptoStoreManager, appConfig);
-        app.get("/",context -> context.render("index.jte", Map.of("serverInfoResponse", ServerInfoEndpoint.getServerInfoResponse(appConfig.getProvisioner()))));
+
+        WebUI.init(app, cryptoStoreManager);
 
 
         for (Provisioner provisioner : provisioners) {
 
+            //Register in CryptoStoreManager
+            cryptoStoreManager.registerProvisioner(provisioner);
 
+            //CRL generator
             CRL crlGenerator = new CRL(provisioner);
-            String prefix = "/" + provisioner.getProvisionerName();
+
+            String prefix = "/acme/" + provisioner.getProvisionerName();
 
             // CRL distribution
             app.get(provisioner.getCrlPath(), new CRLEndpoint(provisioner, crlGenerator));
@@ -178,6 +191,7 @@ public class AcmeApiServer {
 
         app.start();
         log.info("\u2705 Configure Routes completed. Ready for incoming requests");
+        Main.startupTime = (System.currentTimeMillis() - Main.startedAt) / 1000L; //in seconds
     }
 
 
@@ -215,7 +229,6 @@ public class AcmeApiServer {
 
                 // *****************************************
                 // Create Intermediate Certificate
-
 
 
                 if (config.getIntermediate().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
@@ -290,7 +303,6 @@ public class AcmeApiServer {
                         JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, javalinInstance.jettyServer());
 
 
-
                         log.info("Certificate reload complete");
                     } catch (Exception e) {
                         log.error("Error renewing certificates", e);
@@ -312,14 +324,14 @@ public class AcmeApiServer {
      * Generates an ACME API client certificate for the ACME Web Server API, if it doesn't already exist in the key store.
      *
      * @param cryptoStoreManager The crypto store manager used for managing certificates and keys.
-     * @param provisioner The provisioner associated with the certificate generation.
-     * @param appConfig The application configuration containing settings for the ACME API and certificates.
-     * @throws CertificateException If there is an issue with certificate handling.
-     * @throws IOException If an I/O error occurs.
-     * @throws NoSuchAlgorithmException If a required cryptographic algorithm is not available.
-     * @throws NoSuchProviderException If a required cryptographic provider is not available.
+     * @param provisioner        The provisioner associated with the certificate generation.
+     * @param appConfig          The application configuration containing settings for the ACME API and certificates.
+     * @throws CertificateException      If there is an issue with certificate handling.
+     * @throws IOException               If an I/O error occurs.
+     * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
+     * @throws NoSuchProviderException   If a required cryptographic provider is not available.
      * @throws OperatorCreationException If there is an issue creating a cryptographic operator.
-     * @throws KeyStoreException If there is an issue with the keystore.
+     * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws UnrecoverableKeyException If a keystore key cannot be recovered.
      */
     private static void generateAcmeApiClientCertificate(CryptoStoreManager cryptoStoreManager, Provisioner provisioner, Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
@@ -330,7 +342,7 @@ public class AcmeApiServer {
         KeyPair acmeAPIKeyPair;
         if (!cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) ||
                 (cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) &&
-                        isCertificateValid(((X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA))))
+                        !isCertificateValid(((X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI))))
         ) {
 
             // *****************************************
@@ -347,8 +359,8 @@ public class AcmeApiServer {
                     intermediateCaKeyPair,
                     intermediateCertificate,
                     acmeAPIKeyPair.getPublic().getEncoded(),
-                    new String[]{
-                            appConfig.getServer().getDnsName()
+                    new Identifier[]{
+                            new Identifier(Identifier.IDENTIFIER_TYPE.DNS.name(), appConfig.getServer().getDnsName())
                     },
                     provisioner);
 
@@ -376,12 +388,10 @@ public class AcmeApiServer {
         try {
             certificate.checkValidity(new Date());
             return true;
-        }catch (Exception ex){
+        } catch (Exception ex) {
             return false;
         }
     }
-
-
 
 
 }
