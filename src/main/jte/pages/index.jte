@@ -65,7 +65,7 @@ context = context
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm">
                         <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">${provisioner.getName()}</h5>
+                            <h5 class="card-title"><i class="fa-solid fa-stamp"></i>&nbsp;${provisioner.getName()}</h5>
 
                             <div class="input-group mt-3 mb-1">
                                 <div class="form-floating flex-grow-1">
