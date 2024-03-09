@@ -44,6 +44,7 @@ import org.apache.logging.log4j.Logger;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -191,7 +192,8 @@ public class AcmeApiServer {
 
         app.start();
         log.info("\u2705 Configure Routes completed. Ready for incoming requests");
-        Main.startupTime = (System.currentTimeMillis() - Main.startedAt) / 1000L; //in seconds
+        Main.startupTime = (System.currentTimeMillis() -  ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000L; //in seconds
+        log.info("Startup took {} seconds", Main.startupTime);
     }
 
 
