@@ -71,7 +71,7 @@ context = context
                                 <div class="form-floating flex-grow-1">
                                     <input type="text" class="form-control"
                                            name="acme-directory-${provisioner.getName()}"
-                                           value="${"https://" + serverInfoResponse.getMetadataInfo().getHost() + ":" + serverInfoResponse.getMetadataInfo().getHttpsPort() + "/acme/" + provisioner.getName() + "/directory"}"
+                                           value="${cryptoStoreManager.getProvisionerForName(provisioner.getName()).getApiURL() + "/directory"}"
                                            readonly>
                                     <label for="acme-directory-${provisioner.getName()}">${localizer.lookup("web.index.provisioners.directoryUrl")}</label>
                                 </div>
