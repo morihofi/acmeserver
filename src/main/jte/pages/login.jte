@@ -1,6 +1,6 @@
 @import de.morihofi.acmeserver.webui.JteLocalizer
-@import de.morihofi.acmeserver.webui.LoginUiHandler
-@import de.morihofi.acmeserver.webui.LoginUiHandler.LOGIN_STATE
+@import de.morihofi.acmeserver.webui.handler.LoginUiHandler
+@import de.morihofi.acmeserver.webui.handler.LoginUiHandler.LOGIN_STATE
 @import io.javalin.http.Context
 @import io.javalin.http.HandlerType
 

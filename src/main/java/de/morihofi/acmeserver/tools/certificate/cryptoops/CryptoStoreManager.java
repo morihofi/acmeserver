@@ -68,7 +68,7 @@ public class CryptoStoreManager {
      */
     private boolean firstRun = false;
 
-    private Set<Provisioner> provisioners = new HashSet<>();
+    private final Set<Provisioner> provisioners = new HashSet<>();
 
 
     public static String getKeyStoreAliasForProvisionerIntermediate(String provisioner) {
@@ -135,6 +135,10 @@ public class CryptoStoreManager {
         return provisioners.stream()
                 .filter(provisioner -> provisioner.getProvisionerName().equals(provisionerName))
                 .collect(SingletonCollector.toSingleton());
+    }
+
+    public Set<Provisioner> getProvisioners(){
+        return Collections.unmodifiableSet(provisioners);
     }
 
     /**

@@ -59,7 +59,7 @@ public class CertificateIssuer {
             log.info("Certificate issuing thread started!");
 
             while (!Thread.currentThread().isInterrupted()) {
-                log.info("Looking for certificates to be issued in the database");
+                log.trace("Looking for certificates to be issued in the database");
 
 
                 List<ACMEOrder> waitingOrders = Database.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE);

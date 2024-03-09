@@ -373,6 +373,23 @@ public class Database {
         return acmeAccount;
     }
 
+    public static List<ACMEAccount> getAllAccounts() {
+        List<ACMEAccount> acmeAccounts = null;
+
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            Transaction transaction = session.beginTransaction();
+
+            Query query = session.createQuery("FROM ACMEAccount", ACMEAccount.class);
+            acmeAccounts = TypeSafetyHelper.safeCastToClassOfType(query.getResultList(), ACMEAccount.class);
+
+            transaction.commit();
+        } catch (Exception e) {
+            log.error("Unable to get all ACME Accounts", e);
+        }
+
+        return acmeAccounts;
+    }
+
     /**
      * Retrieves the ACME (Automated Certificate Management Environment) account associated with a specific order ID.
      *
