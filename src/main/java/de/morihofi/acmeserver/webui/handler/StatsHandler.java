@@ -25,71 +25,13 @@ public class StatsHandler implements Handler {
 
     @Override
     public void handle(@NotNull Context context) throws Exception {
-        List<StatisticItem> statisticItemsAllProvisioners = new ArrayList<>();
+
 
         List<ACMEOrder> allOrders = Database.getAllACMEOrdersWithState(AcmeOrderState.IDLE);
         List<ACMEAccount> allAccounts = Database.getAllAccounts();
 
-        //Statistics for all provisioners
-        {
-            // Active provisioners
-            statisticItemsAllProvisioners.add(new StatisticItem(cryptoStoreManager.getProvisioners().size(), "web.stats.name.provisioners"));
-
-            // issued Certificates
-            statisticItemsAllProvisioners.add(new StatisticItem(
-                    allOrders.stream()
-                            .filter(acmeOrder -> acmeOrder.getCertificatePem() != null)
-                            .toList()
-                            .size(),
-                    "web.stats.name.certificatesIssued"));
-
-            // revoked Certificates
-            statisticItemsAllProvisioners.add(new StatisticItem(
-                    allOrders.stream()
-                            .filter(acmeOrder -> acmeOrder.getCertificatePem() != null && acmeOrder.getRevokeStatusCode() != null && acmeOrder.getRevokeTimestamp() != null)
-                            .toList()
-                            .size(),
-                    "web.stats.name.certificatesRevoked"));
-
-            // (non-deactivated) ACME Accounts
-            statisticItemsAllProvisioners.add(new StatisticItem(
-                    allAccounts.stream()
-                            .filter(account -> !account.getDeactivated())
-                            .toList()
-                            .size(),
-                    "web.stats.name.acmeAccounts"));
-        }
-
-
-        //Statistics per provisioner
-        List<ProvisionerStatistic> provisionerStatistics = new ArrayList<>();
-        {
-            for (Provisioner provisioner : cryptoStoreManager.getProvisioners()){
-                String provisionerName = provisioner.getProvisionerName();
-                List<StatisticItem> statisticItemsOfProvisioner = new ArrayList<>();
-
-
-
-                // issued Certificates
-                statisticItemsOfProvisioner.add(new StatisticItem(
-                        allOrders.stream()
-                                .filter(acmeOrder -> acmeOrder.getAccount().getProvisioner().equals(provisionerName) && acmeOrder.getCertificatePem() != null)
-                                .toList()
-                                .size(),
-                        "web.stats.name.certificatesIssued"));
-
-                // revoked Certificates
-                statisticItemsOfProvisioner.add(new StatisticItem(
-                        allOrders.stream()
-                                .filter(acmeOrder -> acmeOrder.getAccount().getProvisioner().equals(provisionerName) && acmeOrder.getCertificatePem() != null && acmeOrder.getRevokeStatusCode() != null && acmeOrder.getRevokeTimestamp() != null)
-                                .toList()
-                                .size(),
-                        "web.stats.name.certificatesRevoked"));
-
-                provisionerStatistics.add(new ProvisionerStatistic(provisionerName, statisticItemsOfProvisioner));
-            }
-        }
-
+        List<StatisticItem> statisticItemsAllProvisioners = getGlobalStatisticItems(allOrders, allAccounts);
+        List<ProvisionerStatistic> provisionerStatistics = getProvisionerStatistics(allOrders, allAccounts);
 
 
         Map<String, Object> params = new HashMap<>(WebUI.getDefaultFrontendMap(cryptoStoreManager, context));
@@ -98,6 +40,93 @@ public class StatsHandler implements Handler {
 
 
         context.render("pages/stats.jte", params);
+    }
+
+    /**
+     * Statistics for all provisioners
+     *
+     * @param allOrders
+     * @param allAccounts
+     * @return
+     */
+    @NotNull
+    private List<StatisticItem> getGlobalStatisticItems(List<ACMEOrder> allOrders, List<ACMEAccount> allAccounts) {
+        List<StatisticItem> statisticItemsAllProvisioners = new ArrayList<>();
+        // number of provisioners
+        statisticItemsAllProvisioners.add(new StatisticItem(cryptoStoreManager.getProvisioners().size(), "web.stats.name.provisioners"));
+
+        // issued Certificates
+        statisticItemsAllProvisioners.add(new StatisticItem(
+                allOrders.stream()
+                        .filter(acmeOrder -> acmeOrder.getCertificatePem() != null)
+                        .toList()
+                        .size(),
+                "web.stats.name.certificatesIssued"));
+
+        // revoked Certificates
+        statisticItemsAllProvisioners.add(new StatisticItem(
+                allOrders.stream()
+                        .filter(acmeOrder -> acmeOrder.getCertificatePem() != null && acmeOrder.getRevokeStatusCode() != null && acmeOrder.getRevokeTimestamp() != null)
+                        .toList()
+                        .size(),
+                "web.stats.name.certificatesRevoked"));
+
+        // (non-deactivated) ACME Accounts
+        statisticItemsAllProvisioners.add(new StatisticItem(
+                allAccounts.stream()
+                        .filter(account -> !account.getDeactivated())
+                        .toList()
+                        .size(),
+                "web.stats.name.acmeAccounts"));
+
+        return statisticItemsAllProvisioners;
+    }
+
+
+    private List<ProvisionerStatistic> getProvisionerStatistics(List<ACMEOrder> allOrders, List<ACMEAccount> allAccounts) {
+        //Statistics per provisioner
+        List<ProvisionerStatistic> provisionerStatistics = new ArrayList<>();
+
+        for (Provisioner provisioner : cryptoStoreManager.getProvisioners()) {
+            String provisionerName = provisioner.getProvisionerName();
+            List<StatisticItem> statisticItemsOfProvisioner = new ArrayList<>();
+
+            // issued Certificates
+            statisticItemsOfProvisioner.add(new StatisticItem(allAccounts
+                    .stream()
+                    .filter(acmeAccount -> acmeAccount.getProvisioner().equals(provisionerName))
+                    .toList()
+                    .size(),
+                    "web.stats.name.acmeAccounts"));
+
+            // issued Certificates
+            statisticItemsOfProvisioner.add(new StatisticItem(
+                    allOrders.stream()
+                            .filter(acmeOrder -> acmeOrder.getAccount().getProvisioner().equals(provisionerName) && acmeOrder.getCertificatePem() != null)
+                            .toList()
+                            .size(),
+                    "web.stats.name.certificatesIssued"));
+
+            // revoked Certificates
+            statisticItemsOfProvisioner.add(new StatisticItem(
+                    allOrders.stream()
+                            .filter(acmeOrder -> acmeOrder.getAccount().getProvisioner().equals(provisionerName) && acmeOrder.getCertificatePem() != null && acmeOrder.getRevokeStatusCode() != null && acmeOrder.getRevokeTimestamp() != null)
+                            .toList()
+                            .size(),
+                    "web.stats.name.certificatesRevoked"));
+
+            // Certificates waiting to be issued
+            statisticItemsOfProvisioner.add(new StatisticItem(
+                    allOrders.stream()
+                            .filter(acmeOrder -> acmeOrder.getAccount().getProvisioner().equals(provisionerName) && acmeOrder.getCertificatePem() == null && acmeOrder.getCertificateCSR() != null)
+                            .toList()
+                            .size(),
+                    "web.stats.name.certificatesIssueWaiting"));
+
+            provisionerStatistics.add(new ProvisionerStatistic(provisionerName, statisticItemsOfProvisioner));
+        }
+
+        return provisionerStatistics;
     }
 
 
