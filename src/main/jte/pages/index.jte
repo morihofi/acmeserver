@@ -57,24 +57,31 @@ context = context
 
     <!-- Provisioners -->
     <h2 class="mb-3">${localizer.lookup("web.index.provisioners.title")}</h2>
-    <p class="mb-4">${localizer.lookup("web.index.provisioners.intro")}</p>
-    <div id="provisioner-container" class="row g-4 gap-3 mb-4">
-        @for(ProvisionerResponse provisioner : serverInfoResponse.getProvisioners())
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">${provisioner.getName()}</h5>
-                        <a href="/acme/${provisioner.getName()}/directory" class="btn btn-primary mt-auto">
-                            <i class="fas fa-link"></i> ${localizer.lookup("web.index.provisioners.list.goToDirectory", "/acme/" + provisioner.getName() + "/directory")}
-                        </a>
-                        <a href="/gethttpsforfree/?provisioner=${provisioner.getName()}" class="btn btn-secondary mt-2">
-                            <i class="fas fa-globe"></i> ${localizer.lookup("web.index.provisioners.list.goToGetHttpsForFree")}
-                        </a>
+
+    @if(!serverInfoResponse.getProvisioners().isEmpty())
+        <p class="mb-4">${localizer.lookup("web.index.provisioners.intro")}</p>
+        <div id="provisioner-container" class="row g-4 gap-3 mb-4">
+            @for(ProvisionerResponse provisioner : serverInfoResponse.getProvisioners())
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">${provisioner.getName()}</h5>
+                            <a href="/acme/${provisioner.getName()}/directory" class="btn btn-primary mt-auto">
+                                <i class="fas fa-link"></i> ${localizer.lookup("web.index.provisioners.list.goToDirectory", "/acme/" + provisioner.getName() + "/directory")}
+                            </a>
+                            <a href="/gethttpsforfree/?provisioner=${provisioner.getName()}"
+                               class="btn btn-secondary mt-2">
+                                <i class="fas fa-globe"></i> ${localizer.lookup("web.index.provisioners.list.goToGetHttpsForFree")}
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        @endfor
-    </div>
+            @endfor
+        </div>
+
+    @else
+        <p>${localizer.lookup("web.index.provisioners.noProvisionersIntro")}</p>
+    @endif
 
 
     <!-- Server Info -->
