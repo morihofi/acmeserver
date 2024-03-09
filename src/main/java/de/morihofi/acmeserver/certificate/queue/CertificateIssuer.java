@@ -79,7 +79,7 @@ public class CertificateIssuer {
                         PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
 
                         List<Identifier> csrIdentifiers = CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
-                        Provisioner provisioner = cryptoStoreManager.getProvisionerForName(order.getProvisioner());
+                        Provisioner provisioner = cryptoStoreManager.getProvisionerForName(order.getAccount().getProvisioner());
 
                         /*
                             We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using the Basic Constrain etc.

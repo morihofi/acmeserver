@@ -129,7 +129,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         }
 
         // Add authorizations to Database
-        Database.createOrder(account, orderId, acmeOrderIdentifiersWithAuthorizationData, provisioner.getProvisionerName(), certificateId);
+        Database.createOrder(account, orderId, acmeOrderIdentifiersWithAuthorizationData, certificateId);
 
         //Send E-Mail if order was created
         try {

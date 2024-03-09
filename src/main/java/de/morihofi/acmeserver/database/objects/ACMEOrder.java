@@ -39,9 +39,6 @@ public class ACMEOrder implements Serializable {
     @Enumerated(EnumType.STRING)
     private AcmeOrderState orderState = AcmeOrderState.IDLE;
 
-    @Column(name = "provisioner", nullable = false)
-    private String provisioner;
-
 
     @Column(name = "certificateId", columnDefinition = "TEXT")
     private String certificateId;
@@ -115,23 +112,6 @@ public class ACMEOrder implements Serializable {
     public void setCreated(Timestamp created) {
         this.created = created;
     }
-
-    /**
-     * Get the provisioner associated with this ACME identifier.
-     * @return The provisioner name.
-     */
-    public String getProvisioner() {
-        return provisioner;
-    }
-
-    /**
-     * Set the provisioner associated with this ACME identifier.
-     * @param provisioner The provisioner name to set.
-     */
-    public void setProvisioner(String provisioner) {
-        this.provisioner = provisioner;
-    }
-
 
     /**
      * Get the certificate ID associated with this ACME identifier.

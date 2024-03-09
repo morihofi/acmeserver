@@ -202,12 +202,11 @@ public class Database {
      * @param account        The ACME account for which the order is created.
      * @param orderId        The unique identifier for the new ACME order.
      * @param identifierList A list of ACME identifiers to be associated with the order.
-     * @param provisioner    The provisioner responsible for creating the order.
      * @param certificateId
      * @throws ACMEServerInternalException If an error occurs while creating the ACME order.
      */
     @Transactional
-    public static void createOrder(ACMEAccount account, String orderId, List<ACMEOrderIdentifier> identifierList, String provisioner, String certificateId) {
+    public static void createOrder(ACMEAccount account, String orderId, List<ACMEOrderIdentifier> identifierList, String certificateId) {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
@@ -215,7 +214,6 @@ public class Database {
             ACMEOrder order = new ACMEOrder();
             order.setOrderId(orderId);
             order.setAccount(account);
-            order.setProvisioner(provisioner);
             order.setCreated(Timestamp.from(Instant.now()));
             order.setCertificateId(certificateId);
             session.persist(order);
@@ -430,7 +428,7 @@ public class Database {
             Transaction transaction = session.beginTransaction();
 
             //Certificates are revoked when they have a statusCode and a timestamp
-            Query query = session.createQuery("FROM ACMEOrder WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL AND provisioner = :provisionerName", ACMEOrder.class);
+            Query query = session.createQuery("FROM ACMEOrder a WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL AND a.account.provisioner = :provisionerName", ACMEOrder.class);
             query.setParameter("provisionerName", provisionerName);
             List<ACMEOrder> result = TypeSafetyHelper.safeCastToClassOfType(query.getResultList(), ACMEOrder.class);
 
@@ -470,9 +468,9 @@ public class Database {
             session.merge(order);
 
             transaction.commit();
-            log.info("Revoked certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(), order.getProvisioner());
+            log.info("Revoked certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(), order.getAccount().getProvisioner());
         } catch (Exception e) {
-            log.error("Unable to revoke certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(), order.getProvisioner(), e);
+            log.error("Unable to revoke certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(), order.getAccount().getProvisioner(), e);
             throw new ACMEServerInternalException("Unable to revoke certificate");
         }
     }

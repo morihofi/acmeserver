@@ -73,7 +73,7 @@ public class StatsHandler implements Handler {
                 // issued Certificates
                 statisticItemsOfProvisioner.add(new StatisticItem(
                         allOrders.stream()
-                                .filter(acmeOrder -> acmeOrder.getProvisioner().equals(provisionerName) && acmeOrder.getCertificatePem() != null)
+                                .filter(acmeOrder -> acmeOrder.getAccount().getProvisioner().equals(provisionerName) && acmeOrder.getCertificatePem() != null)
                                 .toList()
                                 .size(),
                         "web.stats.name.certificatesIssued"));
@@ -81,7 +81,7 @@ public class StatsHandler implements Handler {
                 // revoked Certificates
                 statisticItemsOfProvisioner.add(new StatisticItem(
                         allOrders.stream()
-                                .filter(acmeOrder -> acmeOrder.getProvisioner().equals(provisionerName) && acmeOrder.getCertificatePem() != null && acmeOrder.getRevokeStatusCode() != null && acmeOrder.getRevokeTimestamp() != null)
+                                .filter(acmeOrder -> acmeOrder.getAccount().getProvisioner().equals(provisionerName) && acmeOrder.getCertificatePem() != null && acmeOrder.getRevokeStatusCode() != null && acmeOrder.getRevokeTimestamp() != null)
                                 .toList()
                                 .size(),
                         "web.stats.name.certificatesRevoked"));

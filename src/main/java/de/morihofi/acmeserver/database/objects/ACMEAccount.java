@@ -32,6 +32,9 @@ public class ACMEAccount implements Serializable {
     @Column(name = "deactivated")
     private Boolean deactivated;
 
+    @Column(name = "provisioner", nullable = false)
+    private String provisioner;
+
     @OneToMany(mappedBy = "account")
     private List<ACMEOrder> orders;
 
@@ -122,6 +125,22 @@ public class ACMEAccount implements Serializable {
      */
     public Boolean getDeactivated() {
         return deactivated;
+    }
+
+    /**
+     * Get the provisioner associated with this ACME identifier.
+     * @return The provisioner name.
+     */
+    public String getProvisioner() {
+        return provisioner;
+    }
+
+    /**
+     * Set the provisioner associated with this ACME identifier.
+     * @param provisioner The provisioner name to set.
+     */
+    public void setProvisioner(String provisioner) {
+        this.provisioner = provisioner;
     }
 
     public List<ACMEOrder> getOrders() {

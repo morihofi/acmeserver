@@ -78,6 +78,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
             account.setPublicKeyPEM(PemUtil.convertToPem(SignatureCheck.convertJWKToPublicKey(new JSONObject(jwk))));
             account.setEmails(emails);
             account.setDeactivated(false);
+            account.setProvisioner(provisioner.getProvisionerName());
             session.persist(account);
             transaction.commit();
             log.info("New ACME account created with account id {}", accountId);
