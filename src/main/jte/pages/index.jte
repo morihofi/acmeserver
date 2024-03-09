@@ -66,11 +66,29 @@ context = context
                     <div class="card h-100 shadow-sm">
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">${provisioner.getName()}</h5>
-                            <a href="/acme/${provisioner.getName()}/directory" class="btn btn-primary mt-auto">
-                                <i class="fas fa-link"></i> ${localizer.lookup("web.index.provisioners.list.goToDirectory", "/acme/" + provisioner.getName() + "/directory")}
-                            </a>
+
+                            <div class="input-group mt-3 mb-1">
+                                <div class="form-floating flex-grow-1">
+                                    <input type="text" class="form-control"
+                                           name="acme-directory-${provisioner.getName()}"
+                                           value="${"https://" + serverInfoResponse.getMetadataInfo().getHost() + ":" + serverInfoResponse.getMetadataInfo().getHttpsPort() + "/acme/" + provisioner.getName() + "/directory"}"
+                                           readonly>
+                                    <label for="acme-directory-${provisioner.getName()}">${localizer.lookup("web.index.provisioners.directoryUrl")}</label>
+                                </div>
+                                <button
+                                        class="btn btn-outline-secondary"
+                                        type="button"
+                                        id="button-addon-${provisioner.getName()}"
+                                        onclick="copy(this);"
+                                ><i class="fa-solid fa-copy"></i>
+                                </button>
+                            </div>
+
+
                             <a href="/gethttpsforfree/?provisioner=${provisioner.getName()}"
-                               class="btn btn-secondary mt-2">
+                               class="btn btn-secondary mt-2"
+                               target="_blank"
+                            >
                                 <i class="fas fa-globe"></i> ${localizer.lookup("web.index.provisioners.list.goToGetHttpsForFree")}
                             </a>
                         </div>
@@ -90,6 +108,75 @@ context = context
 
 
 </main>
+<script>
+    function copy(element) {
+      const inputElement = element.parentElement.querySelector('input');
+
+      copyTextToClipboard(inputElement.value).then(function(success) {
+        element.classList.remove('btn-outline-secondary');
+        if (success) {
+          element.classList.add('btn-success');
+        } else {
+          element.classList.add('btn-danger');
+        }
+      }).catch(function() {
+          element.classList.add('btn-danger');
+      });
+
+      setTimeout(function(){
+          element.classList.add('btn-outline-secondary');
+          element.classList.remove('btn-success');
+          element.classList.remove('btn-danger');
+      }, 750);
+    }
+
+
+    function copyTextToClipboard(text) {
+      // Use of the Clipboard API, if available
+      if (navigator.clipboard && window.isSecureContext) {
+        // The Clipboard.writeText() function returns a Promise
+        return navigator.clipboard.writeText(text).then(function() {
+          console.log('Copying to clipboard was successful!');
+          return true; // Successfully copied
+        }, function(err) {
+          console.error('Could not copy text: ', err);
+          return false; // Copy failed
+        });
+      } else {
+        // Fallback for browsers without clipboard API or in insecure contexts
+        var textArea = document.createElement("textarea");
+        Object.assign(textArea.style, {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '2em',
+          height: '2em',
+          padding: 0,
+          border: 'none',
+          outline: 'none',
+          boxShadow: 'none',
+          background: 'transparent'
+        });
+
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+          var successful = document.execCommand('copy');
+          console.log('Copying text command was ' + (successful ? 'successful' : 'unsuccessful'));
+          return successful;
+        } catch (err) {
+          console.log('Oops, unable to copy', err);
+          return false;
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
+    }
+
+</script>
 @template.layout.footer()
 </body>
 </html>

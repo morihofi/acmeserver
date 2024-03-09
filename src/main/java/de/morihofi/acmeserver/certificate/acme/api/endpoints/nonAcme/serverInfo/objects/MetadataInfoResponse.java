@@ -28,6 +28,12 @@ public class MetadataInfoResponse {
     @SerializedName("startupTime")
     private long startupTime;
 
+    @SerializedName("host")
+    private String host;
+
+    @SerializedName("httpsPort")
+    private int httpsPort;
+
     public void setJvmUptime(long jvmUptime) {
         this.jvmUptime = jvmUptime;
     }
@@ -50,6 +56,22 @@ public class MetadataInfoResponse {
 
     public void setJvmStartTime(long jvmStartTime) {
         this.jvmStartTime = jvmStartTime;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public int getHttpsPort() {
+        return httpsPort;
+    }
+
+    public void setHttpsPort(int httpsPort) {
+        this.httpsPort = httpsPort;
     }
 
     /**
