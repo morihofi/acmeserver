@@ -183,6 +183,7 @@ public class Main {
         if (coreComponentsInitialized) {
             return;
         }
+        log.info("Initializing core components...");
 
         initializeDatabaseDrivers();
 

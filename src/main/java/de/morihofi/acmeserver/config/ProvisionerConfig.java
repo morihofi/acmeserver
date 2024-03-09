@@ -11,7 +11,6 @@ import java.io.Serializable;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ProvisionerConfig implements Serializable {
     private String name;
-    private boolean useThisProvisionerIntermediateForAcmeApi;
     private CertificateConfig intermediate;
     private MetadataConfig meta;
     private CertificateExpiration issuedCertificateExpiration;
@@ -32,22 +31,6 @@ public class ProvisionerConfig implements Serializable {
      */
     public void setName(String name) {
         this.name = name;
-    }
-
-    /**
-     * Check if this provisioner's intermediate certificate is used for the ACME API.
-     * @return True if used, false otherwise.
-     */
-    public boolean isUseThisProvisionerIntermediateForAcmeApi() {
-        return useThisProvisionerIntermediateForAcmeApi;
-    }
-
-    /**
-     * Set whether this provisioner's intermediate certificate is used for the ACME API.
-     * @param useThisProvisionerIntermediateForAcmeApi True if used, false otherwise.
-     */
-    public void setUseThisProvisionerIntermediateForAcmeApi(boolean useThisProvisionerIntermediateForAcmeApi) {
-        this.useThisProvisionerIntermediateForAcmeApi = useThisProvisionerIntermediateForAcmeApi;
     }
 
     /**

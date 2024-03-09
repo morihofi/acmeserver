@@ -21,6 +21,7 @@ import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointGet;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointPost;
+import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.config.certificateAlgorithms.EcdsaAlgorithmParams;
@@ -83,6 +84,8 @@ public class AcmeApiServer {
             javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
             javalinConfig.fileRenderer(new JavalinJte());
         });
+
+        initSecureApi(app, cryptoStoreManager, appConfig);
 
 
         app.before(ctx -> {
@@ -192,8 +195,52 @@ public class AcmeApiServer {
 
         app.start();
         log.info("\u2705 Configure Routes completed. Ready for incoming requests");
-        Main.startupTime = (System.currentTimeMillis() -  ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000L; //in seconds
+        Main.startupTime = (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000L; //in seconds
         log.info("Startup took {} seconds", Main.startupTime);
+    }
+
+    private static void initSecureApi(Javalin app, CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
+        KeyStore keyStore = cryptoStoreManager.getKeyStore();
+
+        generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
+
+        log.info("Updating Javalin's TLS configuration");
+
+        int httpPort = appConfig.getServer().getPorts().getHttp();
+        int httpsPort = appConfig.getServer().getPorts().getHttps();
+
+        /*
+         * Why we don't use Javalin's official SSL Plugin?
+         * The official SSL plugin depends on Google's Conscrypt provider, which uses native code
+         * and is platform dependent. This workaround implementation uses the built-in Java security
+         * libraries and Bouncy Castle, which is platform independent.
+         */
+
+        JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer());
+
+        log.info("Registering ACME API certificate expiration watcher");
+        CertificateRenewWatcher watcher = new CertificateRenewWatcher(cryptoStoreManager, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, 6, TimeUnit.HOURS, () -> {
+            //Executed when certificate needs to be renewed
+
+            try {
+                log.info("Renewing certificate...");
+
+                //Generate new certificate in place
+                generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
+
+                log.info("Certificate renewed successfully.");
+
+                log.info("Reloading ACME API certificate");
+
+                JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer());
+
+
+                log.info("Certificate reload complete");
+            } catch (Exception e) {
+                log.error("Error renewing certificates", e);
+            }
+        });
+        cryptoStoreManager.getCertificateRenewWatchers().add(watcher);
     }
 
 
@@ -265,55 +312,7 @@ public class AcmeApiServer {
 
             }
             // Initialize the CertificateRenewWatcher for this provisioner
-            KeyStore keyStore = cryptoStoreManager.getKeyStore();
-
             CertificateRenewInitializer.initializeIntermediateCertificateRenewWatcher(cryptoStoreManager, IntermediateKeyAlias, provisioner, config);
-
-
-            if (config.isUseThisProvisionerIntermediateForAcmeApi()) {
-
-                generateAcmeApiClientCertificate(cryptoStoreManager, provisioner, appConfig);
-
-                log.info("Updating Javalin's TLS configuration");
-
-                int httpPort = appConfig.getServer().getPorts().getHttp();
-                int httpsPort = appConfig.getServer().getPorts().getHttps();
-
-                /*
-                 * Why we don't use Javalin's official SSL Plugin?
-                 * The official SSL plugin depends on Google's Conscrypt provider, which uses native code
-                 * and is platform dependent. This workaround implementation uses the built-in Java security
-                 * libraries and Bouncy Castle, which is platform independent.
-                 */
-
-                JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, javalinInstance.jettyServer());
-
-                log.info("Registering ACME API certificate expiration watcher");
-                CertificateRenewWatcher watcher = new CertificateRenewWatcher(cryptoStoreManager, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, 6, TimeUnit.HOURS, () -> {
-                    //Executed when certificate needs to be renewed
-
-                    try {
-                        log.info("Renewing certificate...");
-
-                        //Generate new certificate in place
-                        generateAcmeApiClientCertificate(cryptoStoreManager, provisioner, appConfig);
-
-                        log.info("Certificate renewed successfully.");
-
-                        log.info("Reloading ACME API certificate");
-
-                        JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, javalinInstance.jettyServer());
-
-
-                        log.info("Certificate reload complete");
-                    } catch (Exception e) {
-                        log.error("Error renewing certificates", e);
-                    }
-                });
-                cryptoStoreManager.getCertificateRenewWatchers().add(watcher);
-
-
-            }
 
             provisioners.add(provisioner);
 
@@ -326,7 +325,6 @@ public class AcmeApiServer {
      * Generates an ACME API client certificate for the ACME Web Server API, if it doesn't already exist in the key store.
      *
      * @param cryptoStoreManager The crypto store manager used for managing certificates and keys.
-     * @param provisioner        The provisioner associated with the certificate generation.
      * @param appConfig          The application configuration containing settings for the ACME API and certificates.
      * @throws CertificateException      If there is an issue with certificate handling.
      * @throws IOException               If an I/O error occurs.
@@ -336,10 +334,10 @@ public class AcmeApiServer {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws UnrecoverableKeyException If a keystore key cannot be recovered.
      */
-    private static void generateAcmeApiClientCertificate(CryptoStoreManager cryptoStoreManager, Provisioner provisioner, Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
-        String intermediateCaAlias = CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(provisioner.getProvisionerName());
+    private static void generateAcmeApiClientCertificate(CryptoStoreManager cryptoStoreManager, Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
+        String rootCaAlias = CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA;
 
-        KeyPair intermediateCaKeyPair = cryptoStoreManager.getIntermediateCerificateAuthorityKeyPair(provisioner.getProvisionerName());
+        KeyPair rootCaKeyPair = cryptoStoreManager.getCerificateAuthorityKeyPair();
 
         KeyPair acmeAPIKeyPair;
         if (!cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) ||
@@ -349,6 +347,13 @@ public class AcmeApiServer {
 
             // *****************************************
             // Create Certificate for our ACME Web Server API (Client Certificate)
+
+
+            CertificateExpiration expiration = new CertificateExpiration();
+            expiration.setDays(0);
+            expiration.setMonths(1);
+            expiration.setYears(0);
+
             log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
             acmeAPIKeyPair = KeyPairGenerator.generateRSAKeyPair(4096, cryptoStoreManager.getKeyStore().getProvider().getName());
 
@@ -356,15 +361,16 @@ public class AcmeApiServer {
 
             log.info("Creating Server Certificate");
             X509Certificate rootCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
-            X509Certificate intermediateCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(intermediateCaAlias);
+            X509Certificate intermediateCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(rootCaAlias);
             X509Certificate acmeAPICertificate = ServerCertificateGenerator.createServerCertificate(
-                    intermediateCaKeyPair,
+                    rootCaKeyPair,
                     intermediateCertificate,
                     acmeAPIKeyPair.getPublic().getEncoded(),
                     new Identifier[]{
                             new Identifier(Identifier.IDENTIFIER_TYPE.DNS.name(), appConfig.getServer().getDnsName())
                     },
-                    provisioner);
+                    expiration
+                    );
 
             // Dumping certificate to HDD
             log.info("Storing certificate in KeyStore");

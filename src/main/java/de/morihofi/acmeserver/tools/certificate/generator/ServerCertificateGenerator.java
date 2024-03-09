@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.tools.certificate.generator;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
+import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.tools.certificate.CertMisc;
 import de.morihofi.acmeserver.tools.certificate.X509;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -44,13 +45,13 @@ public class ServerCertificateGenerator {
      * @param intermediateCertificate The byte array intermediate certificate.
      * @param serverPublicKeyBytes    The byte array representing the server's public key.
      * @param identifiers             An array of Identifiers to be associated with the server certificate.
-     * @param provisioner             The provisioner object containing certificate expiration and other details.
+     * @param certificateExpiration   Certificate expiration
      * @return An X509Certificate which represents the server certificate.
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
      * @throws CertificateException      If there's an error in processing the certificate data.
      * @throws CertIOException           If there's an IO error during certificate generation.
      */
-    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate, byte[] serverPublicKeyBytes, Identifier[] identifiers, Provisioner provisioner) throws OperatorCreationException, CertificateException, CertIOException {
+    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate, byte[] serverPublicKeyBytes, Identifier[] identifiers, CertificateExpiration certificateExpiration) throws OperatorCreationException, CertificateException, CertIOException {
 
         // Create our virtual "CSR"
         X500Name issuerName = X509.getX500NameFromX509Certificate(intermediateCertificate);
@@ -60,9 +61,9 @@ public class ServerCertificateGenerator {
         // Calculate the proposed end date based on provisioner settings
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(startDate);
-        calendar.add(Calendar.YEAR, provisioner.getGeneratedCertificateExpiration().getYears());
-        calendar.add(Calendar.MONTH, provisioner.getGeneratedCertificateExpiration().getMonths());
-        calendar.add(Calendar.DATE, provisioner.getGeneratedCertificateExpiration().getDays());
+        calendar.add(Calendar.YEAR, certificateExpiration.getYears());
+        calendar.add(Calendar.MONTH, certificateExpiration.getMonths());
+        calendar.add(Calendar.DATE, certificateExpiration.getDays());
         Date proposedEndDate = calendar.getTime();
 
         // Ensure the server certificate does not outlive the intermediate certificate
@@ -93,6 +94,7 @@ public class ServerCertificateGenerator {
         GeneralNames subjectAltNames = new GeneralNames(dnsGeneralNameList.toArray(new GeneralName[0]));
         certBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
 
+       /*
         // CRL Distribution Points
         GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullCrlUrl());
         DistributionPointName dpn = new DistributionPointName(new GeneralNames(gn));
@@ -104,10 +106,13 @@ public class ServerCertificateGenerator {
                 AccessDescription.id_ad_ocsp,
                 new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullOcspUrl())
         );
+
+
         ASN1EncodableVector authorityInformationAccessVector = new ASN1EncodableVector();
         authorityInformationAccessVector.add(accessDescription);
         certBuilder.addExtension(
                 Extension.authorityInfoAccess, false, new DERSequence(authorityInformationAccessVector));
+        */
 
         // Signature Algorithm
         String signatureAlgorithm = CertMisc.getSignatureAlgorithmBasedOnKeyType(intermediateKeyPair.getPrivate());

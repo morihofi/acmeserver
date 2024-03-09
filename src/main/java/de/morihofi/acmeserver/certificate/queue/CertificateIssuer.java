@@ -97,7 +97,7 @@ public class CertificateIssuer {
                                 provisioner.getIntermediateCaCertificate(),
                                 pkPemObject.getContent(),
                                 csrIdentifiers.toArray(new Identifier[0]),
-                                provisioner);
+                                provisioner.getGeneratedCertificateExpiration());
 
                         BigInteger serialNumber = acmeGeneratedCertificate.getSerialNumber();
                         String pemCertificate = PemUtil.certificateToPEM(acmeGeneratedCertificate.getEncoded());
