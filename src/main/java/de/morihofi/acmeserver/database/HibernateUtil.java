@@ -63,14 +63,7 @@ public class HibernateUtil {
                     this.setName("Database Shutdown Thread");
                     super.run();
 
-                    log.info("Initiating shutdown of Hibernate Database");
-
-                    try {
-                        sessionFactory.close();
-                        log.info("Shutdown of Hibernate Database completed successfully.");
-                    } catch (Exception e) {
-                        log.error("An error occurred during the shutdown of the Hibernate Database: {}", e.getMessage(), e);
-                    }
+                    shutdown();
                 }
             });
 
@@ -139,5 +132,23 @@ public class HibernateUtil {
      */
     public enum DatabaseType {
         H2, MARIADB
+    }
+
+
+    public static void shutdown(){
+        if(sessionFactory == null){
+            log.warn("Unable to shutdown Hibernate Database, cause it wasn't initialized");
+            return;
+        }
+
+        log.info("Initiating shutdown of Hibernate Database");
+        try {
+            sessionFactory.close();
+            log.info("Shutdown of Hibernate Database completed successfully.");
+            log.info("Free up resources");
+            sessionFactory = null;
+        } catch (Exception e) {
+            log.error("An error occurred during the shutdown of the Hibernate Database: {}", e.getMessage(), e);
+        }
     }
 }

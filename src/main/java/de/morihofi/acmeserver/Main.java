@@ -79,7 +79,12 @@ public class Main {
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static long startupTime = 0; // Set after all routes are ready
 
+    public static String[] runArgs = new String[]{};
+
     public static void main(String[] args) throws Exception {
+        // runArgs are needed to restart the whole server
+        runArgs = args;
+
         Gson configGson = new GsonBuilder()
                 .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
                 .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())

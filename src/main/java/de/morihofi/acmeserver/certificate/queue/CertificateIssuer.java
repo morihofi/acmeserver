@@ -45,6 +45,19 @@ public class CertificateIssuer {
         }
     }
 
+    public static void shutdown() throws InterruptedException {
+        if (!certificateQueueIssueThread.isInterrupted()) {
+            log.info("Stopping {}", certificateQueueIssueThread.getName());
+            certificateQueueIssueThread.interrupt();
+            while (certificateQueueIssueThread.isAlive()) {
+                log.info("Waiting for {} to exiting", certificateQueueIssueThread.getName());
+                Thread.sleep(1000);
+            }
+            log.info("{} has been stopped", certificateQueueIssueThread.getName());
+        }
+    }
+
+
     private static class CertificateIssuingTask implements Runnable {
 
         private CryptoStoreManager cryptoStoreManager;
@@ -139,7 +152,8 @@ public class CertificateIssuer {
                     try {
                         Thread.sleep(20 * 1000); //Sleep 20 seconds
                     } catch (InterruptedException e) {
-                        log.warn("Thread sleep is interrupted, ignoring");
+                        log.warn("Thread sleep is interrupted");
+                        Thread.currentThread().interrupt();
                     }
 
                 }

@@ -154,6 +154,7 @@ public class CRL {
         scheduler.shutdown();
     }
 
-
-
+    public Provisioner getProvisioner() {
+        return provisioner;
+    }
 }

@@ -133,9 +133,11 @@ public class CryptoStoreManager {
     }
 
     public Provisioner getProvisionerForName(String provisionerName) {
-        return provisioners.stream()
+        Optional<Provisioner> provisionerOptional = provisioners.stream()
                 .filter(provisioner -> provisioner.getProvisionerName().equals(provisionerName))
-                .collect(SingletonCollector.toSingleton());
+                .findFirst();
+
+        return provisionerOptional.orElse(null);
     }
 
     public Set<Provisioner> getProvisioners(){

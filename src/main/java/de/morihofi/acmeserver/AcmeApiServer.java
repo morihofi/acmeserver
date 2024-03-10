@@ -61,6 +61,9 @@ public class AcmeApiServer {
      */
     public static final Logger log = LogManager.getLogger(AcmeApiServer.class);
 
+    private static CryptoStoreManager cryptoStoreManager = null;
+    private static Javalin app = null;
+
     /**
      * Method to start the ACME API Server
      *
@@ -69,6 +72,8 @@ public class AcmeApiServer {
      * @throws Exception thrown when startup fails
      */
     public static void startServer(CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
+        AcmeApiServer.cryptoStoreManager = cryptoStoreManager;
+
         log.info("Starting in Normal Mode");
         Main.initializeCA(cryptoStoreManager);
 
@@ -79,7 +84,7 @@ public class AcmeApiServer {
         CertificateIssuer.startThread(cryptoStoreManager);
 
         log.info("Starting ACME API WebServer");
-        Javalin app = Javalin.create(javalinConfig -> {
+        app = Javalin.create(javalinConfig -> {
             //TODO: Make it compatible again with modules
             javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
             javalinConfig.fileRenderer(new JavalinJte());
@@ -140,6 +145,7 @@ public class AcmeApiServer {
 
             //CRL generator
             CRL crlGenerator = new CRL(provisioner);
+            provisioner.setCrlGenerator(crlGenerator);
 
             String prefix = "/acme/" + provisioner.getProvisionerName();
 
@@ -197,6 +203,8 @@ public class AcmeApiServer {
         log.info("\u2705 Configure Routes completed. Ready for incoming requests");
         Main.startupTime = (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000L; //in seconds
         log.info("Startup took {} seconds", Main.startupTime);
+
+
     }
 
     private static void initSecureApi(Javalin app, CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
@@ -314,8 +322,6 @@ public class AcmeApiServer {
             CertificateRenewInitializer.initializeIntermediateCertificateRenewWatcher(cryptoStoreManager, IntermediateKeyAlias, provisioner, config);
 
             provisioners.add(provisioner);
-
-
         }
         return provisioners;
     }
@@ -346,7 +352,6 @@ public class AcmeApiServer {
 
             // *****************************************
             // Create Certificate for our ACME Web Server API (Client Certificate)
-
 
             CertificateExpiration expiration = new CertificateExpiration();
             expiration.setDays(0);
@@ -387,7 +392,6 @@ public class AcmeApiServer {
                     chain
             );
             cryptoStoreManager.saveKeystore();
-
         }
     }
 
@@ -400,5 +404,53 @@ public class AcmeApiServer {
         }
     }
 
+    public static void reloadConfiguration() throws Exception {
+        reloadConfiguration(null);
+    }
+
+    public static void reloadConfiguration(Runnable runWhenEverythingIsShutDown) throws Exception {
+        log.info("Reloading configuration was triggered. Service will be disrupted for a moment, please wait ...");
+        log.info("Initiating shutdown of components ...");
+
+        log.info("Shutting down WebServer");
+        app.stop();
+        app = null;
+
+
+        Set<Provisioner> provisioners = cryptoStoreManager.getProvisioners();
+
+        log.info("Shutting down CRL generators");
+        for (CRL crlGenerator : provisioners.stream()
+                .map(Provisioner::getCrlGenerator)
+                .toList()){
+            log.info("Gracefully shutdown CRL generator for provisioner {}", crlGenerator.getProvisioner());
+            crlGenerator.shutdown();
+        }
+
+        log.info("Shutting down Certificate watchers");
+        for (CertificateRenewWatcher certificateRenewWatcher : cryptoStoreManager.getCertificateRenewWatchers()){
+            log.info("Gracefully shutdown certificate watchers for certificate alias {}", certificateRenewWatcher.getAlias());
+            certificateRenewWatcher.shutdown();
+        }
+
+        log.info("Shutting down Certificate Issuer");
+        CertificateIssuer.shutdown();
+
+        log.info("Shutting down Database");
+        HibernateUtil.shutdown();
+
+        // At this point the VM should shut down itself with exit code 0,
+        // so that all threads are exited at this point. If you develop and/or reload configuration,
+        // consider checking this by temporarily comment out following code after this comment
+
+        if(runWhenEverythingIsShutDown != null){
+            // Run things you normally wouldn't do, cause due to running thread this can end
+            // in an unpredictable behaviour
+            runWhenEverythingIsShutDown.run();
+        }
+
+        // Reload config and turn everything back on by relaunching the main()
+        Main.main(Main.runArgs);
+    }
 
 }
