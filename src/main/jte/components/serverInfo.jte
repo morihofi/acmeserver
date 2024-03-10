@@ -1,5 +1,6 @@
 @import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse
 @import de.morihofi.acmeserver.webui.JteLocalizer
+@import de.morihofi.acmeserver.webui.compontents.mics.CustomFormatter
 
 @param ServerInfoResponse serverInfoResponse
 @param JteLocalizer localizer
@@ -47,14 +48,14 @@
                 <i class="fa-solid fa-stopwatch"></i>
                 ${localizer.lookup("web.core.component.serverInfo.jvmUptime")}
             </td>
-            <td>${serverInfoResponse.getMetadataInfo().getJvmUptime()} sec.</td>
+            <td>${CustomFormatter.formatDuration(serverInfoResponse.getMetadataInfo().getJvmUptime(), localizer)}</td>
         </tr>
         <tr>
             <td class="icon-text">
                 <i class="fa-solid fa-hourglass"></i>
                 ${localizer.lookup("web.core.component.serverInfo.startupTime")}
             </td>
-            <td>${serverInfoResponse.getMetadataInfo().getStartupTime()} sec.</td>
+            <td>${serverInfoResponse.getMetadataInfo().getStartupTime() + " " + localizer.lookup("web.core.misc.time.seconds")}</td>
         </tr>
         <tr>
             <td class="icon-text">
