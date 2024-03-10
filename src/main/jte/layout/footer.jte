@@ -16,14 +16,15 @@
                 </div>
             @endif
 
-
-            <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
-                <li class="ms-3">
+            <div class="col-md-4 d-flex align-items-center justify-content-end">
+                <span class="mb-3 mb-md-0 text-muted">
                     <a class="text-muted" target="_blank" href="https://github.com/morihofi/acmeserver">
                         <i class="fa-brands fa-github"></i>
                     </a>
-                </li>
-            </ul>
+                </span>
+
+            </div>
+
         </footer>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
@@ -38,5 +39,8 @@
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
       return new bootstrap.Tooltip(tooltipTriggerEl)
     })
+
+
+
 
 </script>
