@@ -70,10 +70,12 @@ context = context
             @for(ProvisionerResponse provisioner : serverInfoResponse.getProvisioners())
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm">
+                        <a href="/provisioner-info?name=${provisioner.getName()}" class="position-absolute top-0 end-0 p-2 text-reset">
+                            <i class="fas fa-info-circle"></i>
+                        </a>
+
                         <div class="card-body d-flex flex-column">
-                            <h5 class="card-title"><i class="fa-solid fa-stamp"></i>&nbsp;<a
-                                        href="/provisioner-info?name=${provisioner.getName()}"
-                                        class="text-reset text-decoration-none">${provisioner.getName()}</a></h5>
+                            <h5 class="card-title">${provisioner.getName()}</h5>
 
                             <div class="input-group mt-3 mb-1">
                                 <div class="form-floating flex-grow-1">

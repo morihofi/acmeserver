@@ -51,6 +51,9 @@ context = context
 
     @for(StatsHandler.ProvisionerStatistic statistic: statisticsProvisioner)
         <div class="card mb-3">
+            <a href="/provisioner-info?name=${statistic.getProvisionerName()}" class="position-absolute top-0 end-0 p-2 text-reset">
+                <i class="fas fa-info-circle"></i>
+            </a>
             <div class="card-header">
                 ${statistic.getProvisionerName()}
             </div>
