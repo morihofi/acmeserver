@@ -4,7 +4,8 @@
     "ports": {
       "https": 443,
       "http": 80
-    }
+    },
+    "enableSniCheck": true
   },
   "keyStore": {
     "type": "pkcs12",

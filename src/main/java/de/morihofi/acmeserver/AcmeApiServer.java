@@ -208,6 +208,7 @@ public class AcmeApiServer {
 
         int httpPort = appConfig.getServer().getPorts().getHttp();
         int httpsPort = appConfig.getServer().getPorts().getHttps();
+        boolean enableSniCheck = appConfig.getServer().isEnableSniCheck();
 
         /*
          * Why we don't use Javalin's official SSL Plugin?
@@ -216,7 +217,7 @@ public class AcmeApiServer {
          * libraries and Bouncy Castle, which is platform independent.
          */
 
-        JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer());
+        JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(), enableSniCheck);
 
         log.info("Registering ACME API certificate expiration watcher");
         CertificateRenewWatcher watcher = new CertificateRenewWatcher(cryptoStoreManager, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, 6, TimeUnit.HOURS, () -> {
@@ -232,7 +233,7 @@ public class AcmeApiServer {
 
                 log.info("Reloading ACME API certificate");
 
-                JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer());
+                JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(), enableSniCheck);
 
 
                 log.info("Certificate reload complete");
