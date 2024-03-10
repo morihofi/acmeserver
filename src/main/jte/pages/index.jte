@@ -153,36 +153,43 @@ context = context
           return false; // Copy failed
         });
       } else {
-        // Fallback for browsers without clipboard API or in insecure contexts
-        var textArea = document.createElement("textarea");
-        Object.assign(textArea.style, {
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '2em',
-          height: '2em',
-          padding: 0,
-          border: 'none',
-          outline: 'none',
-          boxShadow: 'none',
-          background: 'transparent'
+
+        // Return a new Promise for the fallback
+        return new Promise(function(resolve, reject) {
+          var textArea = document.createElement("textarea");
+          Object.assign(textArea.style, {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '2em',
+            height: '2em',
+            padding: 0,
+            border: 'none',
+            outline: 'none',
+            boxShadow: 'none',
+            background: 'transparent'
+          });
+
+          textArea.value = text;
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+
+          try {
+            var successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            if (successful) {
+              console.log('Copying text command was successful');
+              resolve(true); // Resolve the promise with true on success
+            } else {
+              console.error('Copying text command was unsuccessful');
+              resolve(false); // Still resolve, but with false, indicating failure
+            }
+          } catch (err) {
+            console.log('Oops, unable to copy', err);
+            reject(err); // Reject the promise with the error
+          }
         });
-
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-
-        try {
-          var successful = document.execCommand('copy');
-          console.log('Copying text command was ' + (successful ? 'successful' : 'unsuccessful'));
-          return successful;
-        } catch (err) {
-          console.log('Oops, unable to copy', err);
-          return false;
-        } finally {
-          document.body.removeChild(textArea);
-        }
       }
     }
 
