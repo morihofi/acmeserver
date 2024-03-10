@@ -3,11 +3,9 @@
  */
 
 // global variables
-
 const urlParams = new URLSearchParams(window.location.search);
 
 var DIRECTORY_URL = window.location.protocol + "//" + window.location.host + "/acme/" + urlParams.get('provisioner') + "/directory";
-//var DIRECTORY_URL = "https://acme-v02.api.letsencrypt.org/directory";
 //var DIRECTORY_URL = "https://acme-staging-v02.api.letsencrypt.org/directory";
 var DIRECTORY = {
 //  "keyChange": "https://...
@@ -2008,7 +2006,7 @@ function recheckOrder(e){
                 ORDER['recheck_order_response'] = order;
 
                 // order still processing
-                if(order['status'] === "pending" || order['status'] === "processing"){
+                if(order['status'] === "pending" || order['status'] === "processing" || order['status'] === "ready"){
 
                     // update the status before getting another nonce
                     status.innerHTML = "processing...";
