@@ -51,7 +51,7 @@ public class ServerCertificateGenerator {
      * @throws CertificateException      If there's an error in processing the certificate data.
      * @throws CertIOException           If there's an IO error during certificate generation.
      */
-    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate, byte[] serverPublicKeyBytes, Identifier[] identifiers, CertificateExpiration certificateExpiration) throws OperatorCreationException, CertificateException, CertIOException {
+    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate, byte[] serverPublicKeyBytes, Identifier[] identifiers, CertificateExpiration certificateExpiration, Provisioner provisioner) throws OperatorCreationException, CertificateException, CertIOException {
 
         // Create our virtual "CSR"
         X500Name issuerName = X509.getX500NameFromX509Certificate(intermediateCertificate);
@@ -94,25 +94,29 @@ public class ServerCertificateGenerator {
         GeneralNames subjectAltNames = new GeneralNames(dnsGeneralNameList.toArray(new GeneralName[0]));
         certBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
 
-       /*
-        // CRL Distribution Points
-        GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullCrlUrl());
-        DistributionPointName dpn = new DistributionPointName(new GeneralNames(gn));
-        DistributionPoint distp = new DistributionPoint(dpn, null, null);
-        certBuilder.addExtension(Extension.cRLDistributionPoints, false, new CRLDistPoint(new DistributionPoint[]{distp}));
-
-        // Authority Information Access (OCSP Endpoint)
-        AccessDescription accessDescription = new AccessDescription(
-                AccessDescription.id_ad_ocsp,
-                new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullOcspUrl())
-        );
+        if (provisioner != null) {
 
 
-        ASN1EncodableVector authorityInformationAccessVector = new ASN1EncodableVector();
-        authorityInformationAccessVector.add(accessDescription);
-        certBuilder.addExtension(
-                Extension.authorityInfoAccess, false, new DERSequence(authorityInformationAccessVector));
-        */
+            // CRL Distribution Points
+            GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullCrlUrl());
+            DistributionPointName dpn = new DistributionPointName(new GeneralNames(gn));
+            DistributionPoint distp = new DistributionPoint(dpn, null, null);
+            certBuilder.addExtension(Extension.cRLDistributionPoints, false, new CRLDistPoint(new DistributionPoint[]{distp}));
+
+            // Authority Information Access (OCSP Endpoint)
+            AccessDescription accessDescription = new AccessDescription(
+                    AccessDescription.id_ad_ocsp,
+                    new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullOcspUrl())
+            );
+
+
+            ASN1EncodableVector authorityInformationAccessVector = new ASN1EncodableVector();
+            authorityInformationAccessVector.add(accessDescription);
+            certBuilder.addExtension(
+                    Extension.authorityInfoAccess, false, new DERSequence(authorityInformationAccessVector));
+
+        }
+
 
         // Signature Algorithm
         String signatureAlgorithm = CertMisc.getSignatureAlgorithmBasedOnKeyType(intermediateKeyPair.getPrivate());

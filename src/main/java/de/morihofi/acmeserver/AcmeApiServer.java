@@ -361,7 +361,7 @@ public class AcmeApiServer {
             log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
             acmeAPIKeyPair = KeyPairGenerator.generateRSAKeyPair(4096, cryptoStoreManager.getKeyStore().getProvider().getName());
 
-            log.info("Using provisioner intermediate CA for generation");
+            log.info("Using provisioner root CA for generation");
 
             log.info("Creating Server Certificate");
             X509Certificate rootCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
@@ -373,7 +373,8 @@ public class AcmeApiServer {
                     new Identifier[]{
                             new Identifier(Identifier.IDENTIFIER_TYPE.DNS.name(), appConfig.getServer().getDnsName())
                     },
-                    expiration
+                    expiration,
+                    null
                     );
 
             // Dumping certificate to HDD
