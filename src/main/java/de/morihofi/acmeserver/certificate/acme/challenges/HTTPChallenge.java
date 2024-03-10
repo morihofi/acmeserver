@@ -136,16 +136,16 @@ public class HTTPChallenge {
 
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     // Successful response, check the token in the response
-                    log.debug("Got response, checking token in response");
+                    log.debug("Got response, checking token in response.");
                     assert response.body() != null;
                     String acmeTokenFromHost = response.body().string();
                     String expectedValue = AcmeTokenCryptography.keyAuthorizationFor(authToken, acmeAccountPublicKey);
 
                     if (expectedValue.equals(acmeTokenFromHost)) {
                         passed = true;
-                        log.info("HTTP Challenge has validated for host {}", host);
+                        log.info("HTTP Challenge has validated for host {}. Expected: {}; Got: {}", host, expectedValue, acmeTokenFromHost);
                     } else {
-                        log.error("HTTP Challenge validation failed for host {}. Content doesn't match. Expected: {}; Got: {}", host, authToken, acmeTokenFromHost);
+                        log.error("HTTP Challenge validation failed for host {}. Content doesn't match. Expected: {}; Got: {}", host, expectedValue, acmeTokenFromHost);
                         lastError = "HTTP Challenge validation failed, cause content doesn't match";
                     }
                 } else {
