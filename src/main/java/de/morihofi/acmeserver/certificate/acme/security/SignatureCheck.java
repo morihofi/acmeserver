@@ -6,13 +6,16 @@ import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadSignatureAlgorithmException;
 import de.morihofi.acmeserver.tools.certificate.CertTools;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
+import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.jose4j.jws.JsonWebSignature;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
@@ -38,15 +41,9 @@ public class SignatureCheck {
      * @param ctx     The Javalin context containing the request data.
      * @param account The ACME account whose public key is used for signature verification.
      * @param gson    The Gson instance for JSON parsing.
-     * @throws NoSuchAlgorithmException           If the specified signature algorithm is not available.
-     * @throws SignatureException                 If an issue occurs during signature verification.
-     * @throws IOException                        If an I/O error occurs during decoding or parsing.
-     * @throws InvalidKeySpecException            If the provided key specifications are invalid.
-     * @throws InvalidKeyException                If the public key is invalid.
-     * @throws NoSuchProviderException            If the specified provider is not available.
      * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
      */
-    public static void checkSignature(Context ctx, ACMEAccount account, Gson gson) throws NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, InvalidKeyException, NoSuchProviderException {
+    public static void checkSignature(Context ctx, ACMEAccount account, Gson gson) {
         checkSignature(ctx, account.getAccountId(), gson);
     }
 
@@ -57,64 +54,39 @@ public class SignatureCheck {
      * @param ctx       The Javalin context containing the request data.
      * @param accountId The ACME account id whose public key is used for signature verification.
      * @param gson      The Gson instance for JSON parsing.
-     * @throws NoSuchAlgorithmException           If the specified signature algorithm is not available.
-     * @throws SignatureException                 If an issue occurs during signature verification.
-     * @throws IOException                        If an I/O error occurs during decoding or parsing.
-     * @throws InvalidKeySpecException            If the provided key specifications are invalid.
-     * @throws InvalidKeyException                If the public key is invalid.
-     * @throws NoSuchProviderException            If the specified provider is not available.
      * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
      */
-    public static void checkSignature(Context ctx, String accountId, Gson gson) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, NoSuchProviderException {
+    public static void checkSignature(Context ctx, String accountId, Gson gson) {
         ACMERequestBody requestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
-
 
         String protectedHeader = requestBody.getProtected();
         String payload = requestBody.getPayload();
         String signature = requestBody.getSignature();
 
+        // Combine protected header and payload into a complete JWS representation
+        String serializedJws = protectedHeader + "." + payload + "." + signature;
 
-        // Decode the protected header and parse it to JSON
-        byte[] decodedProtectedHeaderBytes = Base64.getUrlDecoder().decode(protectedHeader);
-        String decodedProtectedHeader = new String(decodedProtectedHeaderBytes, StandardCharsets.UTF_8);
-        JSONObject protectedHeaderObj = new JSONObject(decodedProtectedHeader);
+        try {
+            // Obtain the client's public key
+            ACMEAccount account = Database.getAccount(accountId);
+            PublicKey publicKey = PemUtil.readPublicKeyFromPem(account.getPublicKeyPEM());
 
-        // Ermittle den Algorithmus aus dem protected Header
-        String alg = protectedHeaderObj.getString("alg");
+            // Create a JsonWebSignature object and set the required parts
+            JsonWebSignature jws = new JsonWebSignature();
+            jws.setCompactSerialization(serializedJws);
+            jws.setKey(publicKey);
 
+            // Verify the signature
+            boolean isSignatureValid = jws.verifySignature();
 
-        // Obtain the client's public key
-        ACMEAccount account = Database.getAccount(accountId);
-        PublicKey publicKey = CertTools.convertToPublicKey(account.getPublicKeyPEM());
-
-        // Decode the signature
-        byte[] decodedSignature = Base64.getUrlDecoder().decode(signature);
-
-
-        // Verify the signature
-
-        // Erstelle eine Signaturinstanz basierend auf dem Algorithmus
-        Signature sig;
-        switch (alg) {
-            case "RS256" -> sig = Signature.getInstance("SHA256withRSA", BouncyCastleProvider.PROVIDER_NAME);
-            case "ES256" -> {
-                sig = Signature.getInstance("SHA256withECDSA", BouncyCastleProvider.PROVIDER_NAME);
-                decodedSignature = CertTools.convertRawToDerSignatureECDSA(decodedSignature);
+            if (!isSignatureValid) {
+                // Signature verification failed
+                log.error("Signature verification failed for account {}", accountId);
+                throw new ACMEBadSignatureAlgorithmException("Signature does not match");
             }
-            // Fügen Sie hier weitere Algorithmen hinzu, falls notwendig
-            default -> throw new NoSuchAlgorithmException("Unsupported signature algorithm: " + alg);
-        }
-
-        // Überprüfe die Signatur
-        sig.initVerify(publicKey);
-        sig.update((protectedHeader + "." + payload).getBytes(StandardCharsets.UTF_8));
-
-        boolean isSignatureValid = sig.verify(decodedSignature);
-
-        if (!isSignatureValid) {
-            // Signature verification failed
-            log.error("Signature verification failed for account {}", accountId);
-            throw new ACMEBadSignatureAlgorithmException("Signature does not match");
+        }catch (Exception ex){
+            log.error("An exception occurred while verifying signature for account {}", accountId, ex);
+            throw new ACMEBadSignatureAlgorithmException("An server side exception occurred while verifying signature");
         }
     }
 

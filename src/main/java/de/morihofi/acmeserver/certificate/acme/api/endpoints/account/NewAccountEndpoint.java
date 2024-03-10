@@ -23,6 +23,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.jose4j.jwk.JsonWebKey;
+import org.jose4j.jwk.PublicJsonWebKey;
+import org.jose4j.lang.JoseException;
 import org.json.JSONObject;
 
 import java.util.List;
@@ -69,13 +72,23 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
         // Create new account in database
         String accountId = UUID.randomUUID().toString();
-        String jwk = reqBodyProtectedObj.getJSONObject("jwk").toString();
+        String jwkString = new JSONObject(acmeRequestBody.getDecodedProtected()).getJSONObject("jwk").toString();
+
+        PublicJsonWebKey publicJsonWebKey = null;
+        try {
+            publicJsonWebKey = (PublicJsonWebKey) JsonWebKey.Factory.newJwk(jwkString);
+        } catch (JoseException e) {
+            log.error("Error parsing JWK", e);
+            throw new ACMEServerInternalException("Error parsing JWK: " + e.getMessage());
+        }
+
+        String publicKeyPEM = PemUtil.convertToPem(publicJsonWebKey.getPublicKey());
 
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
             ACMEAccount account = new ACMEAccount();
             account.setAccountId(accountId);
-            account.setPublicKeyPEM(PemUtil.convertToPem(SignatureCheck.convertJWKToPublicKey(new JSONObject(jwk))));
+            account.setPublicKeyPEM(publicKeyPEM);
             account.setEmails(emails);
             account.setDeactivated(false);
             account.setProvisioner(provisioner.getProvisionerName());
