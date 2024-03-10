@@ -12,8 +12,9 @@ This is a proof-of-concept Automatic Certificate Management Environment (ACME) S
 - Proxy support for HTTP Challenge
 
 ## ⚠ Breaking Changes - Version 2.x
- - Provisioner Directory is now in /acme/provisionername/directory
+ - Provisioner directory is now in /acme/provisionername/directory
  - Database scheme has been complete rebuilt, please clean database before use
+ - Due to move of provisioner directory, the URLs to OCSP and CRL have also been moved, please regenerate your intermediate certificates by delete the corresponding entries in the keystore
 
 ## 🐳 Getting started with Docker (recommended)
 1. Install [Docker Engine](https://docs.docker.com/engine/install/) with `docker compose` plugin, if you haven't already
@@ -53,6 +54,7 @@ java -jar acmeserver-VERSION.jar
   - HTTP-01
   - DNS-01
 - WebUI has multiple language support (currently `de` and `en` as a fallback) 
+- Hot reload of configuration
 
 ## 📒 Disclaimer
 This version is not fully RFC 8555 compliant, but should work with most clients. 
