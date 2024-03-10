@@ -26,7 +26,7 @@ context = context
 
     @if(serverInfoResponse.getMetadataInfo().getVersion().endsWith("-SNAPSHOT"))
         <div class="alert alert-warning" role="alert">
-            <b>${localizer.lookup("web.core.warnSnapshot.title")}</b>&nbsp;${localizer.lookup("web.core.warnSnapshot.content", localizer.lookup("app.name"))}
+            <b><i class="fa-solid fa-triangle-exclamation"></i>&nbsp;${localizer.lookup("web.core.warnSnapshot.title")}</b>&nbsp;${localizer.lookup("web.core.warnSnapshot.content", localizer.lookup("app.name"))}
         </div>
     @endif
 
