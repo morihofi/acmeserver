@@ -25,6 +25,8 @@ context = context,
     <h1>${localizer.lookup("web.cmdBuilder.title")}</h1>
     ${localizer.lookup("web.cmdBuilder.intro")}
 </main>
-@template.layout.footer()
+@template.layout.footer(
+serverInfoResponse = serverInfoResponse
+)
 </body>
 </html>

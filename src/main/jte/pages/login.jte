@@ -108,6 +108,8 @@ body {
 </main>
 
 
-@template.layout.footer(showFooter = false)
+@template.layout.footer(
+showFooter = false
+)
 </body>
 </html>

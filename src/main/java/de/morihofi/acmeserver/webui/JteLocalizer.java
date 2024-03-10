@@ -54,4 +54,7 @@ public class JteLocalizer implements gg.jte.support.LocalizationSupport {
         return key;
     }
 
+    public Locale getLocale() {
+        return locale;
+    }
 }

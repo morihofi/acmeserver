@@ -18,6 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 /**
@@ -164,6 +165,10 @@ public class CryptoStoreManager {
      */
     public KeyPair getIntermediateCerificateAuthorityKeyPair(String intermediateCaName) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(getKeyStoreAliasForProvisionerIntermediate(intermediateCaName), keyStore);
+    }
+
+    public X509Certificate getX509CertificateForProvisioner(String intermediateCaName) throws KeyStoreException {
+        return (X509Certificate) getKeyStore().getCertificate(getKeyStoreAliasForProvisionerIntermediate(intermediateCaName));
     }
 
     /**

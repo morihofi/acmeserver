@@ -128,7 +128,7 @@ public class AcmeApiServer {
         app.get("/ca.crt", new DownloadCaEndpoint(cryptoStoreManager));
 
 
-        List<Provisioner> provisioners = getProvisioners(appConfig.getProvisioner(), app, cryptoStoreManager, appConfig);
+        List<Provisioner> provisioners = getProvisioners(appConfig.getProvisioner(), cryptoStoreManager, appConfig);
 
         WebUI.init(app, cryptoStoreManager);
 
@@ -248,13 +248,12 @@ public class AcmeApiServer {
      * Retrieves or initializes provisioners based on configuration and generates ACME Web API client certificates when required.
      *
      * @param provisionerConfigList A list of provisioner configurations.
-     * @param javalinInstance       The Javalin instance.
      * @param appConfig             Configuration instance of the ACME Server
      * @param cryptoStoreManager    Instance of {@link CryptoStoreManager} for accessing KeyStores
      * @return A list of provisioners.
      * @throws Exception If an error occurs during provisioning or certificate generation.
      */
-    private static List<Provisioner> getProvisioners(List<ProvisionerConfig> provisionerConfigList, Javalin javalinInstance, CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
+    private static List<Provisioner> getProvisioners(List<ProvisionerConfig> provisionerConfigList, CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
 
         List<Provisioner> provisioners = new ArrayList<>();
 
@@ -268,7 +267,7 @@ public class AcmeApiServer {
 
             KeyPair intermediateKeyPair = null;
             X509Certificate intermediateCertificate;
-            final Provisioner provisioner = new Provisioner(provisionerName, config.getMeta(), config.getIssuedCertificateExpiration(), config.getDomainNameRestriction(), config.isWildcardAllowed(), cryptoStoreManager);
+            final Provisioner provisioner = new Provisioner(provisionerName, config.getMeta(), config.getIssuedCertificateExpiration(), config.getDomainNameRestriction(), config.isWildcardAllowed(), cryptoStoreManager, config);
 
 
             //Check if root ca does exist
@@ -278,7 +277,6 @@ public class AcmeApiServer {
 
                 // *****************************************
                 // Create Intermediate Certificate
-
 
                 if (config.getIntermediate().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
                     log.info("Using RSA algorithm");

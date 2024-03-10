@@ -75,6 +75,8 @@ context = context
 
 
 </main>
-@template.layout.footer()
+@template.layout.footer(
+serverInfoResponse = serverInfoResponse
+)
 </body>
 </html>

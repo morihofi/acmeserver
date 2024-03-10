@@ -24,6 +24,12 @@ context = context
 
 <main class="container">
 
+    @if(serverInfoResponse.getMetadataInfo().getVersion().endsWith("-SNAPSHOT"))
+        <div class="alert alert-warning" role="alert">
+            <b>${localizer.lookup("web.core.warnSnapshot.title")}</b>&nbsp;${localizer.lookup("web.core.warnSnapshot.content", localizer.lookup("app.name"))}
+        </div>
+    @endif
+
     <!-- Greeting -->
     <div class="bg-body-tertiary p-5 rounded" style="padding-top: 4.5rem;">
         <h1>${localizer.lookup("web.index.title")}</h1>
@@ -65,7 +71,9 @@ context = context
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm">
                         <div class="card-body d-flex flex-column">
-                            <h5 class="card-title"><i class="fa-solid fa-stamp"></i>&nbsp;${provisioner.getName()}</h5>
+                            <h5 class="card-title"><i class="fa-solid fa-stamp"></i>&nbsp;<a
+                                        href="/provisioner-info?name=${provisioner.getName()}"
+                                        class="text-reset text-decoration-none">${provisioner.getName()}</a></h5>
 
                             <div class="input-group mt-3 mb-1">
                                 <div class="form-floating flex-grow-1">
@@ -177,6 +185,8 @@ context = context
     }
 
 </script>
-@template.layout.footer()
+@template.layout.footer(
+serverInfoResponse = serverInfoResponse
+)
 </body>
 </html>

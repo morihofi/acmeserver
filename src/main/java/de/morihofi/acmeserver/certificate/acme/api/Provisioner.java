@@ -4,6 +4,7 @@ import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.DomainNameRestrictionConfig;
 import de.morihofi.acmeserver.config.MetadataConfig;
+import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -79,6 +80,10 @@ public class Provisioner {
      */
     private final DomainNameRestrictionConfig domainNameRestriction;
 
+    /**
+     * Provisioner Config from config file
+     */
+    private final ProvisionerConfig config;
 
     /**
      * Constructs a new Provisioner object.
@@ -92,15 +97,17 @@ public class Provisioner {
      * @param domainNameRestriction          The configuration for domain name restrictions.
      * @param wildcardAllowed                A boolean value indicating whether wildcards are allowed.
      * @param cryptoStoreManager             The manager for cryptographic store operations.
+     * @param config
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public Provisioner(String provisionerName, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager) {
+    public Provisioner(String provisionerName, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager, ProvisionerConfig config) {
         this.provisionerName = provisionerName;
         this.acmeMetadataConfig = acmeMetadataConfig;
         this.generatedCertificateExpiration = generatedCertificateExpiration;
         this.domainNameRestriction = domainNameRestriction;
         this.wildcardAllowed = wildcardAllowed;
         this.cryptoStoreManager = cryptoStoreManager;
+        this.config = config;
     }
 
     /**
@@ -275,4 +282,8 @@ public class Provisioner {
         return cryptoStoreManager;
     }
 
+
+    public ProvisionerConfig getConfig() {
+        return config;
+    }
 }

@@ -1,4 +1,7 @@
+@import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse
+
 @param boolean showFooter = true
+@param ServerInfoResponse serverInfoResponse = null
 
 @if(showFooter)
     <div class="container">
@@ -6,6 +9,13 @@
             <div class="col-md-4 d-flex align-items-center">
                 <span class="mb-3 mb-md-0 text-muted">Made with ❤️ by morihofi</span>
             </div>
+
+            @if(serverInfoResponse != null)
+                <div class="col-md-4 d-flex align-items-center justify-content-center">
+                    <span class="mb-3 mb-md-0 text-muted">Version ${serverInfoResponse.getMetadataInfo().getVersion()}</span>
+                </div>
+            @endif
+
 
             <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
                 <li class="ms-3">
