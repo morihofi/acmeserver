@@ -42,3 +42,4 @@ logs/
 *.db
 *.pem
 *.p12
+jte-classes/
