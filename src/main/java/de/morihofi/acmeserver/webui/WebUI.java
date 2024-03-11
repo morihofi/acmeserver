@@ -115,15 +115,11 @@ public class WebUI {
         app.get("/login", new LoginUiHandler(cryptoStoreManager));
         app.post("/login", new LoginUiHandler(cryptoStoreManager));
 
-
         // Admin routes
         app.get(FRONTEND_ADMIN_PAGES.DASHBOARD.getRoute(), context -> context.render("pages/mgmt/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
         app.get(FRONTEND_ADMIN_PAGES.SECURITY.getRoute(), context -> context.render("pages/mgmt/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
         app.get(FRONTEND_ADMIN_PAGES.ISSUED_CERTIFICATES.getRoute(), context -> context.render("pages/mgmt/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
         app.get(FRONTEND_ADMIN_PAGES.LOGS.getRoute(), context -> context.render("pages/mgmt/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
         app.get(FRONTEND_ADMIN_PAGES.CONFIGURATION.getRoute(), context -> context.render("pages/mgmt/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
-
-
-
     }
 }
