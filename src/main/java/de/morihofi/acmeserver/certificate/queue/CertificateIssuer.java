@@ -2,7 +2,6 @@ package de.morihofi.acmeserver.certificate.queue;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
@@ -15,12 +14,18 @@ import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGener
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.util.List;
@@ -57,6 +62,63 @@ public class CertificateIssuer {
         }
     }
 
+    public static void generateCertificateForOrder(ACMEOrder order, CryptoStoreManager cryptoStoreManager, Session session) throws IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException, OperatorCreationException {
+        String csr = order.getCertificateCSR();
+        // Decode the CSR from the Request
+        byte[] csrBytes = Base64Tools.decodeBase64URLAsBytes(csr);
+        PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
+        PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
+
+        List<Identifier> csrIdentifiers = CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
+        Provisioner provisioner = cryptoStoreManager.getProvisionerForName(order.getAccount().getProvisioner());
+
+                        /*
+                            We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using the Basic Constrain etc.
+                         */
+
+        log.info("Creating Certificate for order \"{}\" with DNS Names {}", order.getOrderId(),
+                String.join(", ", csrIdentifiers.stream()
+                        .map(identifier -> identifier.getTypeAsEnumConstant().toString() + ":" + identifier.getValue())
+                        .toList()
+                )
+        );
+
+        X509Certificate acmeGeneratedCertificate = ServerCertificateGenerator.createServerCertificate(
+                provisioner.getIntermediateCaKeyPair(),
+                provisioner.getIntermediateCaCertificate(),
+                pkPemObject.getContent(),
+                csrIdentifiers.toArray(new Identifier[0]),
+                provisioner.getGeneratedCertificateExpiration(),
+                provisioner
+        );
+
+        BigInteger serialNumber = acmeGeneratedCertificate.getSerialNumber();
+        String pemCertificate = PemUtil.certificateToPEM(acmeGeneratedCertificate.getEncoded());
+
+        Timestamp expiresAt = new Timestamp(acmeGeneratedCertificate.getNotAfter().getTime());
+        Timestamp issuedAt = new Timestamp(acmeGeneratedCertificate.getNotBefore().getTime());
+
+
+        Transaction transaction = session.beginTransaction();
+
+
+        //Set certificate details
+        order.setCertificateSerialNumber(serialNumber);
+        order.setCertificatePem(pemCertificate);
+        order.setExpires(expiresAt);
+        order.setCertificateIssued(issuedAt);
+
+        order.setOrderState(AcmeOrderState.IDLE); //Set it back to idle
+        session.merge(order);
+
+
+        transaction.commit();
+
+        log.info("Stored certificate successful");
+
+
+    }
+
 
     private static class CertificateIssuingTask implements Runnable {
 
@@ -79,80 +141,24 @@ public class CertificateIssuer {
 
                 if (!waitingOrders.isEmpty()) {
 
-                    try {
+                    try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
 
                         //CryptoStoreManager csm = CryptoStoreManager;
 
                         ACMEOrder order = waitingOrders.get(0);
-                        String csr = order.getCertificateCSR();
-
-                        // Decode the CSR from the Request
-                        byte[] csrBytes = Base64Tools.decodeBase64URLAsBytes(csr);
-                        PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
-                        PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
-
-                        List<Identifier> csrIdentifiers = CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
-                        Provisioner provisioner = cryptoStoreManager.getProvisionerForName(order.getAccount().getProvisioner());
-
-                        /*
-                            We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using the Basic Constrain etc.
-                         */
-
-                        log.info("Creating Certificate for order \"{}\" with DNS Names {}", order.getOrderId(),
-                                String.join(", ", csrIdentifiers.stream()
-                                        .map(identifier -> identifier.getTypeAsEnumConstant().toString() + ":" + identifier.getValue())
-                                        .toList()
-                                )
-                        );
-
-                        X509Certificate acmeGeneratedCertificate = ServerCertificateGenerator.createServerCertificate(
-                                provisioner.getIntermediateCaKeyPair(),
-                                provisioner.getIntermediateCaCertificate(),
-                                pkPemObject.getContent(),
-                                csrIdentifiers.toArray(new Identifier[0]),
-                                provisioner.getGeneratedCertificateExpiration(),
-                                provisioner
-                        );
-
-                        BigInteger serialNumber = acmeGeneratedCertificate.getSerialNumber();
-                        String pemCertificate = PemUtil.certificateToPEM(acmeGeneratedCertificate.getEncoded());
-
-                        Timestamp expiresAt = new Timestamp(acmeGeneratedCertificate.getNotAfter().getTime());
-                        Timestamp issuedAt = new Timestamp(acmeGeneratedCertificate.getNotBefore().getTime());
-
-                        // Saving the certificate for each identifier in the database
-                        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-                            Transaction transaction = session.beginTransaction();
-
-
-                            //Set certificate details
-                            order.setCertificateSerialNumber(serialNumber);
-                            order.setCertificatePem(pemCertificate);
-                            order.setExpires(expiresAt);
-                            order.setCertificateIssued(issuedAt);
-
-                            order.setOrderState(AcmeOrderState.IDLE); //Set it back to idle
-                            session.merge(order);
-
-
-                            transaction.commit();
-
-                            log.info("Stored certificate successful");
-
-
-                        } catch (Exception e) {
-                            log.error("Unable to store certificate", e);
-                        }
+                        generateCertificateForOrder(order, cryptoStoreManager, session);
 
                     } catch (Exception ex) {
-                        log.error("Error generating certificate", ex);
+                        log.error("Error generating and/or store certificate", ex);
                     }
 
                 } else {
 
                     //Waiting for new CSRs and try in a few seconds again
                     try {
+
                         Thread.sleep(20 * 1000); //Sleep 20 seconds
+
                     } catch (InterruptedException e) {
                         log.warn("Thread sleep is interrupted");
                         Thread.currentThread().interrupt();
@@ -164,6 +170,8 @@ public class CertificateIssuer {
             }
             log.info("Certificate issuing thread is stopping gracefully.");
         }
+
+
     }
 
 }

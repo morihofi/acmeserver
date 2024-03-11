@@ -36,8 +36,10 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class Main {
@@ -80,6 +82,16 @@ public class Main {
     public static long startupTime = 0; // Set after all routes are ready
 
     public static String[] runArgs = new String[]{};
+
+    public enum SERVER_OPTION {
+        /**
+         * Enables the async certificate issuing,
+         * that is currently a buggy in certbot.
+         */
+        USE_ASYNC_CERTIFICATE_ISSUING
+    }
+    public static Set<SERVER_OPTION> serverOptions = new HashSet<>();
+
 
     public static void main(String[] args) throws Exception {
         // runArgs are needed to restart the whole server
@@ -130,7 +142,13 @@ public class Main {
             if (cliArgument.getParameterName().equals("debug")) {
                 debug = true;
                 log.info("Debug mode activated by cli argument");
-
+            }
+            /*
+             * Following are options that change the behavior of the server
+             */
+            if (cliArgument.getParameterName().equals("option-use-async-certificate-issuing")) {
+                serverOptions.add(SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING);
+                log.info("Enabled async certificate issuing");
             }
         }
 

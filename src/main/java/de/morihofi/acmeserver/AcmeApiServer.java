@@ -80,8 +80,10 @@ public class AcmeApiServer {
         log.info("Initializing database");
         HibernateUtil.initDatabase();
 
-        log.info("Starting Certificate Issuer");
-        CertificateIssuer.startThread(cryptoStoreManager);
+        if (Main.serverOptions.contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
+            log.info("Starting Certificate Issuer");
+            CertificateIssuer.startThread(cryptoStoreManager);
+        }
 
         log.info("Starting ACME API WebServer");
         app = Javalin.create(javalinConfig -> {
@@ -375,7 +377,7 @@ public class AcmeApiServer {
                     },
                     expiration,
                     null
-                    );
+            );
 
             // Dumping certificate to HDD
             log.info("Storing certificate in KeyStore");
@@ -423,19 +425,21 @@ public class AcmeApiServer {
         log.info("Shutting down CRL generators");
         for (CRL crlGenerator : provisioners.stream()
                 .map(Provisioner::getCrlGenerator)
-                .toList()){
+                .toList()) {
             log.info("Gracefully shutdown CRL generator for provisioner {}", crlGenerator.getProvisioner());
             crlGenerator.shutdown();
         }
 
         log.info("Shutting down Certificate watchers");
-        for (CertificateRenewWatcher certificateRenewWatcher : cryptoStoreManager.getCertificateRenewWatchers()){
+        for (CertificateRenewWatcher certificateRenewWatcher : cryptoStoreManager.getCertificateRenewWatchers()) {
             log.info("Gracefully shutdown certificate watchers for certificate alias {}", certificateRenewWatcher.getAlias());
             certificateRenewWatcher.shutdown();
         }
 
-        log.info("Shutting down Certificate Issuer");
-        CertificateIssuer.shutdown();
+        if (Main.serverOptions.contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
+            log.info("Shutting down Certificate Issuer");
+            CertificateIssuer.shutdown();
+        }
 
         log.info("Shutting down Database");
         HibernateUtil.shutdown();
@@ -444,7 +448,7 @@ public class AcmeApiServer {
         // so that all threads are exited at this point. If you develop and/or reload configuration,
         // consider checking this by temporarily comment out following code after this comment
 
-        if(runWhenEverythingIsShutDown != null){
+        if (runWhenEverythingIsShutDown != null) {
             // Run things you normally wouldn't do, cause due to running thread this can end
             // in an unpredictable behaviour
             runWhenEverythingIsShutDown.run();

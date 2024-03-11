@@ -2,12 +2,14 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.order;
 
 
 import com.google.gson.Gson;
+import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.FinalizeOrderRequestPayload;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
@@ -99,29 +101,40 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
         ACMEOrderResponse response = new ACMEOrderResponse();
 
-        if (order.getCertificatePem() == null) {
+        if (order.getCertificatePem() == null && order.getCertificateCSR() == null) {
+
             try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
 
-
                 // Save CSR in Database (and mark it that it needs a certificate)
-                    Transaction transaction = session.beginTransaction();
+                Transaction transaction = session.beginTransaction();
 
-                    order.setCertificateCSR(csr);
-                    order.setOrderState(AcmeOrderState.NEED_A_CERTIFICATE); //Set it back to idle
-                    session.merge(order);
+                order.setCertificateCSR(csr);
+                order.setOrderState(AcmeOrderState.NEED_A_CERTIFICATE);
+                session.merge(order);
 
-                    transaction.commit();
+                transaction.commit();
+
+                if (Main.serverOptions.contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
+                    //Use async certificate issuing
+
 
                     log.info("Saved CSR for order {} in database", order.getOrderId());
 
-
-                    //Set response, that our certificate is processing
+                    //Set response, that our certificate is processing in separate thread
                     response.setStatus(AcmeStatus.PROCESSING.getRfcName());
+                } else {
+
+                    CertificateIssuer.generateCertificateForOrder(order, provisioner.getCryptoStoreManager(), session); //also resets need certificate status
+
+                    //Valid, cause due we generated the certificate in the request, we have now a certificate available
+                    response.setStatus(AcmeStatus.VALID.getRfcName());
+                }
+
 
             } catch (Exception e) {
-                log.error("Unable to store CSR for order {} in database", order.getOrderId(), e);
+                log.error("Unable to process CSR for order {} and save in database", order.getOrderId(), e);
             }
-        }else {
+        } else {
             //We have a certificate
 
             response.setStatus(AcmeStatus.VALID.getRfcName());
@@ -142,8 +155,6 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         ctx.result(gson.toJson(response));
 
     }
-
-
 
 
 }
