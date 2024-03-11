@@ -135,11 +135,6 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         }
 
 
-
-
-
-
-
         AuthzResponse response = new AuthzResponse();
         response.setStatus(identifier.getChallengeStatus().getRfcName());
         response.setExpires(DateTools.formatDateForACME(new Date()));

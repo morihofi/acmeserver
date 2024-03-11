@@ -272,7 +272,7 @@ public class Database {
                 Date certificateExpires = acmeOrder.getCertificateExpires();
 
                 if (certificatePEM == null) {
-                    throw new ACMEServerInternalException("No certificate was found for authorization id \"" + certificateId + "\". Have you already submitted a CSR? There is no certificate without a CSR.");
+                    throw new ACMEServerInternalException("No certificate was found for authorization id \"" + certificateId + "\". Have you already submitted a CSR? You cannot get a certificate without submitting a CSR.");
                 }
 
                 log.info("Getting Certificate for authorization Id {} -> Expires at {}", certificateId, certificateExpires);
