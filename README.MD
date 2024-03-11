@@ -60,13 +60,6 @@ java -jar acmeserver-VERSION.jar
 This version is not fully RFC 8555 compliant, but should work with most clients. 
 
 ## ✅ Tested ACME Clients
-- (-> modified version is included)
-- ~~[acme.sh](https://github.com/acmesh-official/acme.sh)~~ (Only Standalone works at the moment)
-- ~~[Certbot](https://certbot.eff.org)~~ (currently buggy with this ACME Server)
-- [Traefik](https://github.com/traefik/traefik)
-- [win-acme](https://www.win-acme.com/)
-- [acme4j](https://acme4j.shredzone.org)
-
 |                                                               | HTTP-01 | DNS-01 |                                                                                                                         |
 |---------------------------------------------------------------|---------|--------|-------------------------------------------------------------------------------------------------------------------------|
 | [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree) | ✅       | ✅      | -> modified version is included                                                                                         |
