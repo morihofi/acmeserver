@@ -24,6 +24,9 @@ public class ACMEAccountRequestPayload {
      */
     private boolean termsOfServiceAgreed;
 
+    private String status;
+
+
     /**
      * Retrieves the list of email contacts associated with the ACME account.
      * Each email in the list is prefixed with 'mailto:'.
@@ -62,6 +65,18 @@ public class ACMEAccountRequestPayload {
      */
     public void setTermsOfServiceAgreed(boolean termsOfServiceAgreed) {
         this.termsOfServiceAgreed = termsOfServiceAgreed;
+    }
+
+    public boolean isTermsOfServiceAgreed() {
+        return termsOfServiceAgreed;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
 

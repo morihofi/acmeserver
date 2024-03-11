@@ -5,16 +5,24 @@ import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.tools.regex.EmailValidation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
+import jakarta.persistence.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.json.JSONObject;
+
 import java.util.List;
+import java.util.Objects;
 
 /**
  * New Order Endpoint
@@ -30,6 +38,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
 
     /**
      * Endpoint for managing ACME Account settings. Change E-Mail etc.
+     *
      * @param provisioner Provisioner instance
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
@@ -51,28 +60,54 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEAccountNotFoundException("Account with ID " + accountId + " not found!");
         }
 
-        // Update Account Settings, e.g., Email change
-        log.info("Update account settings for account {}", accountId);
 
-        List<String> emails = acmeAccountRequestPayload.getContact();
-        if (emails != null) {
-            for (String email : emails) {
-                email = email.replace("mailto:", "");
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            Transaction transaction = session.beginTransaction();
 
-                if (!EmailValidation.isValidEmail(email) || email.split("\\@")[0].equals("localhost")) {
-                    log.error("E-Mail validation failed for email {}", email);
-                    throw new ACMEInvalidContactException("E-Mail address is invalid");
+
+            // Update Account Settings, e.g., Email change
+            log.info("Update account settings for account {}", account.getAccountId());
+
+            List<String> emails = acmeAccountRequestPayload.getContact();
+            if (emails != null) {
+                for (String email : emails) {
+                    email = email.replace("mailto:", "");
+
+                    if (!EmailValidation.isValidEmail(email) || email.split("\\@")[0].equals("localhost")) {
+                        log.error("E-Mail format validation failed for email {}", email);
+                        throw new ACMEInvalidContactException("E-Mail address format is invalid");
+                    }
+                    log.info("E-Mail validation successful for email {}", email);
                 }
-                log.info("E-Mail validation successful for email {}", email);
+
+                // Update email
+                account.getEmails().clear();
+                account.getEmails().addAll(emails);
+                session.merge(account);
+                log.info("ACME account {} updated emails to {}", account.getAccountId(), String.join(",", emails));
+
             }
 
-            // Update Contact Emails in Database
-            Database.updateAccountEmail(account, emails);
+            String status = acmeAccountRequestPayload.getStatus();
+            if (status != null) {
+                if (status.equals(AcmeStatus.DEACTIVATED.getRfcName())) {
+                    account.setDeactivated(true);
+                    session.merge(account);
+                    log.info("ACME account {} has been deactivated", account.getAccountId());
+                }
+            }
+
+
+            transaction.commit();
         }
 
         ctx.header("Content-Type", "application/json");
         ctx.status(200);
-        ctx.result("{}"); // Empty JSON response
+        if(account.isDeactivated()){
+            ctx.result(new JSONObject().put("status", AcmeStatus.DEACTIVATED.getRfcName()).toString());
+        }else {
+            ctx.result("{}"); // Empty JSON response
+        }
     }
 
 

@@ -240,39 +240,6 @@ public class Database {
         }
     }
 
-    /**
-     * Updates the email addresses associated with an ACME (Automated Certificate Management Environment) account.
-     *
-     * @param account The ACME account for which email addresses are to be updated.
-     * @param emails  A list of new email addresses to be associated with the account.
-     * @throws ACMEInvalidContactException If an error occurs while updating the email addresses.
-     */
-    @Transactional
-    public static void updateAccountEmail(ACMEAccount account, List<String> emails) {
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            Transaction transaction = session.beginTransaction();
-
-            // Convert emails list to JSON array string
-            JSONArray emailArr = new JSONArray();
-            for (String email : emails) {
-                emailArr.put(email);
-            }
-
-
-            // Update email
-            account.getEmails().clear();
-            account.getEmails().addAll(emails);
-            session.merge(account);
-
-            transaction.commit();
-
-            log.info("ACME account {} updated emails to {}", account.getAccountId(), String.join(",", emails));
-
-        } catch (Exception e) {
-            log.error("Unable to update emails for account {}", account.getAccountId(), e);
-            throw new ACMEInvalidContactException("Unable to update emails");
-        }
-    }
 
     /**
      * Retrieves the PEM-encoded certificate chain of an ACME entity by its certificate ID.
@@ -305,7 +272,7 @@ public class Database {
                 Date certificateExpires = acmeOrder.getCertificateExpires();
 
                 if (certificatePEM == null) {
-                    throw new IllegalArgumentException("No certificate was found for authorization id \"" + certificateId + "\". Have you already submitted a CSR? There is no certificate without a CSR.");
+                    throw new ACMEServerInternalException("No certificate was found for authorization id \"" + certificateId + "\". Have you already submitted a CSR? There is no certificate without a CSR.");
                 }
 
                 log.info("Getting Certificate for authorization Id {} -> Expires at {}", certificateId, certificateExpires);

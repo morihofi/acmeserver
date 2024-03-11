@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadSignatureAlgorithmException;
+import de.morihofi.acmeserver.exception.exceptions.ACMEUnauthorizedException;
 import de.morihofi.acmeserver.tools.certificate.CertTools;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
@@ -12,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.lang.JoseException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -69,6 +71,11 @@ public class SignatureCheck {
         try {
             // Obtain the client's public key
             ACMEAccount account = Database.getAccount(accountId);
+
+            if(account.isDeactivated()){
+                throw new ACMEUnauthorizedException("Account is deactivated");
+            }
+
             PublicKey publicKey = PemUtil.readPublicKeyFromPem(account.getPublicKeyPEM());
 
             // Create a JsonWebSignature object and set the required parts
@@ -84,7 +91,8 @@ public class SignatureCheck {
                 log.error("Signature verification failed for account {}", accountId);
                 throw new ACMEBadSignatureAlgorithmException("Signature does not match");
             }
-        }catch (Exception ex){
+        }catch (JoseException | IOException | NoSuchAlgorithmException | NoSuchProviderException |
+                InvalidKeySpecException ex){
             log.error("An exception occurred while verifying signature for account {}", accountId, ex);
             throw new ACMEBadSignatureAlgorithmException("An server side exception occurred while verifying signature");
         }
