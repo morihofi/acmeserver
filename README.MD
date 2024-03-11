@@ -59,14 +59,31 @@ java -jar acmeserver-VERSION.jar
 ## 📒 Disclaimer
 This version is not fully RFC 8555 compliant, but should work with most clients. 
 
-## ✅ Tested and working ACME Clients
-- [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree)
-- [acme.sh](https://github.com/acmesh-official/acme.sh)
+## ✅ Tested ACME Clients
+- (-> modified version is included)
+- ~~[acme.sh](https://github.com/acmesh-official/acme.sh)~~ (Only Standalone works at the moment)
 - ~~[Certbot](https://certbot.eff.org)~~ (currently buggy with this ACME Server)
 - [Traefik](https://github.com/traefik/traefik)
 - [win-acme](https://www.win-acme.com/)
+- [acme4j](https://acme4j.shredzone.org)
 
-## 💻 Tested Operating Systems
+|                                                               | HTTP-01 | DNS-01 |                                                                                                                         |
+|---------------------------------------------------------------|---------|--------|-------------------------------------------------------------------------------------------------------------------------|
+| [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree) | ✅       | ✅      | -> modified version is included                                                                                         |
+| [Certbot](https://certbot.eff.org)                            | ❌       | ❌      | Challenges differ in last char (don't know why)                                                                         |
+| [acme.sh](https://github.com/acmesh-official/acme.sh)         | 🐞      | ✅      | For HTTP-01 use Standalone mode, nginx mode won't work for no reason                                                    |
+| [Traefik](https://github.com/traefik/traefik)                 | ✅       | ❓      |                                                                                                                         |
+| [win-acme](https://www.win-acme.com/)                         | ✅       | ❓      | Tested with IIS 8.5 on Win Server 2012 r2. Only use Provisioner with RSA, because IIS doesn't support Elliptical Curves |
+| [acme4j](https://acme4j.shredzone.org)                        | ✅       | ✅      |                                                                                                                         |
+
+Meanings:
+
+| ✅                    | ❌                         | 🐞    | ❓          |
+|----------------------|---------------------------|-------|------------|
+| works without issues | not working at the moment | buggy | not tested |
+
+
+## 💻 Server tested on Operating Systems
 - Debian 11, 12
 - Windows 10
 - FreeBSD 13.2, 14
