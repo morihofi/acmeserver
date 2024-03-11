@@ -2,12 +2,15 @@ package de.morihofi.acmeserver.database.objects;
 
 import de.morihofi.acmeserver.certificate.acme.challenges.AcmeChallengeType;
 import de.morihofi.acmeserver.database.AcmeStatus;
+import de.morihofi.acmeserver.tools.base64.Base64Tools;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.util.Base64;
 
 /**
  * Represents an ACME order identifier entity used for managing challenge verification.
@@ -47,7 +50,7 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
 
         // random values
         this.challengeId = Crypto.generateRandomId();
-        this.authorizationToken = Crypto.generateRandomId();
+        this.authorizationToken = Base64.getUrlEncoder().withoutPadding().encodeToString(Crypto.generateRandomId().getBytes(StandardCharsets.UTF_8));
 
         //Default status after creation
         this.status = AcmeStatus.PENDING;
