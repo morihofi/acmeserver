@@ -165,6 +165,8 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         if (identifierChallenge.getStatus() == AcmeStatus.VALID) {
             challengeResponse.setStatus(AcmeStatus.VALID.getRfcName());
             challengeResponse.setValidated(DateTools.formatDateForACME(identifierChallenge.getVerifiedTime()));
+        }else {
+            challengeResponse.setStatus(identifierChallenge.getStatus().getRfcName());
         }
         return challengeResponse;
     }
