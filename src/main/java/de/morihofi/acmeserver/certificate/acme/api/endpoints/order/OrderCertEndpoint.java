@@ -40,12 +40,19 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
                 order.getCertificateId(),
                 provisioner
         );
+        if(individualCertificateChain != null){
+            responseCertificateChainBuilder.append(individualCertificateChain);
+            responseCertificateChainBuilder.append("\n"); // Separator between certificates
 
-        responseCertificateChainBuilder.append(individualCertificateChain);
-        responseCertificateChainBuilder.append("\n"); // Separator zwischen den Zertifikaten
+            String responseCertificateChain = responseCertificateChainBuilder.toString();
+            ctx.result(responseCertificateChain);
+        }else{
+            ctx.status(404); //No certificate yet
+            ctx.result("Certificate is being issued, please try in a few moments again");
+        }
 
-        String responseCertificateChain = responseCertificateChainBuilder.toString();
-        ctx.result(responseCertificateChain);
+
+
     }
 
 
