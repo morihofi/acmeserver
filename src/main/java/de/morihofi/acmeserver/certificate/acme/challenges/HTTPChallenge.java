@@ -170,11 +170,11 @@ public class HTTPChallenge {
 
     @NotNull
     private static String getToken(String authToken, PublicKey acmeAccountPublicKey) {
-        String token = AcmeTokenCryptography.keyAuthorizationFor(authToken, acmeAccountPublicKey);
-        if (!AcmeUtils.isValidBase64Url(token)) {
-            throw new IllegalArgumentException("Invalid token: " + token);
+
+        if (!AcmeUtils.isValidBase64Url(authToken)) {
+            throw new IllegalArgumentException("Invalid auth token: " + authToken);
         }
-        return token;
+        return AcmeTokenCryptography.keyAuthorizationFor(authToken, acmeAccountPublicKey);
     }
 
 
