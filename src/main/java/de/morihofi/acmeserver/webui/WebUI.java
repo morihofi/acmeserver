@@ -12,6 +12,7 @@ package de.morihofi.acmeserver.webui;
 
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.ServerInfoEndpoint;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
+import de.morihofi.acmeserver.webui.handler.CommandBuilderHandler;
 import de.morihofi.acmeserver.webui.handler.LoginUiHandler;
 import de.morihofi.acmeserver.webui.handler.ProvisionerInfoHandler;
 import de.morihofi.acmeserver.webui.handler.StatsHandler;
@@ -132,7 +133,7 @@ public class WebUI {
         app.get(FRONTEND_PAGES.INDEX.getRoute(), context -> context.render("pages/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
         app.get(FRONTEND_PAGES.STATISTICS.getRoute(), new StatsHandler(cryptoStoreManager));
         app.get("/provisioner-info", new ProvisionerInfoHandler(cryptoStoreManager));
-        app.get(FRONTEND_PAGES.COMMAND_BUILDER.getRoute(), context -> context.render("pages/cmd-builder.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
+        app.get(FRONTEND_PAGES.COMMAND_BUILDER.getRoute(), new CommandBuilderHandler(cryptoStoreManager));
 
         //Login
         app.get("/login", new LoginUiHandler(cryptoStoreManager));
