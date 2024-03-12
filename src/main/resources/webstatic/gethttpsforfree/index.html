@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <!--
-Welcome to the source code for gethttpsforfree.com!
+Welcome to the source code for gethttpsforfree.com! This is a modified version, to be
+able to use the ACME Server.
 
 This is an open source website that is meant to be auditable. Please read
 through the code to see what's going on!
@@ -78,8 +79,7 @@ Released under MIT License. Enjoy!
     </h2>
     <div>
         You can now get free https certificates (incuding wildcard certificates)
-        from the non-profit certificate authority
-        <a href="https://letsencrypt.org/" target="_blank" rel="noopener noreferrer">Let's Encrypt</a>!
+        from this local <a href="/" target="_blank" rel="noopener noreferrer">ACME Server</a> certificate authority!
         This is a website that will take you through the manual steps to get your free
         https certificate so you can make your own website use https! This website is
         <a href="https://github.com/diafygi/howtogetfreehttps" target="_blank" rel="noopener noreferrer">open source</a>
@@ -94,7 +94,8 @@ Released under MIT License. Enjoy!
         official Let's Encrypt <a href="https://github.com/certbot/certbot" target="_blank" rel="noopener noreferrer">official client</a>
         that can automatically issue and install https certificates for you. This
         website is designed for people who know what they are doing and just want to get
-        their free https certificate.
+        their free https certificate. You have to append the <code>--server</code> command to certbot to use
+        this CA. Read more in the documentation of this ACME Server.
     </div>
 
     <div>
@@ -108,11 +109,11 @@ Released under MIT License. Enjoy!
     <!--############################-->
     <h2>Step 1: Account Info</h2>
     <div>
-        Let's Encrypt requires that you register an account email and public key before
+        ACME Server requires that you register an account email and public key before
         issuing a certificate. The email is so that they can contact you if needed, and
-        the public key is so you can securely sign your requests to issue/revoke/renew
+        the public key is, so you can securely sign your requests to issue/revoke/renew
         your certificates. <i><b>Keep your account private key secret!</b> Anyone who has it
-        can impersonate you when making requests to Let's Encrypt!</i>
+        can impersonate you when making requests to this ACME Server instance!</i>
     </div>
 
     <form id="validate_account">
@@ -158,7 +159,7 @@ Released under MIT License. Enjoy!
     <!--###########################################-->
     <h2>Step 2: Certificate Signing Request</h2>
     <div>
-        This is the certificate signing request (CSR) that you send to Let's Encrypt
+        This is the certificate signing request (CSR) that you send to this ACME Server instance
         in order to issue you a signed certificate. It contains the website domains you
         want to issue certs for and the public key of your TLS private key. <i><b>Keep your
         TLS private key secret!</b> Anyone who has it can man-in-the-middle your website!</i>
@@ -214,10 +215,11 @@ Released under MIT License. Enjoy!
     <h2>Step 3: Sign API Requests<span id="step3_pending"> (waiting...)</span></h2>
     <div id="step3" style="display:none;">
         <div>
-            Let's Encrypt requires that you sign all of your requests to them with your
+            The ACME Protocol you are using for creating the certificates requires
+            that you sign all of your requests to them with your
             account private key. Below are the requests that you will need to sign. The
-            commands to do this are generated below so you can copy-and-paste them into your
-            terminal. <i>Be sure to change the account private key location so it points to
+            commands to do this are generated below, so you can copy-and-paste them into your
+            terminal. <i>Be sure to change the account private key location, so it points to
             your real private key.</i>
         </div>
 
@@ -230,7 +232,7 @@ Released under MIT License. Enjoy!
                     This command asks to register your account key (or look it up if
                     you have already registered) and accepts the
                     <a id="howto_tos" href="#" target="_blank" rel="noopener noreferrer">terms and conditions</a>
-                    for Let's Encrypt.<br/>
+                    of this ACME provisioner.<br/>
                     <br/>
                     How to generate this signature:<br/>
                     <ol>
@@ -246,8 +248,8 @@ Released under MIT License. Enjoy!
                     </ol>
                 </div>
                 <label>
-                    Accept the Let's Encrypt
-                    <a id="tos" href="#" target="_blank" rel="noopener noreferrer">terms and conditions</a>:
+                    Accept the
+                    <a id="tos" href="#" target="_blank" rel="noopener noreferrer">terms and conditions</a> of this ACME provisioner:
                 </label><br/>
                 <input id="registration_sig_cmd" type="text" value="echo ..." readonly/><br/>
                 <input id="registration_sig" type="text" placeholder='Paste the hex output here (e.g. "(stdin)= f2cf67e4...")'/><br/>
@@ -334,16 +336,16 @@ Released under MIT License. Enjoy!
     <h2>Step 4: Verify Ownership<span id="step4_pending"> (waiting...)</span></h2>
     <div id="step4" style="display:none;">
         <div>
-            Let's Encrypt requires you prove you own the domains you have in your CSR. You
+            The ACME Protocol requires you prove you own the domains you have in your CSR. You
             can do this by serving a specific file at a specific url under your domains.
             Below are the files you need to serve along with some copy-and-paste commands
             you can run on your website to start serving the file. Once you are serving
             the file on your website, click "I'm now running this on...". After that, you
-            need to tell Let's Encrypt to check the above files to verify ownership of your
+            need to tell the ACME Server to check the above files to verify ownership of your
             domains. This request needs to be signed with your account private key. Below
             are the verification requests that you will need to sign. The commands to do
-            this are generated below so you can copy-and-paste them into your terminal.
-            <i>Be sure to change the account private key location so it points to your real
+            this are generated below, so you can copy-and-paste them into your terminal.
+            <i>Be sure to change the account private key location, so it points to your real
             private key.</i>
         </div>
 
@@ -454,9 +456,9 @@ Released under MIT License. Enjoy!
                                     <label class="howto_python_sig_label help">(how do I do this?)</label>
                                     <input type="checkbox" class="howto_python_sig help-checkbox"/>
                                     <div class="help-content">
-                                        This step tells Let's Encrypt that you're serving
+                                        This step tells the ACME Server that you're serving
                                         the correct data for this challenge on your server.
-                                        When Let's Encrypt receives this submission, they
+                                        When the Server receives this submission, they
                                         will make a request to your server to verify you are
                                         serving the data correctly.<br/>
                                         <br/>
@@ -489,7 +491,7 @@ Released under MIT License. Enjoy!
                                     <label class="howto_recheck_auth_python_sig_label help">(how do I do this?)</label>
                                     <input type="checkbox" class="howto_recheck_auth_python_sig help-checkbox"/>
                                     <div class="help-content">
-                                        This step checks to see if Let's Encrypt has marked the
+                                        This step checks to see if the ACME Server has marked the
                                         challenge for this domain as complete.<br/>
                                         <br/>
                                         How to generate this signature:<br/>
@@ -572,9 +574,9 @@ Released under MIT License. Enjoy!
                                     <label class="howto_file_sig_label help">(how do I do this?)</label>
                                     <input type="checkbox" class="howto_file_sig help-checkbox"/>
                                     <div class="help-content">
-                                        This step tells Let's Encrypt that you're serving
+                                        This step tells the ACME server that you're serving
                                         the correct data for this challenge on your server.
-                                        When Let's Encrypt receives this submission, they
+                                        When the server receives this submission, they
                                         will make a request to your server to verify you are
                                         serving the data correctly.<br/>
                                         <br/>
@@ -607,7 +609,7 @@ Released under MIT License. Enjoy!
                                     <label class="howto_recheck_auth_file_sig_label help">(how do I do this?)</label>
                                     <input type="checkbox" class="howto_recheck_auth_file_sig help-checkbox"/>
                                     <div class="help-content">
-                                        This step checks to see if Let's Encrypt has marked the
+                                        This step checks to see if the server has marked the
                                         challenge for this domain as complete.<br/>
                                         <br/>
                                         How to generate this signature:<br/>
@@ -685,9 +687,9 @@ Released under MIT License. Enjoy!
                                     <label class="howto_dns_sig_label help">(how do I do this?)</label>
                                     <input type="checkbox" class="howto_dns_sig help-checkbox"/>
                                     <div class="help-content">
-                                        This step tells Let's Encrypt that you're serving
+                                        This step tells the ACME server that you're serving
                                         the correct data for this challenge on your server.
-                                        When Let's Encrypt receives this submission, they
+                                        When the server receives this submission, they
                                         will make a request to your server to verify you are
                                         serving the data correctly.<br/>
                                         <br/>
@@ -720,7 +722,7 @@ Released under MIT License. Enjoy!
                                     <label class="howto_recheck_auth_dns_sig_label help">(how do I do this?)</label>
                                     <input type="checkbox" class="howto_recheck_auth_dns_sig help-checkbox"/>
                                     <div class="help-content">
-                                        This step checks to see if Let's Encrypt has marked the
+                                        This step checks to see if the server has marked the
                                         challenge for this domain as complete.<br/>
                                         <br/>
                                         How to generate this signature:<br/>
@@ -760,7 +762,7 @@ Released under MIT License. Enjoy!
                 <label for="howto_finalize" class="help">(how do I do this?)</label>
                 <input id="howto_finalize" type="checkbox" class="help-checkbox"/>
                 <div class="help-content">
-                    This command finalizes your order and tells Let's Encrypt to
+                    This command finalizes your order and tells the server to
                     generate your new certificate.<br/>
                     <br/>
                     How to generate this signature:<br/>
@@ -859,7 +861,7 @@ Released under MIT License. Enjoy!
     <h2>Step 5: Install Certificate (<span id="step5_pending">waiting...</span>)</h2>
     <div id="step5" style="display:none;">
         <div>
-            Congratulations! Let's Encrypt has issued you a certificate for your domains!
+            Congratulations! The ACME Server has issued you a certificate for your domains!
             Below is the signed certificate you can use for your website.
         </div>
 
@@ -976,7 +978,7 @@ scp intermediate.pem root@foo.com:/etc/ssl/certs/intermediate.pem
     <hr/>
 
     <div class="footer">
-        This website is static, so it can be saved and loaded locally. Just right-click and "Save Page As.."!<br/>
+        This is a modified version of Get HTTPS for free to be using this ACME Server instance!
         Released under MIT license |
         Source code: <a href="https://github.com/diafygi/gethttpsforfree" target="_blank" rel="noopener noreferrer">https://github.com/diafygi/gethttpsforfree</a>
     </div>
