@@ -4,10 +4,20 @@
         <Property name="basePath">./logs</Property>
     </Properties>
     <Appenders>
-        <!-- File Appender -->
-        <File name="FILE" fileName="${basePath}/logfile.log" append="true">
-            <PatternLayout pattern="%-5p | %d{yyyy-MM-dd HH:mm:ss} | [%t] %C{2} (%F:%L) - %m%n" />
-        </File>
+        <!-- Rolling File Appender -->
+        <RollingFile name="RollingFile" fileName="${basePath}/logfile.log"
+                     filePattern="${basePath}/%d{yyyy-MM-dd}-logfile.log.gz">
+            <PatternLayout pattern="%-5p | %d{yyyy-MM-dd HH:mm:ss} | [%t] %C{2} (%F:%L) - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${basePath}" maxDepth="1">
+                    <IfFileName glob="*.log.gz"/>
+                    <IfLastModified age="30d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
         <!-- Console Appender -->
         <Console name="STDOUT" target="SYSTEM_OUT">
             <PatternLayout pattern="%-5p | %d{yyyy-MM-dd HH:mm:ss} | [%t] %C{2} (%F:%L) - %m%n" />
