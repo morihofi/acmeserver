@@ -44,6 +44,13 @@
         </developer>
     </developers>
 
+    <scm>
+        <url>https://github.com/morihofi/acmeserver/</url>
+        <connection>scm:git:git@github.com:morihofi/acmeserver.git</connection>
+        <developerConnection>scm:git:git@github.com:morihofi/acmeserver.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <build>
         <finalName>acmeserver</finalName>
         <resources>
