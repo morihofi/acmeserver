@@ -38,8 +38,9 @@ java -jar acmeserver-VERSION.jar
 ## ✨ Features
 - Self-hosted ACME Server for use with your own CA
 - Support for PKCS#12 (.p12) KeyStore and PKCS#11 Hardware Security Modules (HSM)
-- Revokation support
-- Mostly ACME RFC compliant
+- Revokation support for certificates
+- ACME Account deactivation
+- Mostly ACME RFC compliant in its behaviour
 - Multiple provisioners support with own intermediate CA
   - Set expiration and key algorithm for each intermediate
   - Set expiration for each issued certificate in provisioner
@@ -53,7 +54,12 @@ java -jar acmeserver-VERSION.jar
 - Supported challenges:
   - HTTP-01
   - DNS-01
-- WebUI has multiple language support (currently `de` and `en` as a fallback) 
+- Enhanced WebUI
+  - WebUI with multiple language support (currently `de` and `en` as a fallback, uses preferred language of the browser) 
+  - View Provisioner attributes
+    - Matching intermediate CA
+    - Copy ACME-Directory URL for provisioner
+  - Global statistics for provisioners
 - Hot reload of configuration
 
 ## 📒 Disclaimer
