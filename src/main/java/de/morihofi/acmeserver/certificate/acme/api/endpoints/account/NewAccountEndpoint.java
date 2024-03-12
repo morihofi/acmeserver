@@ -5,19 +5,28 @@ import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.AccountResponse;
+import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
+import de.morihofi.acmeserver.database.HibernateUtil;
+import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
+import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
+import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.regex.EmailValidation;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class NewAccountEndpoint extends AbstractAcmeEndpoint {
@@ -60,7 +69,31 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
         // Create new account in database
         String accountId = UUID.randomUUID().toString();
-        Database.createAccount(accountId, reqBodyProtectedObj.getJSONObject("jwk").toString(), emails);
+        String jwk = reqBodyProtectedObj.getJSONObject("jwk").toString();
+
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            Transaction transaction = session.beginTransaction();
+            ACMEAccount account = new ACMEAccount();
+            account.setAccountId(accountId);
+            account.setPublicKeyPEM(PemUtil.convertToPem(SignatureCheck.convertJWKToPublicKey(new JSONObject(jwk))));
+            account.setEmails(emails);
+            account.setDeactivated(false);
+            session.persist(account);
+            transaction.commit();
+            log.info("New ACME account created with account id {}", accountId);
+        } catch (Exception e) {
+            log.error("Unable to create new ACME account", e);
+            throw new ACMEServerInternalException(e.getMessage());
+        }
+
+
+
+
+
+
+
+
+
 
         // Construct response
         String nonce = Crypto.createNonce();
@@ -70,7 +103,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         ctx.status(201); // Created
 
         AccountResponse response = new AccountResponse();
-        response.setStatus("valid");
+        response.setStatus(AcmeStatus.VALID.getRfcName());
         response.setContact(emails);
         response.setOrders(provisioner.getApiURL() + "/acme/acct/" + accountId + "/orders");
 

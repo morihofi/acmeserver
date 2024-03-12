@@ -57,6 +57,8 @@ public class ServerInfoEndpoint implements Handler {
         metadataInfo.setJvmUptime(ManagementFactory.getRuntimeMXBean().getUptime() / 1000L);
         metadataInfo.setJvmStartTime(ManagementFactory.getRuntimeMXBean().getStartTime() / 1000L);
         metadataInfo.setStartupTime(Main.startupTime); //already in seconds
+        metadataInfo.setHost(Main.appConfig.getServer().getDnsName());
+        metadataInfo.setHttpsPort(Main.appConfig.getServer().getPorts().getHttps());
 
         List<ProvisionerResponse> provisioners = new ArrayList<>();
         for (ProvisionerConfig provisionerConfig : provisionerConfigList) {

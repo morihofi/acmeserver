@@ -7,9 +7,12 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
-import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
+import de.morihofi.acmeserver.database.objects.ACMEOrder;
+import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import io.javalin.http.Context;
@@ -39,7 +42,8 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", Crypto.createNonce());
 
-        List<ACMEIdentifier> identifiers = Database.getACMEIdentifiersByOrderId(orderId);
+        ACMEOrder order = Database.getACMEOrder(orderId);
+        List<ACMEOrderIdentifier> identifiers = order.getOrderIdentifiers();
         if (identifiers.isEmpty()) {
             throw new IllegalArgumentException("Identifiers empty, FIXME");
         }
@@ -50,28 +54,36 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
 
 
         boolean allVerified = true;
-        boolean allCertificateExists = true;
         List<Identifier> identifierList = new ArrayList<>();
         List<String> authorizationsList = new ArrayList<>();
+        Date orderExpires = new Date();
 
-        for (ACMEIdentifier identifier : identifiers) {
-            if (!identifier.isVerified()) {
+        for (ACMEOrderIdentifier identifier : identifiers) {
+            if (identifier.getChallengeStatus() != AcmeStatus.VALID) {
                 allVerified = false;
             }
-            if (identifier.getCertificatePem() == null) {
-                allCertificateExists = false;
-            }
             identifierList.add(new Identifier(identifier.getType(), identifier.getDataValue()));
+
             authorizationsList.add(provisioner.getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
+
         }
 
         ACMEOrderResponse response = new ACMEOrderResponse();
-        response.setExpires(DateTools.formatDateForACME(new Date()));
-        if(!allCertificateExists){
-            response.setStatus(allVerified ? "ready" : "pending"); // Ready means, that all authorizations are done
+        response.setExpires(DateTools.formatDateForACME(orderExpires));
+
+        if(order.getCertificatePem() != null){
+            response.setStatus(AcmeStatus.VALID.getRfcName());
         }else {
-            response.setStatus("valid");
+            if(order.getCertificateCSR() != null){
+                // Processing means, that the certificate is being issued or in issue queue
+                response.setStatus(AcmeStatus.PROCESSING.getRfcName());
+            }else {
+                // Ready means, that all authorizations are done. It is "ready" to process an CSR
+                // Pending means, that some/all authorization are not verified at the moment
+                response.setStatus(allVerified ? AcmeStatus.READY.getRfcName() : AcmeStatus.PENDING.getRfcName());
+            }
         }
+
         response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
         response.setCertificate(provisioner.getApiURL() + "/acme/order/" + orderId + "/cert");
         response.setIdentifiers(identifierList);

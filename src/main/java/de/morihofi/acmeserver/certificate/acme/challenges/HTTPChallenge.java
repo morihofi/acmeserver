@@ -4,6 +4,7 @@ import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.crypto.AcmeTokenCryptography;
+import de.morihofi.acmeserver.tools.regex.DomainAndIpValidation;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -19,7 +20,8 @@ import java.security.spec.InvalidKeySpecException;
 
 public class HTTPChallenge {
 
-    private HTTPChallenge() {}
+    private HTTPChallenge() {
+    }
 
     /**
      * Logger
@@ -92,24 +94,30 @@ public class HTTPChallenge {
     }
 
 
-
     /**
      * Validates an HTTP challenge by sending a GET request to the specified host and verifying the response.
      * The method checks whether the response body contains the expected token, which indicates successful validation.
      *
-     * @param authToken The expected authentication token value for the challenge.
-     * @param host The target host for the HTTP GET request.
+     * @param authToken   The expected authentication token value for the challenge.
+     * @param host        The target host for the HTTP GET request.
      * @param acmeAccount The ACME account used in the challenge.
      * @return {@code true} if the challenge validation is successful, otherwise {@code false}.
-     * @throws IOException If an I/O error occurs during the HTTP request.
+     * @throws IOException              If an I/O error occurs during the HTTP request.
      * @throws NoSuchAlgorithmException If a requested cryptographic algorithm is not available.
-     * @throws InvalidKeySpecException If an invalid key specification is encountered.
-     * @throws NoSuchProviderException If a requested security provider is not available.
+     * @throws InvalidKeySpecException  If an invalid key specification is encountered.
+     * @throws NoSuchProviderException  If a requested security provider is not available.
      */
-    public static boolean check(String authToken, String host, ACMEAccount acmeAccount) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
+    public static ChallengeResult check(String authToken, String host, ACMEAccount acmeAccount) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         boolean passed = false;
+        String lastError = "";
 
         PublicKey acmeAccountPublicKey = PemUtil.readPublicKeyFromPem(acmeAccount.getPublicKeyPEM());
+
+        // Host can be an IP Address, specifically an IPv6 Address. This type of IP Address needs these "[ ]" square brackets when you use it in a URL
+        // Let's check that
+        if (DomainAndIpValidation.isIPv6Address(host)) {
+            host = "[" + host + "]"; // That's it
+        }
 
         try {
             // Create an HTTP GET request to the challenge URL
@@ -137,19 +145,25 @@ public class HTTPChallenge {
                         passed = true;
                         log.info("HTTP Challenge has validated for host {}", host);
                     } else {
-                        log.info("HTTP Challenge validation failed for host {}. Content doesn't match. Expected: {}; Got: {}", host, authToken, acmeTokenFromHost);
+                        log.error("HTTP Challenge validation failed for host {}. Content doesn't match. Expected: {}; Got: {}", host, authToken, acmeTokenFromHost);
+                        lastError = "HTTP Challenge validation failed, cause content doesn't match";
                     }
                 } else {
-                    log.error("HTTP Challenge failed for host {}}, got HTTP status code {}", host, responseCode);
+                    log.error("HTTP Challenge failed for host {}, got HTTP status code {}", host, responseCode);
+                    lastError = "HTTP Challenge failed, got HTTP status code " + responseCode;
                 }
             }
 
 
         } catch (IOException e) {
             log.error("HTTP Challenge failed for host {}. Is it reachable?", host, e);
+            if(e instanceof ConnectException){
+                lastError = e.getMessage();
+            }
         }
 
-        return passed;
+
+        return new ChallengeResult(passed, lastError);
     }
 
 }

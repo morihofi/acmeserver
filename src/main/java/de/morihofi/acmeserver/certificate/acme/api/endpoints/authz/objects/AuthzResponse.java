@@ -16,7 +16,7 @@ public class AuthzResponse {
     private String status;
     private String expires;
     private Identifier identifier;
-    private List<Challenge> challenges;
+    private List<ChallengeResponse> challenges;
 
     /**
      * Default constructor for AuthzResponse.
@@ -88,9 +88,9 @@ public class AuthzResponse {
      * Retrieves the list of challenges for the authorization.
      * These challenges are used to validate control over the identifier.
      *
-     * @return A list of {@link Challenge} objects representing the challenges for authorization.
+     * @return A list of {@link ChallengeResponse} objects representing the challenges for authorization.
      */
-    public List<Challenge> getChallenges() {
+    public List<ChallengeResponse> getChallenges() {
         return challenges;
     }
 
@@ -98,9 +98,9 @@ public class AuthzResponse {
      * Sets the list of challenges for the authorization.
      * This method allows specifying the challenges that need to be completed for the authorization.
      *
-     * @param challenges A list of {@link Challenge} objects to set as the authorization challenges.
+     * @param challenges A list of {@link ChallengeResponse} objects to set as the authorization challenges.
      */
-    public void setChallenges(List<Challenge> challenges) {
+    public void setChallenges(List<ChallengeResponse> challenges) {
         this.challenges = challenges;
     }
 }

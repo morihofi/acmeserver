@@ -105,7 +105,6 @@ public class CertificateAuthorityGenerator {
      * @throws IllegalArgumentException if the Common Name (CN) in {@code certificateConfig} is null or empty.
      * @see CertificateMetadata for details on the metadata used to construct the {@link X500Name}.
      */
-    @NotNull
     private static X500Name getX500Name(CertificateMetadata certificateConfig, String s) {
         String organisation = certificateConfig.getOrganisation();
         String organisationalUnit = certificateConfig.getOrganisationalUnit();

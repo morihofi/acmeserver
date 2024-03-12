@@ -2008,7 +2008,7 @@ function recheckOrder(e){
                 ORDER['recheck_order_response'] = order;
 
                 // order still processing
-                if(order['status'] === "pending" || order['status'] === "processing" || order['status'] === "ready"){
+                if(order['status'] === "pending" || order['status'] === "processing"){
 
                     // update the status before getting another nonce
                     status.innerHTML = "processing...";

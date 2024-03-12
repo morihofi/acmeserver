@@ -10,7 +10,6 @@ import java.util.List;
  * Represents an ACME account entity, which is used for managing ACME accounts.
  */
 @Entity
-@Table(name = "accounts")
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ACMEAccount implements Serializable {
 
@@ -32,6 +31,10 @@ public class ACMEAccount implements Serializable {
 
     @Column(name = "deactivated")
     private Boolean deactivated;
+
+    @OneToMany(mappedBy = "account")
+    private List<ACMEOrder> orders;
+
 
     /**
      * Get the unique identifier of the ACME account.
@@ -119,5 +122,9 @@ public class ACMEAccount implements Serializable {
      */
     public Boolean getDeactivated() {
         return deactivated;
+    }
+
+    public List<ACMEOrder> getOrders() {
+        return orders;
     }
 }

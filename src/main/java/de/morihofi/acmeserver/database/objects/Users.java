@@ -10,11 +10,13 @@
 
 package de.morihofi.acmeserver.database.objects;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
 import java.util.Set;
 
 @Entity
 @Table(name = "users")
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

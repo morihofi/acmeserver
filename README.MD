@@ -4,11 +4,16 @@
 [![Report a bug](https://img.shields.io/badge/Report_a-bug-red?style=flat)
 ](https://github.com/morihofi/acmeserver/issues)
 
+
 This is a proof-of-concept Automatic Certificate Management Environment (ACME) Server, fully written in Java
 
 - Java 17 and up
 - Any JDBC (and Hibernate compatible) database. Currently, H2 and MariaDB drivers are in classpath
 - Proxy support for HTTP Challenge
+
+## ⚠ Breaking Changes - Version 2.x
+ - Provisioner Directory is now in /acme/provisionername/directory
+ - Database scheme has been complete rebuilt, please clean database before use
 
 ## 🐳 Getting started with Docker (recommended)
 1. Install [Docker Engine](https://docs.docker.com/engine/install/) with `docker compose` plugin, if you haven't already
@@ -62,7 +67,7 @@ This version is not fully RFC 8555 compliant, but should work with most clients.
 ## 💻 Tested Operating Systems
 - Debian 11, 12
 - Windows 10
-- FreeBSD 13.2
+- FreeBSD 13.2, 14
 
 ## 🐛 Debug Mode
 Enable debug mode by set environment variable `DEBUG` to `TRUE` or start ACME Server with `--debug`.
