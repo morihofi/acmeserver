@@ -30,12 +30,20 @@ public class CommandBuilderHandler implements Handler {
 
     @Override
     public void handle(@NotNull Context context) throws Exception {
-
+        String provisionerName = context.queryParam("provisioner");
+        String emailAddress = context.queryParam("email");
+        String domain = context.queryParam("domain");
 
         Map<String, Object> params = new HashMap<>(WebUI.getDefaultFrontendMap(cryptoStoreManager, context));
-        params.put("provisionerName", context.queryParam("provisioner"));
-        params.put("emailAddress", context.queryParam("email"));
-        params.put("domain", context.queryParam("domain"));
+
+        params.put("provisionerName", provisionerName);
+        params.put("emailAddress", emailAddress);
+        params.put("domain", domain);
+
+        if(provisionerName != null){
+            params.put("directoryUrl", cryptoStoreManager.getProvisionerForName(provisionerName).getApiURL() + "/directory");
+        }
+
 
         context.render("pages/cmd-builder.jte", params);
     }

@@ -11,6 +11,7 @@
 @param String provisionerName = null
 @param String emailAddress = null
 @param String domain = null
+@param String directoryUrl = null
 
 <!DOCTYPE html>
 <html>
@@ -27,7 +28,7 @@ context = context
 
 <main class="container">
     <h1>${localizer.lookup("web.cmdBuilder.title")}</h1>
-    <p  class="fs-6">
+    <p class="fs-6">
         ${localizer.lookup("web.cmdBuilder.intro")}
     </p>
 
@@ -58,26 +59,34 @@ context = context
 
 
     @if(provisionerName != null && emailAddress != null && domain != null)
-        <div class="bg-light p-4 my-4 rounded-3">
-            <h2 class="h4">Choose Your Preferred ACME Client</h2>
-            <p>The code samples below are just starting points. Adjust the commands according to your needs.</p>
+        <div class="bg-light p-4 my-4 rounded-3 shadow-sm">
+            <h2 class="h4">${localizer.lookup("web.cmdBuilder.clients.title")}</h2>
+            <p>${localizer.lookup("web.cmdBuilder.clients.intro")}</p>
 
             <!-- Certbot Section -->
-            <div class="bg-dark text-white p-3 my-3 rounded-3">
+            <div class="bg-white p-3 my-3 rounded-3 shadow-sm ">
                 <h3 class="mt-3">Certbot</h3>
-                <p>Certbot is a free, open source software tool for automatically using Let's Encrypt certificates on manually-administered websites to enable HTTPS.</p>
-                <pre class="text-white"><code>certbot -n --nginx -d ${domain} --server ${cryptoStoreManager.getProvisionerForName(provisionerName).getApiURL() + "/directory"} --agree-tos --email ${emailAddress}</code></pre>
+                <p>${localizer.lookup("web.cmdBuilder.clients.certbot.intro")}</p>
+                <pre class="text-black"><code>certbot -n --nginx -d ${domain} --server ${directoryUrl} --agree-tos --email ${emailAddress}</code></pre>
             </div>
 
             <!-- acme.sh Section -->
-            <div class="bg-dark text-white p-3 rounded-3">
+            <div class="bg-white p-3 rounded-3 shadow-sm ">
                 <h3 class="mt-3">acme.sh</h3>
-                <p>acme.sh is an ACME protocol client written in shell that can be used to obtain certificates from an ACME server, designed to be pure POSIX compliant, thus working on a wide range of shell environments and operating systems.</p>
+                <p>${localizer.lookup("web.cmdBuilder.clients.acmeSh.intro")}</p>
                 <!-- Registration command -->
-                <pre class="text-white"><code>acme.sh --register-account --server https://acme.example.com/acme/myprovisioner/directory</code></pre>
+                <pre class="text-black"><code>acme.sh --register-account --server ${directoryUrl}</code></pre>
                 <!-- Issue command -->
-                <pre class="text-white"><code>acme.sh --issue --server https://acme.example.com/acme/myprovisioner/directory -d ${domain} --standalone</code></pre>
+                <pre class="text-black"><code>acme.sh --issue --server ${directoryUrl} -d ${domain} --standalone</code></pre>
             </div>
+
+            <!-- Win-ACME Section -->
+            <div class="bg-white p-3 my-3 rounded-3 shadow-sm">
+                <h3 class="mt-3">Win-ACME</h3>
+                <p>${localizer.lookup("web.cmdBuilder.clients.winAcme.intro")}</p>
+                <pre class="text-black"><code>wacs --target manual --host ${domain} --validation selfhosting --store pemfiles --pemfilespath . --baseuri ${directoryUrl} --emailaddress ${emailAddress} --accepttos</code></pre>
+            </div>
+
         </div>
     @endif
 
