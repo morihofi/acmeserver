@@ -4,12 +4,14 @@ import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.crypto.AcmeTokenCryptography;
+import de.morihofi.acmeserver.tools.crypto.AcmeUtils;
 import de.morihofi.acmeserver.tools.regex.DomainAndIpValidation;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.*;
@@ -139,7 +141,7 @@ public class HTTPChallenge {
                     log.debug("Got response, checking token in response.");
                     assert response.body() != null;
                     String acmeTokenFromHost = response.body().string();
-                    String expectedValue = AcmeTokenCryptography.keyAuthorizationFor(authToken, acmeAccountPublicKey);
+                    String expectedValue = getToken(authToken, acmeAccountPublicKey);
 
                     if (expectedValue.equals(acmeTokenFromHost)) {
                         passed = true;
@@ -165,5 +167,15 @@ public class HTTPChallenge {
 
         return new ChallengeResult(passed, lastError);
     }
+
+    @NotNull
+    private static String getToken(String authToken, PublicKey acmeAccountPublicKey) {
+        String token = AcmeTokenCryptography.keyAuthorizationFor(authToken, acmeAccountPublicKey);
+        if (!AcmeUtils.isValidBase64Url(token)) {
+            throw new IllegalArgumentException("Invalid token: " + token);
+        }
+        return token;
+    }
+
 
 }
