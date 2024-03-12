@@ -17,25 +17,64 @@ import org.apache.logging.log4j.Logger;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Provides localization support for the web UI, enabling the application to display content
+ * in different languages based on the user's locale. This class is designed to work with Javalin's
+ * context to dynamically determine the locale for each request and provide localized strings
+ * from resource bundles.
+ *
+ * The class uses {@link ResourceBundle} for managing localization strings and supports formatting
+ * messages with variables. It integrates seamlessly with gg.jte templates, allowing for dynamic
+ * content localization based on the user's preferences.
+ */
 public class JteLocalizer implements gg.jte.support.LocalizationSupport {
 
     /**
-     * Logger
+     * Logger for logging warnings when localization keys are not found.
      */
     public static final Logger log = LogManager.getLogger(JteLocalizer.class);
+
+    /**
+     * The locale for this instance of the localizer.
+     */
     private final Locale locale;
+
+    /**
+     * The resource bundle that contains the localization strings for the specified locale.
+     */
     private final ResourceBundle bundle;
 
-    public static JteLocalizer getLocalizerFromContext(Context locale) {
-        return new JteLocalizer(locale.attribute(WebUI.ATTR_LOCALE));
-    }
-
+    /**
+     * Creates a new {@link JteLocalizer} instance based on the specified locale. This method
+     * prepares a resource bundle for the web UI's language using the provided locale.
+     *
+     * @param locale the locale to use for localization.
+     */
     public JteLocalizer(Locale locale) {
         this.locale = locale;
-        // ResourceBundle vorbereiten
         bundle = ResourceBundle.getBundle("webui.language", locale);
     }
 
+    /**
+     * Retrieves a {@link JteLocalizer} instance from the provided Javalin {@link Context}.
+     * This method utilizes a locale attribute from the context to create a localizer that
+     * is specific to the user's locale settings.
+     *
+     * @param context the Javalin context from which to extract the locale attribute.
+     * @return a {@link JteLocalizer} instance configured with the user's locale.
+     */
+    public static JteLocalizer getLocalizerFromContext(Context context) {
+        return new JteLocalizer(context.attribute(WebUI.ATTR_LOCALE));
+    }
+
+    /**
+     * Looks up a localized string by its key. If the key is found in the resource bundle,
+     * the corresponding localized string is returned. Otherwise, a warning is logged, and
+     * the key itself is returned.
+     *
+     * @param key the key for the localized string.
+     * @return the localized string associated with the key, or the key itself if not found.
+     */
     @Override
     public String lookup(String key) {
         // However this works in your localization framework
@@ -46,6 +85,16 @@ public class JteLocalizer implements gg.jte.support.LocalizationSupport {
         return key;
     }
 
+    /**
+     * Looks up a localized string by its key and formats it with the provided variables.
+     * If the key is found in the resource bundle, the corresponding localized string is
+     * formatted with the variables and returned. Otherwise, a warning is logged, and
+     * the key itself is returned.
+     *
+     * @param key the key for the localized string.
+     * @param variables the variables to be used in formatting the localized string.
+     * @return the formatted localized string, or the key itself if not found.
+     */
     public String lookup(String key, Object... variables) {
         if (bundle.containsKey(key)) {
             return String.format(bundle.getString(key), variables);
@@ -54,6 +103,11 @@ public class JteLocalizer implements gg.jte.support.LocalizationSupport {
         return key;
     }
 
+    /**
+     * Gets the locale associated with this {@link JteLocalizer} instance.
+     *
+     * @return the locale.
+     */
     public Locale getLocale() {
         return locale;
     }

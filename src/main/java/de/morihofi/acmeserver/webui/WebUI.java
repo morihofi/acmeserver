@@ -93,6 +93,29 @@ public class WebUI {
      */
     public static final Logger log = LogManager.getLogger(WebUI.class);
 
+
+    /**
+     * Constructs a default map of objects to be used by the frontend, encapsulating various pieces of
+     * information and utility objects necessary for frontend operations. This map includes server
+     * information, cryptographic store management details, localization utilities, and the current
+     * request context.
+     *
+     * <p>The map contains the following keys and their associated values:</p>
+     * <ul>
+     *     <li>{@code serverInfoResponse} - Contains response data from the server information endpoint, typically
+     *     including server status, version, and other relevant details.</li>
+     *     <li>{@code cryptoStoreManager} - The {@link CryptoStoreManager} instance being used by the application
+     *     for cryptographic operations and key management.</li>
+     *     <li>{@code localizer} - A localizer utility derived from the current context, used for internationalization
+     *     and localization of the frontend content.</li>
+     *     <li>{@code context} - The current {@link Context} instance, representing the request and response context
+     *     within the application.</li>
+     * </ul>
+     *
+     * @param cryptoStoreManager the cryptographic store manager used by the application.
+     * @param context the current request context.
+     * @return a {@link Map} containing default objects and information for frontend use.
+     */
     public static Map<String, Object> getDefaultFrontendMap(CryptoStoreManager cryptoStoreManager, Context context){
         return Map.of(
                 "serverInfoResponse", ServerInfoEndpoint.getServerInfoResponse(appConfig.getProvisioner()),

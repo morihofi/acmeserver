@@ -68,6 +68,12 @@ public class Main {
     @SuppressFBWarnings({"MS_PKGPROTECT", "MS_CANNOT_BE_FINAL"})
     public static Config appConfig;
 
+    public static void restartMain() throws Exception {
+        coreComponentsInitialized = false;
+        startupTime = 0;
+        Main.main(runArgs);
+    }
+
     public enum MODE {
         NORMAL, POSTSETUP, KEYSTORE_MIGRATION_PEM2KS
     }
@@ -202,6 +208,37 @@ public class Main {
 
     private static boolean coreComponentsInitialized = false;
 
+
+    /**
+     * Initializes the core components of the application, including database drivers and cryptographic
+     * store management based on the application configuration. This method ensures that essential components
+     * are set up before the application starts its main operations. It is designed to be idempotent, meaning
+     * it will only perform initialization once, even if called multiple times.
+     *
+     * <p>The initialization process involves:</p>
+     * <ul>
+     *     <li>Checking if core components have already been initialized to prevent redundant operations.</li>
+     *     <li>Initializing database drivers to ensure database connectivity.</li>
+     *     <li>Determining the type of key store configuration specified in the application configuration
+     *     (e.g., PKCS11 or PKCS12) and initializing the {@link CryptoStoreManager} accordingly with the
+     *     respective key store configuration.</li>
+     *     <li>Setting a flag to indicate that core components have been initialized, to avoid re-initialization.</li>
+     * </ul>
+     *
+     * <p>If the key store configuration is not supported or if any required configuration parameters are missing,
+     * the method will throw an {@link IllegalArgumentException}.</p>
+     *
+     * @throws ClassNotFoundException if a database driver class cannot be found.
+     * @throws CertificateException if there is an issue with the certificates used in cryptographic operations.
+     * @throws IOException if there is an I/O issue with reading key store or configuration files.
+     * @throws NoSuchAlgorithmException if a particular cryptographic algorithm is not available.
+     * @throws KeyStoreException if there is an issue with key store initialization.
+     * @throws NoSuchProviderException if a security provider needed for cryptographic operations is not available.
+     * @throws InvocationTargetException if an exception is thrown by an invoked method or constructor.
+     * @throws InstantiationException if an instance of a class cannot be created.
+     * @throws IllegalAccessException if there is illegal access to a class or field.
+     * @throws NoSuchMethodException if a method required for initialization is not found.
+     */
     private static void initializeCoreComponents() throws ClassNotFoundException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
         if (coreComponentsInitialized) {
             return;
@@ -280,7 +317,7 @@ public class Main {
                 log.warn("Unable to load metadata from {}", fileName);
             }
         } catch (IOException e) {
-            log.error("Unable to load metadata from " + fileName, e);
+            log.error("Unable to load metadata from {}", fileName, e);
         }
     }
 

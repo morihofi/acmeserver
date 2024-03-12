@@ -61,8 +61,25 @@ public class AcmeApiServer {
      */
     public static final Logger log = LogManager.getLogger(AcmeApiServer.class);
 
+    /**
+     * Holds a static reference to the {@link CryptoStoreManager} instance used throughout the application
+     * for managing cryptographic operations, including key and certificate storage, generation, and renewal.
+     * This manager is essential for handling the security aspects of the application, particularly those
+     * related to SSL/TLS and encryption. The {@code cryptoStoreManager} is initialized as part of the
+     * application's startup process and is used by various components to access and manage cryptographic
+     * materials.
+     */
     private static CryptoStoreManager cryptoStoreManager = null;
+
+    /**
+     * Holds a static reference to the {@link Javalin} web server instance. This server is responsible for
+     * handling all HTTP requests to the application, serving as the backbone for the application's web
+     * interface and API. The {@code app} is initialized during the application's startup sequence and is
+     * used to configure routes, middleware, and other server settings. It is essential for the operation
+     * of the web-based components of the application.
+     */
     private static Javalin app = null;
+
 
     /**
      * Method to start the ACME API Server
@@ -209,6 +226,29 @@ public class AcmeApiServer {
 
     }
 
+    /**
+     * Initializes secure API settings for a Javalin application, configuring SSL/TLS using a custom
+     * mechanism rather than Javalin's official SSL plugin. This method involves setting up the Jetty server
+     * underlying Javalin to use SSL certificates managed by a provided {@link CryptoStoreManager}, and
+     * establishing a mechanism to automatically renew the ACME API certificate.
+     *
+     * <p>The method first generates an ACME API client certificate using the {@link CryptoStoreManager} and
+     * the application configuration. It then logs the update to Javalin's TLS configuration and retrieves
+     * the HTTP and HTTPS ports from the application configuration. Instead of using the official SSL plugin
+     * (which depends on Google's Conscrypt provider and is platform-dependent), this method utilizes Java's
+     * built-in security libraries and Bouncy Castle for platform independence.</p>
+     *
+     * <p>It updates the SSL configuration of the Jetty server to use the newly generated certificate and
+     * sets up a {@link CertificateRenewWatcher} to monitor certificate expiration. This watcher is configured
+     * to renew the certificate automatically before it expires and reload the certificate in the Jetty server
+     * without requiring a restart of the application.</p>
+     *
+     * @param app the Javalin application instance to be configured.
+     * @param cryptoStoreManager the manager responsible for cryptographic operations and storage.
+     * @param appConfig the configuration object containing application settings, including server port information.
+     * @throws Exception if there is an error in generating the ACME API client certificate, updating the Jetty
+     *                   server SSL configuration, or during automatic certificate renewal.
+     */
     private static void initSecureApi(Javalin app, CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
@@ -398,6 +438,16 @@ public class AcmeApiServer {
         }
     }
 
+    /**
+     * Checks the validity of a given X.509 certificate as of the current date and time.
+     * This method uses the {@code checkValidity} method of {@link X509Certificate} to determine
+     * whether the certificate is currently valid. The validity check is based on the certificate's
+     * notBefore and notAfter dates.
+     *
+     * @param certificate the X.509 certificate to be checked for validity.
+     * @return {@code true} if the certificate is currently valid; {@code false} if it is expired
+     *         or not yet valid as of the current date.
+     */
     private static boolean isCertificateValid(X509Certificate certificate) {
         try {
             certificate.checkValidity(new Date());
@@ -407,9 +457,42 @@ public class AcmeApiServer {
         }
     }
 
+    /**
+     * see {@link #reloadConfiguration(Runnable)}
+     * @throws Exception {@link #reloadConfiguration(Runnable)}
+     */
     public static void reloadConfiguration() throws Exception {
         reloadConfiguration(null);
     }
+
+    /**
+     * Reloads the application's configuration, effectively restarting the service. This method is designed
+     * to shut down all components of the application gracefully and then restart them with the updated
+     * configuration. This process is essential for applying configuration changes without stopping the
+     * application process entirely. Optionally, a custom runnable can be executed after all components are
+     * shut down but before the application restarts.
+     *
+     * <p>Steps performed during the reload process include:</p>
+     * <ul>
+     *     <li>Logging the start of the configuration reload process.</li>
+     *     <li>Initiating the shutdown sequence for all components, including the web server, CRL generators,
+     *     certificate watchers, and optionally the certificate issuer if asynchronous certificate issuing is
+     *     enabled.</li>
+     *     <li>Shutting down the database connection pool and other database-related resources.</li>
+     *     <li>Executing an optional {@link Runnable} provided as a parameter, which can be used for custom
+     *     cleanup or preparation tasks before the application restarts.</li>
+     *     <li>Restarting the application by calling the {@code main} method with the previously used runtime
+     *     arguments, thereby reloading the configuration and reinitializing all components.</li>
+     * </ul>
+     *
+     * <p>This method aims to minimize service disruption during the reload process and ensures that all
+     * components are reinitialized cleanly with the new configuration settings.</p>
+     *
+     * @param runWhenEverythingIsShutDown an optional {@link Runnable} to be executed after shutdown but
+     *                                    before the application is restarted. This can be used for tasks
+     *                                    that should run in a clean state, such as cleanup operations.
+     * @throws Exception if any error occurs during the shutdown or restart process.
+     */
 
     public static void reloadConfiguration(Runnable runWhenEverythingIsShutDown) throws Exception {
         log.info("Reloading configuration was triggered. Service will be disrupted for a moment, please wait ...");
@@ -455,7 +538,7 @@ public class AcmeApiServer {
         }
 
         // Reload config and turn everything back on by relaunching the main()
-        Main.main(Main.runArgs);
+        Main.restartMain();
     }
 
 }
