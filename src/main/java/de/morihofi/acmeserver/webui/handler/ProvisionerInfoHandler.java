@@ -29,6 +29,10 @@ import java.util.*;
 public class ProvisionerInfoHandler implements Handler {
 
     private final CryptoStoreManager cryptoStoreManager;
+
+    /**
+     * Date format for the locale of the user sent in the request
+     */
     private DateFormat dateFormat;
     private JteLocalizer localizer;
 
@@ -60,6 +64,17 @@ public class ProvisionerInfoHandler implements Handler {
         context.render("pages/provisioner-info.jte", params);
     }
 
+    /**
+     * Constructs a metadata map for a given provisioner, including details such as the provisioner's
+     * name, terms of service, and website. This method prepares a {@link LinkedHashMap} to preserve
+     * the order of metadata entries, facilitating a more predictable display in user interfaces.
+     * Icons are associated with each piece of metadata to enhance visual comprehension.
+     *
+     * @param provisioner the provisioner whose metadata is to be represented.
+     * @return a {@link Map} where keys are {@link TableKey} objects encapsulating metadata labels and
+     *         icons, and values are {@link TableValue} objects containing the metadata values. Some
+     *         values, such as terms of service and website, are treated as links.
+     */
     @NotNull
     private Map<TableKey, TableValue> getProvisionerMetadata(Provisioner provisioner) {
         Map<TableKey, TableValue> provisionerTableMap = new LinkedHashMap<>();
@@ -125,6 +140,19 @@ public class ProvisionerInfoHandler implements Handler {
         return metadataMap;
     }
 
+    /**
+     * Adds the basic constraints information of an X.509 certificate to a given metadata map. This method
+     * determines whether the certificate is for a Certificate Authority (CA) based on its basic constraints
+     * value and then adds this information to the map with a descriptive icon. The basic constraints are
+     * used to identify whether a certificate can be used to issue other certificates and its maximum
+     * certification path length.
+     *
+     * @param certificate the X.509 certificate from which to extract basic constraints information.
+     * @param metadataMap the map to which the basic constraints information should be added. The map is
+     *                    expected to use {@link TableKey} as its keys and {@link TableValue} as its values,
+     *                    allowing for a structured and possibly visually enriched representation of the
+     *                    certificate's metadata in a UI context.
+     */
     private void addBasicConstraintsToMap(X509Certificate certificate, Map<TableKey, TableValue> metadataMap) {
         int basicConstraints = certificate.getBasicConstraints();
         String basicConstraintsStr;
@@ -133,17 +161,45 @@ public class ProvisionerInfoHandler implements Handler {
         } else {
             basicConstraintsStr = "CA: True";
         }
+
         metadataMap.put(new TableKey("web.core.certificate.basicConstraints", "fa-solid fa-triangle-exclamation"), new TableValue(basicConstraintsStr));
     }
 
-
+    /**
+     * Generates a compact string representation of the signature value from a given X.509 certificate.
+     * This method converts the signature bytes to a hexadecimal string and then shortens it, keeping
+     * the first and last 16 characters separated by an ellipsis for readability. This shortened
+     * representation provides a glimpse of the signature without displaying its full length, which
+     * can be quite long.
+     *
+     * @param certificate the X.509 certificate from which to extract and shorten the signature value.
+     * @return a shortened string representation of the certificate's signature in hexadecimal format.
+     * @throws IllegalArgumentException if the provided certificate is null, ensuring that the operation
+     *         is safe from null pointer exceptions.
+     */
     private static String getShortSignatureValue(X509Certificate certificate) {
-        // Short representation of signature
+        if (certificate == null) {
+            throw new IllegalArgumentException("Certificate cannot be null.");
+        }
         String signature = DatatypeConverter.printHexBinary(certificate.getSignature());
-
         return shortenLongString(signature, 16);
     }
 
+
+    /**
+     * Generates a compact string representation of the public key contained within a given X.509 certificate.
+     * This method supports both RSA and EC (Elliptic Curve) public keys, displaying key parameters in a
+     * readable format. For RSA keys, it shows the modulus and exponent, while for EC keys, it displays
+     * the affine coordinates (X, Y). Long numeric values, such as the RSA modulus or EC coordinates, are
+     * shortened for readability.
+     *
+     * @param certificate the X.509 certificate containing the public key to detail.
+     * @return a string representation of the public key's details, including key parameters like modulus
+     *         and exponent for RSA keys, or affine X and Y coordinates for EC keys. Unsupported key types
+     *         result in a message indicating the key type is not supported.
+     * @throws IllegalArgumentException if the provided certificate is null or contains a public key type
+     *         not handled by this method.
+     */
     private String publicKeyDetails(X509Certificate certificate) {
         PublicKey publicKey = certificate.getPublicKey();
 
@@ -176,8 +232,31 @@ public class ProvisionerInfoHandler implements Handler {
         }
     }
 
+    /**
+     * Shortens a given string by retaining only a specified number of characters from both the beginning
+     * and the end of the string, and inserting an ellipsis ("...") in the middle. This method is useful
+     * for displaying long strings in a limited space while still providing a hint of the string's start
+     * and end. If the length of the given string is less than or equal to twice the length specified for
+     * the start and end, the original string is returned without modification.
+     *
+     * @param string the string to be shortened.
+     * @param lengthFirstLast the number of characters to keep from both the beginning and the end of the string.
+     * @return the shortened string with the first and last characters retained and an ellipsis in the middle,
+     *         or the original string if its length is less than or equal to twice the length specified for the
+     *         start and end.
+     * @throws IllegalArgumentException if {@code lengthFirstLast} is negative or if the string is null.
+     */
     @NotNull
     private static String shortenLongString(String string, int lengthFirstLast) {
+        if (string == null) {
+            throw new IllegalArgumentException("String cannot be null.");
+        }
+        if (lengthFirstLast < 0) {
+            throw new IllegalArgumentException("Length must be non-negative.");
+        }
+        if (string.length() <= 2 * lengthFirstLast) {
+            return string;
+        }
         return string.substring(0, lengthFirstLast) + "..." + string.substring(string.length() - lengthFirstLast);
     }
 

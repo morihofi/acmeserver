@@ -16,13 +16,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Handles the generation and display of statistical information about ACME orders, accounts,
+ * and provisioners. This handler collects data from the database and organizes it into various
+ * statistical metrics to be displayed on the stats page.
+ */
 public class StatsHandler implements Handler {
     private CryptoStoreManager cryptoStoreManager;
 
+    /**
+     * Constructs a new {@link StatsHandler} with a reference to the {@link CryptoStoreManager}.
+     * @param cryptoStoreManager The crypto store manager for accessing cryptographic operations and provisioners.
+     */
     public StatsHandler(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
     }
 
+    /**
+     * Handles the incoming request for the statistics page, gathering and preparing all necessary
+     * statistical data to be displayed in the web UI.
+     * @param context The context of the incoming request.
+     * @throws Exception If there's an error processing the request or accessing database resources.
+     */
     @Override
     public void handle(@NotNull Context context) throws Exception {
 
@@ -43,11 +58,11 @@ public class StatsHandler implements Handler {
     }
 
     /**
-     * Statistics for all provisioners
-     *
-     * @param allOrders
-     * @param allAccounts
-     * @return
+     * Gathers global statistical items, such as total number of provisioners, issued and revoked
+     * certificates, and active ACME accounts.
+     * @param allOrders The list of all ACME orders.
+     * @param allAccounts The list of all ACME accounts.
+     * @return A list of {@link StatisticItem} representing the global statistics.
      */
     @NotNull
     private List<StatisticItem> getGlobalStatisticItems(List<ACMEOrder> allOrders, List<ACMEAccount> allAccounts) {
@@ -83,6 +98,13 @@ public class StatsHandler implements Handler {
     }
 
 
+    /**
+     * Gathers statistical items per provisioner, including the number of ACME accounts, issued and
+     * revoked certificates, and certificates waiting to be issued for each provisioner.
+     * @param allOrders The list of all ACME orders.
+     * @param allAccounts The list of all ACME accounts.
+     * @return A list of {@link ProvisionerStatistic} representing the statistics for each provisioner.
+     */
     private List<ProvisionerStatistic> getProvisionerStatistics(List<ACMEOrder> allOrders, List<ACMEAccount> allAccounts) {
         //Statistics per provisioner
         List<ProvisionerStatistic> provisionerStatistics = new ArrayList<>();
@@ -130,39 +152,84 @@ public class StatsHandler implements Handler {
     }
 
 
+    /**
+     * Represents a single statistical item with a number and a translation key for localization.
+     */
     public static class StatisticItem {
         private final int number;
         private final String translationKey;
 
+        /**
+         * Constructs a new {@link StatisticItem}.
+         * @param number The numeric value of the statistic.
+         * @param translationKey The key used for localization of the statistic's description.
+         */
         public StatisticItem(int number, String translationKey) {
             this.number = number;
             this.translationKey = translationKey;
         }
 
+        /**
+         * @return The numeric value of the statistic.
+         */
         public int getNumber() {
             return number;
         }
 
+        /**
+         * @return The localization key for the statistic's description.
+         */
         public String getTranslationKey() {
             return translationKey;
         }
     }
 
+    /**
+     * Represents a collection of statistical data related to a specific provisioner within the system.
+     * This class encapsulates both the name of the provisioner and a list of statistics that describe
+     * various aspects of its operation, such as the number of issued and revoked certificates, and
+     * accounts associated with it. Each statistic is represented by a {@link StatisticItem} object.
+     */
     public static class ProvisionerStatistic {
+        /**
+         * The name of the provisioner to which these statistics pertain.
+         */
         private final String provisionerName;
+
+        /**
+         * A list of {@link StatisticItem} objects, each representing a different statistical metric
+         * associated with the provisioner.
+         */
         private final List<StatisticItem> stats;
 
+        /**
+         * Constructs a new {@code ProvisionerStatistic} with the specified name and list of statistical items.
+         *
+         * @param provisionerName the name of the provisioner.
+         * @param stats a list of {@link StatisticItem} objects representing the statistics for the provisioner.
+         */
         public ProvisionerStatistic(String provisionerName, List<StatisticItem> stats) {
             this.provisionerName = provisionerName;
             this.stats = stats;
         }
 
+        /**
+         * Returns the name of the provisioner.
+         *
+         * @return the name of the provisioner.
+         */
         public String getProvisionerName() {
             return provisionerName;
         }
 
+        /**
+         * Returns the list of statistical items associated with the provisioner.
+         *
+         * @return a list of {@link StatisticItem} objects representing the provisioner's statistics.
+         */
         public List<StatisticItem> getStats() {
             return stats;
         }
     }
+
 }
