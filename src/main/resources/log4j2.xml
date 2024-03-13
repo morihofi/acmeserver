@@ -19,15 +19,15 @@
             </DefaultRolloverStrategy>
         </RollingFile>
         <!-- Console Appender -->
-        <Console name="STDOUT" target="SYSTEM_OUT">
+        <Console name="StdOut" target="SYSTEM_OUT">
             <PatternLayout pattern="%-5p | %d{yyyy-MM-dd HH:mm:ss} | [%t] %C{2} (%F:%L) - %m%n" />
         </Console>
     </Appenders>
     <Loggers>
         <Logger name="de.morihofi.acmeserver" level="debug" />
         <Root level="info">
-            <AppenderRef ref="STDOUT" />
-            <AppenderRef ref="FILE" />
+            <AppenderRef ref="StdOut" />
+            <AppenderRef ref="RollingFile" />
         </Root>
     </Loggers>
 </Configuration>
