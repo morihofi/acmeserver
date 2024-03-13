@@ -1,4 +1,5 @@
 @import de.morihofi.acmeserver.webui.JteLocalizer
+@import de.morihofi.acmeserver.webui.compontents.misc.HtmlUtility
 @import de.morihofi.acmeserver.webui.compontents.table.TableKey
 @import de.morihofi.acmeserver.webui.compontents.table.TableValue
 @import java.util.Map
@@ -24,10 +25,10 @@
                 <td>
                     @if(table.get(key).getValueType() == TableValue.VALUE_TYPE.NONE)
                         <%-- Just the value --%>
-                        ${table.get(key).getValue()}
+                        $unsafe{HtmlUtility.linebreakToBr(table.get(key).getValue())}
                     @elseif(table.get(key).getValueType() == TableValue.VALUE_TYPE.LINK)
                         <%-- A link with icon --%>
-                        <a href="${table.get(key).getValue()}" target="_blank" class="text-decoration-none"><i class="fa-solid fa-link"></i>&nbsp;${table.get(key).getValue()}</a>
+                        <a href="${table.get(key).getValue()}" target="_blank" class="text-decoration-none"><i class="fa-solid fa-link"></i>&nbsp;$unsafe{HtmlUtility.linebreakToBr(table.get(key).getValue())}</a>
                     @endif
                 </td>
             </tr>
