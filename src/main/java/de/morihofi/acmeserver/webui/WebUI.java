@@ -10,17 +10,23 @@
 
 package de.morihofi.acmeserver.webui;
 
+import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.ServerInfoEndpoint;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.webui.handler.CommandBuilderHandler;
 import de.morihofi.acmeserver.webui.handler.LoginUiHandler;
 import de.morihofi.acmeserver.webui.handler.ProvisionerInfoHandler;
 import de.morihofi.acmeserver.webui.handler.StatsHandler;
+import gg.jte.ContentType;
+import gg.jte.TemplateEngine;
+import gg.jte.resolve.DirectoryCodeResolver;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.net.URL;
+import java.nio.file.Path;
 import java.util.Map;
 
 import static de.morihofi.acmeserver.Main.appConfig;
@@ -129,6 +135,7 @@ public class WebUI {
     public static void init(Javalin app, CryptoStoreManager cryptoStoreManager) {
         log.info("Initializing WebUI and registering routes ...");
 
+
         // Default routes
         app.get(FRONTEND_PAGES.INDEX.getRoute(), context -> context.render("pages/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
         app.get(FRONTEND_PAGES.STATISTICS.getRoute(), new StatsHandler(cryptoStoreManager));
@@ -146,4 +153,29 @@ public class WebUI {
         app.get(FRONTEND_ADMIN_PAGES.LOGS.getRoute(), context -> context.render("pages/mgmt/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
         app.get(FRONTEND_ADMIN_PAGES.CONFIGURATION.getRoute(), context -> context.render("pages/mgmt/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
     }
+
+    public static TemplateEngine createTemplateEngine() {
+        boolean isDev = !isRunningFromJar();
+
+
+        if (isDev) {
+            log.info("Looks like this application is running from an IDE or outside a jar, using a JRE compiler resolver");
+
+            DirectoryCodeResolver codeResolver = new DirectoryCodeResolver(Path.of("src", "main", "jte"));
+            return TemplateEngine.create(codeResolver, ContentType.Html);
+        } else {
+            log.info("Running inside a JAR -> using precompiled classes for web ui");
+
+            return TemplateEngine.createPrecompiled(ContentType.Html);
+        }
+    }
+
+    public static boolean isRunningFromJar() {
+        // The path to a class that exists safely in the JAR.
+        // We're using our main(args[]) class here
+        String className = Main.class.getName().replace('.', '/') + ".class";
+        URL classURL = Main.class.getClassLoader().getResource(className);
+        return classURL != null && classURL.getProtocol().equals("jar");
+    }
+
 }

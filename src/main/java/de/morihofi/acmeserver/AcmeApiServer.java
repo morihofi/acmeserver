@@ -106,7 +106,7 @@ public class AcmeApiServer {
         app = Javalin.create(javalinConfig -> {
             //TODO: Make it compatible again with modules
             javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
-            javalinConfig.fileRenderer(new JavalinJte());
+            javalinConfig.fileRenderer(new JavalinJte(WebUI.createTemplateEngine()));
         });
 
         initSecureApi(app, cryptoStoreManager, appConfig);
