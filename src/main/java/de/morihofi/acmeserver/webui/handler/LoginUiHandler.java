@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 public class LoginUiHandler implements Handler {
-    private CryptoStoreManager cryptoStoreManager;
+    private final CryptoStoreManager cryptoStoreManager;
 
     public enum LOGIN_STATE {
         ENTER_DATA, ERR_NO_USER_FOUND, SUC_EMAIL_SENT

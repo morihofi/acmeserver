@@ -22,7 +22,7 @@ import java.util.Map;
  * statistical metrics to be displayed on the stats page.
  */
 public class StatsHandler implements Handler {
-    private CryptoStoreManager cryptoStoreManager;
+    private final CryptoStoreManager cryptoStoreManager;
 
     /**
      * Constructs a new {@link StatsHandler} with a reference to the {@link CryptoStoreManager}.
