@@ -30,7 +30,7 @@ class Base64ToolsTest {
     @Test
     void testEncodeAndDecodeBase64URL() {
         String originalString = "Hello, World! /?=+";
-        String encodedString = Base64Tools.encodedBase64URL(originalString);
+        String encodedString = Base64Tools.encodeBase64URL(originalString);
         String decodedString = Base64Tools.decodeBase64URL(encodedString);
 
         assertEquals(originalString, decodedString, "The decoded string should match the original.");
@@ -39,7 +39,7 @@ class Base64ToolsTest {
     @Test
     void testDecodeBase64URLAsBytes() {
         String originalString = "Hello, World! /?=+";
-        String encodedString = Base64Tools.encodedBase64URL(originalString);
+        String encodedString = Base64Tools.encodeBase64URL(originalString);
         byte[] decodedBytes = Base64Tools.decodeBase64URLAsBytes(encodedString);
         String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
 

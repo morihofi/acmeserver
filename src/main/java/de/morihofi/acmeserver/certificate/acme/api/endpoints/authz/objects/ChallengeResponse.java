@@ -4,7 +4,7 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects;
  * Represents a challenge in the context of certificate issuance and validation.
  * This class encapsulates details of a challenge, such as its type, URL, token, status, and validation information.
  */
-public class Challenge {
+public class ChallengeResponse {
     private String type;
     private String url;
     private String token;

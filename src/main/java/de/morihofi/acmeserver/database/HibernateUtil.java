@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.database;
 
 import de.morihofi.acmeserver.Main;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
@@ -18,6 +20,10 @@ import java.util.Locale;
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
 
+    /**
+     * Logger
+     */
+    private static final Logger log = LogManager.getLogger(HibernateUtil.class);
 
     /**
      * Initializes the database connection and Hibernate configuration.
@@ -48,6 +54,19 @@ public class HibernateUtil {
             } catch (Exception e) {
                 throw new ExceptionInInitializerError(e);
             }
+
+
+
+            Runtime.getRuntime().addShutdownHook(new Thread(){
+                @Override
+                public void run() {
+                    this.setName("Database Shutdown Thread");
+                    super.run();
+
+                    shutdown();
+                }
+            });
+
         }
     }
 
@@ -71,7 +90,6 @@ public class HibernateUtil {
      * {@code dbType} and the application's main configuration.
      * @throws NullPointerException if {@code dbType} is null.
      */
-    @NotNull
     private static Configuration getConfigurationFor(DatabaseType dbType) {
         Configuration configuration = new Configuration();
 
@@ -90,7 +108,10 @@ public class HibernateUtil {
         }
         configuration.setProperty(Environment.USER, Main.appConfig.getDatabase().getUser());
         configuration.setProperty(Environment.PASS, Main.appConfig.getDatabase().getPassword());
-       // configuration.setProperty(Environment.SHOW_SQL, "true");
+        if (Main.debug) {
+            //Show verbose SQL only on debug
+            configuration.setProperty(Environment.SHOW_SQL, "true");
+        }
         configuration.setProperty(Environment.HBM2DDL_AUTO, "update");
 
         configuration.setProperty(Environment.ENABLE_LAZY_LOAD_NO_TRANS, "true");
@@ -111,5 +132,23 @@ public class HibernateUtil {
      */
     public enum DatabaseType {
         H2, MARIADB
+    }
+
+
+    public static void shutdown(){
+        if(sessionFactory == null){
+            log.warn("Unable to shutdown Hibernate Database, cause it wasn't initialized");
+            return;
+        }
+
+        log.info("Initiating shutdown of Hibernate Database");
+        try {
+            sessionFactory.close();
+            log.info("Shutdown of Hibernate Database completed successfully.");
+            log.info("Free up resources");
+            sessionFactory = null;
+        } catch (Exception e) {
+            log.error("An error occurred during the shutdown of the Hibernate Database: {}", e.getMessage(), e);
+        }
     }
 }

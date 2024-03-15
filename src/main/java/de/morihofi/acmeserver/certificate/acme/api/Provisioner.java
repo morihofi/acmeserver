@@ -1,9 +1,11 @@
 package de.morihofi.acmeserver.certificate.acme.api;
 
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
 import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.DomainNameRestrictionConfig;
 import de.morihofi.acmeserver.config.MetadataConfig;
+import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -29,7 +31,7 @@ public class Provisioner {
      * @return Full url (including HTTPS prefix) and port to this server
      */
     public String getApiURL() {
-        return "https://" + Main.appConfig.getServer().getDnsName() + ":" + Main.appConfig.getServer().getPorts().getHttps() + "/" + provisionerName;
+        return "https://" + Main.appConfig.getServer().getDnsName() + ":" + Main.appConfig.getServer().getPorts().getHttps() + "/acme/" + provisionerName;
     }
 
     /**
@@ -79,6 +81,12 @@ public class Provisioner {
      */
     private final DomainNameRestrictionConfig domainNameRestriction;
 
+    /**
+     * Provisioner Config from config file
+     */
+    private final ProvisionerConfig config;
+
+    private CRL crlGenerator;
 
     /**
      * Constructs a new Provisioner object.
@@ -92,15 +100,17 @@ public class Provisioner {
      * @param domainNameRestriction          The configuration for domain name restrictions.
      * @param wildcardAllowed                A boolean value indicating whether wildcards are allowed.
      * @param cryptoStoreManager             The manager for cryptographic store operations.
+     * @param config
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public Provisioner(String provisionerName, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager) {
+    public Provisioner(String provisionerName, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager, ProvisionerConfig config) {
         this.provisionerName = provisionerName;
         this.acmeMetadataConfig = acmeMetadataConfig;
         this.generatedCertificateExpiration = generatedCertificateExpiration;
         this.domainNameRestriction = domainNameRestriction;
         this.wildcardAllowed = wildcardAllowed;
         this.cryptoStoreManager = cryptoStoreManager;
+        this.config = config;
     }
 
     /**
@@ -180,7 +190,7 @@ public class Provisioner {
      * @return A {@code String} representing the path for the CRL file, specific to the provisioner.
      */
     public String getCrlPath() {
-        return "/crl/" + getProvisionerName() + ".crl";
+        return "/acme/crl/" + getProvisionerName() + ".crl";
     }
 
     /**
@@ -191,7 +201,7 @@ public class Provisioner {
      * @return A {@code String} representing the OCSP service path, associated with the provisioner.
      */
     public String getOcspPath() {
-        return "/" + getProvisionerName() + "/ocsp";
+        return "/acme/" + getProvisionerName() + "/ocsp";
     }
 
     /**
@@ -275,4 +285,16 @@ public class Provisioner {
         return cryptoStoreManager;
     }
 
+
+    public ProvisionerConfig getConfig() {
+        return config;
+    }
+
+    public CRL getCrlGenerator() {
+        return crlGenerator;
+    }
+
+    public void setCrlGenerator(CRL crlGenerator) {
+        this.crlGenerator = crlGenerator;
+    }
 }

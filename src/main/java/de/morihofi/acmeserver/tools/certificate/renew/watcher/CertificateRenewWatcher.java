@@ -106,4 +106,12 @@ public class CertificateRenewWatcher {
     public TimeUnit getTimeUnit() {
         return timeUnit;
     }
+
+    public void shutdown(){
+        scheduler.shutdown();
+    }
+
+    public String getAlias() {
+        return alias;
+    }
 }

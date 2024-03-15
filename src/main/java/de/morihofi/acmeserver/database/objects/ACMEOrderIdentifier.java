@@ -1,74 +1,155 @@
 package de.morihofi.acmeserver.database.objects;
 
+
+import de.morihofi.acmeserver.database.AcmeStatus;
+import de.morihofi.acmeserver.tools.crypto.Crypto;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
+
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
- * Represents an ACME order identifier entity used for managing challenge verification.
+ * Represents an ACME identifier entity used for managing order identifiers, challenges, and certificates.
  */
 @Entity
-@Table(name = "orderidentifiers")
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ACMEOrderIdentifier implements Serializable {
 
     @Id
-    @Column(name = "challengeId")
-    private String challengeId;
+    @Column(name = "identifierId", nullable = false)
+    private String identifierId;
+    @Column(name = "type")
+    private String type;
 
-    @Column(name = "verified")
-    private boolean verified;
+    @Column(name = "dataValue")
+    private String dataValue;
 
-    @Column(name = "verifiedTime")
-    private Timestamp verifiedTime;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "orderId", referencedColumnName = "orderId")
+    private ACMEOrder order;
+
+
+
+    @Column(name = "hasChallengesGenerated", nullable = false)
+    private boolean hasChallengesGenerated = false;
+
+    @OneToMany(mappedBy = "identifier")
+    private List<ACMEOrderIdentifierChallenge> challenges;
+
+    @Column(name = "authorizationId", nullable = false)
+    private String authorizationId;
+
+    public List<ACMEOrderIdentifierChallenge> getChallenges() {
+        return challenges;
+    }
+
 
     /**
-     * Get the challenge ID associated with this ACME order identifier.
-     * @return The challenge ID.
+     * Get the associated order for this ACME identifier.
+     * @return The ACME order.
      */
-    public String getChallengeId() {
-        return challengeId;
+    public ACMEOrder getOrder() {
+        return order;
     }
 
     /**
-     * Set the challenge ID associated with this ACME order identifier.
-     * @param challengeId The challenge ID to set.
+     * Set the associated order for this ACME identifier.
+     * @param order The ACME order to set.
      */
-    public void setChallengeId(String challengeId) {
-        this.challengeId = challengeId;
+    public void setOrder(ACMEOrder order) {
+        this.order = order;
     }
 
     /**
-     * Check if this ACME order identifier is verified.
-     * @return True if verified, false otherwise.
+     * Create an instance of ACME identifier with a specified type and data value.
+     * @param type The type of the identifier.
+     * @param dataValue The data value of the identifier.
      */
-    public boolean isVerified() {
-        return verified;
+    public ACMEOrderIdentifier(String type, String dataValue) {
+        this.type = type;
+        this.dataValue = dataValue;
     }
 
     /**
-     * Set the verification status of this ACME order identifier.
-     * @param verified True if verified, false otherwise.
+     * Default constructor for ACME identifier.
      */
-    public void setVerified(boolean verified) {
-        this.verified = verified;
+    public ACMEOrderIdentifier() {
+    }
+
+
+
+    /**
+     * Get the type of this ACME identifier.
+     * @return The type of the identifier.
+     */
+    public String getType() {
+        return type;
     }
 
     /**
-     * Get the timestamp when the verification of this ACME order identifier occurred.
-     * @return The verification timestamp.
+     * Set the type of this ACME identifier.
+     * @param type The type of the identifier to set.
      */
-    public Timestamp getVerifiedTime() {
-        return verifiedTime;
+    public void setType(String type) {
+        this.type = type;
     }
 
     /**
-     * Set the timestamp when the verification of this ACME order identifier occurred.
-     * @param verifiedTime The verification timestamp to set.
+     * Get the data value of this ACME identifier.
+     * @return The data value of the identifier.
      */
-    public void setVerifiedTime(Timestamp verifiedTime) {
-        this.verifiedTime = verifiedTime;
+    public String getDataValue() {
+        return dataValue;
     }
 
+    /**
+     * Set the data value of this ACME identifier.
+     * @param dataValue The data value of the identifier to set.
+     */
+    public void setDataValue(String dataValue) {
+        this.dataValue = dataValue;
+    }
+
+
+    public String getIdentifierId() {
+        return identifierId;
+    }
+
+    public void setIdentifierId(String identifierId) {
+        this.identifierId = identifierId;
+    }
+
+
+
+    public String getAuthorizationId() {
+        return authorizationId;
+    }
+
+    public void setAuthorizationId(String authorizationId) {
+        this.authorizationId = authorizationId;
+    }
+
+
+
+    public AcmeStatus getChallengeStatus() {
+        // Checks whether there is at least one challenge with the status VALID
+        for (ACMEOrderIdentifierChallenge challenge : challenges) {
+            if (challenge.getStatus() == AcmeStatus.VALID) {
+                return AcmeStatus.VALID;
+            }
+        }
+        // Default return if no challenge has the status VALID
+        return AcmeStatus.PENDING;
+    }
+
+    public boolean isHasChallengesGenerated() {
+        return hasChallengesGenerated;
+    }
+
+    public void setHasChallengesGenerated(boolean hasChallengesGenerated) {
+        this.hasChallengesGenerated = hasChallengesGenerated;
+    }
 }

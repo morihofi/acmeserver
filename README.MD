@@ -12,11 +12,15 @@ This is a proof-of-concept Automatic Certificate Management Environment (ACME) S
 - Any JDBC (and Hibernate compatible) database. Currently, H2 and MariaDB drivers are in classpath
 - Proxy support for HTTP Challenge
 
-
 ## 🎉 ACME Server is now one year old!
 One year ago, I started this project. I'm happy to announce that this project is now one year old!
+The first release candidate of version 2.0 is now out!
 
-Currently, Version 2.0 is in active development with new features
+## ⚠ Breaking Changes - Version 2.x
+- Provisioner directory is now in /acme/provisionername/directory
+- Database scheme has been complete rebuilt, please clean database before use
+- Due to move of provisioner directory, the URLs to OCSP and CRL have also been moved, please regenerate your intermediate certificates by delete the corresponding entries in the keystore
+
 
 ## 🐳 Getting started with Docker (recommended)
 1. Install [Docker Engine](https://docs.docker.com/engine/install/) with `docker compose` plugin, if you haven't already
@@ -74,9 +78,6 @@ This version is not fully RFC 8555 compliant, but should work with most clients.
 ## 🐛 Debug Mode
 Enable debug mode by set environment variable `DEBUG` to `TRUE` or start ACME Server with `--debug`.
 Do not use this in production as it disables some security mechanisms and can lead to misuse of your CA.
-
-## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
 ## 🌟 Use Cases for a Self-Hosted ACME Server
 

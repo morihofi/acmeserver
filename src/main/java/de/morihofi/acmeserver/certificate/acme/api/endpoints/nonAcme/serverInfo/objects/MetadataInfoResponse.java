@@ -19,6 +19,72 @@ public class MetadataInfoResponse {
     @SerializedName("os")
     private String operatingSystem;
 
+    @SerializedName("jvmUptime")
+    private long jvmUptime;
+
+    @SerializedName("jvmStartTime")
+    private long jvmStartTime;
+
+    @SerializedName("startupTime")
+    private long startupTime;
+
+    @SerializedName("host")
+    private String host;
+
+    @SerializedName("httpsPort")
+    private int httpsPort;
+
+    @SerializedName("update")
+    private UpdateResponse update;
+
+    public void setJvmUptime(long jvmUptime) {
+        this.jvmUptime = jvmUptime;
+    }
+
+    public long getStartupTime() {
+        return startupTime;
+    }
+
+    public void setStartupTime(long startupTime) {
+        this.startupTime = startupTime;
+    }
+
+    public long getJvmUptime() {
+        return jvmUptime;
+    }
+
+    public long getJvmStartTime() {
+        return jvmStartTime;
+    }
+
+    public void setJvmStartTime(long jvmStartTime) {
+        this.jvmStartTime = jvmStartTime;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public int getHttpsPort() {
+        return httpsPort;
+    }
+
+    public UpdateResponse getUpdate() {
+        return update;
+    }
+
+    public void setUpdate(UpdateResponse update) {
+        this.update = update;
+    }
+
+    public void setHttpsPort(int httpsPort) {
+        this.httpsPort = httpsPort;
+    }
+
     /**
      * Retrieves the version information.
      *
