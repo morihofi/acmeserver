@@ -73,21 +73,20 @@ public class ServerInfoEndpoint implements Handler {
         metadataInfo.setHttpsPort(Main.appConfig.getServer().getPorts().getHttps());
 
         {
+            String latestReleaseUrl = null;
+            boolean isUpdateAvailable = false;
             try {
-                String latestReleaseUrl = null;
-                boolean isUpdateAvailable = false;
-
                 String gitHubLatestReleaseTag = GitHubVersionChecker.getLatestReleaseTag();
 
                 if (Main.buildMetadataGitClosestTagName != null && !Main.buildMetadataGitClosestTagName.equalsIgnoreCase(gitHubLatestReleaseTag)) {
                     latestReleaseUrl = GitHubVersionChecker.getLatestReleaseURL();
                     isUpdateAvailable = true;
                 }
-
-                metadataInfo.setUpdate(new UpdateResponse(isUpdateAvailable, latestReleaseUrl));
             } catch (IOException ex) {
                 log.error("Failed to fetch the latest release information");
             }
+
+            metadataInfo.setUpdate(new UpdateResponse(isUpdateAvailable, latestReleaseUrl));
         }
 
 

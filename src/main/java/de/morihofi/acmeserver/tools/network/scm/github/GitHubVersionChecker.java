@@ -32,7 +32,9 @@ public class GitHubVersionChecker {
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
             assert response.body() != null;
-            return new Gson().fromJson(response.body().string(), Release.class).getTagName();
+            String responseString = response.body().string();
+
+            return new Gson().fromJson(responseString, Release.class).getTagName();
         }
     }
 }

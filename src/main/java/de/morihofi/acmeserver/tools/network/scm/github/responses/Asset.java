@@ -1,18 +1,32 @@
 package de.morihofi.acmeserver.tools.network.scm.github.responses;
 
 
+import com.google.gson.annotations.SerializedName;
+
 public class Asset {
+    @SerializedName("created_at")
     private String createdAt;
+    @SerializedName("browser_download_url")
     private String browserDownloadurl;
+    @SerializedName("url")
     private String url;
+    @SerializedName("download_count")
     private long downloadCount;
+    @SerializedName("content_type")
     private String contentType;
+    @SerializedName("size")
     private long size;
+    @SerializedName("updated_at")
     private String updatedAt;
+    @SerializedName("uploader")
     private Author uploader;
+    @SerializedName("name")
     private String name;
+    @SerializedName("id")
     private long id;
+    @SerializedName("state")
     private String state;
+    @SerializedName("node_id")
     private String nodeid;
 
     public String getCreatedAt() { return createdAt; }
