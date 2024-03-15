@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.tools.certificate.generator;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
+import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.tools.certificate.CertMisc;
 import de.morihofi.acmeserver.tools.certificate.X509;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -26,7 +28,8 @@ import java.util.Date;
 
 public class ServerCertificateGenerator {
 
-    private ServerCertificateGenerator() {}
+    private ServerCertificateGenerator() {
+    }
 
     /**
      * Generates an X509 server certificate using provided parameters and cryptographic elements.
@@ -41,14 +44,14 @@ public class ServerCertificateGenerator {
      * @param intermediateKeyPair     The key pair for the intermediate certificate authority.
      * @param intermediateCertificate The byte array intermediate certificate.
      * @param serverPublicKeyBytes    The byte array representing the server's public key.
-     * @param dnsNames                An array of DNS names to be associated with the server certificate.
-     * @param provisioner             The provisioner object containing certificate expiration and other details.
+     * @param identifiers             An array of Identifiers to be associated with the server certificate.
+     * @param certificateExpiration   Certificate expiration
      * @return An X509Certificate which represents the server certificate.
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
      * @throws CertificateException      If there's an error in processing the certificate data.
      * @throws CertIOException           If there's an IO error during certificate generation.
      */
-    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate, byte[] serverPublicKeyBytes, String[] dnsNames, Provisioner provisioner) throws OperatorCreationException, CertificateException, CertIOException {
+    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate, byte[] serverPublicKeyBytes, Identifier[] identifiers, CertificateExpiration certificateExpiration, Provisioner provisioner) throws OperatorCreationException, CertificateException, CertIOException {
 
         // Create our virtual "CSR"
         X500Name issuerName = X509.getX500NameFromX509Certificate(intermediateCertificate);
@@ -58,9 +61,9 @@ public class ServerCertificateGenerator {
         // Calculate the proposed end date based on provisioner settings
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(startDate);
-        calendar.add(Calendar.YEAR, provisioner.getGeneratedCertificateExpiration().getYears());
-        calendar.add(Calendar.MONTH, provisioner.getGeneratedCertificateExpiration().getMonths());
-        calendar.add(Calendar.DATE, provisioner.getGeneratedCertificateExpiration().getDays());
+        calendar.add(Calendar.YEAR, certificateExpiration.getYears());
+        calendar.add(Calendar.MONTH, certificateExpiration.getMonths());
+        calendar.add(Calendar.DATE, certificateExpiration.getDays());
         Date proposedEndDate = calendar.getTime();
 
         // Ensure the server certificate does not outlive the intermediate certificate
@@ -68,7 +71,7 @@ public class ServerCertificateGenerator {
         Date endDate = (proposedEndDate.before(intermediateEndDate)) ? proposedEndDate : intermediateEndDate;
 
 
-        X500Name subjectName = new X500Name("CN=" + dnsNames[0]);
+        X500Name subjectName = new X500Name("CN=" + identifiers[0].getValue());
         X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(
                 issuerName, serialNumber, startDate, endDate, subjectName,
                 SubjectPublicKeyInfo.getInstance(serverPublicKeyBytes)
@@ -81,27 +84,39 @@ public class ServerCertificateGenerator {
 
         // Subject Alternative Names
         ArrayList<GeneralName> dnsGeneralNameList = new ArrayList<>();
-        for (String dnsName : dnsNames) {
-            dnsGeneralNameList.add(new GeneralName(GeneralName.dNSName, dnsName));
+        for (Identifier identifier : identifiers) {
+            if (identifier.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.DNS) {
+                dnsGeneralNameList.add(new GeneralName(GeneralName.dNSName, identifier.getValue()));
+            } else if (identifier.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.IP) {
+                dnsGeneralNameList.add(new GeneralName(GeneralName.iPAddress, identifier.getValue()));
+            }
         }
         GeneralNames subjectAltNames = new GeneralNames(dnsGeneralNameList.toArray(new GeneralName[0]));
         certBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
 
-        // CRL Distribution Points
-        GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullCrlUrl());
-        DistributionPointName dpn = new DistributionPointName(new GeneralNames(gn));
-        DistributionPoint distp = new DistributionPoint(dpn, null, null);
-        certBuilder.addExtension(Extension.cRLDistributionPoints, false, new CRLDistPoint(new DistributionPoint[]{distp}));
+        if (provisioner != null) {
 
-        // Authority Information Access (OCSP Endpoint)
-        AccessDescription accessDescription = new AccessDescription(
-                AccessDescription.id_ad_ocsp,
-                new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullOcspUrl())
-        );
-        ASN1EncodableVector authorityInformationAccessVector = new ASN1EncodableVector();
-        authorityInformationAccessVector.add(accessDescription);
-        certBuilder.addExtension(
-                Extension.authorityInfoAccess, false, new DERSequence(authorityInformationAccessVector));
+
+            // CRL Distribution Points
+            GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullCrlUrl());
+            DistributionPointName dpn = new DistributionPointName(new GeneralNames(gn));
+            DistributionPoint distp = new DistributionPoint(dpn, null, null);
+            certBuilder.addExtension(Extension.cRLDistributionPoints, false, new CRLDistPoint(new DistributionPoint[]{distp}));
+
+            // Authority Information Access (OCSP Endpoint)
+            AccessDescription accessDescription = new AccessDescription(
+                    AccessDescription.id_ad_ocsp,
+                    new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullOcspUrl())
+            );
+
+
+            ASN1EncodableVector authorityInformationAccessVector = new ASN1EncodableVector();
+            authorityInformationAccessVector.add(accessDescription);
+            certBuilder.addExtension(
+                    Extension.authorityInfoAccess, false, new DERSequence(authorityInformationAccessVector));
+
+        }
+
 
         // Signature Algorithm
         String signatureAlgorithm = CertMisc.getSignatureAlgorithmBasedOnKeyType(intermediateKeyPair.getPrivate());

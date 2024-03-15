@@ -33,8 +33,8 @@ public class DirectoryEndpoint implements Handler {
         JSONObject responseJSON = new JSONObject();
 
         JSONObject metaObject = new JSONObject();
-        metaObject.put("website", provisioner.getAcmeMetadataConfig().getWebsite());
-        metaObject.put("termsOfService", provisioner.getAcmeMetadataConfig().getTos());
+        metaObject.put("website", provisioner.getAcmeMetadataConfig().getWebsite().trim());
+        metaObject.put("termsOfService", provisioner.getAcmeMetadataConfig().getTos().trim());
 
 
         responseJSON.put("meta", metaObject);

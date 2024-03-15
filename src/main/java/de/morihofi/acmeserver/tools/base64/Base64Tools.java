@@ -67,7 +67,7 @@ public class Base64Tools {
      * @param stringToEncode The string to encode.
      * @return The Base64 URL-safe encoded string.
      */
-    public static String encodedBase64URL(String stringToEncode) {
+    public static String encodeBase64URL(String stringToEncode) {
 
         // Getting encoder
         java.util.Base64.Encoder encoder = java.util.Base64.getUrlEncoder();

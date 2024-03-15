@@ -1,9 +1,11 @@
 package de.morihofi.acmeserver.tools.certificate.cryptoops;
 
+import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.IKeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
+import de.morihofi.acmeserver.tools.collectors.SingletonCollector;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,7 +18,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.security.*;
 import java.security.cert.CertificateException;
-import java.util.Vector;
+import java.security.cert.X509Certificate;
+import java.util.*;
 
 /**
  * The CryptoStoreManager class manages cryptographic operations, including loading and saving
@@ -61,6 +64,14 @@ public class CryptoStoreManager {
      */
     private final Vector<CertificateRenewWatcher> certificateRenewWatchers = new Vector<>();
 
+    /**
+     * Check if the ACME Server is running for the first time, so the user can upload its existing CA
+     */
+    private boolean firstRun = false;
+
+    private final Set<Provisioner> provisioners = new HashSet<>();
+
+
     public static String getKeyStoreAliasForProvisionerIntermediate(String provisioner) {
         return KEYSTORE_ALIASPREFIX_INTERMEDIATECA + provisioner;
     }
@@ -88,6 +99,10 @@ public class CryptoStoreManager {
 
             log.info("Using PKCS#11 KeyStore with native library at {} with slot {}", libraryLocation, pkcs11Config.getSlot());
             keyStore = PKCS11KeyStoreLoader.loadPKCS11Keystore(pkcs11Config.getPassword(), pkcs11Config.getSlot(), libraryLocation);
+
+            if(!keyStore.containsAlias(KEYSTORE_ALIAS_ROOTCA)){
+                firstRun = true;
+            }
         }
         if (keyStoreConfig instanceof PKCS12KeyStoreConfig pkcs12Config) {
             log.info("Using PKCS#12 KeyStore at {}", pkcs12Config.getPath().toAbsolutePath().toString());
@@ -102,8 +117,31 @@ public class CryptoStoreManager {
                 // Otherwise, initialize a new KeyStore
                 log.info("KeyStore does not exist, creating new KeyStore");
                 keyStore.load(null, pkcs12Config.getPassword().toCharArray());
+
+                firstRun = true;
             }
         }
+
+
+        if(firstRun){
+            log.info("KeyStore is used for the first time");
+        }
+    }
+
+    public void registerProvisioner(Provisioner provisioner){
+        provisioners.add(provisioner);
+    }
+
+    public Provisioner getProvisionerForName(String provisionerName) {
+        Optional<Provisioner> provisionerOptional = provisioners.stream()
+                .filter(provisioner -> provisioner.getProvisionerName().equals(provisionerName))
+                .findFirst();
+
+        return provisionerOptional.orElse(null);
+    }
+
+    public Set<Provisioner> getProvisioners(){
+        return Collections.unmodifiableSet(provisioners);
     }
 
     /**
@@ -129,6 +167,10 @@ public class CryptoStoreManager {
      */
     public KeyPair getIntermediateCerificateAuthorityKeyPair(String intermediateCaName) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(getKeyStoreAliasForProvisionerIntermediate(intermediateCaName), keyStore);
+    }
+
+    public X509Certificate getX509CertificateForProvisioner(String intermediateCaName) throws KeyStoreException {
+        return (X509Certificate) getKeyStore().getCertificate(getKeyStoreAliasForProvisionerIntermediate(intermediateCaName));
     }
 
     /**
@@ -167,8 +209,21 @@ public class CryptoStoreManager {
         }
     }
 
+    /**
+     * Returns if the keystore is used the first time
+     * @return is running first time
+     */
+    public boolean isFirstRun() {
+        return firstRun;
+    }
 
-
+    /**
+     * Sets the first-run in the keystore manager to false, so you can't update
+     */
+    public void disableFirstRunFlag(){
+        firstRun = false;
+        log.info("KeyStore first time use has been disabled (if not been done before)");
+    }
 
     public Vector<CertificateRenewWatcher> getCertificateRenewWatchers() {
         return certificateRenewWatchers;

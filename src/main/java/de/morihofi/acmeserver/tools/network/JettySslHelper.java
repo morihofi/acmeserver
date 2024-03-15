@@ -20,7 +20,8 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JettySslHelper {
+public class
+JettySslHelper {
 
     private JettySslHelper() {
     }
@@ -123,7 +124,7 @@ public class JettySslHelper {
      * @throws KeyManagementException    If there is an issue with key management.
      * @throws NoSuchProviderException   If a required security provider is not available.
      */
-    public static Server getSslJetty(int httpsPort, int httpPort, Path certificatePath, Path privateKeyPath, Path publicKeyPath)
+    public static Server getSslJetty(int httpsPort, int httpPort, Path certificatePath, Path privateKeyPath, Path publicKeyPath, boolean enableSniCheck)
             throws CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException,
             KeyManagementException, NoSuchProviderException {
 
@@ -134,7 +135,7 @@ public class JettySslHelper {
 
         SSLContext sslContext = createSSLContext(certificateChain, jettyKeyPair);
 
-        return getSslJetty(httpsPort, httpPort, sslContext, null);
+        return getSslJetty(httpsPort, httpPort, sslContext, null, enableSniCheck);
     }
 
     /**
@@ -148,17 +149,17 @@ public class JettySslHelper {
      * @return A Jetty Server instance configured for both secure and non-secure communication.
      * @throws Exception If an error occurs while creating or configuring the Jetty Server.
      */
-    public static Server getSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String alias, JettyServer jettyServer)
+    public static Server getSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String alias, JettyServer jettyServer, boolean enableSniCheck)
             throws Exception {
 
 
         SSLContext sslContext = createSSLContext(keyStore, alias, "");
 
-        return getSslJetty(httpsPort, httpPort, sslContext, jettyServer);
+        return getSslJetty(httpsPort, httpPort, sslContext, jettyServer, enableSniCheck);
     }
 
-    public static void updateSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String keystoreAliasAcmeapi, JettyServer jettyServer) throws Exception {
-        getSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, jettyServer);
+    public static void updateSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String keystoreAliasAcmeapi, JettyServer jettyServer, boolean enableSniCheck) throws Exception {
+        getSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, jettyServer, enableSniCheck);
     }
 
     /**
@@ -170,7 +171,7 @@ public class JettySslHelper {
      * @param jettyServer Jetty server wrapper of Javalin
      * @return A configured Jetty Server instance.
      */
-    public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext, JettyServer jettyServer) {
+    public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext, JettyServer jettyServer, boolean enableSniCheck) {
     /*
         If the port is not 0, the Service (e.g., HTTP/HTTPS) is enabled. Otherwise, it is disabled.
     */
@@ -185,7 +186,9 @@ public class JettySslHelper {
         if (httpsPort != 0 && sslContext != null) {
             log.info("API HTTPS support is ENABLED");
             HttpConfiguration https = new HttpConfiguration();
-            https.addCustomizer(new SecureRequestCustomizer());
+            SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
+            secureRequestCustomizer.setSniHostCheck(enableSniCheck);
+            https.addCustomizer(secureRequestCustomizer);
 
             SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
             sslContextFactory.setSslContext(sslContext); // Your SSL context

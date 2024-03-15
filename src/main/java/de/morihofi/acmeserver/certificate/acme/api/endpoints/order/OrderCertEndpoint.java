@@ -5,7 +5,8 @@ import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.database.objects.ACMEIdentifier;
+import de.morihofi.acmeserver.database.objects.ACMEOrder;
+import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
@@ -32,21 +33,26 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Replay-Nonce", Crypto.createNonce());
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
 
-        List<ACMEIdentifier> identifiers = Database.getACMEIdentifiersByOrderId(orderId);
+        ACMEOrder order = Database.getACMEOrder(orderId);
         StringBuilder responseCertificateChainBuilder = new StringBuilder();
 
-        for (ACMEIdentifier identifier : identifiers) {
-            String individualCertificateChain = Database.getCertificateChainPEMofACMEbyAuthorizationId(
-                    identifier.getAuthorizationId(),
-                    provisioner
-            );
-
+        String individualCertificateChain = Database.getCertificateChainPEMofACMEbyCertificateId(
+                order.getCertificateId(),
+                provisioner
+        );
+        if(individualCertificateChain != null){
             responseCertificateChainBuilder.append(individualCertificateChain);
-            responseCertificateChainBuilder.append("\n"); // Separator zwischen den Zertifikaten
+            responseCertificateChainBuilder.append("\n"); // Separator between certificates
+
+            String responseCertificateChain = responseCertificateChainBuilder.toString();
+            ctx.result(responseCertificateChain);
+        }else{
+            ctx.status(404); //No certificate yet
+            ctx.result("Certificate is being issued, please try in a few moments again");
         }
 
-        String responseCertificateChain = responseCertificateChainBuilder.toString();
-        ctx.result(responseCertificateChain);
+
+
     }
 
 

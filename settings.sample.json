@@ -4,7 +4,8 @@
     "ports": {
       "https": 443,
       "http": 80
-    }
+    },
+    "enableSniCheck": true
   },
   "keyStore": {
     "type": "pkcs12",
@@ -65,7 +66,7 @@
         },
         "algorithm": {
           "type": "ecdsa",
-          "curveName": "secp256k1"
+          "curveName": "P-256"
         }
       },
       "issuedCertificateExpiration": {
