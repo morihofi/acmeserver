@@ -25,12 +25,14 @@
                 </li>
                 @endfor
             </ul>
+            <%--
             <ul class="d-flex">
                 <a href="/mgmt" class="btn btn-outline-secondary">
                     <i class="fa-solid fa-arrow-right-to-bracket"></i>&nbsp;
                     ${localizer.lookup("web.core.menu.login")}
                 </a>
             </ul>
+            --%>
         </div>
     </div>
 </nav>
