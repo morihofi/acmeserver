@@ -16,6 +16,16 @@ This is a proof-of-concept Automatic Certificate Management Environment (ACME) S
 One year ago, I started this project. I'm happy to announce that this project is now one year old!
 The first release candidate of version 2.0 is now out!
 
+### 📰 Changes to from 1.x to 2.0-rc0 include:
+- new interactive WebUI (management UI is coming soon)
+- better Database design
+- certificates can now be issued in a separate thread
+- IP support works now (IPv4 and IPv6)
+- error messages of failed challenges are now more informative
+- multiple Domains in one order works now
+- fixed several security issues
+
+
 ## ⚠ Breaking Changes - Version 2.x
 - Provisioner directory is now in /acme/provisionername/directory
 - Database scheme has been complete rebuilt, please clean database before use
