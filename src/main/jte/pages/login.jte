@@ -109,7 +109,8 @@ body {
 
 
 @template.layout.footer(
-showFooter = false
+showFooter = false,
+localizer = localizer
 )
 </body>
 </html>

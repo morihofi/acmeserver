@@ -5,12 +5,17 @@ import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.MetadataInfoResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ProvisionerResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.UpdateResponse;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
+import de.morihofi.acmeserver.tools.network.scm.github.GitHubVersionChecker;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +24,18 @@ import java.util.List;
 public class ServerInfoEndpoint implements Handler {
 
     /**
+     * Logger
+     */
+    public static final Logger log = LogManager.getLogger(ServerInfoEndpoint.class);
+
+    /**
      * List of provisioners, specified in config
      */
     private final List<ProvisionerConfig> provisionerConfigList;
 
     /**
      * Endpoint for getting server information
+     *
      * @param provisionerConfigList List of provisioners, specified in config
      */
     public ServerInfoEndpoint(List<ProvisionerConfig> provisionerConfigList) {
@@ -33,6 +44,7 @@ public class ServerInfoEndpoint implements Handler {
 
     /**
      * Method for handling the request
+     *
      * @param ctx Javalin Context
      * @throws Exception thrown when there was an error processing the request
      */
@@ -59,6 +71,25 @@ public class ServerInfoEndpoint implements Handler {
         metadataInfo.setStartupTime(Main.startupTime); //already in seconds
         metadataInfo.setHost(Main.appConfig.getServer().getDnsName());
         metadataInfo.setHttpsPort(Main.appConfig.getServer().getPorts().getHttps());
+
+        {
+            try {
+                String latestReleaseUrl = null;
+                boolean isUpdateAvailable = false;
+
+                String gitHubLatestReleaseTag = GitHubVersionChecker.getLatestReleaseTag();
+
+                if (Main.buildMetadataGitClosestTagName != null && !Main.buildMetadataGitClosestTagName.equalsIgnoreCase(gitHubLatestReleaseTag)) {
+                    latestReleaseUrl = GitHubVersionChecker.getLatestReleaseURL();
+                    isUpdateAvailable = true;
+                }
+
+                metadataInfo.setUpdate(new UpdateResponse(isUpdateAvailable, latestReleaseUrl));
+            } catch (IOException ex) {
+                log.error("Failed to fetch the latest release information");
+            }
+        }
+
 
         List<ProvisionerResponse> provisioners = new ArrayList<>();
         for (ProvisionerConfig provisionerConfig : provisionerConfigList) {

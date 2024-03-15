@@ -34,6 +34,9 @@ public class MetadataInfoResponse {
     @SerializedName("httpsPort")
     private int httpsPort;
 
+    @SerializedName("update")
+    private UpdateResponse update;
+
     public void setJvmUptime(long jvmUptime) {
         this.jvmUptime = jvmUptime;
     }
@@ -68,6 +71,14 @@ public class MetadataInfoResponse {
 
     public int getHttpsPort() {
         return httpsPort;
+    }
+
+    public UpdateResponse getUpdate() {
+        return update;
+    }
+
+    public void setUpdate(UpdateResponse update) {
+        this.update = update;
     }
 
     public void setHttpsPort(int httpsPort) {
