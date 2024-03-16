@@ -31,7 +31,7 @@ public class Provisioner {
      * @return Full url (including HTTPS prefix) and port to this server
      */
     public String getApiURL() {
-        return "https://" + Main.appConfig.getServer().getDnsName() + ":" + Main.appConfig.getServer().getPorts().getHttps() + "/acme/" + provisionerName;
+        return "https://" + Main.appConfig.getServer().getDnsName() + (Main.appConfig.getServer().getPorts().getHttps() != 443 ? ":" + Main.appConfig.getServer().getPorts().getHttps() : "") + "/acme/" + provisionerName;
     }
 
     /**
@@ -42,7 +42,7 @@ public class Provisioner {
      * @return a String representing the full HTTPS URL of the server
      */
     public String getServerURL() {
-        return "https://" + Main.appConfig.getServer().getDnsName() + ":" + Main.appConfig.getServer().getPorts().getHttps();
+        return "https://" + Main.appConfig.getServer().getDnsName() + ":" + (Main.appConfig.getServer().getPorts().getHttps() != 443 ? ":" + Main.appConfig.getServer().getPorts().getHttps() : "");
     }
 
 
