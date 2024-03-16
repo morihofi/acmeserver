@@ -20,7 +20,7 @@
         <bouncycastle.version>1.77</bouncycastle.version>
         <javalin.version>6.1.3</javalin.version>
         <jose4j.version>0.9.5</jose4j.version>
-        <jte.version>2.2.1</jte.version>
+        <jte.version>2.3.2</jte.version>
     </properties>
 
     <licenses>
@@ -167,8 +167,7 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <target>
-                                <copy file="${project.basedir}/settings.sample.json"
-                                      tofile="${project.build.directory}/settings.json"/>
+                                <copy file="${project.basedir}/settings.sample.json" tofile="${project.build.directory}/settings.json"/>
                             </target>
                         </configuration>
                         <goals>
