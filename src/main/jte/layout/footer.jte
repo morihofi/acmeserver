@@ -1,7 +1,9 @@
 @import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse
+@import de.morihofi.acmeserver.webui.JteLocalizer
 
 @param boolean showFooter = true
 @param ServerInfoResponse serverInfoResponse = null
+@param JteLocalizer localizer
 
 @if(showFooter)
     <div class="container">
@@ -13,6 +15,7 @@
             @if(serverInfoResponse != null)
                 <div class="col-md-4 d-flex align-items-center justify-content-center">
                     <span class="mb-3 mb-md-0 text-muted">Version ${serverInfoResponse.getMetadataInfo().getVersion()}</span>
+                    @if(serverInfoResponse.getMetadataInfo().getUpdate().isUpdateAvailable())&nbsp;<a href="${serverInfoResponse.getMetadataInfo().getUpdate().getReleasesUrl()}" target="_blank"><span class="badge bg-info text-dark"><i class="fa-solid fa-up-long"></i>&nbsp;${localizer.lookup("web.update.updateAvailable")}</span></a>@endif
                 </div>
             @endif
 
@@ -35,12 +38,8 @@
             crossorigin="anonymous"></script>
 @endif
 <script>
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
       return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
-
-
-
-
+    });
 </script>

@@ -79,7 +79,8 @@ context = context
 
 </main>
 @template.layout.footer(
-serverInfoResponse = serverInfoResponse
+serverInfoResponse = serverInfoResponse,
+localizer = localizer
 )
 </body>
 </html>

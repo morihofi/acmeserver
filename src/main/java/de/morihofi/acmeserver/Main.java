@@ -64,6 +64,8 @@ public class Main {
     public static String buildMetadataBuildTime;
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataGitCommit;
+    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
+    public static String buildMetadataGitClosestTagName;
 
     @SuppressFBWarnings({"MS_PKGPROTECT", "MS_CANNOT_BE_FINAL"})
     public static Config appConfig;
@@ -304,6 +306,8 @@ public class Main {
 
         loadMetadata("/git.properties", properties -> {
             buildMetadataGitCommit = properties.getProperty("git.commit.id.full");
+            buildMetadataGitCommit = properties.getProperty("git.commit.id.full");
+            buildMetadataGitClosestTagName = properties.getProperty("git.closest.tag.name");
         });
     }
 

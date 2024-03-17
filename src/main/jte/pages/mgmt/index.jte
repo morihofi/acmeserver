@@ -29,7 +29,7 @@
 
 </main>
 
-@template.layout.footer()
+@template.layout.footer(localizer = localizer)
 
 </body>
 </html>

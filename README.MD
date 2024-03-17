@@ -4,6 +4,7 @@
 [![Report a bug](https://img.shields.io/badge/Report_a-bug-red?style=flat)
 ](https://github.com/morihofi/acmeserver/issues)
 
+## 📃 About
 
 This is a proof-of-concept Automatic Certificate Management Environment (ACME) Server, fully written in Java
 
@@ -11,10 +12,25 @@ This is a proof-of-concept Automatic Certificate Management Environment (ACME) S
 - Any JDBC (and Hibernate compatible) database. Currently, H2 and MariaDB drivers are in classpath
 - Proxy support for HTTP Challenge
 
+## 🎉 ACME Server is now one year old!
+One year ago, I started this project. I'm happy to announce that this project is now one year old!
+The first release candidate of version 2.0 is now out!
+
+### 📰 Changes to from 1.x to 2.0-rc0 include:
+- new interactive WebUI (management UI is coming soon)
+- better Database design
+- certificates can now be issued in a separate thread
+- IP support works now (IPv4 and IPv6)
+- error messages of failed challenges are now more informative
+- multiple Domains in one order works now
+- fixed several security issues
+
+
 ## ⚠ Breaking Changes - Version 2.x
- - Provisioner directory is now in /acme/provisionername/directory
- - Database scheme has been complete rebuilt, please clean database before use
- - Due to move of provisioner directory, the URLs to OCSP and CRL have also been moved, please regenerate your intermediate certificates by delete the corresponding entries in the keystore
+- Provisioner directory is now in /acme/provisionername/directory
+- Database scheme has been complete rebuilt, please clean database before use
+- Due to move of provisioner directory, the URLs to OCSP and CRL have also been moved, please regenerate your intermediate certificates by delete the corresponding entries in the keystore
+
 
 ## 🐳 Getting started with Docker (recommended)
 1. Install [Docker Engine](https://docs.docker.com/engine/install/) with `docker compose` plugin, if you haven't already
@@ -38,9 +54,8 @@ java -jar acmeserver-VERSION.jar
 ## ✨ Features
 - Self-hosted ACME Server for use with your own CA
 - Support for PKCS#12 (.p12) KeyStore and PKCS#11 Hardware Security Modules (HSM)
-- Revokation support for certificates
-- ACME Account deactivation
-- Mostly ACME RFC compliant in its behaviour
+- Revokation support
+- Mostly ACME RFC compliant
 - Multiple provisioners support with own intermediate CA
   - Set expiration and key algorithm for each intermediate
   - Set expiration for each issued certificate in provisioner
@@ -54,49 +69,25 @@ java -jar acmeserver-VERSION.jar
 - Supported challenges:
   - HTTP-01
   - DNS-01
-- Enhanced WebUI
-  - WebUI with multiple language support (currently `de` and `en` as a fallback, uses preferred language of the browser) 
-  - View Provisioner attributes
-    - Matching intermediate CA
-    - Copy ACME-Directory URL for provisioner
-  - Global statistics for provisioners
-- Hot reload of configuration
 
 ## 📒 Disclaimer
 This version is not fully RFC 8555 compliant, but should work with most clients. 
 
-## ✅ Tested ACME Clients
-|                                                               | HTTP-01 | DNS-01 |                                                                                                                         |
-|---------------------------------------------------------------|---------|--------|-------------------------------------------------------------------------------------------------------------------------|
-| [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree) | ✅       | ✅      | -> modified version is included                                                                                         |
-| [Certbot](https://certbot.eff.org)                            | ✅       | ✅      | ℹ Note, works only correctly, if certificate issuing is not async in the server (default)                               |
-| [acme.sh](https://github.com/acmesh-official/acme.sh)         | 🐞      | ✅      | For HTTP-01 use Standalone mode, nginx mode won't work for no reason                                                    |
-| [Traefik](https://github.com/traefik/traefik)                 | ✅       | ❓      |                                                                                                                         |
-| [win-acme](https://www.win-acme.com/)                         | ✅       | ❓      | Tested with IIS 8.5 on Win Server 2012 r2. Only use Provisioner with RSA, because IIS doesn't support Elliptical Curves |
-| [acme4j](https://acme4j.shredzone.org)                        | ✅       | ✅      |                                                                                                                         |
+## ✅ Tested and working ACME Clients
+- [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree)
+- [acme.sh](https://github.com/acmesh-official/acme.sh)
+- [Certbot](https://certbot.eff.org)
+- [Traefik](https://github.com/traefik/traefik)
+- [win-acme](https://www.win-acme.com/)
 
-Meanings:
-
-| ✅                    | ❌                         | 🐞    | ❓          |
-|----------------------|---------------------------|-------|------------|
-| works without issues | not working at the moment | buggy | not tested |
-
-
-## 💻 Server tested on Operating Systems
+## 💻 Tested Operating Systems
 - Debian 11, 12
 - Windows 10
-- FreeBSD 13.2, 14
+- FreeBSD 13.2
 
 ## 🐛 Debug Mode
 Enable debug mode by set environment variable `DEBUG` to `TRUE` or start ACME Server with `--debug`.
 Do not use this in production as it disables some security mechanisms and can lead to misuse of your CA.
-
-## ℹ Command line switches
-| Command line option                      | Description                                                                                                        |
-|------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| `--option-use-async-certificate-issuing` | Issues certificates in a separate thread (⚠ do not use with certbot at the moment)                                 |
-| `--debug`                                | Debug mode (see above)                                                                                             |
-| `--migrate-pem-to-keystore`              | If you use an old Version 1.x, that uses the PEM files in filesystem, you can use this to mirgrate into a Keystore |
 
 ## 🌟 Use Cases for a Self-Hosted ACME Server
 

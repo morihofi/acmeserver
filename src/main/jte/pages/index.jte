@@ -42,7 +42,7 @@ context = context
     </div>
 
     <br/>
-    @if(cryptoStoreManager.isFirstRun())
+<%--    @if(cryptoStoreManager.isFirstRun())
         <div style="padding: 20px; border: 3px solid yellow;">
             <h2>🔑 Existing CA Certificate Upload</h2>
             <p>If you have already configured a CA certificate and want to use it within ACME Server, please use the
@@ -59,7 +59,7 @@ context = context
                 <button type="submit">Upload CA Certificate</button>
             </form>
         </div>
-    @endif
+    @endif--%>
 
     <!-- Provisioners -->
     <h2 class="mb-3">${localizer.lookup("web.index.provisioners.title")}</h2>
@@ -195,7 +195,8 @@ context = context
 
 </script>
 @template.layout.footer(
-serverInfoResponse = serverInfoResponse
+serverInfoResponse = serverInfoResponse,
+localizer = localizer
 )
 </body>
 </html>
