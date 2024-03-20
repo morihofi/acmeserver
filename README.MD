@@ -99,14 +99,14 @@ This version is not fully RFC 8555 compliant, but should work with most clients.
 |-------------------------------------------------------|-------------|-------------------------------------|
 | [Debian](https://debian.org/) 11, 12                  | ✅           |                                     |
 | [FreeBSD](https://freebsd.org) 13.2, 13.3, 14         | ✅           | Only the RELEASE Builds were tested |
-| [Windows](https://www.microsoft.com/de-de/windows) 10 | ✅           |                     |
+| [Windows](https://www.microsoft.com/de-de/windows) 10 | ✅           |                                     |
 
 ### 🗃️ Tested Databases
-|                                | JDBC Driver Built-in | Test status | Notes                                                                              |
-|--------------------------------|----------------------|-------------|------------------------------------------------------------------------------------|
-| [MariaDB](https://mariadb.org) | ✅                    | ✅           |                                                                                    |
-| [H2](https://h2database.com)   | ✅                    | ✅           | Only embedded mode has been tested, cause this is the only supported at the moment |
-| [PostgreSQL](https://www.postgresql.org/)                     | ✅                    | ✅           |                                                                                    |
+|                                           | JDBC Driver Built-in | Test status | Notes                                                                              |
+|-------------------------------------------|----------------------|-------------|------------------------------------------------------------------------------------|
+| [MariaDB](https://mariadb.org)            | ✅                    | ✅           |                                                                                    |
+| [H2](https://h2database.com)              | ✅                    | ✅           | Only embedded mode has been tested, cause this is the only supported at the moment |
+| [PostgreSQL](https://www.postgresql.org/) | ✅                    | ✅           |                                                                                    |
 
 ### 🔎 Meanings of the Emojis
 | ✅                    | ❌                         | 🐞    | ❓          |
