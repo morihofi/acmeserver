@@ -9,7 +9,7 @@
 This is a proof-of-concept Automatic Certificate Management Environment (ACME) Server, fully written in Java
 
 - Java 17 and up
-- Any JDBC (and Hibernate compatible) database. Currently, H2 and MariaDB drivers are in classpath
+- Any JDBC (and Hibernate compatible) database. Currently, H2, MariaDB and PostgreSQL drivers are in classpath
 - Proxy support for HTTP Challenge
 
 ## 🎉 ACME Server is now one year old!

@@ -1,16 +1,14 @@
 package de.morihofi.acmeserver.database;
 
 import de.morihofi.acmeserver.Main;
+import jakarta.persistence.Entity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
-import org.jetbrains.annotations.NotNull;
 import org.reflections.Reflections;
-
-import jakarta.persistence.*;
 
 import java.util.Locale;
 
@@ -34,6 +32,7 @@ public class HibernateUtil {
             DatabaseType dbType = switch (Main.appConfig.getDatabase().getEngine().toLowerCase(Locale.ROOT)) {
                 case "h2" -> DatabaseType.H2;
                 case "mariadb" -> DatabaseType.MARIADB;
+                case "postgres" -> DatabaseType.POSTGRES;
                 default ->
                         throw new IllegalArgumentException("Unknown or unsupported database engine: " + Main.appConfig.getDatabase().getEngine());
             };
@@ -105,6 +104,11 @@ public class HibernateUtil {
                 configuration.setProperty(Environment.URL, "jdbc:mariadb://" + Main.appConfig.getDatabase().getHost() + "/" + Main.appConfig.getDatabase().getName());
                 configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.MariaDBDialect");
             }
+            case POSTGRES -> {
+                configuration.setProperty(Environment.DRIVER, "org.postgresql.Driver");
+                configuration.setProperty(Environment.URL, "jdbc:postgresql://" + Main.appConfig.getDatabase().getHost() + "/" + Main.appConfig.getDatabase().getName());
+                configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
+            }
         }
         configuration.setProperty(Environment.USER, Main.appConfig.getDatabase().getUser());
         configuration.setProperty(Environment.PASS, Main.appConfig.getDatabase().getPassword());
@@ -131,7 +135,7 @@ public class HibernateUtil {
      * Enumeration of supported database types.
      */
     public enum DatabaseType {
-        H2, MARIADB
+        H2, MARIADB, POSTGRES
     }
 
 
