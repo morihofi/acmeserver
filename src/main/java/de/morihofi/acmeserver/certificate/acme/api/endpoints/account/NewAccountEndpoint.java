@@ -101,14 +101,6 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         }
 
 
-
-
-
-
-
-
-
-
         // Construct response
         String nonce = Crypto.createNonce();
         ctx.header("Content-Type", "application/json");
