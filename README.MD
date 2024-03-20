@@ -74,7 +74,17 @@ java -jar acmeserver-VERSION.jar
 ## 📒 Disclaimer
 This version is not fully RFC 8555 compliant, but should work with most clients. 
 
-## ✅ Tested ACME Clients
+
+## ℹ Command line switches
+| Command line option                      | Description                                                                                                        |
+|------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| `--option-use-async-certificate-issuing` | Issues certificates in a separate thread (⚠ do not use with certbot at the moment)                                 |
+| `--debug`                                | Debug mode (see above)                                                                                             |
+| `--migrate-pem-to-keystore`              | If you use an old Version 1.x, that uses the PEM files in filesystem, you can use this to mirgrate into a Keystore |
+
+## ✅ Testing status
+
+### 🤖 Tested ACME Clients
 |                                                               | HTTP-01 | DNS-01 |                                                                                                                         |
 |---------------------------------------------------------------|---------|--------|-------------------------------------------------------------------------------------------------------------------------|
 | [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree) | ✅       | ✅      | -> modified version is included                                                                                         |
@@ -84,28 +94,28 @@ This version is not fully RFC 8555 compliant, but should work with most clients.
 | [win-acme](https://www.win-acme.com/)                         | ✅       | ❓      | Tested with IIS 8.5 on Win Server 2012 r2. Only use Provisioner with RSA, because IIS doesn't support Elliptical Curves |
 | [acme4j](https://acme4j.shredzone.org)                        | ✅       | ✅      |                                                                                                                         |
 
-Meanings:
+### 💻 Tested Operating Systems
+|                                                       | Test status | Notes                               |
+|-------------------------------------------------------|-------------|-------------------------------------|
+| [Debian](https://debian.org/) 11, 12                  | ✅           |                                     |
+| [FreeBSD](https://freebsd.org) 13.2, 13.3, 14         | ✅           | Only the RELEASE Builds were tested |
+| [Windows](https://www.microsoft.com/de-de/windows) 10 | ✅           |                     |
 
+### 🗃️ Tested Databases
+|                                | JDBC Driver Built-in | Test status | Notes                                                                              |
+|--------------------------------|----------------------|-------------|------------------------------------------------------------------------------------|
+| [MariaDB](https://mariadb.org) | ✅                    | ✅           |                                                                                    |
+| [H2](https://h2database.com)   | ✅                    | ✅           | Only embedded mode has been tested, cause this is the only supported at the moment |
+| [PostgreSQL](https://www.postgresql.org/)                     | ✅                    | ✅           |                                                                                    |
+
+### 🔎 Meanings of the Emojis
 | ✅                    | ❌                         | 🐞    | ❓          |
 |----------------------|---------------------------|-------|------------|
 | works without issues | not working at the moment | buggy | not tested |
 
-## ℹ Command line switches
-| Command line option                      | Description                                                                                                        |
-|------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| `--option-use-async-certificate-issuing` | Issues certificates in a separate thread (⚠ do not use with certbot at the moment)                                 |
-| `--debug`                                | Debug mode (see above)                                                                                             |
-| `--migrate-pem-to-keystore`              | If you use an old Version 1.x, that uses the PEM files in filesystem, you can use this to mirgrate into a Keystore |
-
-
-## 💻 Tested Operating Systems
-- Debian 11, 12
-- Windows 10
-- FreeBSD 13.2
-
 ## 🐛 Debug Mode
 Enable debug mode by set environment variable `DEBUG` to `TRUE` or start ACME Server with `--debug`.
-Do not use this in production as it disables some security mechanisms and can lead to misuse of your CA.
+Do not use this in production as it disables some security mechanisms (e.g. nonce check) and can lead to misuse of your CA.
 
 ## 🌟 Use Cases for a Self-Hosted ACME Server
 
