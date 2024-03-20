@@ -54,8 +54,9 @@ java -jar acmeserver-VERSION.jar
 ## ✨ Features
 - Self-hosted ACME Server for use with your own CA
 - Support for PKCS#12 (.p12) KeyStore and PKCS#11 Hardware Security Modules (HSM)
-- Revokation support
-- Mostly ACME RFC compliant
+- Revokation support for certificates
+- ACME Account deactivation
+- Mostly ACME RFC compliant in its behaviour
 - Multiple provisioners support with own intermediate CA
   - Set expiration and key algorithm for each intermediate
   - Set expiration for each issued certificate in provisioner
@@ -73,12 +74,29 @@ java -jar acmeserver-VERSION.jar
 ## 📒 Disclaimer
 This version is not fully RFC 8555 compliant, but should work with most clients. 
 
-## ✅ Tested and working ACME Clients
-- [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree)
-- [acme.sh](https://github.com/acmesh-official/acme.sh)
-- [Certbot](https://certbot.eff.org)
-- [Traefik](https://github.com/traefik/traefik)
-- [win-acme](https://www.win-acme.com/)
+## ✅ Tested ACME Clients
+|                                                               | HTTP-01 | DNS-01 |                                                                                                                         |
+|---------------------------------------------------------------|---------|--------|-------------------------------------------------------------------------------------------------------------------------|
+| [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree) | ✅       | ✅      | -> modified version is included                                                                                         |
+| [Certbot](https://certbot.eff.org)                            | ✅       | ✅      | ℹ Note, works only correctly, if certificate issuing is not async in the server (default)                               |
+| [acme.sh](https://github.com/acmesh-official/acme.sh)         | 🐞      | ✅      | For HTTP-01 use Standalone mode, nginx mode won't work for no reason                                                    |
+| [Traefik](https://github.com/traefik/traefik)                 | ✅       | ❓      |                                                                                                                         |
+| [win-acme](https://www.win-acme.com/)                         | ✅       | ❓      | Tested with IIS 8.5 on Win Server 2012 r2. Only use Provisioner with RSA, because IIS doesn't support Elliptical Curves |
+| [acme4j](https://acme4j.shredzone.org)                        | ✅       | ✅      |                                                                                                                         |
+
+Meanings:
+
+| ✅                    | ❌                         | 🐞    | ❓          |
+|----------------------|---------------------------|-------|------------|
+| works without issues | not working at the moment | buggy | not tested |
+
+## ℹ Command line switches
+| Command line option                      | Description                                                                                                        |
+|------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| `--option-use-async-certificate-issuing` | Issues certificates in a separate thread (⚠ do not use with certbot at the moment)                                 |
+| `--debug`                                | Debug mode (see above)                                                                                             |
+| `--migrate-pem-to-keystore`              | If you use an old Version 1.x, that uses the PEM files in filesystem, you can use this to mirgrate into a Keystore |
+
 
 ## 💻 Tested Operating Systems
 - Debian 11, 12
