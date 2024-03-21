@@ -13,11 +13,9 @@
     "location": "./serverdata/test.p12"
   },
   "database": {
-    "engine": "h2",
-    "host": "",
+    "jdbcUrl": "jdbc:h2:./serverdata/acme;DB_CLOSE_DELAY=-1",
     "user": "root",
-    "password": "changeme",
-    "name": "./serverdata/acme"
+    "password": ""
   },
   "emailSmtp": {
     "enabled": false,

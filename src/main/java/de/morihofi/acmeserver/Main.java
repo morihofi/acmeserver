@@ -3,6 +3,8 @@ package de.morihofi.acmeserver;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.morihofi.acmeserver.config.Config;
+import de.morihofi.acmeserver.config.DatabaseConfig;
+import de.morihofi.acmeserver.config.helper.DatabaseConfigDeserializer;
 import de.morihofi.acmeserver.config.keyStoreHelpers.KeyStoreParams;
 import de.morihofi.acmeserver.config.certificateAlgorithms.AlgorithmParams;
 import de.morihofi.acmeserver.config.certificateAlgorithms.EcdsaAlgorithmParams;
@@ -24,6 +26,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
+import org.bouncycastle.math.ec.ECPointMap;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -98,17 +101,22 @@ public class Main {
          */
         USE_ASYNC_CERTIFICATE_ISSUING
     }
+
     public static Set<SERVER_OPTION> serverOptions = new HashSet<>();
+
+    private static Gson configGson = new GsonBuilder()
+            .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
+            .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())
+            .registerTypeAdapter(DatabaseConfig.class, new DatabaseConfigDeserializer())
+            .setPrettyPrinting()
+            .create();
+
+    public static Path configPath = FILES_DIR.resolve("settings.json");
 
 
     public static void main(String[] args) throws Exception {
         // runArgs are needed to restart the whole server
         runArgs = args;
-
-        Gson configGson = new GsonBuilder()
-                .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
-                .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())
-                .create();
 
         printBanner();
 
@@ -122,12 +130,9 @@ public class Main {
         Security.addProvider(new BouncyCastleJsseProvider());
 
         log.info("Initializing directories");
-        Path configPath = FILES_DIR.resolve("settings.json");
-        ensureFilesDirectoryExists(configPath);
+        ensureFilesDirectoryExists();
 
-        log.info("Loading server configuration");
-        appConfig = configGson.fromJson(Files.readString(configPath), Config.class);
-
+        loadServerConfiguration();
         loadBuildAndGitMetadata();
 
 
@@ -161,13 +166,13 @@ public class Main {
         }
 
 
-        if(Objects.equals(System.getenv("DEBUG"), "TRUE")){
+        if (Objects.equals(System.getenv("DEBUG"), "TRUE")) {
             debug = true;
             log.info("Debug mode activated by DEBUG environment variable set to TRUE");
         }
 
 
-        if(debug){
+        if (debug) {
             log.warn("!!! RUNNING IN DEBUG MODE - BEHAVIOR CAN BE DIFFERENT. DO NOT USE IN PRODUCTION !!!");
         }
 
@@ -192,6 +197,18 @@ public class Main {
         }
 
 
+    }
+
+    public static void loadServerConfiguration() throws IOException {
+        log.info("Loading configuration ...");
+        appConfig = configGson.fromJson(Files.readString(configPath), Config.class);
+        log.info("Configuration loaded");
+    }
+
+    public static void saveServerConfiguration() throws IOException {
+        log.info("Saving configuration ...");
+        Files.writeString(configPath, configGson.toJson(appConfig));
+        log.info("Configuration saved");
     }
 
 
@@ -230,24 +247,22 @@ public class Main {
      * <p>If the key store configuration is not supported or if any required configuration parameters are missing,
      * the method will throw an {@link IllegalArgumentException}.</p>
      *
-     * @throws ClassNotFoundException if a database driver class cannot be found.
-     * @throws CertificateException if there is an issue with the certificates used in cryptographic operations.
-     * @throws IOException if there is an I/O issue with reading key store or configuration files.
-     * @throws NoSuchAlgorithmException if a particular cryptographic algorithm is not available.
-     * @throws KeyStoreException if there is an issue with key store initialization.
-     * @throws NoSuchProviderException if a security provider needed for cryptographic operations is not available.
+     * @throws ClassNotFoundException    if a database driver class cannot be found.
+     * @throws CertificateException      if there is an issue with the certificates used in cryptographic operations.
+     * @throws IOException               if there is an I/O issue with reading key store or configuration files.
+     * @throws NoSuchAlgorithmException  if a particular cryptographic algorithm is not available.
+     * @throws KeyStoreException         if there is an issue with key store initialization.
+     * @throws NoSuchProviderException   if a security provider needed for cryptographic operations is not available.
      * @throws InvocationTargetException if an exception is thrown by an invoked method or constructor.
-     * @throws InstantiationException if an instance of a class cannot be created.
-     * @throws IllegalAccessException if there is illegal access to a class or field.
-     * @throws NoSuchMethodException if a method required for initialization is not found.
+     * @throws InstantiationException    if an instance of a class cannot be created.
+     * @throws IllegalAccessException    if there is illegal access to a class or field.
+     * @throws NoSuchMethodException     if a method required for initialization is not found.
      */
     private static void initializeCoreComponents() throws ClassNotFoundException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
         if (coreComponentsInitialized) {
             return;
         }
         log.info("Initializing core components...");
-
-        initializeDatabaseDrivers();
 
         {
             //Initialize KeyStore
@@ -284,7 +299,7 @@ public class Main {
      *
      * @throws IOException If an I/O error occurs while creating directories or checking for the configuration file.
      */
-    private static void ensureFilesDirectoryExists(Path configPath) throws IOException {
+    private static void ensureFilesDirectoryExists() throws IOException {
         if (!Files.exists(FILES_DIR)) {
             log.info("First run detected, creating settings directory");
             Files.createDirectories(FILES_DIR);
@@ -299,12 +314,15 @@ public class Main {
      * Loads build and Git metadata from resource files and populates corresponding variables.
      */
     private static void loadBuildAndGitMetadata() {
+
         loadMetadata("/build.properties", properties -> {
+            log.info("Loading build metadata");
             buildMetadataVersion = properties.getProperty("build.version");
             buildMetadataBuildTime = properties.getProperty("build.date") + " UTC";
         });
 
         loadMetadata("/git.properties", properties -> {
+            log.info("Loading git metadata");
             buildMetadataGitCommit = properties.getProperty("git.commit.id.full");
             buildMetadataGitCommit = properties.getProperty("git.commit.id.full");
             buildMetadataGitClosestTagName = properties.getProperty("git.closest.tag.name");
@@ -323,19 +341,6 @@ public class Main {
         } catch (IOException e) {
             log.error("Unable to load metadata from {}", fileName, e);
         }
-    }
-
-
-    /**
-     * Initializes database drivers for MariaDB and H2.
-     *
-     * @throws ClassNotFoundException If a database driver class is not found.
-     */
-    private static void initializeDatabaseDrivers() throws ClassNotFoundException {
-        log.info("Loading MariaDB JDBC driver");
-        Class.forName("org.mariadb.jdbc.Driver");
-        log.info("Loading H2 JDBC driver");
-        Class.forName("org.h2.Driver");
     }
 
 

@@ -104,9 +104,13 @@ This version is not fully RFC 8555 compliant, but should work with most clients.
 ### 🗃️ Tested Databases
 |                                           | JDBC Driver Built-in | Test status | Notes                                                                                                 |
 |-------------------------------------------|----------------------|-------------|-------------------------------------------------------------------------------------------------------|
-| [MariaDB](https://mariadb.org)            | ✅                    | ✅           |                                                                                                       |
-| [H2](https://h2database.com)              | ✅                    | ✅           | Only embedded mode has been tested, cause this is the only supported at the moment                    |
-| [PostgreSQL](https://www.postgresql.org/) | ✅                    | ✅           | Use a up-to-date database version. Tested with PostgreSQL 16.2, older version may won't work properly |
+| [MariaDB](https://mariadb.org)            | Yes                  | ✅           |                                                                                                       |
+| [H2](https://h2database.com)              | Yes                  | ✅           | Only embedded mode has been tested, cause this is the only supported at the moment                    |
+| [PostgreSQL](https://www.postgresql.org/) | Yes                  | ✅           | Use a up-to-date database version. Tested with PostgreSQL 16.2, older version may won't work properly |
+| [MySQL](https://mysql.com/)               | No                   | ❓           |                                                                                                       |
+
+If you want to use a database engine, where the JDBC driver isn't built in, 
+you have to add the driver manually to the classpath and specify the Main-Class manually. 
 
 ### 🔎 Meanings of the Emojis
 | ✅                    | ❌                         | 🐞    | ❓          |

@@ -8,6 +8,7 @@ import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.config.Config;
+import de.morihofi.acmeserver.config.databaseConfig.JDBCUrlDatabaseConfig;
 import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS12KeyStoreParams;
 import de.morihofi.acmeserver.postsetup.inputcheck.FQDNInputChecker;
 import de.morihofi.acmeserver.postsetup.inputcheck.InputChecker;
@@ -260,22 +261,15 @@ public class PostSetup extends WindowBase {
         }
 
         //Set database, use H2 as default. But only if using default config
-        appConfig.getDatabase().setEngine("h2");
-        appConfig.getDatabase().setHost("");
-        appConfig.getDatabase().setPassword(SecurePasswordGenerator.generateSecurePassword());
-        appConfig.getDatabase().setName(filesDir.resolve("acmedatabase").toAbsolutePath().toString());
-        appConfig.getDatabase().setUser("acmeuser");
 
+        JDBCUrlDatabaseConfig jdbcUrlDatabaseConfig = new JDBCUrlDatabaseConfig();
+        jdbcUrlDatabaseConfig.setUser("acmeuser");
+        jdbcUrlDatabaseConfig.setPassword(SecurePasswordGenerator.generateSecurePassword());
+        jdbcUrlDatabaseConfig.setJdbcUrl("jdbc:h2:" + filesDir.resolve("acmedatabase").toAbsolutePath().toString() + ";DB_CLOSE_DELAY=-1");
+        appConfig.setDatabase(jdbcUrlDatabaseConfig);
 
         textGUI.getScreen().close();
-
-        log.info("Saving new configuration");
-        Gson gson = new Gson();
-        JSONObject jso = new JSONObject(gson.toJson(appConfig));
-        String formattedJson = jso.toString(4);
-
-        Files.writeString(filesDir.resolve("settings.json"), formattedJson);
-        log.info("Configuration has been saved successfully");
+        Main.saveServerConfiguration();
 
     }
 
