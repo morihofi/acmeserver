@@ -21,7 +21,6 @@ import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointGet;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointPost;
-import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.config.certificateAlgorithms.EcdsaAlgorithmParams;
@@ -34,6 +33,7 @@ import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
 import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGenerator;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewInitializer;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
+import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import de.morihofi.acmeserver.tools.network.JettySslHelper;
 import de.morihofi.acmeserver.tools.regex.ConfigCheck;
 import de.morihofi.acmeserver.webui.WebUI;
@@ -243,9 +243,9 @@ public class AcmeApiServer {
      * to renew the certificate automatically before it expires and reload the certificate in the Jetty server
      * without requiring a restart of the application.</p>
      *
-     * @param app the Javalin application instance to be configured.
+     * @param app                the Javalin application instance to be configured.
      * @param cryptoStoreManager the manager responsible for cryptographic operations and storage.
-     * @param appConfig the configuration object containing application settings, including server port information.
+     * @param appConfig          the configuration object containing application settings, including server port information.
      * @throws Exception if there is an error in generating the ACME API client certificate, updating the Jetty
      *                   server SSL configuration, or during automatic certificate renewal.
      */
@@ -395,19 +395,25 @@ public class AcmeApiServer {
             // *****************************************
             // Create Certificate for our ACME Web Server API (Client Certificate)
 
-            CertificateExpiration expiration = new CertificateExpiration();
-            expiration.setDays(0);
-            expiration.setMonths(1);
-            expiration.setYears(0);
 
             log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
             acmeAPIKeyPair = KeyPairGenerator.generateRSAKeyPair(4096, cryptoStoreManager.getKeyStore().getProvider().getName());
 
             log.info("Using provisioner root CA for generation");
-
-            log.info("Creating Server Certificate");
             X509Certificate rootCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
             X509Certificate intermediateCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(rootCaAlias);
+
+            log.info("Creating Server Certificate");
+            Date startDate = new Date(); // Starts now
+            Date endDate = DateTools.makeDateForOutliveIntermediateCertificate(
+                    intermediateCertificate.getNotAfter(),
+                    DateTools.addToDate(startDate,
+                            0,
+                            1,
+                            0
+                    )
+            );
+
             X509Certificate acmeAPICertificate = ServerCertificateGenerator.createServerCertificate(
                     rootCaKeyPair,
                     intermediateCertificate,
@@ -415,7 +421,8 @@ public class AcmeApiServer {
                     new Identifier[]{
                             new Identifier(Identifier.IDENTIFIER_TYPE.DNS.name(), appConfig.getServer().getDnsName())
                     },
-                    expiration,
+                    startDate,
+                    endDate,
                     null
             );
 
@@ -446,7 +453,7 @@ public class AcmeApiServer {
      *
      * @param certificate the X.509 certificate to be checked for validity.
      * @return {@code true} if the certificate is currently valid; {@code false} if it is expired
-     *         or not yet valid as of the current date.
+     * or not yet valid as of the current date.
      */
     private static boolean isCertificateValid(X509Certificate certificate) {
         try {
@@ -459,6 +466,7 @@ public class AcmeApiServer {
 
     /**
      * see {@link #reloadConfiguration(Runnable)}
+     *
      * @throws Exception {@link #reloadConfiguration(Runnable)}
      */
     public static void reloadConfiguration() throws Exception {

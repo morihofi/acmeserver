@@ -3,14 +3,12 @@ package de.morihofi.acmeserver.database;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
-import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
+import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
-import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
-import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.safety.TypeSafetyHelper;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
@@ -19,7 +17,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.json.JSONArray;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -196,49 +193,6 @@ public class Database {
         return orders;
     }
 
-    /**
-     * Creates a new ACME (Automated Certificate Management Environment) order and associates it with an ACME account.
-     *
-     * @param account        The ACME account for which the order is created.
-     * @param orderId        The unique identifier for the new ACME order.
-     * @param identifierList A list of ACME identifiers to be associated with the order.
-     * @param certificateId
-     * @throws ACMEServerInternalException If an error occurs while creating the ACME order.
-     */
-    @Transactional
-    public static void createOrder(ACMEAccount account, String orderId, List<ACMEOrderIdentifier> identifierList, String certificateId) {
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            Transaction transaction = session.beginTransaction();
-
-            // Create order
-            ACMEOrder order = new ACMEOrder();
-            order.setOrderId(orderId);
-            order.setAccount(account);
-            order.setCreated(Timestamp.from(Instant.now()));
-            order.setCertificateId(certificateId);
-            session.persist(order);
-
-            log.info("Created new order {}", orderId);
-
-            // Create order identifiers
-            for (ACMEOrderIdentifier identifier : identifierList) {
-                identifier.setIdentifierId(Crypto.generateRandomId());
-                identifier.setOrder(order);
-                session.persist(identifier);
-
-                log.info("Added identifier {} of type {} to order {}",
-                        identifier.getDataValue(),
-                        identifier.getType(),
-                        orderId
-                );
-            }
-
-            transaction.commit();
-        } catch (Exception e) {
-            log.error("Unable to create new ACME Order with id {} for account {}", orderId, account.getAccountId(), e);
-            throw new ACMEServerInternalException("Unable to create new ACME Order");
-        }
-    }
 
 
     /**

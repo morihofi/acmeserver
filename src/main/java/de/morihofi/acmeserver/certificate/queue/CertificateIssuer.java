@@ -88,7 +88,8 @@ public class CertificateIssuer {
                 provisioner.getIntermediateCaCertificate(),
                 pkPemObject.getContent(),
                 csrIdentifiers.toArray(new Identifier[0]),
-                provisioner.getGeneratedCertificateExpiration(),
+                order.getNotBefore(),
+                order.getNotAfter(),
                 provisioner
         );
 

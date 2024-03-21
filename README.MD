@@ -106,7 +106,7 @@ This version is not fully RFC 8555 compliant, but should work with most clients.
 |-------------------------------------------|----------------------|-------------|------------------------------------------------------------------------------------|
 | [MariaDB](https://mariadb.org)            | ✅                    | ✅           |                                                                                    |
 | [H2](https://h2database.com)              | ✅                    | ✅           | Only embedded mode has been tested, cause this is the only supported at the moment |
-| [PostgreSQL](https://www.postgresql.org/) | ✅                    | ✅           |                                                                                    |
+| [PostgreSQL](https://www.postgresql.org/) | ✅                    | 🐞          |                                                                                    |
 
 ### 🔎 Meanings of the Emojis
 | ✅                    | ❌                         | 🐞    | ❓          |

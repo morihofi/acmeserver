@@ -32,6 +32,12 @@ public class ACMEOrder implements Serializable {
     @Column(name = "expires")
     private Timestamp expires;
 
+    @Column(name = "notBefore")
+    private Timestamp notBefore;
+
+    @Column(name = "notAfter")
+    private Timestamp notAfter;
+
     @OneToMany(mappedBy = "order")
     private List<ACMEOrderIdentifier> orderIdentifiers;
 
@@ -241,7 +247,25 @@ public class ACMEOrder implements Serializable {
         this.revokeTimestamp = revokeTimestamp;
     }
 
+    public Timestamp getNotBefore() {
+        return notBefore;
+    }
 
+    public void setNotBefore(Timestamp notBefore) {
+        this.notBefore = notBefore;
+    }
+
+    public Timestamp getNotAfter() {
+        return notAfter;
+    }
+
+    public void setNotAfter(Timestamp notAfter) {
+        this.notAfter = notAfter;
+    }
+
+    public void setOrderIdentifiers(List<ACMEOrderIdentifier> orderIdentifiers) {
+        this.orderIdentifiers = orderIdentifiers;
+    }
 
     public Long getId() {
         return id;

@@ -10,11 +10,14 @@ import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
+import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMERejectedIdentifierException;
+import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import de.morihofi.acmeserver.tools.email.SendMail;
@@ -22,11 +25,11 @@ import de.morihofi.acmeserver.tools.regex.DomainAndIpValidation;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.sql.Timestamp;
+import java.util.*;
 
 public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
@@ -128,8 +131,57 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         }
 
-        // Add authorizations to Database
-        Database.createOrder(account, orderId, acmeOrderIdentifiersWithAuthorizationData, certificateId);
+
+        ACMEOrder order;
+
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            Transaction transaction = session.beginTransaction();
+
+
+
+            Date startDate = new Date(); // Starts now
+            Date endDate = DateTools.makeDateForOutliveIntermediateCertificate(
+                    provisioner.getIntermediateCaCertificate().getNotAfter(),
+                    DateTools.addToDate(startDate,
+                        provisioner.getConfig().getIntermediate().getExpiration().getYears(),
+                        provisioner.getConfig().getIntermediate().getExpiration().getMonths(),
+                        provisioner.getConfig().getIntermediate().getExpiration().getDays()
+                    )
+            );
+
+
+            // Create order
+            order = new ACMEOrder();
+            order.setOrderId(orderId);
+            order.setAccount(account);
+            order.setCreated(Timestamp.from(startDate.toInstant()));
+            order.setExpires(Timestamp.from(endDate.toInstant()));
+            order.setNotBefore(Timestamp.from(startDate.toInstant()));
+            order.setNotAfter(Timestamp.from(endDate.toInstant()));
+            order.setCertificateId(certificateId);
+            session.persist(order);
+
+            log.info("Created new order {}", orderId);
+
+            // Create order identifiers
+            for (ACMEOrderIdentifier identifier : acmeOrderIdentifiersWithAuthorizationData) {
+                identifier.setIdentifierId(Crypto.generateRandomId());
+                identifier.setOrder(order);
+                session.persist(identifier);
+
+                log.info("Added identifier {} of type {} to order {}",
+                        identifier.getDataValue(),
+                        identifier.getType(),
+                        orderId
+                );
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            log.error("Unable to create new ACME Order with id {} for account {}", orderId, account.getAccountId(), e);
+            throw new ACMEServerInternalException("Unable to create new ACME Order");
+        }
+
 
         //Send E-Mail if order was created
         try {
@@ -138,13 +190,11 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             log.error("Unable to send email", ex);
         }
 
-
-        //TODO: Set better Date/Time
         NewOrderResponse response = new NewOrderResponse();
         response.setStatus(AcmeStatus.PENDING.getRfcName());
-        response.setExpires(DateTools.formatDateForACME(new Date()));
-        response.setNotBefore(DateTools.formatDateForACME(new Date()));
-        response.setNotAfter(DateTools.formatDateForACME(new Date()));
+        response.setExpires(DateTools.formatDateForACME(order.getExpires()));
+        response.setNotBefore(DateTools.formatDateForACME(order.getNotBefore()));
+        response.setNotAfter(DateTools.formatDateForACME(order.getNotAfter()));
         response.setIdentifiers(respIdentifiers);
         response.setAuthorizations(respAuthorizations);
         response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
