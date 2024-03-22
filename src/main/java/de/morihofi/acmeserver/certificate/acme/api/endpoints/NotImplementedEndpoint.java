@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver;
+package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import io.javalin.http.Context;
