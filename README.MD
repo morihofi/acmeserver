@@ -16,7 +16,14 @@ This is a proof-of-concept Automatic Certificate Management Environment (ACME) S
 One year ago, I started this project. I'm happy to announce that this project is now one year old!
 The first release candidate of version 2.0 is now out!
 
-### 📰 Changes to from 1.x to 2.0-rc0 include:
+## ⚠ Breaking Changes - Version 2.x
+- Provisioner directory is now in /acme/provisionername/directory
+- Database scheme has been complete rebuilt, please clean database before use
+- Due to move of provisioner directory, the URLs to OCSP and CRL have also been moved, please regenerate your intermediate certificates by delete the corresponding entries in the keystore
+
+
+### 📰 Changelog
+#### Changes to from 1.x to 2.0-rc0 include:
 - new interactive WebUI (management UI is coming soon)
 - better Database design
 - certificates can now be issued in a separate thread
@@ -25,11 +32,14 @@ The first release candidate of version 2.0 is now out!
 - multiple Domains in one order works now
 - fixed several security issues
 
+#### Changes to from 2.0-rc0 to 2.0-rc1 include:
+- fixed update available badge always visible
+- faster statistics loading incl. interactive charts
+- more efficient CRL generation and certificate expiration/renew watcher
+- Database connection pooling
+- Database connection jdbc url is now in configuration file -> will be automatically migrated
+- PostgreSQL database is now officially tested and supported (most recent version)
 
-## ⚠ Breaking Changes - Version 2.x
-- Provisioner directory is now in /acme/provisionername/directory
-- Database scheme has been complete rebuilt, please clean database before use
-- Due to move of provisioner directory, the URLs to OCSP and CRL have also been moved, please regenerate your intermediate certificates by delete the corresponding entries in the keystore
 
 
 ## 🐳 Getting started with Docker (recommended)
