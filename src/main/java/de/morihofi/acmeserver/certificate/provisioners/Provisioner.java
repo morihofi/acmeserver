@@ -1,7 +1,8 @@
-package de.morihofi.acmeserver.certificate.acme.api;
+package de.morihofi.acmeserver.certificate.provisioners;
 
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
+import de.morihofi.acmeserver.certificate.revokeDistribution.CRLGenerator;
+import de.morihofi.acmeserver.certificate.revokeDistribution.CRLScheduler;
 import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.DomainNameRestrictionConfig;
 import de.morihofi.acmeserver.config.MetadataConfig;
@@ -31,7 +32,7 @@ public class Provisioner {
      * @return Full url (including HTTPS prefix) and port to this server
      */
     public String getApiURL() {
-        return "https://" + Main.appConfig.getServer().getDnsName() + ":" + Main.appConfig.getServer().getPorts().getHttps() + "/acme/" + provisionerName;
+        return "https://" + Main.appConfig.getServer().getDnsName() + (Main.appConfig.getServer().getPorts().getHttps() != 443 ? ":" + Main.appConfig.getServer().getPorts().getHttps() : "") + "/acme/" + provisionerName;
     }
 
     /**
@@ -42,7 +43,7 @@ public class Provisioner {
      * @return a String representing the full HTTPS URL of the server
      */
     public String getServerURL() {
-        return "https://" + Main.appConfig.getServer().getDnsName() + ":" + Main.appConfig.getServer().getPorts().getHttps();
+        return "https://" + Main.appConfig.getServer().getDnsName() + (Main.appConfig.getServer().getPorts().getHttps() != 443 ? ":" + Main.appConfig.getServer().getPorts().getHttps() : "");
     }
 
 
@@ -86,7 +87,6 @@ public class Provisioner {
      */
     private final ProvisionerConfig config;
 
-    private CRL crlGenerator;
 
     /**
      * Constructs a new Provisioner object.
@@ -100,7 +100,7 @@ public class Provisioner {
      * @param domainNameRestriction          The configuration for domain name restrictions.
      * @param wildcardAllowed                A boolean value indicating whether wildcards are allowed.
      * @param cryptoStoreManager             The manager for cryptographic store operations.
-     * @param config
+     * @param config                         configuration of the provisioner
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public Provisioner(String provisionerName, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager, ProvisionerConfig config) {
@@ -290,11 +290,8 @@ public class Provisioner {
         return config;
     }
 
-    public CRL getCrlGenerator() {
-        return crlGenerator;
+    public CRLGenerator getCrlGenerator() {
+        return CRLScheduler.getCrlGeneratorForProvisioner(provisionerName);
     }
 
-    public void setCrlGenerator(CRL crlGenerator) {
-        this.crlGenerator = crlGenerator;
-    }
 }

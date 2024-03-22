@@ -1,23 +1,43 @@
 package de.morihofi.acmeserver.tools.network.scm.github.responses;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Author {
+    @SerializedName("gists_url")
     private String gistsurl;
+    @SerializedName("repos_url")
     private String reposurl;
+    @SerializedName("following_url")
     private String followingurl;
+    @SerializedName("starred_url")
     private String starredurl;
+    @SerializedName("login")
     private String login;
+    @SerializedName("followers_url")
     private String followersurl;
+    @SerializedName("type")
     private String type;
+    @SerializedName("url")
     private String url;
+    @SerializedName("subscriptions_url")
     private String subscriptionsurl;
+    @SerializedName("received_events_url")
     private String receivedEventsurl;
+    @SerializedName("avatar_url")
     private String avatarurl;
+    @SerializedName("events_url")
     private String eventsurl;
+    @SerializedName("html_url")
     private String htmlurl;
+    @SerializedName("site_admin")
     private boolean siteAdmin;
+    @SerializedName("id")
     private long id;
+    @SerializedName("gravatar_id")
     private String gravatarid;
+    @SerializedName("node_id")
     private String nodeid;
+    @SerializedName("organizations_url")
     private String organizationsurl;
 
     public String getGistsurl() { return gistsurl; }
@@ -70,7 +90,6 @@ public class Author {
 
     public String getNodeid() { return nodeid; }
     public void setNodeid(String value) { this.nodeid = value; }
-
     public String getOrganizationsurl() { return organizationsurl; }
     public void setOrganizationsurl(String value) { this.organizationsurl = value; }
 }

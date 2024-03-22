@@ -5,7 +5,6 @@ import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadSignatureAlgorithmException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEUnauthorizedException;
-import de.morihofi.acmeserver.tools.certificate.CertTools;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import io.javalin.http.Context;
@@ -17,9 +16,7 @@ import org.jose4j.lang.JoseException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.*;
 import java.util.Base64;

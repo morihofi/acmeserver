@@ -1,5 +1,6 @@
-@import de.morihofi.acmeserver.certificate.acme.api.Provisioner
-@import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse
+@import de.morihofi.acmeserver.certificate.provisioners.Provisioner
+@import de.morihofi.acmeserver.certificate.api.serverInfo.objects.ServerInfoResponse
+@import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager
 @import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager
 @import de.morihofi.acmeserver.webui.JteLocalizer
 @import io.javalin.http.Context
@@ -46,7 +47,7 @@ context = context
                 <label for="select-provisioner" class="form-label">${localizer.lookup("web.cmdBuilder.input.provisioner")}</label>
                 <select class="form-select" id="select-provisioner" name="provisioner" required>
                     <option value="">${localizer.lookup("web.cmdBuilder.input.provisioner.default")}</option>
-                    @for(Provisioner provisioner : cryptoStoreManager.getProvisioners())
+                    @for(Provisioner provisioner : ProvisionerManager.getProvisioners())
                         <option value="${provisioner.getProvisionerName()}" selected="${provisioner.getProvisionerName().equals(provisionerName)}">${provisioner.getProvisionerName()}</option>
                     @endfor
                 </select>

@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 public class LoginUiHandler implements Handler {
-    private CryptoStoreManager cryptoStoreManager;
+    private final CryptoStoreManager cryptoStoreManager;
 
     public enum LOGIN_STATE {
         ENTER_DATA, ERR_NO_USER_FOUND, SUC_EMAIL_SENT
@@ -35,7 +35,7 @@ public class LoginUiHandler implements Handler {
     }
 
     @Override
-    public void handle(@NotNull Context context) throws Exception {
+    public void handle(@NotNull Context context) {
 
         Map<String, Object> params = new HashMap<>(WebUI.getDefaultFrontendMap(cryptoStoreManager, context));
 

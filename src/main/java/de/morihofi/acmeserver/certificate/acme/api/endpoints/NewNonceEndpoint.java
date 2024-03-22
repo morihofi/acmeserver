@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
@@ -34,10 +34,9 @@ public class NewNonceEndpoint implements Handler {
      * Handles incoming HTTP requests and responds with appropriate statuses and headers.
      *
      * @param ctx The Context object representing the incoming HTTP request and response.
-     * @throws Exception If an error occurs while handling the request.
      */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handle(@NotNull Context ctx) {
 
         // Respond with a 204 No Content status for GET requests
         if (ctx.method() == HandlerType.GET) {

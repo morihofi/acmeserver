@@ -1,9 +1,10 @@
 package de.morihofi.acmeserver.tools.certificate.renew;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
+import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewManager;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
@@ -21,9 +22,9 @@ public class IntermediateCaRenew {
      *
      * @param provisionerKeyPair The key pair associated with the provisioner.
      * @param provisioner        The provisioner for which the certificate is being renewed.
-     * @param provisionerCfg     The configuration for the provisioner.
      * @param cryptoStoreManager The CryptoStoreManager responsible for managing certificates.
      * @param intermediateAlias  The alias of the intermediate certificate to renew.
+     * @return object containing the new certificate and keyPair
      * @throws CertificateException      If there is an issue with certificate handling.
      * @throws OperatorCreationException If there is an issue with certificate operator creation.
      * @throws IOException               If there is an I/O error.
@@ -31,8 +32,9 @@ public class IntermediateCaRenew {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
-    public static void renewIntermediateCertificate(KeyPair provisionerKeyPair, Provisioner provisioner, ProvisionerConfig provisionerCfg, CryptoStoreManager cryptoStoreManager, String intermediateAlias) throws CertificateException, OperatorCreationException, IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+    public static CertificateRenewManager.CertificateData renewIntermediateCertificate(KeyPair provisionerKeyPair, Provisioner provisioner, CryptoStoreManager cryptoStoreManager, String intermediateAlias) throws CertificateException, OperatorCreationException, IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
 
+        ProvisionerConfig provisionerCfg = provisioner.getConfig();
 
         // Generate a new certificate
         X509Certificate renewedCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(
@@ -50,13 +52,8 @@ public class IntermediateCaRenew {
                 renewedCertificate,
                 (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
         };
-        cryptoStoreManager.getKeyStore().setKeyEntry(
-                intermediateAlias,
-                provisionerKeyPair.getPrivate(),
-                "".toCharArray(),
-                chain
-        );
-        cryptoStoreManager.saveKeystore();
+
+        return new CertificateRenewManager.CertificateData(chain, provisionerKeyPair);
     }
 
 

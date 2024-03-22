@@ -1,11 +1,11 @@
-package de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo;
+package de.morihofi.acmeserver.certificate.api.serverInfo;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.MetadataInfoResponse;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ProvisionerResponse;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.UpdateResponse;
+import de.morihofi.acmeserver.certificate.api.serverInfo.objects.MetadataInfoResponse;
+import de.morihofi.acmeserver.certificate.api.serverInfo.objects.ProvisionerResponse;
+import de.morihofi.acmeserver.certificate.api.serverInfo.objects.ServerInfoResponse;
+import de.morihofi.acmeserver.certificate.api.serverInfo.objects.UpdateResponse;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.tools.network.scm.github.GitHubVersionChecker;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -17,16 +17,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 @SuppressFBWarnings("EI_EXPOSE_REP2")
-public class ServerInfoEndpoint implements Handler {
+public class ApiServerInfoEndpoint implements Handler {
 
     /**
      * Logger
      */
-    public static final Logger log = LogManager.getLogger(ServerInfoEndpoint.class);
+    public static final Logger log = LogManager.getLogger(ApiServerInfoEndpoint.class);
 
     /**
      * List of provisioners, specified in config
@@ -38,7 +40,7 @@ public class ServerInfoEndpoint implements Handler {
      *
      * @param provisionerConfigList List of provisioners, specified in config
      */
-    public ServerInfoEndpoint(List<ProvisionerConfig> provisionerConfigList) {
+    public ApiServerInfoEndpoint(List<ProvisionerConfig> provisionerConfigList) {
         this.provisionerConfigList = provisionerConfigList;
     }
 
@@ -46,10 +48,9 @@ public class ServerInfoEndpoint implements Handler {
      * Method for handling the request
      *
      * @param ctx Javalin Context
-     * @throws Exception thrown when there was an error processing the request
      */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handle(@NotNull Context ctx) {
         ctx.header("Content-Type", "application/json");
 
         ServerInfoResponse responseData = getServerInfoResponse(provisionerConfigList);
@@ -58,6 +59,12 @@ public class ServerInfoEndpoint implements Handler {
         String jsonResponse = gson.toJson(responseData);
         ctx.result(jsonResponse);
     }
+
+
+    private static final Duration CACHE_DURATION = Duration.ofHours(3); // Cache for 3 hours
+    private static String cachedLatestReleaseTag = null;
+    private static String cachedLatestReleaseUrl = null;
+    private static Instant cacheTimestamp = Instant.MIN;
 
     public static ServerInfoResponse getServerInfoResponse(List<ProvisionerConfig> provisionerConfigList) {
         MetadataInfoResponse metadataInfo = new MetadataInfoResponse();
@@ -73,21 +80,28 @@ public class ServerInfoEndpoint implements Handler {
         metadataInfo.setHttpsPort(Main.appConfig.getServer().getPorts().getHttps());
 
         {
-            try {
-                String latestReleaseUrl = null;
-                boolean isUpdateAvailable = false;
+            String latestReleaseUrl = null;
+            boolean isUpdateAvailable = false;
 
-                String gitHubLatestReleaseTag = GitHubVersionChecker.getLatestReleaseTag();
-
-                if (Main.buildMetadataGitClosestTagName != null && !Main.buildMetadataGitClosestTagName.equalsIgnoreCase(gitHubLatestReleaseTag)) {
-                    latestReleaseUrl = GitHubVersionChecker.getLatestReleaseURL();
-                    isUpdateAvailable = true;
+            // Check whether the cache is still valid
+            if (Duration.between(cacheTimestamp, Instant.now()).compareTo(CACHE_DURATION) > 0) {
+                // Cache has expired, so retrieve data again
+                try {
+                    cachedLatestReleaseTag = GitHubVersionChecker.getLatestReleaseTag();
+                    cachedLatestReleaseUrl = GitHubVersionChecker.getLatestReleaseURL();
+                    cacheTimestamp = Instant.now();
+                } catch (IOException ex) {
+                    log.error("Failed to fetch the latest release information");
                 }
-
-                metadataInfo.setUpdate(new UpdateResponse(isUpdateAvailable, latestReleaseUrl));
-            } catch (IOException ex) {
-                log.error("Failed to fetch the latest release information");
             }
+
+            // Use the cached data
+            if (Main.buildMetadataGitClosestTagName != null && !Main.buildMetadataGitClosestTagName.equalsIgnoreCase(cachedLatestReleaseTag)) {
+                latestReleaseUrl = cachedLatestReleaseUrl;
+                isUpdateAvailable = true;
+            }
+
+            metadataInfo.setUpdate(new UpdateResponse(isUpdateAvailable, latestReleaseUrl));
         }
 
 

@@ -72,7 +72,7 @@ public class PKCS11KeyStoreLoader {
         AuthProvider authProvider = (AuthProvider) selectedProvider;
         authProvider.setCallbackHandler(new CallbackHandler() {
             @Override
-            public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+            public void handle(Callback[] callbacks) throws UnsupportedCallbackException {
 
                 for (Callback callback : callbacks) {
                     if (callback instanceof PasswordCallback passwordCallback) {

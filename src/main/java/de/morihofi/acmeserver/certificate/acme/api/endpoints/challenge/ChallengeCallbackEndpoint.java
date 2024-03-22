@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.objects.ACMEChallengeResponse;
 import de.morihofi.acmeserver.certificate.acme.challenges.ChallengeResult;
@@ -10,7 +10,6 @@ import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
 import de.morihofi.acmeserver.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
@@ -67,19 +66,16 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEMalformedException("DNS-01 method is only valid for non wildcard domains");
         }
 
-        ChallengeResult result;
-        switch (challengeType) {
-            case "http-01" -> {
-                result = HTTPChallenge.check(identifierChallenge.getAuthorizationToken(), identifierChallenge.getIdentifier().getDataValue(), identifierChallenge.getIdentifier().getOrder().getAccount());
-           }
-            case "dns-01" -> {
-                result = DNSChallenge.check(identifierChallenge.getAuthorizationToken(), nonWildcardDomain, identifierChallenge.getIdentifier().getOrder().getAccount());
-            }
+        ChallengeResult result = switch (challengeType) {
+            case "http-01" ->
+                    HTTPChallenge.check(identifierChallenge.getAuthorizationToken(), identifierChallenge.getIdentifier().getDataValue(), identifierChallenge.getIdentifier().getOrder().getAccount());
+            case "dns-01" ->
+                    DNSChallenge.check(identifierChallenge.getAuthorizationToken(), nonWildcardDomain, identifierChallenge.getIdentifier().getOrder().getAccount());
             default -> {
                 log.error("Unsupported challenge type: " + challengeType);
                 throw new ACMEConnectionErrorException("Unsupported challenge type: " + challengeType);
             }
-        }
+        };
 
         log.info("Validating ownership of host {}", nonWildcardDomain);
         if (result.isSuccessful()) {

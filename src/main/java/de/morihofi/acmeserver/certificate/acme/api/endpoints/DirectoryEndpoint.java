@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -22,10 +22,9 @@ public class DirectoryEndpoint implements Handler {
     /**
      * Method for handling the request
      * @param ctx Javalin Context
-     * @throws Exception thrown when there was an error processing the request
      */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handle(@NotNull Context ctx) {
 
         // Response is JSON
         ctx.header("Content-Type", "application/json");

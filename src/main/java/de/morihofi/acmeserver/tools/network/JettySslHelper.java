@@ -20,8 +20,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class
-JettySslHelper {
+public class JettySslHelper {
 
     private JettySslHelper() {
     }
@@ -125,8 +124,7 @@ JettySslHelper {
      * @throws NoSuchProviderException   If a required security provider is not available.
      */
     public static Server getSslJetty(int httpsPort, int httpPort, Path certificatePath, Path privateKeyPath, Path publicKeyPath, boolean enableSniCheck)
-            throws CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException,
-            KeyManagementException, NoSuchProviderException {
+            throws Exception {
 
         log.info("Loading Key Pair");
         KeyPair jettyKeyPair = PemUtil.loadKeyPair(privateKeyPath, publicKeyPath);
@@ -171,7 +169,7 @@ JettySslHelper {
      * @param jettyServer Jetty server wrapper of Javalin
      * @return A configured Jetty Server instance.
      */
-    public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext, JettyServer jettyServer, boolean enableSniCheck) {
+    public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext, JettyServer jettyServer, boolean enableSniCheck) throws Exception {
     /*
         If the port is not 0, the Service (e.g., HTTP/HTTPS) is enabled. Otherwise, it is disabled.
     */
@@ -181,6 +179,19 @@ JettySslHelper {
         } else {
             server = new Server();
         }
+
+
+        for (Connector connector : server.getConnectors()) {
+            if (connector instanceof ServerConnector) {
+                ServerConnector serverConnector = (ServerConnector) connector;
+
+                // Stoppe den Connector nur, wenn er läuft.
+                if (serverConnector.isStarted()) {
+                    serverConnector.stop();
+                }
+            }
+        }
+
         List<Connector> connectors = new ArrayList<>();
 
         if (httpsPort != 0 && sslContext != null) {
@@ -215,6 +226,15 @@ JettySslHelper {
         }
 
         server.setConnectors(connectors.toArray(new Connector[0]));
+
+        for (Connector connector : server.getConnectors()) {
+            if (connector instanceof ServerConnector && connector.getProtocols().contains("ssl")) {
+                ServerConnector sslConnector = (ServerConnector) connector;
+                sslConnector.start();
+                break;
+            }
+        }
+
         return server;
     }
 

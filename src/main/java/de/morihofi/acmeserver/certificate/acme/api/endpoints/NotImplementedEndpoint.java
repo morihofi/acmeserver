@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver;
+package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import io.javalin.http.Context;
@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class NotImplementedEndpoint implements Handler {
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handle(@NotNull Context ctx) {
         throw new ACMEServerInternalException("Account key rollover is currently not supported.");
     }
 }

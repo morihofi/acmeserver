@@ -1,6 +1,5 @@
 package de.morihofi.acmeserver.postsetup;
 
-import com.google.gson.Gson;
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
@@ -8,6 +7,7 @@ import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.config.Config;
+import de.morihofi.acmeserver.config.databaseConfig.JDBCUrlDatabaseConfig;
 import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS12KeyStoreParams;
 import de.morihofi.acmeserver.postsetup.inputcheck.FQDNInputChecker;
 import de.morihofi.acmeserver.postsetup.inputcheck.InputChecker;
@@ -17,11 +17,9 @@ import de.morihofi.acmeserver.tools.password.SecurePasswordGenerator;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.SocketException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.List;
@@ -168,9 +166,9 @@ public class PostSetup extends WindowBase {
         return fqdnBoxPanel.withBorder(Borders.doubleLine("FQDN/DNS Name Setup"));
     }
 
-    TextBox fqdnTextBox = new TextBox();
-    TextBox httpPortTextBox = new TextBox();
-    TextBox httpsPortTextBox = new TextBox();
+    private final TextBox fqdnTextBox = new TextBox();
+    private final TextBox httpPortTextBox = new TextBox();
+    private final TextBox httpsPortTextBox = new TextBox();
 
 
     /**
@@ -260,22 +258,15 @@ public class PostSetup extends WindowBase {
         }
 
         //Set database, use H2 as default. But only if using default config
-        appConfig.getDatabase().setEngine("h2");
-        appConfig.getDatabase().setHost("");
-        appConfig.getDatabase().setPassword(SecurePasswordGenerator.generateSecurePassword());
-        appConfig.getDatabase().setName(filesDir.resolve("acmedatabase").toAbsolutePath().toString());
-        appConfig.getDatabase().setUser("acmeuser");
 
+        JDBCUrlDatabaseConfig jdbcUrlDatabaseConfig = new JDBCUrlDatabaseConfig();
+        jdbcUrlDatabaseConfig.setUser("acmeuser");
+        jdbcUrlDatabaseConfig.setPassword(SecurePasswordGenerator.generateSecurePassword());
+        jdbcUrlDatabaseConfig.setJdbcUrl("jdbc:h2:" + filesDir.resolve("acmedatabase").toAbsolutePath() + ";DB_CLOSE_DELAY=-1");
+        appConfig.setDatabase(jdbcUrlDatabaseConfig);
 
         textGUI.getScreen().close();
-
-        log.info("Saving new configuration");
-        Gson gson = new Gson();
-        JSONObject jso = new JSONObject(gson.toJson(appConfig));
-        String formattedJson = jso.toString(4);
-
-        Files.writeString(filesDir.resolve("settings.json"), formattedJson);
-        log.info("Configuration has been saved successfully");
+        Main.saveServerConfiguration();
 
     }
 

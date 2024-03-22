@@ -17,7 +17,7 @@ public class GitHubVersionChecker {
         return getLatestReleaseTag(PROJECT_OWNER, PROJECT_NAME);
     }
 
-    public static String getLatestReleaseURL() throws IOException {
+    public static String getLatestReleaseURL() {
         return "https://github.com/" + PROJECT_OWNER + "/" + PROJECT_NAME + "/releases/latest";
     }
 
@@ -32,7 +32,9 @@ public class GitHubVersionChecker {
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
             assert response.body() != null;
-            return new Gson().fromJson(response.body().string(), Release.class).getTagName();
+            String responseString = response.body().string();
+
+            return new Gson().fromJson(responseString, Release.class).getTagName();
         }
     }
 }

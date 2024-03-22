@@ -1,5 +1,6 @@
-@import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ProvisionerResponse
-@import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse
+@import de.morihofi.acmeserver.certificate.api.serverInfo.objects.ProvisionerResponse
+@import de.morihofi.acmeserver.certificate.api.serverInfo.objects.ServerInfoResponse
+@import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager
 @import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager
 @import de.morihofi.acmeserver.webui.JteLocalizer
 @import io.javalin.http.Context
@@ -81,7 +82,7 @@ context = context
                                 <div class="form-floating flex-grow-1">
                                     <input type="text" class="form-control"
                                            name="acme-directory-${provisioner.getName()}"
-                                           value="${cryptoStoreManager.getProvisionerForName(provisioner.getName()).getApiURL() + "/directory"}"
+                                           value="${ProvisionerManager.getProvisionerForName(provisioner.getName()).getApiURL() + "/directory"}"
                                            readonly>
                                     <label for="acme-directory-${provisioner.getName()}">${localizer.lookup("web.index.provisioners.directoryUrl")}</label>
                                 </div>

@@ -19,7 +19,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -124,9 +123,7 @@ public class CertificateAuthorityGenerator {
             issuerNameString += ", C=" + countryCode;
         }
 
-
-        X500Name issuerName = new X500Name(issuerNameString);
-        return issuerName;
+        return new X500Name(issuerNameString);
     }
 
     /**

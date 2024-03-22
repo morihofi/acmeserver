@@ -1,4 +1,4 @@
-@import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse
+@import de.morihofi.acmeserver.certificate.api.serverInfo.objects.ServerInfoResponse
 @import de.morihofi.acmeserver.webui.JteLocalizer
 @import de.morihofi.acmeserver.webui.compontents.misc.CustomFormatter
 

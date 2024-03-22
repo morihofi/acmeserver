@@ -48,7 +48,7 @@ public class DNSChallenge {
             // Abfrage des TXT-Eintrags für die ACME Challenge
             Lookup lookup = new Lookup("_acme-challenge." + domain, Type.TXT);
             lookup.run();
-            String txtValue = "";
+            String txtValue;
             if (lookup.getResult() == Lookup.SUCCESSFUL) {
                 // Check TXT-Entries
                 for (Record dnsRecord : lookup.getAnswers()) {
@@ -94,7 +94,7 @@ public class DNSChallenge {
     /**
      * Setting the DNS resolver manually
      * @param dnsServerIP DNS Server to use
-     * @throws UnknownHostException
+     * @throws UnknownHostException host is unknown
      */
     public static void setManualDNSResolver(String dnsServerIP) throws UnknownHostException {
         // Setting the DNS resolver manually
