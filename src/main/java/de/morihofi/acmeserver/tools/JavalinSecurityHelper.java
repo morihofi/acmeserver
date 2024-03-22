@@ -56,7 +56,26 @@ public class JavalinSecurityHelper {
     public static void initSecureApi(Javalin app, CryptoStoreManager cryptoStoreManager, Config appConfig, CertificateRenewManager certificateRenewManager) throws Exception {
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
-        generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
+
+
+        {
+            String alias = CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI;
+            CertificateRenewManager.CertificateData certData = generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
+
+            if(certData.keyPair() != null && certData.certificateChain() != null){
+                log.info("Saving certificate and key for alias {} in keystore", alias);
+                //Save the new certificate in keystore
+                keyStore.deleteEntry(alias);
+                keyStore.setKeyEntry(
+                        alias,
+                        certData.keyPair().getPrivate(),
+                        "".toCharArray(),
+                        certData.certificateChain()
+                );
+                cryptoStoreManager.saveKeystore();
+            }
+
+        }
 
         log.info("Updating Javalin's TLS configuration");
 

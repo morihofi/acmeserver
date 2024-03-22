@@ -80,17 +80,11 @@ public class AcmeApiServer {
         log.info("Initializing database");
         HibernateUtil.initDatabase();
 
-        if (Main.serverOptions.contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
-            log.info("Starting Certificate Issuer");
-            CertificateIssuer.startThread(cryptoStoreManager);
-        }
-
         log.info("Starting ACME API WebServer");
         app = Javalin.create(javalinConfig -> {
             //TODO: Make it compatible again with modules
             javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
             javalinConfig.fileRenderer(new JavalinJte(WebUI.createTemplateEngine()));
-            javalinConfig.useVirtualThreads = true;
         });
 
         JavalinSecurityHelper.initSecureApi(app, cryptoStoreManager, appConfig, certificateRenewManager);
@@ -142,6 +136,13 @@ public class AcmeApiServer {
         CRLScheduler.startScheduler();
         log.info("Starting the certificate renew watcher");
         certificateRenewManager.startScheduler();
+
+
+        if (Main.serverOptions.contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
+            log.info("Starting Certificate Issuer");
+            CertificateIssuer.startThread(cryptoStoreManager);
+        }
+
 
         app.start();
         log.info("\u2705 Configure Routes completed. Ready for incoming requests");
