@@ -70,6 +70,7 @@ java -jar acmeserver-VERSION.jar
 - Supported challenges:
   - HTTP-01
   - DNS-01
+- Statistics 
 
 ## 📒 Disclaimer
 This version is not fully RFC 8555 compliant, but should work with most clients. 
