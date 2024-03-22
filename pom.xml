@@ -17,10 +17,17 @@
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>dd-MM-yyyy HH:mm</maven.build.timestamp.format>
 
+        <!-- Cryptographic libraries -->
         <bouncycastle.version>1.77</bouncycastle.version>
-        <javalin.version>6.1.3</javalin.version>
         <jose4j.version>0.9.5</jose4j.version>
+
+        <!-- WebServer and Template Engine -->
+        <javalin.version>6.1.3</javalin.version>
         <jte.version>2.2.1</jte.version>
+
+        <!-- Hibernate and connection pool -->
+        <hibernate.version>6.4.4.Final</hibernate.version>
+        <agroal.version>2.3</agroal.version>
     </properties>
 
     <licenses>
@@ -359,12 +366,33 @@
             <version>42.7.3</version>
         </dependency>
 
-
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-community-dialects</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>6.4.4.Final</version>
+            <artifactId>hibernate-agroal</artifactId>
+            <version>${hibernate.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.agroal</groupId>
+            <artifactId>agroal-api</artifactId>
+            <version>${agroal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.agroal</groupId>
+            <artifactId>agroal-pool</artifactId>
+            <version>${agroal.version}</version>
+        </dependency>
+
+
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
@@ -404,18 +432,6 @@
             <version>${jose4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.10.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.10.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
             <version>4.8.3</version>
@@ -430,6 +446,19 @@
             <groupId>org.passay</groupId>
             <artifactId>passay</artifactId>
             <version>1.6.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.10.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.10.1</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

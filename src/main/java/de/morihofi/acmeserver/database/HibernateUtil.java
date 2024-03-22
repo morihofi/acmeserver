@@ -128,36 +128,11 @@ public class HibernateUtil {
             throw new IllegalArgumentException("JDBC configuration string MUST start with \"jdbc:\"");
         }
 
-        // Settings based on the selected database if known
-        if(jdbcUrl.startsWith("jdbc:h2")){
-            // H2 Database
-            configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "org.h2.Driver");
-            configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.H2Dialect");
+        // Database dialect and driver based on JDBC URL
+        configureDialectAndDriver(configuration, jdbcUrl);
 
-            log.info("Detected H2 Database JDBC, using its recommended configuration");
-
-        } else if(jdbcUrl.startsWith("jdbc:mariadb")){
-            // MariaDB
-            configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "org.mariadb.jdbc.Driver");
-            configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.MariaDBDialect");
-
-            log.info("Detected MariaDB JDBC, using its recommended configuration");
-
-        } else if(jdbcUrl.startsWith("jdbc:postgresql")){
-            // PostgreSQL
-            configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "org.postgresql.Driver");
-            configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
-
-            log.info("Detected PostgreSQL JDBC, using its recommended configuration");
-
-        } else if(jdbcUrl.startsWith("jdbc:mysql")){
-            // MySQL
-            configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "com.mysql.cj.jdbc.Driver");
-            configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
-
-            log.info("Detected MySQL JDBC, using its recommended configuration");
-
-        }
+        // Agroal Connection Pool settings
+        configureAgroalConnectionPool(configuration);
 
         log.info("Configuring JDBC URL and login credentials");
         configuration.setProperty(Environment.JAKARTA_JDBC_URL, jdbcConfig.getJdbcUrl());
@@ -182,6 +157,36 @@ public class HibernateUtil {
      */
     public static SessionFactory getSessionFactory() {
         return sessionFactory;
+    }
+
+    private static void configureDialectAndDriver(Configuration configuration, String jdbcUrl) {
+        if (jdbcUrl.startsWith("jdbc:h2")) {
+            configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "org.h2.Driver");
+            configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.H2Dialect");
+            log.info("Detected H2 Database JDBC, using its recommended configuration");
+        } else if (jdbcUrl.startsWith("jdbc:mariadb")) {
+            configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "org.mariadb.jdbc.Driver");
+            configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.MariaDBDialect");
+            log.info("Detected MariaDB JDBC, using its recommended configuration");
+        } else if (jdbcUrl.startsWith("jdbc:postgresql")) {
+            configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "org.postgresql.Driver");
+            configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
+            log.info("Detected PostgreSQL JDBC, using its recommended configuration");
+        } else if (jdbcUrl.startsWith("jdbc:mysql")) {
+            configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "com.mysql.cj.jdbc.Driver");
+            configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
+            log.info("Detected MySQL JDBC, using its recommended configuration");
+        }
+    }
+
+    private static void configureAgroalConnectionPool(Configuration configuration) {
+        // Beispielhafte Agroal Konfigurationseinstellungen
+        log.info("Configuring Agroal connection pool");
+        configuration.setProperty("hibernate.connection.provider_class", "org.hibernate.agroal.internal.AgroalConnectionProvider");
+        configuration.setProperty("hibernate.agroal.minSize", "5");
+        configuration.setProperty("hibernate.agroal.maxSize", "20");
+        configuration.setProperty("hibernate.agroal.initialSize", "10");
+        configuration.setProperty("hibernate.agroal.maxLifetime", "PT1000S"); //Lifetime of 1000 seconds
     }
 
 
