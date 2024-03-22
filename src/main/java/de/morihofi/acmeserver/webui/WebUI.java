@@ -11,10 +11,9 @@
 package de.morihofi.acmeserver.webui;
 
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.ServerInfoEndpoint;
+import de.morihofi.acmeserver.certificate.api.serverInfo.ApiServerInfoEndpoint;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.webui.handler.CommandBuilderHandler;
-import de.morihofi.acmeserver.webui.handler.LoginUiHandler;
 import de.morihofi.acmeserver.webui.handler.ProvisionerInfoHandler;
 import de.morihofi.acmeserver.webui.handler.StatsHandler;
 import gg.jte.ContentType;
@@ -125,7 +124,7 @@ public class WebUI {
      */
     public static Map<String, Object> getDefaultFrontendMap(CryptoStoreManager cryptoStoreManager, Context context){
         return Map.of(
-                "serverInfoResponse", ServerInfoEndpoint.getServerInfoResponse(appConfig.getProvisioner()),
+                "serverInfoResponse", ApiServerInfoEndpoint.getServerInfoResponse(appConfig.getProvisioner()),
                 "cryptoStoreManager", cryptoStoreManager,
                 "localizer", JteLocalizer.getLocalizerFromContext(context),
                 "context", context

@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects;
+package de.morihofi.acmeserver.certificate.api.serverInfo.objects;
 
 public class UpdateResponse {
     private boolean updateAvailable = false;

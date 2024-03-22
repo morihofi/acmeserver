@@ -1,4 +1,4 @@
-@import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse
+@import de.morihofi.acmeserver.certificate.api.serverInfo.objects.ServerInfoResponse
 @import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager
 @import de.morihofi.acmeserver.webui.JteLocalizer
 @import de.morihofi.acmeserver.webui.handler.StatsHandler
@@ -20,6 +20,14 @@
     @template.layout.head()
 
     <title>${localizer.lookup("app.name")}</title>
+    <style>
+        .chart-container {
+          position: relative;
+          margin: auto;
+          height: 80vh;
+          width: 100%;
+        }
+    </style>
 </head>
 <body>
 @template.layout.navigation(
@@ -34,7 +42,7 @@ context = context
     <div class="container mt-3 mb-3">
         <div class="row">
             @for(StatsHandler.StatisticItem item : statisticsAll)
-                <div class="col-md-3">
+                <div class="col-md-3 mb-3">
                     <div class="card text-center">
                         <div class="card-body">
                             <h5 class="card-title display-6 fw-bold">${item.number()}</h5>
@@ -62,7 +70,7 @@ context = context
                 <div class="container mt-3 mb-3">
                     <div class="row">
                         @for(StatsHandler.StatisticItem item : statistic.stats())
-                            <div class="col-md-3">
+                            <div class="col-md-3 mb-3">
                                 <div class="card text-center">
                                     <div class="card-body">
                                         <h5 class="card-title display-6 fw-bold">${item.number()}</h5>
@@ -74,7 +82,12 @@ context = context
                     </div>
                 </div>
             </div>
+            <div class="chart-container">
+                <canvas class="chart-issuedCertificate mb-3 ml-3 mr-3" data-provisioner="${statistic.provisionerName()}"></canvas>
+            </div>
+
         </div>
+
     @endfor
 
 
@@ -84,7 +97,7 @@ context = context
     <div class="container mt-3 mb-3">
         <div class="row">
             @for(StatsHandler.StatisticItem item : statisticsDatabase)
-                <div class="col-md-3">
+                <div class="col-md-3 mb-3">
                     <div class="card text-center mb-3">
                         <div class="card-body">
                             <h5 class="card-title display-6 fw-bold">${item.number()}</h5>
@@ -103,5 +116,86 @@ context = context
 serverInfoResponse = serverInfoResponse,
 localizer = localizer
 )
+
+<script>
+
+    function transformData(jsonData) {
+    return Object.entries(jsonData).map(([date, count]) => ({
+        x: new Date(date),
+        y: count
+    }));
+    }
+
+
+    // Get all charts
+    const chartElements = document.getElementsByClassName("chart-issuedCertificate");
+    
+    // Iterate over every chart
+    Array.from(chartElements).forEach((elem) => {
+      const provisionerName = elem.getAttribute('data-provisioner');
+      const ctx = elem.getContext('2d');
+
+      // Initialize Chart.js chart instance
+      const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          datasets: [{
+            label: `@raw${provisionerName}@endraw`,
+            backgroundColor: 'rgba(0, 123, 255, 0.5)',
+            borderColor: 'rgba(0, 123, 255, 1)',
+            fill: false,
+            data: [] // Initially empty, will be filled later
+          }]
+        },
+        options: {
+          plugins: {
+            title: {
+              text: '${localizer.lookup("web.stats.database.chart.issuedCertificatesPerDay")}',
+              display: true
+            }
+          },
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                parser: 'yyyy-MM-dd',
+                unit: 'day',
+                displayFormats: {
+                  day: 'yyyy-MM-dd'
+                }
+              },
+              title: {
+                display: true,
+                text: 'Datum'
+              }
+            },
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: '${localizer.lookup("web.stats.database.chart.countOfIssuedCertificates")}'
+              }
+            }
+          },
+          responsive: true,
+          maintainAspectRatio: false
+        }
+    });
+@raw
+    // Execute a GET request for the specific provisioner
+    fetch(`/api/stats/provisioners/certificates-issued?provisioner=${encodeURIComponent(provisionerName)}`)
+      .then(response => response.json())
+      .then(jsonData => {
+        // Transform the JSON object into a Chart.js-friendly format
+        chart.data.datasets[0].data = transformData(jsonData);
+        chart.update();
+      })
+      .catch(error => console.error(`Error when retrieving data for ${provisionerName}:`, error));
+    });
+@endraw
+
+</script>
+
+
 </body>
 </html>

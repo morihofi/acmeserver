@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.download;
+package de.morihofi.acmeserver.certificate.api.download;
 
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;

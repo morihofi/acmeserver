@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.webui.handler;
 
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
+import de.morihofi.acmeserver.certificate.provisioners.ProvisionerStatistics;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
@@ -15,6 +16,7 @@ import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.hibernate.stat.Statistics;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -95,13 +97,13 @@ public class StatsHandler implements Handler {
         statisticItemsAllProvisioners.add(new StatisticItem(ProvisionerManager.getProvisioners().size(), "web.stats.name.provisioners"));
 
         // issued Certificates
-        statisticItemsAllProvisioners.add(new StatisticItem(countGlobalIssuedCertificates(session), "web.stats.name.certificatesIssued"));
+        statisticItemsAllProvisioners.add(new StatisticItem(ProvisionerStatistics.countGlobalIssuedCertificates(session), "web.stats.name.certificatesIssued"));
 
         // revoked Certificates
-        statisticItemsAllProvisioners.add(new StatisticItem(countGlobalRevokedCertificates(session), "web.stats.name.certificatesRevoked"));
+        statisticItemsAllProvisioners.add(new StatisticItem(ProvisionerStatistics.countGlobalRevokedCertificates(session), "web.stats.name.certificatesRevoked"));
 
         // (non-deactivated) ACME Accounts
-        statisticItemsAllProvisioners.add(new StatisticItem(countGlobalActiveACMEAccounts(session), "web.stats.name.acmeAccounts"));
+        statisticItemsAllProvisioners.add(new StatisticItem(ProvisionerStatistics.countGlobalActiveACMEAccounts(session), "web.stats.name.acmeAccounts"));
 
         return statisticItemsAllProvisioners;
     }
@@ -123,16 +125,16 @@ public class StatsHandler implements Handler {
             List<StatisticItem> statisticItemsOfProvisioner = new ArrayList<>();
 
             // issued Certificates
-            statisticItemsOfProvisioner.add(new StatisticItem(countACMEAccountsByProvisioner(session, provisionerName), "web.stats.name.acmeAccounts"));
+            statisticItemsOfProvisioner.add(new StatisticItem(ProvisionerStatistics.countACMEAccountsByProvisioner(session, provisionerName), "web.stats.name.acmeAccounts"));
 
             // issued Certificates
-            statisticItemsOfProvisioner.add(new StatisticItem(countIssuedCertificatesByProvisioner(session, provisionerName), "web.stats.name.certificatesIssued"));
+            statisticItemsOfProvisioner.add(new StatisticItem(ProvisionerStatistics.countIssuedCertificatesByProvisioner(session, provisionerName), "web.stats.name.certificatesIssued"));
 
             // revoked Certificates
-            statisticItemsOfProvisioner.add(new StatisticItem(countRevokedCertificatesByProvisioner(session, provisionerName), "web.stats.name.certificatesRevoked"));
+            statisticItemsOfProvisioner.add(new StatisticItem(ProvisionerStatistics.countRevokedCertificatesByProvisioner(session, provisionerName), "web.stats.name.certificatesRevoked"));
 
             // Certificates waiting to be issued
-            statisticItemsOfProvisioner.add(new StatisticItem(countCertificatesWaitingForIssueByProvisioner(session, provisionerName), "web.stats.name.certificatesIssueWaiting"));
+            statisticItemsOfProvisioner.add(new StatisticItem(ProvisionerStatistics.countCertificatesWaitingForIssueByProvisioner(session, provisionerName), "web.stats.name.certificatesIssueWaiting"));
 
             provisionerStatistics.add(new ProvisionerStatistic(provisionerName, statisticItemsOfProvisioner));
         }
@@ -140,59 +142,6 @@ public class StatsHandler implements Handler {
         return provisionerStatistics;
     }
 
-    public long countACMEAccountsByProvisioner(Session session, String provisionerName) {
-        Long count = session.createQuery(
-                        "SELECT COUNT(a) FROM ACMEAccount a WHERE a.provisioner = :provisionerName", Long.class)
-                .setParameter("provisionerName", provisionerName)
-                .getSingleResult();
-        return count != null ? count : 0;
-    }
-
-    public long countIssuedCertificatesByProvisioner(Session session, String provisionerName) {
-        Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NOT NULL", Long.class)
-                .setParameter("provisionerName", provisionerName)
-                .getSingleResult();
-        return count != null ? count : 0;
-    }
-
-    public long countRevokedCertificatesByProvisioner(Session session, String provisionerName) {
-        Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NOT NULL AND o.revokeStatusCode IS NOT NULL AND o.revokeTimestamp IS NOT NULL", Long.class)
-                .setParameter("provisionerName", provisionerName)
-                .getSingleResult();
-        return count != null ? count : 0;
-
-    }
-
-    public long countCertificatesWaitingForIssueByProvisioner(Session session, String provisionerName) {
-        Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NULL AND o.certificateCSR IS NOT NULL", Long.class)
-                .setParameter("provisionerName", provisionerName)
-                .getSingleResult();
-        return count != null ? count : 0;
-    }
-
-    public long countGlobalIssuedCertificates(Session session) {
-        Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.certificatePem IS NOT NULL", Long.class)
-                .getSingleResult();
-        return count != null ? count : 0;
-    }
-
-    public long countGlobalRevokedCertificates(Session session) {
-        Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.certificatePem IS NOT NULL AND o.revokeStatusCode IS NOT NULL AND o.revokeTimestamp IS NOT NULL", Long.class)
-                .getSingleResult();
-        return count != null ? count : 0;
-    }
-
-    public long countGlobalActiveACMEAccounts(Session session) {
-        Long count = session.createQuery(
-                        "SELECT COUNT(a) FROM ACMEAccount a WHERE a.deactivated = false", Long.class)
-                .getSingleResult();
-        return count != null ? count : 0;
-    }
 
 
     /**

@@ -2,8 +2,6 @@ package de.morihofi.acmeserver;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.download.DownloadCaEndpoint;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.ServerInfoEndpoint;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.certificate.revokeDistribution.*;
@@ -133,9 +131,7 @@ public class AcmeApiServer {
 
 
         // Global routes
-        app.get("/serverinfo", new ServerInfoEndpoint(appConfig.getProvisioner()));
-        app.get("/ca.crt", new DownloadCaEndpoint(cryptoStoreManager));
-
+        API.init(app, appConfig, cryptoStoreManager);
         WebUI.init(app, cryptoStoreManager);
 
         for (Provisioner provisioner : getProvisioners(appConfig.getProvisioner(), cryptoStoreManager)) {

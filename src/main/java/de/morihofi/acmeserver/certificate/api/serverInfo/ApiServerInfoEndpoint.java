@@ -1,11 +1,11 @@
-package de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo;
+package de.morihofi.acmeserver.certificate.api.serverInfo;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.MetadataInfoResponse;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ProvisionerResponse;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.ServerInfoResponse;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.nonAcme.serverInfo.objects.UpdateResponse;
+import de.morihofi.acmeserver.certificate.api.serverInfo.objects.MetadataInfoResponse;
+import de.morihofi.acmeserver.certificate.api.serverInfo.objects.ProvisionerResponse;
+import de.morihofi.acmeserver.certificate.api.serverInfo.objects.ServerInfoResponse;
+import de.morihofi.acmeserver.certificate.api.serverInfo.objects.UpdateResponse;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.tools.network.scm.github.GitHubVersionChecker;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -21,12 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressFBWarnings("EI_EXPOSE_REP2")
-public class ServerInfoEndpoint implements Handler {
+public class ApiServerInfoEndpoint implements Handler {
 
     /**
      * Logger
      */
-    public static final Logger log = LogManager.getLogger(ServerInfoEndpoint.class);
+    public static final Logger log = LogManager.getLogger(ApiServerInfoEndpoint.class);
 
     /**
      * List of provisioners, specified in config
@@ -38,7 +38,7 @@ public class ServerInfoEndpoint implements Handler {
      *
      * @param provisionerConfigList List of provisioners, specified in config
      */
-    public ServerInfoEndpoint(List<ProvisionerConfig> provisionerConfigList) {
+    public ApiServerInfoEndpoint(List<ProvisionerConfig> provisionerConfigList) {
         this.provisionerConfigList = provisionerConfigList;
     }
 
