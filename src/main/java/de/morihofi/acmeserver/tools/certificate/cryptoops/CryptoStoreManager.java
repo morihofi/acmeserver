@@ -5,7 +5,6 @@ import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.IKeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
-import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,10 +58,7 @@ public class CryptoStoreManager {
      */
     private KeyStore keyStore;
 
-    /**
-     * Instance for referencing all certificate renew watchers
-     */
-    private final Vector<CertificateRenewWatcher> certificateRenewWatchers = new Vector<>();
+
 
     /**
      * Check if the ACME Server is running for the first time, so the user can upload its existing CA
@@ -207,19 +203,5 @@ public class CryptoStoreManager {
     public void disableFirstRunFlag(){
         firstRun = false;
         log.info("KeyStore first time use has been disabled (if not been done before)");
-    }
-
-    public Vector<CertificateRenewWatcher> getCertificateRenewWatchers() {
-        return certificateRenewWatchers;
-    }
-
-
-    @Deprecated
-    public Provisioner getProvisionerForName(String provisionerName) {
-        return ProvisionerManager.getProvisionerForName(provisionerName);
-    }
-    @Deprecated
-    public Set<Provisioner> getProvisioners(){
-        return ProvisionerManager.getProvisioners();
     }
 }

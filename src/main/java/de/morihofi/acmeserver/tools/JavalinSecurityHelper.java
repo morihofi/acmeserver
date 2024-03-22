@@ -6,7 +6,7 @@ import de.morihofi.acmeserver.tools.certificate.CertTools;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
 import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGenerator;
-import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
+import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewManager;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import de.morihofi.acmeserver.tools.network.JettySslHelper;
 import io.javalin.Javalin;
@@ -53,7 +53,7 @@ public class JavalinSecurityHelper {
      * @throws Exception if there is an error in generating the ACME API client certificate, updating the Jetty
      *                   server SSL configuration, or during automatic certificate renewal.
      */
-    public static void initSecureApi(Javalin app, CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
+    public static void initSecureApi(Javalin app, CryptoStoreManager cryptoStoreManager, Config appConfig, CertificateRenewManager certificateRenewManager) throws Exception {
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
         generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
@@ -74,26 +74,19 @@ public class JavalinSecurityHelper {
         JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(), enableSniCheck);
 
         log.info("Registering ACME API certificate expiration watcher");
-        CertificateRenewWatcher watcher = new CertificateRenewWatcher(cryptoStoreManager, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, 6, TimeUnit.HOURS, () -> {
-            //Executed when certificate needs to be renewed
 
+        certificateRenewManager.registerNewCertificateRenewWatcher(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, null, (provisioner, x509Certificate, keyPair) -> {
+            //Generate new certificate in place
+            return generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
+        }, () -> {
             try {
-                log.info("Renewing certificate...");
-
-                //Generate new certificate in place
-                generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
-
                 log.info("Certificate renewed successfully, now reloading ACME API certificate");
-
                 JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(), enableSniCheck);
-
-
-                log.info("Certificate reload complete");
             } catch (Exception e) {
-                log.error("Error renewing certificates", e);
+                throw new RuntimeException(e);
             }
         });
-        cryptoStoreManager.getCertificateRenewWatchers().add(watcher);
+
     }
 
     /**
@@ -109,7 +102,7 @@ public class JavalinSecurityHelper {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws UnrecoverableKeyException If a keystore key cannot be recovered.
      */
-    private static void generateAcmeApiClientCertificate(CryptoStoreManager cryptoStoreManager, Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
+    private static CertificateRenewManager.CertificateData generateAcmeApiClientCertificate(CryptoStoreManager cryptoStoreManager, Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
         String rootCaAlias = CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA;
 
         KeyPair rootCaKeyPair = cryptoStoreManager.getCerificateAuthorityKeyPair();
@@ -154,22 +147,15 @@ public class JavalinSecurityHelper {
                     null
             );
 
-            // Dumping certificate to HDD
-            log.info("Storing certificate in KeyStore");
             X509Certificate[] chain = new X509Certificate[]{
                     acmeAPICertificate,
                     intermediateCertificate,
                     rootCertificate
             };
 
-            cryptoStoreManager.getKeyStore().deleteEntry(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI);
-            cryptoStoreManager.getKeyStore().setKeyEntry(
-                    CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI,
-                    acmeAPIKeyPair.getPrivate(),
-                    "".toCharArray(),
-                    chain
-            );
-            cryptoStoreManager.saveKeystore();
+            return new CertificateRenewManager.CertificateData(chain, acmeAPIKeyPair);
+        }else {
+            return new CertificateRenewManager.CertificateData(null ,null);
         }
     }
 

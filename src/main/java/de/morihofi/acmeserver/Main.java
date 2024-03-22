@@ -19,6 +19,7 @@ import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStor
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
 import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
+import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewManager;
 import de.morihofi.acmeserver.tools.cli.CLIArgument;
 import de.morihofi.acmeserver.tools.path.AppDirectoryHelper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -72,6 +73,7 @@ public class Main {
 
     @SuppressFBWarnings({"MS_PKGPROTECT", "MS_CANNOT_BE_FINAL"})
     public static Config appConfig;
+
 
     public static void restartMain() throws Exception {
         coreComponentsInitialized = false;

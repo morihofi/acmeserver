@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.webui.handler;
 
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.collectors.SingletonCollector;
 import de.morihofi.acmeserver.webui.JteLocalizer;
@@ -48,7 +49,7 @@ public class ProvisionerInfoHandler implements Handler {
         String provisionerName = context.queryParam("name");
 
 
-        Provisioner provisioner = cryptoStoreManager.getProvisioners().stream()
+        Provisioner provisioner = ProvisionerManager.getProvisioners().stream()
                 .filter(lstProvisioner -> lstProvisioner.getProvisionerName().equals(provisionerName))
                 .collect(SingletonCollector.toSingleton());
 

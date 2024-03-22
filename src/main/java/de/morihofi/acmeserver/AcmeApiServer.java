@@ -17,10 +17,11 @@ import de.morihofi.acmeserver.tools.JavalinSecurityHelper;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
 import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
-import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewInitializer;
-import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
+import de.morihofi.acmeserver.tools.certificate.renew.IntermediateCaRenew;
+import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewManager;
 import de.morihofi.acmeserver.tools.regex.ConfigCheck;
 import de.morihofi.acmeserver.webui.WebUI;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.rendering.template.JavalinJte;
@@ -60,6 +61,10 @@ public class AcmeApiServer {
     private static Javalin app = null;
 
 
+    @SuppressFBWarnings({"MS_PKGPROTECT", "MS_CANNOT_BE_FINAL"})
+    public static CertificateRenewManager certificateRenewManager;
+
+
     /**
      * Method to start the ACME API Server
      *
@@ -69,6 +74,7 @@ public class AcmeApiServer {
      */
     public static void startServer(CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
         AcmeApiServer.cryptoStoreManager = cryptoStoreManager;
+        AcmeApiServer.certificateRenewManager = new CertificateRenewManager(cryptoStoreManager);
 
         log.info("Starting in Normal Mode");
         Main.initializeCA(cryptoStoreManager);
@@ -89,7 +95,7 @@ public class AcmeApiServer {
             javalinConfig.useVirtualThreads = true;
         });
 
-        JavalinSecurityHelper.initSecureApi(app, cryptoStoreManager, appConfig);
+        JavalinSecurityHelper.initSecureApi(app, cryptoStoreManager, appConfig, certificateRenewManager);
 
         app.before(ctx -> {
             ctx.header("Access-Control-Allow-Origin", "*");
@@ -138,6 +144,8 @@ public class AcmeApiServer {
 
         log.info("Starting the CRL generation Scheduler");
         CRLScheduler.startScheduler();
+        log.info("Starting the certificate renew watcher");
+        certificateRenewManager.startScheduler();
 
         app.start();
         log.info("\u2705 Configure Routes completed. Ready for incoming requests");
@@ -213,7 +221,9 @@ public class AcmeApiServer {
 
             }
             // Initialize the CertificateRenewWatcher for this provisioner
-            CertificateRenewInitializer.initializeIntermediateCertificateRenewWatcher(cryptoStoreManager, IntermediateKeyAlias, provisioner, config);
+            certificateRenewManager.registerNewCertificateRenewWatcher(IntermediateKeyAlias, provisioner, (givenProvisioner, x509Certificate, keyPair) -> {
+                return IntermediateCaRenew.renewIntermediateCertificate(keyPair, givenProvisioner, givenProvisioner.getCryptoStoreManager(), IntermediateKeyAlias);
+            });
 
             provisioners.add(provisioner);
         }
@@ -271,10 +281,9 @@ public class AcmeApiServer {
         CRLScheduler.shutdown();
 
         log.info("Shutting down Certificate watchers");
-        for (CertificateRenewWatcher certificateRenewWatcher : cryptoStoreManager.getCertificateRenewWatchers()) {
-            log.info("Gracefully shutdown certificate watchers for certificate alias {}", certificateRenewWatcher.getAlias());
-            certificateRenewWatcher.shutdown();
-        }
+
+        log.info("Gracefully shutdown certificate watchers");
+        certificateRenewManager.shutdown();
 
         if (Main.serverOptions.contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
             log.info("Shutting down Certificate Issuer");

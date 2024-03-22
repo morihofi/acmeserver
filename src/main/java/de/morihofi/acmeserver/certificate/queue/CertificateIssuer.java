@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.certificate.queue;
 
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
+import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
@@ -70,7 +71,7 @@ public class CertificateIssuer {
         PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
 
         List<Identifier> csrIdentifiers = CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
-        Provisioner provisioner = cryptoStoreManager.getProvisionerForName(order.getAccount().getProvisioner());
+        Provisioner provisioner = ProvisionerManager.getProvisionerForName(order.getAccount().getProvisioner());
 
                         /*
                             We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using the Basic Constrain etc.

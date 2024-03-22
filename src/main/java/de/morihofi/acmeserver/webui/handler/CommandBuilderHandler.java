@@ -10,6 +10,7 @@
 
 package de.morihofi.acmeserver.webui.handler;
 
+import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.webui.WebUI;
 import io.javalin.http.Context;
@@ -41,7 +42,7 @@ public class CommandBuilderHandler implements Handler {
         params.put("domain", domain);
 
         if(provisionerName != null){
-            params.put("directoryUrl", cryptoStoreManager.getProvisionerForName(provisionerName).getApiURL() + "/directory");
+            params.put("directoryUrl", ProvisionerManager.getProvisionerForName(provisionerName).getApiURL() + "/directory");
         }
 
 

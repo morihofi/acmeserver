@@ -391,8 +391,6 @@
             <artifactId>agroal-pool</artifactId>
             <version>${agroal.version}</version>
         </dependency>
-
-
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>

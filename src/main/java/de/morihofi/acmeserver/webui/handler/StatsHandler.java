@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.webui.handler;
 
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
@@ -92,7 +93,7 @@ public class StatsHandler implements Handler {
     private List<StatisticItem> getGlobalStatisticItems(List<ACMEOrder> allOrders, List<ACMEAccount> allAccounts) {
         List<StatisticItem> statisticItemsAllProvisioners = new ArrayList<>();
         // number of provisioners
-        statisticItemsAllProvisioners.add(new StatisticItem(cryptoStoreManager.getProvisioners().size(), "web.stats.name.provisioners"));
+        statisticItemsAllProvisioners.add(new StatisticItem(ProvisionerManager.getProvisioners().size(), "web.stats.name.provisioners"));
 
         // issued Certificates
         statisticItemsAllProvisioners.add(new StatisticItem(
@@ -134,7 +135,7 @@ public class StatsHandler implements Handler {
         //Statistics per provisioner
         List<ProvisionerStatistic> provisionerStatistics = new ArrayList<>();
 
-        for (Provisioner provisioner : cryptoStoreManager.getProvisioners()) {
+        for (Provisioner provisioner : ProvisionerManager.getProvisioners()) {
             String provisionerName = provisioner.getProvisionerName();
             List<StatisticItem> statisticItemsOfProvisioner = new ArrayList<>();
 
