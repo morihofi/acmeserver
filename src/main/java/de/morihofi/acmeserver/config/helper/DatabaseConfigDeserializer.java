@@ -2,9 +2,6 @@ package de.morihofi.acmeserver.config.helper;
 
 import com.google.gson.*;
 import de.morihofi.acmeserver.config.DatabaseConfig;
-import de.morihofi.acmeserver.config.certificateAlgorithms.AlgorithmParams;
-import de.morihofi.acmeserver.config.certificateAlgorithms.EcdsaAlgorithmParams;
-import de.morihofi.acmeserver.config.certificateAlgorithms.RSAAlgorithmParams;
 import de.morihofi.acmeserver.config.databaseConfig.JDBCUrlDatabaseConfig;
 import de.morihofi.acmeserver.config.databaseConfig.OldDatabaseConfig;
 

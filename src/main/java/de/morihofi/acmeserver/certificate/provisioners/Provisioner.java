@@ -100,7 +100,7 @@ public class Provisioner {
      * @param domainNameRestriction          The configuration for domain name restrictions.
      * @param wildcardAllowed                A boolean value indicating whether wildcards are allowed.
      * @param cryptoStoreManager             The manager for cryptographic store operations.
-     * @param config
+     * @param config                         configuration of the provisioner
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public Provisioner(String provisionerName, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager, ProvisionerConfig config) {

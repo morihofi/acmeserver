@@ -19,7 +19,6 @@ import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStor
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
 import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
-import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewManager;
 import de.morihofi.acmeserver.tools.cli.CLIArgument;
 import de.morihofi.acmeserver.tools.path.AppDirectoryHelper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -27,7 +26,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
-import org.bouncycastle.math.ec.ECPointMap;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -40,10 +38,7 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class Main {
@@ -94,6 +89,7 @@ public class Main {
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static long startupTime = 0; // Set after all routes are ready
 
+    @SuppressFBWarnings("MS_PKGPROTECT")
     public static String[] runArgs = new String[]{};
 
     public enum SERVER_OPTION {
@@ -104,16 +100,22 @@ public class Main {
         USE_ASYNC_CERTIFICATE_ISSUING
     }
 
-    public static Set<SERVER_OPTION> serverOptions = new HashSet<>();
 
-    private static Gson configGson = new GsonBuilder()
+    private static final Set<SERVER_OPTION> serverOptions = new HashSet<>();
+
+    public static Set<SERVER_OPTION> getServerOptions(){
+        return Collections.unmodifiableSet(serverOptions);
+    }
+
+    private static final Gson CONFIG_GSON = new GsonBuilder()
             .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
             .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())
             .registerTypeAdapter(DatabaseConfig.class, new DatabaseConfigDeserializer())
             .setPrettyPrinting()
             .create();
 
-    public static Path configPath = FILES_DIR.resolve("settings.json");
+
+    public static final Path CONFIG_PATH = FILES_DIR.resolve("settings.json");
 
 
     public static void main(String[] args) throws Exception {
@@ -203,13 +205,13 @@ public class Main {
 
     public static void loadServerConfiguration() throws IOException {
         log.info("Loading configuration ...");
-        appConfig = configGson.fromJson(Files.readString(configPath), Config.class);
+        appConfig = CONFIG_GSON.fromJson(Files.readString(CONFIG_PATH), Config.class);
         log.info("Configuration loaded");
     }
 
     public static void saveServerConfiguration() throws IOException {
         log.info("Saving configuration ...");
-        Files.writeString(configPath, configGson.toJson(appConfig));
+        Files.writeString(CONFIG_PATH, CONFIG_GSON.toJson(appConfig));
         log.info("Configuration saved");
     }
 
@@ -306,7 +308,7 @@ public class Main {
             log.info("First run detected, creating settings directory");
             Files.createDirectories(FILES_DIR);
         }
-        if (!Files.exists(configPath)) {
+        if (!Files.exists(CONFIG_PATH)) {
             log.fatal("No configuration was found. Please create a file called \"settings.json\" in \"{}\". Then try again", FILES_DIR.toAbsolutePath());
             System.exit(1);
         }

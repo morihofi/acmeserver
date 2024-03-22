@@ -30,7 +30,7 @@ public class CommandBuilderHandler implements Handler {
     }
 
     @Override
-    public void handle(@NotNull Context context) throws Exception {
+    public void handle(@NotNull Context context) {
         String provisionerName = context.queryParam("provisioner");
         String emailAddress = context.queryParam("email");
         String domain = context.queryParam("domain");

@@ -2,13 +2,10 @@ package de.morihofi.acmeserver.database.objects;
 
 
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.tools.crypto.Crypto;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
-import java.math.BigInteger;
-import java.sql.Timestamp;
 import java.util.List;
 
 /**

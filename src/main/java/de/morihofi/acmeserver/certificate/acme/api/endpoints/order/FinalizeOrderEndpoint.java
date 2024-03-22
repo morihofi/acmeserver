@@ -114,7 +114,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
                 transaction.commit();
 
-                if (Main.serverOptions.contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
+                if (Main.getServerOptions().contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
                     //Use async certificate issuing
 
 

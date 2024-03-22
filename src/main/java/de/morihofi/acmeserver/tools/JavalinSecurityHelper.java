@@ -20,7 +20,6 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 public class JavalinSecurityHelper {
 
@@ -43,7 +42,7 @@ public class JavalinSecurityHelper {
      * built-in security libraries and Bouncy Castle for platform independence.</p>
      *
      * <p>It updates the SSL configuration of the Jetty server to use the newly generated certificate and
-     * sets up a {@link CertificateRenewWatcher} to monitor certificate expiration. This watcher is configured
+     * sets up a watcher to monitor certificate expiration. This watcher is configured
      * to renew the certificate automatically before it expires and reload the certificate in the Jetty server
      * without requiring a restart of the application.</p>
      *

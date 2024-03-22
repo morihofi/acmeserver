@@ -124,7 +124,7 @@ public class CertificateIssuer {
 
     private static class CertificateIssuingTask implements Runnable {
 
-        private CryptoStoreManager cryptoStoreManager;
+        private final CryptoStoreManager cryptoStoreManager;
 
         public CertificateIssuingTask(CryptoStoreManager cryptoStoreManager) {
             this.cryptoStoreManager = cryptoStoreManager;

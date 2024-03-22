@@ -10,9 +10,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class ApiStatsProvisionerCertificatesIssued implements Handler {
 
-    private static Gson gson = new Gson();
+    private final static Gson gson = new Gson();
     @Override
-    public void handle(@NotNull Context context) throws Exception {
+    public void handle(@NotNull Context context) {
         context.contentType("application/json");
 
         String provisionerName = context.queryParam("provisioner");
@@ -23,7 +23,4 @@ public class ApiStatsProvisionerCertificatesIssued implements Handler {
 
     }
 
-    private class TimelineResponseItem {
-
-    }
 }

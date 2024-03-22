@@ -35,7 +35,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
     }
 
     @Override
-    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) {
         String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/json");

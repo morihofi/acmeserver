@@ -66,19 +66,16 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEMalformedException("DNS-01 method is only valid for non wildcard domains");
         }
 
-        ChallengeResult result;
-        switch (challengeType) {
-            case "http-01" -> {
-                result = HTTPChallenge.check(identifierChallenge.getAuthorizationToken(), identifierChallenge.getIdentifier().getDataValue(), identifierChallenge.getIdentifier().getOrder().getAccount());
-           }
-            case "dns-01" -> {
-                result = DNSChallenge.check(identifierChallenge.getAuthorizationToken(), nonWildcardDomain, identifierChallenge.getIdentifier().getOrder().getAccount());
-            }
+        ChallengeResult result = switch (challengeType) {
+            case "http-01" ->
+                    HTTPChallenge.check(identifierChallenge.getAuthorizationToken(), identifierChallenge.getIdentifier().getDataValue(), identifierChallenge.getIdentifier().getOrder().getAccount());
+            case "dns-01" ->
+                    DNSChallenge.check(identifierChallenge.getAuthorizationToken(), nonWildcardDomain, identifierChallenge.getIdentifier().getOrder().getAccount());
             default -> {
                 log.error("Unsupported challenge type: " + challengeType);
                 throw new ACMEConnectionErrorException("Unsupported challenge type: " + challengeType);
             }
-        }
+        };
 
         log.info("Validating ownership of host {}", nonWildcardDomain);
         if (result.isSuccessful()) {

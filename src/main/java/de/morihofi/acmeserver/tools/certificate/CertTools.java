@@ -1,22 +1,15 @@
 package de.morihofi.acmeserver.tools.certificate;
 
-import org.bouncycastle.asn1.*;
-import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.util.io.pem.PemReader;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Date;
 
 public class CertTools {

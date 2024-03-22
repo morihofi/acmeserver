@@ -53,7 +53,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
 
     public abstract void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception;
 
-    public void performSignatureAndNonceCheck(Context ctx, String accountId, ACMERequestBody acmeRequestBody) throws NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, InvalidKeyException, NoSuchProviderException {
+    public void performSignatureAndNonceCheck(Context ctx, String accountId, ACMERequestBody acmeRequestBody) {
         // Check signature and nonce
         SignatureCheck.checkSignature(ctx, accountId, gson);
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());

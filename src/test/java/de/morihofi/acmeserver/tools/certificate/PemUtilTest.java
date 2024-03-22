@@ -45,7 +45,7 @@ class PemUtilTest {
     }
 
     @Test
-    public void testReadPublicKeyFromPem() throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, NoSuchAlgorithmException {
+    public void testReadPublicKeyFromPem() throws IOException, NoSuchProviderException, InvalidKeySpecException, NoSuchAlgorithmException {
         // Generate a KeyPair for testing
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair = keyPairGenerator.generateKeyPair();

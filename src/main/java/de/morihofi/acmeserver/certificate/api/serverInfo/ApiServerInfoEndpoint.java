@@ -17,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,10 +48,9 @@ public class ApiServerInfoEndpoint implements Handler {
      * Method for handling the request
      *
      * @param ctx Javalin Context
-     * @throws Exception thrown when there was an error processing the request
      */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handle(@NotNull Context ctx) {
         ctx.header("Content-Type", "application/json");
 
         ServerInfoResponse responseData = getServerInfoResponse(provisionerConfigList);
@@ -58,6 +59,12 @@ public class ApiServerInfoEndpoint implements Handler {
         String jsonResponse = gson.toJson(responseData);
         ctx.result(jsonResponse);
     }
+
+
+    private static final Duration CACHE_DURATION = Duration.ofHours(3); // Cache for 3 hours
+    private static String cachedLatestReleaseTag = null;
+    private static String cachedLatestReleaseUrl = null;
+    private static Instant cacheTimestamp = Instant.MIN;
 
     public static ServerInfoResponse getServerInfoResponse(List<ProvisionerConfig> provisionerConfigList) {
         MetadataInfoResponse metadataInfo = new MetadataInfoResponse();
@@ -75,15 +82,23 @@ public class ApiServerInfoEndpoint implements Handler {
         {
             String latestReleaseUrl = null;
             boolean isUpdateAvailable = false;
-            try {
-                String gitHubLatestReleaseTag = GitHubVersionChecker.getLatestReleaseTag();
 
-                if (Main.buildMetadataGitClosestTagName != null && !Main.buildMetadataGitClosestTagName.equalsIgnoreCase(gitHubLatestReleaseTag)) {
-                    latestReleaseUrl = GitHubVersionChecker.getLatestReleaseURL();
-                    isUpdateAvailable = true;
+            // Check whether the cache is still valid
+            if (Duration.between(cacheTimestamp, Instant.now()).compareTo(CACHE_DURATION) > 0) {
+                // Cache has expired, so retrieve data again
+                try {
+                    cachedLatestReleaseTag = GitHubVersionChecker.getLatestReleaseTag();
+                    cachedLatestReleaseUrl = GitHubVersionChecker.getLatestReleaseURL();
+                    cacheTimestamp = Instant.now();
+                } catch (IOException ex) {
+                    log.error("Failed to fetch the latest release information");
                 }
-            } catch (IOException ex) {
-                log.error("Failed to fetch the latest release information");
+            }
+
+            // Use the cached data
+            if (Main.buildMetadataGitClosestTagName != null && !Main.buildMetadataGitClosestTagName.equalsIgnoreCase(cachedLatestReleaseTag)) {
+                latestReleaseUrl = cachedLatestReleaseUrl;
+                isUpdateAvailable = true;
             }
 
             metadataInfo.setUpdate(new UpdateResponse(isUpdateAvailable, latestReleaseUrl));

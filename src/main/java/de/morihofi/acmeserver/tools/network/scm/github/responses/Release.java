@@ -1,8 +1,10 @@
 package de.morihofi.acmeserver.tools.network.scm.github.responses;
 import com.google.gson.annotations.SerializedName;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.List;
 
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class Release {
     @SerializedName("author")
     private Author author;
@@ -77,6 +79,7 @@ public class Release {
 
     public String getAssetsurl() { return assetsurl; }
     public void setAssetsurl(String value) { this.assetsurl = value; }
+
 
     public List<Asset> getAssets() { return assets; }
     public void setAssets(List<Asset> value) { this.assets = value; }

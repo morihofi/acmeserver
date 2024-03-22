@@ -49,7 +49,6 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
         // Deserialize payload and protected objects
         ACMEAccountRequestPayload payload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);
-        JSONObject reqBodyProtectedObj = new JSONObject(acmeRequestBody.getDecodedProtected());
 
         // Check terms of service agreement
         if (!payload.getTermsOfServiceAgreed()) {
@@ -72,7 +71,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         String accountId = UUID.randomUUID().toString();
         String jwkString = new JSONObject(acmeRequestBody.getDecodedProtected()).getJSONObject("jwk").toString();
 
-        PublicJsonWebKey publicJsonWebKey = null;
+        PublicJsonWebKey publicJsonWebKey;
         try {
             publicJsonWebKey = (PublicJsonWebKey) JsonWebKey.Factory.newJwk(jwkString);
         } catch (JoseException e) {

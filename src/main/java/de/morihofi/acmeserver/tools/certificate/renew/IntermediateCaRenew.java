@@ -24,7 +24,7 @@ public class IntermediateCaRenew {
      * @param provisioner        The provisioner for which the certificate is being renewed.
      * @param cryptoStoreManager The CryptoStoreManager responsible for managing certificates.
      * @param intermediateAlias  The alias of the intermediate certificate to renew.
-     * @return
+     * @return object containing the new certificate and keyPair
      * @throws CertificateException      If there is an issue with certificate handling.
      * @throws OperatorCreationException If there is an issue with certificate operator creation.
      * @throws IOException               If there is an I/O error.

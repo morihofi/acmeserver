@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.certificate.provisioners;
 
-import de.morihofi.acmeserver.database.HibernateUtil;
+import de.morihofi.acmeserver.tools.safety.TypeSafetyHelper;
 import jakarta.persistence.Query;
 import org.hibernate.Session;
 
@@ -27,7 +27,7 @@ public class ProvisionerStatistics {
         }
 
 
-        List<Object[]> results = query.getResultList();
+        List<Object[]> results = TypeSafetyHelper.safeCastToClassOfType(query.getResultList(), Object[].class);
 
         for (Object[] result : results) {
             LocalDate date = ((java.sql.Date) result[0]).toLocalDate();

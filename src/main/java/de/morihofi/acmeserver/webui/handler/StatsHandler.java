@@ -3,20 +3,16 @@ package de.morihofi.acmeserver.webui.handler;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerStatistics;
-import de.morihofi.acmeserver.database.AcmeOrderState;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
-import de.morihofi.acmeserver.database.objects.ACMEAccount;
-import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.webui.WebUI;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.hibernate.stat.Statistics;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +24,7 @@ import java.util.Map;
  * statistical metrics to be displayed on the stats page.
  */
 public class StatsHandler implements Handler {
-    private CryptoStoreManager cryptoStoreManager;
+    private final CryptoStoreManager cryptoStoreManager;
 
     /**
      * Constructs a new {@link StatsHandler} with a reference to the {@link CryptoStoreManager}.
@@ -44,10 +40,9 @@ public class StatsHandler implements Handler {
      * statistical data to be displayed in the web UI.
      *
      * @param context The context of the incoming request.
-     * @throws Exception If there's an error processing the request or accessing database resources.
      */
     @Override
-    public void handle(@NotNull Context context) throws Exception {
+    public void handle(@NotNull Context context) {
 
         Map<String, Object> params = new HashMap<>(WebUI.getDefaultFrontendMap(cryptoStoreManager, context));
 
@@ -90,7 +85,7 @@ public class StatsHandler implements Handler {
      *
      * @return A list of {@link StatisticItem} representing the global statistics.
      */
-    @NotNull
+
     private List<StatisticItem> getGlobalStatisticItems(Session session) {
         List<StatisticItem> statisticItemsAllProvisioners = new ArrayList<>();
         // number of provisioners
@@ -184,6 +179,7 @@ public class StatsHandler implements Handler {
      * @param stats           A list of {@link StatisticItem} objects, each representing a different statistical metric
      *                        associated with the provisioner.
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public record ProvisionerStatistic(String provisionerName, List<StatisticItem> stats) {
         /**
          * Constructs a new {@code ProvisionerStatistic} with the specified name and list of statistical items.
@@ -191,6 +187,7 @@ public class StatsHandler implements Handler {
          * @param provisionerName the name of the provisioner.
          * @param stats           a list of {@link StatisticItem} objects representing the statistics for the provisioner.
          */
+
         public ProvisionerStatistic {
         }
 
@@ -209,6 +206,7 @@ public class StatsHandler implements Handler {
          *
          * @return a list of {@link StatisticItem} objects representing the provisioner's statistics.
          */
+        @SuppressFBWarnings("EI_EXPOSE_REP")
         @Override
         public List<StatisticItem> stats() {
             return stats;

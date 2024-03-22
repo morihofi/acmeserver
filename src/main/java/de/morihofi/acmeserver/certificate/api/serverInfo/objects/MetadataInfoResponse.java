@@ -1,12 +1,14 @@
 package de.morihofi.acmeserver.certificate.api.serverInfo.objects;
 
 import com.google.gson.annotations.SerializedName;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Represents the metadata information response structure.
  * This class encapsulates details such as version, build time, Git commit identifier,
  * Java version, and operating system information.
  */
+@SuppressFBWarnings("EI_EXPOSE_REP")
 public class MetadataInfoResponse {
     private String version;
     @SerializedName("buildtime")
@@ -76,6 +78,7 @@ public class MetadataInfoResponse {
     public UpdateResponse getUpdate() {
         return update;
     }
+
 
     public void setUpdate(UpdateResponse update) {
         this.update = update;

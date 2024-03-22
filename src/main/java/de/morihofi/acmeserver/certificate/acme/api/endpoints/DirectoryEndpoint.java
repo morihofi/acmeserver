@@ -22,10 +22,9 @@ public class DirectoryEndpoint implements Handler {
     /**
      * Method for handling the request
      * @param ctx Javalin Context
-     * @throws Exception thrown when there was an error processing the request
      */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handle(@NotNull Context ctx) {
 
         // Response is JSON
         ctx.header("Content-Type", "application/json");

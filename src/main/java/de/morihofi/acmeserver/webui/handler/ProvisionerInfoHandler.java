@@ -8,6 +8,7 @@ import de.morihofi.acmeserver.webui.JteLocalizer;
 import de.morihofi.acmeserver.webui.WebUI;
 import de.morihofi.acmeserver.webui.compontents.table.TableKey;
 import de.morihofi.acmeserver.webui.compontents.table.TableValue;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import jakarta.xml.bind.DatatypeConverter;
@@ -42,7 +43,7 @@ public class ProvisionerInfoHandler implements Handler {
     }
 
     @Override
-    public void handle(@NotNull Context context) throws Exception {
+    public void handle(@NotNull Context context) {
         this.localizer = JteLocalizer.getLocalizerFromContext(context);
         this.dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM, localizer.getLocale());
 
@@ -76,7 +77,6 @@ public class ProvisionerInfoHandler implements Handler {
      *         icons, and values are {@link TableValue} objects containing the metadata values. Some
      *         values, such as terms of service and website, are treated as links.
      */
-    @NotNull
     private Map<TableKey, TableValue> getProvisionerMetadata(Provisioner provisioner) {
         Map<TableKey, TableValue> provisionerTableMap = new LinkedHashMap<>();
         provisionerTableMap.put(new TableKey("web.core.provisioner.meta.name", "fa-solid fa-info"), new TableValue(provisioner.getProvisionerName()));
@@ -91,7 +91,6 @@ public class ProvisionerInfoHandler implements Handler {
      * @param provisioner The provisioner for which to get the metadata.
      * @return A map containing key-value pairs of the metadata.
      */
-    @NotNull
     private Map<TableKey, TableValue> getIntermediateMetadata(Provisioner provisioner) {
         Map<TableKey, TableValue> metadataMap = new LinkedHashMap<>();
 
@@ -201,6 +200,7 @@ public class ProvisionerInfoHandler implements Handler {
      * @throws IllegalArgumentException if the provided certificate is null or contains a public key type
      *         not handled by this method.
      */
+    @SuppressFBWarnings({"VA_FORMAT_STRING_USES_NEWLINE"})
     private String publicKeyDetails(X509Certificate certificate) {
         PublicKey publicKey = certificate.getPublicKey();
 
@@ -247,7 +247,6 @@ public class ProvisionerInfoHandler implements Handler {
      *         start and end.
      * @throws IllegalArgumentException if {@code lengthFirstLast} is negative or if the string is null.
      */
-    @NotNull
     private static String shortenLongString(String string, int lengthFirstLast) {
         if (string == null) {
             throw new IllegalArgumentException("String cannot be null.");

@@ -17,7 +17,6 @@ import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMERejectedIdentifierException;
-import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import de.morihofi.acmeserver.tools.email.SendMail;
@@ -177,9 +176,6 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             }
 
             transaction.commit();
-        } catch (Exception e) {
-            log.error("Unable to create new ACME Order with id {} for account {}", orderId, account.getAccountId(), e);
-            throw new ACMEServerInternalException("Unable to create new ACME Order");
         }
 
 

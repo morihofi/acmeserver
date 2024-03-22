@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class NotImplementedEndpoint implements Handler {
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handle(@NotNull Context ctx) {
         throw new ACMEServerInternalException("Account key rollover is currently not supported.");
     }
 }

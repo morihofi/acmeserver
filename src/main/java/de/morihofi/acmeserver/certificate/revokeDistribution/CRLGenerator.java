@@ -99,9 +99,8 @@ public class CRLGenerator {
      * Retrieves the current X509CRL object.
      *
      * @return The current X509CRL.
-     * @throws CRLException If retrieving the CRL fails.
      */
-    public X509CRL getCurrentCrl() throws CRLException {
+    public X509CRL getCurrentCrl() {
         // Return the CRL as a byte array
         return currentCrl;
     }

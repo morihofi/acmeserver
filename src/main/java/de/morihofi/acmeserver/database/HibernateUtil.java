@@ -14,7 +14,6 @@ import org.hibernate.cfg.Environment;
 import org.reflections.Reflections;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 
 /**
@@ -132,6 +131,7 @@ public class HibernateUtil {
         configureDialectAndDriver(configuration, jdbcUrl);
 
         //Use connection pool
+        //TODO: Let user decide
         if(true){
             // Agroal Connection Pool settings
             configureAgroalConnectionPool(configuration);

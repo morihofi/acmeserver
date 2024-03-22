@@ -17,7 +17,7 @@ public class GitHubVersionChecker {
         return getLatestReleaseTag(PROJECT_OWNER, PROJECT_NAME);
     }
 
-    public static String getLatestReleaseURL() throws IOException {
+    public static String getLatestReleaseURL() {
         return "https://github.com/" + PROJECT_OWNER + "/" + PROJECT_NAME + "/releases/latest";
     }
 

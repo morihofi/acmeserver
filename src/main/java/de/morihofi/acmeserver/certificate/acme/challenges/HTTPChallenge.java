@@ -11,7 +11,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.*;
@@ -61,10 +60,7 @@ public class HTTPChallenge {
             proxyHost = Main.appConfig.getProxy().getHttpChallenge().getHost();
 
 
-            if (!Main.appConfig.getProxy().getHttpChallenge().getEnabled()) {
-                // Set to direct if there is no proxy enabled
-                proxy = Proxy.NO_PROXY;
-            } else {
+            if (Main.appConfig.getProxy().getHttpChallenge().getEnabled()) {
                 SocketAddress socketAddress = new InetSocketAddress(proxyHost, proxyPort);
                 proxy = new Proxy(proxyType, socketAddress);
             }
@@ -168,7 +164,6 @@ public class HTTPChallenge {
         return new ChallengeResult(passed, lastError);
     }
 
-    @NotNull
     private static String getToken(String authToken, PublicKey acmeAccountPublicKey) {
 
         if (!AcmeUtils.isValidBase64Url(authToken)) {

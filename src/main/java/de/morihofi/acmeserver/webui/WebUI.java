@@ -39,9 +39,9 @@ public class WebUI {
         STATISTICS("/stats", "web.core.menu.stats", "fa-solid fa-chart-simple"),
         COMMAND_BUILDER("/cmd-builder", "web.core.menu.commandBuilder", "fa-solid fa-terminal");
 
-        private String route;
-        private String translationKey;
-        private String iconClass;
+        private final String route;
+        private final String translationKey;
+        private final String iconClass;
 
         FRONTEND_PAGES(String route, String translationKey, String iconClass) {
             this.route = route;
@@ -69,10 +69,10 @@ public class WebUI {
         LOGS("/mgmt/logs", "web.admin.menu.logs", "me-2 fa-solid fa-book", true),
         CONFIGURATION("/mgmt/configuration", "web.admin.menu.configuration", "me-2 fa-solid fa-wrench", true);
 
-        private String route;
-        private String translationKey;
-        private String iconClass;
-        private boolean onlyAdmin;
+        private final String route;
+        private final String translationKey;
+        private final String iconClass;
+        private final boolean onlyAdmin;
 
         FRONTEND_ADMIN_PAGES(String route, String translationKey, String iconClass, boolean onlyAdmin) {
             this.route = route;

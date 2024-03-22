@@ -168,7 +168,7 @@ public class Database {
      * @return A list of ACME identifiers associated with the provided order ID.
      */
     public static ACMEOrder getACMEOrder(String orderId) {
-        ACMEOrder order = null;
+        ACMEOrder order;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             order = session.createQuery("FROM ACMEOrder a WHERE a.orderId = :orderId", ACMEOrder.class)
                     .setParameter("orderId", orderId)
@@ -179,7 +179,7 @@ public class Database {
     }
 
     public static List<ACMEOrder> getAllACMEOrdersWithState(AcmeOrderState orderState) {
-        List<ACMEOrder> orders = null;
+        List<ACMEOrder> orders;
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             orders = session.createQuery("FROM ACMEOrder a WHERE a.orderState = :orderState", ACMEOrder.class)
                     .setParameter("orderState", orderState)

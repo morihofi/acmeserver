@@ -58,7 +58,6 @@ public class AcmeApiServer {
      */
     private static Javalin app = null;
 
-
     @SuppressFBWarnings({"MS_PKGPROTECT", "MS_CANNOT_BE_FINAL"})
     public static CertificateRenewManager certificateRenewManager;
 
@@ -138,7 +137,7 @@ public class AcmeApiServer {
         certificateRenewManager.startScheduler();
 
 
-        if (Main.serverOptions.contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
+        if (Main.getServerOptions().contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
             log.info("Starting Certificate Issuer");
             CertificateIssuer.startThread(cryptoStoreManager);
         }
@@ -231,7 +230,6 @@ public class AcmeApiServer {
     /**
      * see {@link #reloadConfiguration(Runnable)}
      *
-     * @throws Exception {@link #reloadConfiguration(Runnable)}
      */
     public static void reloadConfiguration() throws Exception {
         reloadConfiguration(null);
@@ -282,7 +280,7 @@ public class AcmeApiServer {
         log.info("Gracefully shutdown certificate watchers");
         certificateRenewManager.shutdown();
 
-        if (Main.serverOptions.contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
+        if (Main.getServerOptions().contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
             log.info("Shutting down Certificate Issuer");
             CertificateIssuer.shutdown();
         }

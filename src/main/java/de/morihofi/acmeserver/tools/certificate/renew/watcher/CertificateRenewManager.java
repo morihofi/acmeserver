@@ -4,6 +4,7 @@ import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.KeyStoreUtil;
 import de.morihofi.acmeserver.tools.lambda.TriFunction;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -77,14 +78,17 @@ public class CertificateRenewManager {
      * Checks if the certificate needs to be renewed based on the configured threshold.
      * If renewal is needed, the provided runnable is executed.
      */
+    @SuppressFBWarnings("WMI_WRONG_MAP_ITERATOR")
     private void schedule() {
 
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
-        for (String alias : renewMap.keySet()) {
-            RenewEntry entry = renewMap.get(alias);
-            TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> function = entry.renewFunction();
-            Provisioner provisioner = entry.provisioner();
+        for (Map.Entry<String, RenewEntry> entry : renewMap.entrySet()) {
+            String alias = entry.getKey();
+            RenewEntry renewEntry = entry.getValue();
+
+            TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> function = renewEntry.renewFunction();
+            Provisioner provisioner = renewEntry.provisioner();
 
             log.info("Checking if certificate for alias {} needs to be renewed", alias);
             try {
@@ -113,9 +117,9 @@ public class CertificateRenewManager {
                     );
                     cryptoStoreManager.saveKeystore();
 
-                    if(entry.triggerAfterRegeneration != null){
+                    if(renewEntry.triggerAfterRegeneration != null){
                         log.info("Running post configuration runnable");
-                        entry.triggerAfterRegeneration.run();
+                        renewEntry.triggerAfterRegeneration.run();
                     }
 
                 }else{
@@ -143,6 +147,7 @@ public class CertificateRenewManager {
                               TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> renewFunction, Runnable triggerAfterRegeneration) {
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public record CertificateData(X509Certificate[] certificateChain, KeyPair keyPair) {
     }
 }

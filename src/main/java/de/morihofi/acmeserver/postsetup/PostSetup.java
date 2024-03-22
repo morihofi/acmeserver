@@ -1,6 +1,5 @@
 package de.morihofi.acmeserver.postsetup;
 
-import com.google.gson.Gson;
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
@@ -18,11 +17,9 @@ import de.morihofi.acmeserver.tools.password.SecurePasswordGenerator;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.SocketException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.List;
@@ -169,9 +166,9 @@ public class PostSetup extends WindowBase {
         return fqdnBoxPanel.withBorder(Borders.doubleLine("FQDN/DNS Name Setup"));
     }
 
-    TextBox fqdnTextBox = new TextBox();
-    TextBox httpPortTextBox = new TextBox();
-    TextBox httpsPortTextBox = new TextBox();
+    private final TextBox fqdnTextBox = new TextBox();
+    private final TextBox httpPortTextBox = new TextBox();
+    private final TextBox httpsPortTextBox = new TextBox();
 
 
     /**
@@ -265,7 +262,7 @@ public class PostSetup extends WindowBase {
         JDBCUrlDatabaseConfig jdbcUrlDatabaseConfig = new JDBCUrlDatabaseConfig();
         jdbcUrlDatabaseConfig.setUser("acmeuser");
         jdbcUrlDatabaseConfig.setPassword(SecurePasswordGenerator.generateSecurePassword());
-        jdbcUrlDatabaseConfig.setJdbcUrl("jdbc:h2:" + filesDir.resolve("acmedatabase").toAbsolutePath().toString() + ";DB_CLOSE_DELAY=-1");
+        jdbcUrlDatabaseConfig.setJdbcUrl("jdbc:h2:" + filesDir.resolve("acmedatabase").toAbsolutePath() + ";DB_CLOSE_DELAY=-1");
         appConfig.setDatabase(jdbcUrlDatabaseConfig);
 
         textGUI.getScreen().close();
