@@ -11,6 +11,7 @@
 @param Context context
 @param List<StatsHandler.StatisticItem> statisticsAll
 @param List<StatsHandler.ProvisionerStatistic> statisticsProvisioner
+@param List<StatsHandler.StatisticItem> statisticsDatabase
 
 
 <!DOCTYPE html>
@@ -75,6 +76,26 @@ context = context
             </div>
         </div>
     @endfor
+
+
+    <h2>${localizer.lookup("web.stats.database.title")}</h2>
+    <p>${localizer.lookup("web.stats.database.intro")}</p>
+
+    <div class="container mt-3 mb-3">
+        <div class="row">
+            @for(StatsHandler.StatisticItem item : statisticsDatabase)
+                <div class="col-md-3">
+                    <div class="card text-center mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title display-6 fw-bold">${item.getNumber()}</h5>
+                            <p class="card-text">${localizer.lookup(item.getTranslationKey())}</p>
+                        </div>
+                    </div>
+                </div>
+            @endfor
+        </div>
+    </div>
+
 
 
 </main>

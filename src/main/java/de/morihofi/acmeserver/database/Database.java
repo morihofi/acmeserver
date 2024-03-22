@@ -174,8 +174,6 @@ public class Database {
                     .setParameter("orderId", orderId)
                     .getSingleResult();
 
-        } catch (Exception e) {
-            log.error("Unable get ACMEOrder for order id {}", orderId, e);
         }
         return order;
     }
@@ -187,8 +185,6 @@ public class Database {
                     .setParameter("orderState", orderState)
                     .getResultList();
 
-        } catch (Exception e) {
-            log.error("Unable get ACMEOrders for with oder State {}", orderState, e);
         }
         return orders;
     }

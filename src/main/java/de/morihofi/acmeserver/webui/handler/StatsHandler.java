@@ -3,13 +3,16 @@ package de.morihofi.acmeserver.webui.handler;
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.webui.WebUI;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import org.hibernate.SessionFactory;
 import org.jetbrains.annotations.NotNull;
+import org.hibernate.stat.Statistics;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +29,7 @@ public class StatsHandler implements Handler {
 
     /**
      * Constructs a new {@link StatsHandler} with a reference to the {@link CryptoStoreManager}.
+     *
      * @param cryptoStoreManager The crypto store manager for accessing cryptographic operations and provisioners.
      */
     public StatsHandler(CryptoStoreManager cryptoStoreManager) {
@@ -35,6 +39,7 @@ public class StatsHandler implements Handler {
     /**
      * Handles the incoming request for the statistics page, gathering and preparing all necessary
      * statistical data to be displayed in the web UI.
+     *
      * @param context The context of the incoming request.
      * @throws Exception If there's an error processing the request or accessing database resources.
      */
@@ -47,20 +52,40 @@ public class StatsHandler implements Handler {
 
         List<StatisticItem> statisticItemsAllProvisioners = getGlobalStatisticItems(allOrders, allAccounts);
         List<ProvisionerStatistic> provisionerStatistics = getProvisionerStatistics(allOrders, allAccounts);
+        List<StatisticItem> statisticsDatabase = getDatabaseStatistics();
 
 
         Map<String, Object> params = new HashMap<>(WebUI.getDefaultFrontendMap(cryptoStoreManager, context));
         params.put("statisticsAll", statisticItemsAllProvisioners);
         params.put("statisticsProvisioner", provisionerStatistics);
+        params.put("statisticsDatabase", statisticsDatabase);
 
 
         context.render("pages/stats.jte", params);
     }
 
+    private List<StatisticItem> getDatabaseStatistics() {
+        List<StatisticItem> statisticItems = new ArrayList<>();
+
+        Statistics stats = HibernateUtil.getSessionFactory().getStatistics();
+
+        statisticItems.add(new StatisticItem(stats.getQueryExecutionCount(), "web.stats.database.name.queryExecutionCount"));
+        statisticItems.add(new StatisticItem(stats.getQueryCacheHitCount(), "web.stats.database.name.queryCacheHitCount"));
+        statisticItems.add(new StatisticItem(stats.getSecondLevelCacheHitCount(), "web.stats.database.name.secondLevelCacheHitCount"));
+        statisticItems.add(new StatisticItem(stats.getConnectCount(), "web.stats.database.name.connectCount"));
+        statisticItems.add(new StatisticItem(stats.getSessionOpenCount(), "web.stats.database.name.sessionOpenCount"));
+        statisticItems.add(new StatisticItem(stats.getEntityFetchCount(), "web.stats.database.name.entityFetchCount"));
+        statisticItems.add(new StatisticItem(stats.getEntityInsertCount(), "web.stats.database.name.entityInsertCount"));
+        statisticItems.add(new StatisticItem(stats.getEntityUpdateCount(), "web.stats.database.name.entityUpdateCount"));
+
+        return statisticItems;
+    }
+
     /**
      * Gathers global statistical items, such as total number of provisioners, issued and revoked
      * certificates, and active ACME accounts.
-     * @param allOrders The list of all ACME orders.
+     *
+     * @param allOrders   The list of all ACME orders.
      * @param allAccounts The list of all ACME accounts.
      * @return A list of {@link StatisticItem} representing the global statistics.
      */
@@ -101,7 +126,8 @@ public class StatsHandler implements Handler {
     /**
      * Gathers statistical items per provisioner, including the number of ACME accounts, issued and
      * revoked certificates, and certificates waiting to be issued for each provisioner.
-     * @param allOrders The list of all ACME orders.
+     *
+     * @param allOrders   The list of all ACME orders.
      * @param allAccounts The list of all ACME accounts.
      * @return A list of {@link ProvisionerStatistic} representing the statistics for each provisioner.
      */
@@ -156,15 +182,16 @@ public class StatsHandler implements Handler {
      * Represents a single statistical item with a number and a translation key for localization.
      */
     public static class StatisticItem {
-        private final int number;
+        private final long number;
         private final String translationKey;
 
         /**
          * Constructs a new {@link StatisticItem}.
-         * @param number The numeric value of the statistic.
+         *
+         * @param number         The numeric value of the statistic.
          * @param translationKey The key used for localization of the statistic's description.
          */
-        public StatisticItem(int number, String translationKey) {
+        public StatisticItem(long number, String translationKey) {
             this.number = number;
             this.translationKey = translationKey;
         }
@@ -172,7 +199,7 @@ public class StatsHandler implements Handler {
         /**
          * @return The numeric value of the statistic.
          */
-        public int getNumber() {
+        public long getNumber() {
             return number;
         }
 
@@ -206,7 +233,7 @@ public class StatsHandler implements Handler {
          * Constructs a new {@code ProvisionerStatistic} with the specified name and list of statistical items.
          *
          * @param provisionerName the name of the provisioner.
-         * @param stats a list of {@link StatisticItem} objects representing the statistics for the provisioner.
+         * @param stats           a list of {@link StatisticItem} objects representing the statistics for the provisioner.
          */
         public ProvisionerStatistic(String provisionerName, List<StatisticItem> stats) {
             this.provisionerName = provisionerName;

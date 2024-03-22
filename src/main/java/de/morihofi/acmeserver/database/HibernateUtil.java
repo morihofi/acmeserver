@@ -131,13 +131,24 @@ public class HibernateUtil {
         // Database dialect and driver based on JDBC URL
         configureDialectAndDriver(configuration, jdbcUrl);
 
-        // Agroal Connection Pool settings
-        configureAgroalConnectionPool(configuration);
+        //Use connection pool
+        if(true){
+            // Agroal Connection Pool settings
+            configureAgroalConnectionPool(configuration);
+        }else {
+            // No connection pool
+            configuration.setProperty("hibernate.connection.provider_class", "org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProviderImpl");
+        }
+
+
 
         log.info("Configuring JDBC URL and login credentials");
         configuration.setProperty(Environment.JAKARTA_JDBC_URL, jdbcConfig.getJdbcUrl());
         configuration.setProperty(Environment.JAKARTA_JDBC_USER, jdbcConfig.getUser());
         configuration.setProperty(Environment.JAKARTA_JDBC_PASSWORD, jdbcConfig.getPassword());
+
+        // Enable statistics
+        configuration.setProperty("hibernate.generate_statistics", "true");
 
 
         if (Main.debug) {
@@ -183,9 +194,9 @@ public class HibernateUtil {
         // Beispielhafte Agroal Konfigurationseinstellungen
         log.info("Configuring Agroal connection pool");
         configuration.setProperty("hibernate.connection.provider_class", "org.hibernate.agroal.internal.AgroalConnectionProvider");
-        configuration.setProperty("hibernate.agroal.minSize", "5");
-        configuration.setProperty("hibernate.agroal.maxSize", "20");
-        configuration.setProperty("hibernate.agroal.initialSize", "10");
+        configuration.setProperty("hibernate.agroal.minSize", "10");
+        configuration.setProperty("hibernate.agroal.maxSize", "50");
+        configuration.setProperty("hibernate.agroal.initialSize", "25");
         configuration.setProperty("hibernate.agroal.maxLifetime", "PT1000S"); //Lifetime of 1000 seconds
     }
 
