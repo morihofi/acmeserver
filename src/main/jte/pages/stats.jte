@@ -37,8 +37,8 @@ context = context
                 <div class="col-md-3">
                     <div class="card text-center">
                         <div class="card-body">
-                            <h5 class="card-title display-6 fw-bold">${item.getNumber()}</h5>
-                            <p class="card-text">${localizer.lookup(item.getTranslationKey())}</p>
+                            <h5 class="card-title display-6 fw-bold">${item.number()}</h5>
+                            <p class="card-text">${localizer.lookup(item.translationKey())}</p>
                         </div>
                     </div>
                 </div>
@@ -52,21 +52,21 @@ context = context
 
     @for(StatsHandler.ProvisionerStatistic statistic: statisticsProvisioner)
         <div class="card mb-3">
-            <a href="/provisioner-info?name=${statistic.getProvisionerName()}" class="position-absolute top-0 end-0 p-2 text-reset">
+            <a href="/provisioner-info?name=${statistic.provisionerName()}" class="position-absolute top-0 end-0 p-2 text-reset">
                 <i class="fas fa-info-circle"></i>
             </a>
             <div class="card-header">
-                ${statistic.getProvisionerName()}
+                ${statistic.provisionerName()}
             </div>
             <div class="card-body">
                 <div class="container mt-3 mb-3">
                     <div class="row">
-                        @for(StatsHandler.StatisticItem item : statistic.getStats())
+                        @for(StatsHandler.StatisticItem item : statistic.stats())
                             <div class="col-md-3">
                                 <div class="card text-center">
                                     <div class="card-body">
-                                        <h5 class="card-title display-6 fw-bold">${item.getNumber()}</h5>
-                                        <p class="card-text">${localizer.lookup(item.getTranslationKey())}</p>
+                                        <h5 class="card-title display-6 fw-bold">${item.number()}</h5>
+                                        <p class="card-text">${localizer.lookup(item.translationKey())}</p>
                                     </div>
                                 </div>
                             </div>
@@ -87,8 +87,8 @@ context = context
                 <div class="col-md-3">
                     <div class="card text-center mb-3">
                         <div class="card-body">
-                            <h5 class="card-title display-6 fw-bold">${item.getNumber()}</h5>
-                            <p class="card-text">${localizer.lookup(item.getTranslationKey())}</p>
+                            <h5 class="card-title display-6 fw-bold">${item.number()}</h5>
+                            <p class="card-text">${localizer.lookup(item.translationKey())}</p>
                         </div>
                     </div>
                 </div>

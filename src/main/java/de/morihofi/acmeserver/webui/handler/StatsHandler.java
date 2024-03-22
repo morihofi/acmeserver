@@ -11,6 +11,7 @@ import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.webui.WebUI;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.hibernate.stat.Statistics;
 
@@ -46,20 +47,20 @@ public class StatsHandler implements Handler {
     @Override
     public void handle(@NotNull Context context) throws Exception {
 
-
-        List<ACMEOrder> allOrders = Database.getAllACMEOrdersWithState(AcmeOrderState.IDLE);
-        List<ACMEAccount> allAccounts = Database.getAllAccounts();
-
-        List<StatisticItem> statisticItemsAllProvisioners = getGlobalStatisticItems(allOrders, allAccounts);
-        List<ProvisionerStatistic> provisionerStatistics = getProvisionerStatistics(allOrders, allAccounts);
-        List<StatisticItem> statisticsDatabase = getDatabaseStatistics();
-
-
         Map<String, Object> params = new HashMap<>(WebUI.getDefaultFrontendMap(cryptoStoreManager, context));
-        params.put("statisticsAll", statisticItemsAllProvisioners);
-        params.put("statisticsProvisioner", provisionerStatistics);
-        params.put("statisticsDatabase", statisticsDatabase);
 
+
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+
+            List<StatisticItem> statisticItemsAllProvisioners = getGlobalStatisticItems(session);
+            List<ProvisionerStatistic> provisionerStatistics = getProvisionerStatistics(session);
+            List<StatisticItem> statisticsDatabase = getDatabaseStatistics();
+
+
+            params.put("statisticsAll", statisticItemsAllProvisioners);
+            params.put("statisticsProvisioner", provisionerStatistics);
+            params.put("statisticsDatabase", statisticsDatabase);
+        }
 
         context.render("pages/stats.jte", params);
     }
@@ -85,39 +86,22 @@ public class StatsHandler implements Handler {
      * Gathers global statistical items, such as total number of provisioners, issued and revoked
      * certificates, and active ACME accounts.
      *
-     * @param allOrders   The list of all ACME orders.
-     * @param allAccounts The list of all ACME accounts.
      * @return A list of {@link StatisticItem} representing the global statistics.
      */
     @NotNull
-    private List<StatisticItem> getGlobalStatisticItems(List<ACMEOrder> allOrders, List<ACMEAccount> allAccounts) {
+    private List<StatisticItem> getGlobalStatisticItems(Session session) {
         List<StatisticItem> statisticItemsAllProvisioners = new ArrayList<>();
         // number of provisioners
         statisticItemsAllProvisioners.add(new StatisticItem(ProvisionerManager.getProvisioners().size(), "web.stats.name.provisioners"));
 
         // issued Certificates
-        statisticItemsAllProvisioners.add(new StatisticItem(
-                allOrders.stream()
-                        .filter(acmeOrder -> acmeOrder.getCertificatePem() != null)
-                        .toList()
-                        .size(),
-                "web.stats.name.certificatesIssued"));
+        statisticItemsAllProvisioners.add(new StatisticItem(countGlobalIssuedCertificates(session), "web.stats.name.certificatesIssued"));
 
         // revoked Certificates
-        statisticItemsAllProvisioners.add(new StatisticItem(
-                allOrders.stream()
-                        .filter(acmeOrder -> acmeOrder.getCertificatePem() != null && acmeOrder.getRevokeStatusCode() != null && acmeOrder.getRevokeTimestamp() != null)
-                        .toList()
-                        .size(),
-                "web.stats.name.certificatesRevoked"));
+        statisticItemsAllProvisioners.add(new StatisticItem(countGlobalRevokedCertificates(session), "web.stats.name.certificatesRevoked"));
 
         // (non-deactivated) ACME Accounts
-        statisticItemsAllProvisioners.add(new StatisticItem(
-                allAccounts.stream()
-                        .filter(account -> !account.getDeactivated())
-                        .toList()
-                        .size(),
-                "web.stats.name.acmeAccounts"));
+        statisticItemsAllProvisioners.add(new StatisticItem(countGlobalActiveACMEAccounts(session), "web.stats.name.acmeAccounts"));
 
         return statisticItemsAllProvisioners;
     }
@@ -127,49 +111,28 @@ public class StatsHandler implements Handler {
      * Gathers statistical items per provisioner, including the number of ACME accounts, issued and
      * revoked certificates, and certificates waiting to be issued for each provisioner.
      *
-     * @param allOrders   The list of all ACME orders.
-     * @param allAccounts The list of all ACME accounts.
      * @return A list of {@link ProvisionerStatistic} representing the statistics for each provisioner.
      */
-    private List<ProvisionerStatistic> getProvisionerStatistics(List<ACMEOrder> allOrders, List<ACMEAccount> allAccounts) {
+    private List<ProvisionerStatistic> getProvisionerStatistics(Session session) {
         //Statistics per provisioner
         List<ProvisionerStatistic> provisionerStatistics = new ArrayList<>();
+
 
         for (Provisioner provisioner : ProvisionerManager.getProvisioners()) {
             String provisionerName = provisioner.getProvisionerName();
             List<StatisticItem> statisticItemsOfProvisioner = new ArrayList<>();
 
             // issued Certificates
-            statisticItemsOfProvisioner.add(new StatisticItem(allAccounts
-                    .stream()
-                    .filter(acmeAccount -> acmeAccount.getProvisioner().equals(provisionerName))
-                    .toList()
-                    .size(),
-                    "web.stats.name.acmeAccounts"));
+            statisticItemsOfProvisioner.add(new StatisticItem(countACMEAccountsByProvisioner(session, provisionerName), "web.stats.name.acmeAccounts"));
 
             // issued Certificates
-            statisticItemsOfProvisioner.add(new StatisticItem(
-                    allOrders.stream()
-                            .filter(acmeOrder -> acmeOrder.getAccount().getProvisioner().equals(provisionerName) && acmeOrder.getCertificatePem() != null)
-                            .toList()
-                            .size(),
-                    "web.stats.name.certificatesIssued"));
+            statisticItemsOfProvisioner.add(new StatisticItem(countIssuedCertificatesByProvisioner(session, provisionerName), "web.stats.name.certificatesIssued"));
 
             // revoked Certificates
-            statisticItemsOfProvisioner.add(new StatisticItem(
-                    allOrders.stream()
-                            .filter(acmeOrder -> acmeOrder.getAccount().getProvisioner().equals(provisionerName) && acmeOrder.getCertificatePem() != null && acmeOrder.getRevokeStatusCode() != null && acmeOrder.getRevokeTimestamp() != null)
-                            .toList()
-                            .size(),
-                    "web.stats.name.certificatesRevoked"));
+            statisticItemsOfProvisioner.add(new StatisticItem(countRevokedCertificatesByProvisioner(session, provisionerName), "web.stats.name.certificatesRevoked"));
 
             // Certificates waiting to be issued
-            statisticItemsOfProvisioner.add(new StatisticItem(
-                    allOrders.stream()
-                            .filter(acmeOrder -> acmeOrder.getAccount().getProvisioner().equals(provisionerName) && acmeOrder.getCertificatePem() == null && acmeOrder.getCertificateCSR() != null)
-                            .toList()
-                            .size(),
-                    "web.stats.name.certificatesIssueWaiting"));
+            statisticItemsOfProvisioner.add(new StatisticItem(countCertificatesWaitingForIssueByProvisioner(session, provisionerName), "web.stats.name.certificatesIssueWaiting"));
 
             provisionerStatistics.add(new ProvisionerStatistic(provisionerName, statisticItemsOfProvisioner));
         }
@@ -177,36 +140,87 @@ public class StatsHandler implements Handler {
         return provisionerStatistics;
     }
 
+    public long countACMEAccountsByProvisioner(Session session, String provisionerName) {
+        Long count = session.createQuery(
+                        "SELECT COUNT(a) FROM ACMEAccount a WHERE a.provisioner = :provisionerName", Long.class)
+                .setParameter("provisionerName", provisionerName)
+                .getSingleResult();
+        return count != null ? count : 0;
+    }
+
+    public long countIssuedCertificatesByProvisioner(Session session, String provisionerName) {
+        Long count = session.createQuery(
+                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NOT NULL", Long.class)
+                .setParameter("provisionerName", provisionerName)
+                .getSingleResult();
+        return count != null ? count : 0;
+    }
+
+    public long countRevokedCertificatesByProvisioner(Session session, String provisionerName) {
+        Long count = session.createQuery(
+                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NOT NULL AND o.revokeStatusCode IS NOT NULL AND o.revokeTimestamp IS NOT NULL", Long.class)
+                .setParameter("provisionerName", provisionerName)
+                .getSingleResult();
+        return count != null ? count : 0;
+
+    }
+
+    public long countCertificatesWaitingForIssueByProvisioner(Session session, String provisionerName) {
+        Long count = session.createQuery(
+                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NULL AND o.certificateCSR IS NOT NULL", Long.class)
+                .setParameter("provisionerName", provisionerName)
+                .getSingleResult();
+        return count != null ? count : 0;
+    }
+
+    public long countGlobalIssuedCertificates(Session session) {
+        Long count = session.createQuery(
+                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.certificatePem IS NOT NULL", Long.class)
+                .getSingleResult();
+        return count != null ? count : 0;
+    }
+
+    public long countGlobalRevokedCertificates(Session session) {
+        Long count = session.createQuery(
+                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.certificatePem IS NOT NULL AND o.revokeStatusCode IS NOT NULL AND o.revokeTimestamp IS NOT NULL", Long.class)
+                .getSingleResult();
+        return count != null ? count : 0;
+    }
+
+    public long countGlobalActiveACMEAccounts(Session session) {
+        Long count = session.createQuery(
+                        "SELECT COUNT(a) FROM ACMEAccount a WHERE a.deactivated = false", Long.class)
+                .getSingleResult();
+        return count != null ? count : 0;
+    }
+
 
     /**
      * Represents a single statistical item with a number and a translation key for localization.
      */
-    public static class StatisticItem {
-        private final long number;
-        private final String translationKey;
-
+    public record StatisticItem(long number, String translationKey) {
         /**
          * Constructs a new {@link StatisticItem}.
          *
          * @param number         The numeric value of the statistic.
          * @param translationKey The key used for localization of the statistic's description.
          */
-        public StatisticItem(long number, String translationKey) {
-            this.number = number;
-            this.translationKey = translationKey;
+        public StatisticItem {
         }
 
         /**
          * @return The numeric value of the statistic.
          */
-        public long getNumber() {
+        @Override
+        public long number() {
             return number;
         }
 
         /**
          * @return The localization key for the statistic's description.
          */
-        public String getTranslationKey() {
+        @Override
+        public String translationKey() {
             return translationKey;
         }
     }
@@ -216,28 +230,19 @@ public class StatsHandler implements Handler {
      * This class encapsulates both the name of the provisioner and a list of statistics that describe
      * various aspects of its operation, such as the number of issued and revoked certificates, and
      * accounts associated with it. Each statistic is represented by a {@link StatisticItem} object.
+     *
+     * @param provisionerName The name of the provisioner to which these statistics pertain.
+     * @param stats           A list of {@link StatisticItem} objects, each representing a different statistical metric
+     *                        associated with the provisioner.
      */
-    public static class ProvisionerStatistic {
-        /**
-         * The name of the provisioner to which these statistics pertain.
-         */
-        private final String provisionerName;
-
-        /**
-         * A list of {@link StatisticItem} objects, each representing a different statistical metric
-         * associated with the provisioner.
-         */
-        private final List<StatisticItem> stats;
-
+    public record ProvisionerStatistic(String provisionerName, List<StatisticItem> stats) {
         /**
          * Constructs a new {@code ProvisionerStatistic} with the specified name and list of statistical items.
          *
          * @param provisionerName the name of the provisioner.
          * @param stats           a list of {@link StatisticItem} objects representing the statistics for the provisioner.
          */
-        public ProvisionerStatistic(String provisionerName, List<StatisticItem> stats) {
-            this.provisionerName = provisionerName;
-            this.stats = stats;
+        public ProvisionerStatistic {
         }
 
         /**
@@ -245,7 +250,8 @@ public class StatsHandler implements Handler {
          *
          * @return the name of the provisioner.
          */
-        public String getProvisionerName() {
+        @Override
+        public String provisionerName() {
             return provisionerName;
         }
 
@@ -254,7 +260,8 @@ public class StatsHandler implements Handler {
          *
          * @return a list of {@link StatisticItem} objects representing the provisioner's statistics.
          */
-        public List<StatisticItem> getStats() {
+        @Override
+        public List<StatisticItem> stats() {
             return stats;
         }
     }

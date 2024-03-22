@@ -162,7 +162,7 @@ public class Database {
     }
 
     /**
-     * Retrieves a ACME ORder (Automated Certificate Management Environment) with a specific order ID.
+     * Retrieves a ACME Order (Automated Certificate Management Environment) with a specific order ID.
      *
      * @param orderId The unique identifier of the ACME order for which identifiers are to be retrieved.
      * @return A list of ACME identifiers associated with the provided order ID.
