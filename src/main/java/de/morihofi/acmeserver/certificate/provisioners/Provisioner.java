@@ -43,7 +43,7 @@ public class Provisioner {
      * @return a String representing the full HTTPS URL of the server
      */
     public String getServerURL() {
-        return "https://" + Main.appConfig.getServer().getDnsName() + ":" + (Main.appConfig.getServer().getPorts().getHttps() != 443 ? ":" + Main.appConfig.getServer().getPorts().getHttps() : "");
+        return "https://" + Main.appConfig.getServer().getDnsName() + (Main.appConfig.getServer().getPorts().getHttps() != 443 ? ":" + Main.appConfig.getServer().getPorts().getHttps() : "");
     }
 
 
