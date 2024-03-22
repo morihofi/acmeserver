@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;

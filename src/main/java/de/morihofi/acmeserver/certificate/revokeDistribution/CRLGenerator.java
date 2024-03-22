@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateRevokationListGenerator;

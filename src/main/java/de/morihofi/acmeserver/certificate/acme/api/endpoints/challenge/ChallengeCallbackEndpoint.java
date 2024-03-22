@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.objects.ACMEChallengeResponse;
 import de.morihofi.acmeserver.certificate.acme.challenges.ChallengeResult;
@@ -10,7 +10,6 @@ import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
 import de.morihofi.acmeserver.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;

@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.certificate.acme.api;
+package de.morihofi.acmeserver.certificate.provisioners;
 
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLGenerator;

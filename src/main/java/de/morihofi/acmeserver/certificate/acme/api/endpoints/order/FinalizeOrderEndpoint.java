@@ -3,7 +3,7 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.order;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;

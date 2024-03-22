@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.certificate.queue;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.Database;

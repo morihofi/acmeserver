@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.tools.certificate.CertMisc;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

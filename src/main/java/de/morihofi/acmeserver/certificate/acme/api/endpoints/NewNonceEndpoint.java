@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;

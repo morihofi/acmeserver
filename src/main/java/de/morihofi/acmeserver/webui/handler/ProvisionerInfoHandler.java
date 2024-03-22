@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.webui.handler;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.collectors.SingletonCollector;
 import de.morihofi.acmeserver.webui.JteLocalizer;

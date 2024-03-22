@@ -1,12 +1,11 @@
 package de.morihofi.acmeserver.tools.certificate.cryptoops;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.IKeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
-import de.morihofi.acmeserver.tools.collectors.SingletonCollector;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

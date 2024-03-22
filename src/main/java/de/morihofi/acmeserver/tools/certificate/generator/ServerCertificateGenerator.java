@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.tools.certificate.generator;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.tools.certificate.CertMisc;
 import de.morihofi.acmeserver.tools.certificate.X509;

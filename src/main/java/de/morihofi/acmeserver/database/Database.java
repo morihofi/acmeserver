@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.database;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;

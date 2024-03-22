@@ -1,7 +1,6 @@
 package de.morihofi.acmeserver.certificate.provisioners;
 
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.NotImplementedEndpoint;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.DirectoryEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.NewNonceEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.NewOrderEndpoint;

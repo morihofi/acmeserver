@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;

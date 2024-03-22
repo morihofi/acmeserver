@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.tools.certificate.renew;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
