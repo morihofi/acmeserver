@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.tools.certificate.cryptoops;
 
 import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.IKeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
@@ -69,7 +70,6 @@ public class CryptoStoreManager {
      */
     private boolean firstRun = false;
 
-    private final Set<Provisioner> provisioners = new HashSet<>();
 
 
     public static String getKeyStoreAliasForProvisionerIntermediate(String provisioner) {
@@ -128,21 +128,6 @@ public class CryptoStoreManager {
         }
     }
 
-    public void registerProvisioner(Provisioner provisioner){
-        provisioners.add(provisioner);
-    }
-
-    public Provisioner getProvisionerForName(String provisionerName) {
-        Optional<Provisioner> provisionerOptional = provisioners.stream()
-                .filter(provisioner -> provisioner.getProvisionerName().equals(provisionerName))
-                .findFirst();
-
-        return provisionerOptional.orElse(null);
-    }
-
-    public Set<Provisioner> getProvisioners(){
-        return Collections.unmodifiableSet(provisioners);
-    }
 
     /**
      * Retrieves the key pair for the root certificate authority from the keystore.
@@ -227,5 +212,15 @@ public class CryptoStoreManager {
 
     public Vector<CertificateRenewWatcher> getCertificateRenewWatchers() {
         return certificateRenewWatchers;
+    }
+
+
+    @Deprecated
+    public Provisioner getProvisionerForName(String provisionerName) {
+        return ProvisionerManager.getProvisionerForName(provisionerName);
+    }
+    @Deprecated
+    public Set<Provisioner> getProvisioners(){
+        return ProvisionerManager.getProvisioners();
     }
 }

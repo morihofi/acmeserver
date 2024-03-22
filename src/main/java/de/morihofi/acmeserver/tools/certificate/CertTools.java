@@ -17,6 +17,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Date;
 
 public class CertTools {
 
@@ -120,6 +121,26 @@ public class CertTools {
 
         DERSequence derSignature = new DERSequence(v);
         return derSignature.getEncoded("DER");
+    }
+
+
+    /**
+     * Checks the validity of a given X.509 certificate as of the current date and time.
+     * This method uses the {@code checkValidity} method of {@link X509Certificate} to determine
+     * whether the certificate is currently valid. The validity check is based on the certificate's
+     * notBefore and notAfter dates.
+     *
+     * @param certificate the X.509 certificate to be checked for validity.
+     * @return {@code true} if the certificate is currently valid; {@code false} if it is expired
+     * or not yet valid as of the current date.
+     */
+    public static boolean isCertificateValid(X509Certificate certificate) {
+        try {
+            certificate.checkValidity(new Date());
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 }
 
