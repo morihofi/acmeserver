@@ -18,11 +18,6 @@ public class OcspEndpointPost implements Handler {
     private final Provisioner provisioner;
 
     /**
-     * Instance of the CRL Generator
-     */
-    private final CRL crlGenerator;
-
-    /**
      * Logger
      */
     public final Logger log = LogManager.getLogger(getClass());
@@ -33,12 +28,10 @@ public class OcspEndpointPost implements Handler {
      * Initializes an instance with a specified Provisioner and CRL generator.
      *
      * @param provisioner  the Provisioner object to be used with this endpoint
-     * @param crlGenerator the CRL (Certificate Revocation List) generator for managing revoked certificates
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public OcspEndpointPost(Provisioner provisioner, CRL crlGenerator) {
+    public OcspEndpointPost(Provisioner provisioner) {
         this.provisioner = provisioner;
-        this.crlGenerator = crlGenerator;
     }
 
 
@@ -64,7 +57,7 @@ public class OcspEndpointPost implements Handler {
         log.info("Checking revokation status for serial number {}", serialNumber);
 
         // Processing the request and creating the OCSP response
-        OCSPResp ocspResponse = OcspHelper.processOCSPRequest(serialNumber, crlGenerator, provisioner);
+        OCSPResp ocspResponse = OcspHelper.processOCSPRequest(serialNumber, CRLScheduler.getCrlGeneratorForProvisioner(provisioner.getProvisionerName()), provisioner);
 
         // Sending the OCSP response
         context.contentType("application/ocsp-response");

@@ -11,9 +11,6 @@ import java.security.cert.CRLException;
 import java.security.cert.X509CRL;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Manages the creation and updating of a Certificate Revocation List (CRL).
@@ -21,12 +18,12 @@ import java.util.concurrent.TimeUnit;
  * a cache of the current CRL. It also schedules regular updates to the CRL.
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-public class CRL {
+public class CRLGenerator {
 
     private volatile byte[] currentCrlBytes = null;
     private volatile X509CRL currentCrl = null;
     private volatile LocalTime lastUpdate = null;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
 
     /**
      * Instance for accessing the current provisioner
@@ -38,7 +35,6 @@ public class CRL {
      */
     private final Logger log = LogManager.getLogger(getClass());
 
-    private static final int UPDATE_MINUTES = 5;
 
     /**
      * Constructor for the CRL (Certificate Revocation List) class.
@@ -48,35 +44,8 @@ public class CRL {
      *
      * @param provisioner the Provisioner instance to be used for CRL operations
      */
-    public CRL(Provisioner provisioner) {
-
+    protected CRLGenerator(Provisioner provisioner) {
         this.provisioner = provisioner;
-
-        log.info("Initialized CRL Generation Task");
-        // Start the scheduled task to update the CRL every 5 minutes (must be same as in generateCRL() function)
-        scheduler.scheduleAtFixedRate(this::updateCRLCache, 0, UPDATE_MINUTES, TimeUnit.MINUTES);
-
-        Runtime.getRuntime().addShutdownHook(new Thread(){
-
-            @Override
-            public void run() {
-                this.setName("CRL Shutdown Thread");
-                super.run();
-
-
-                final String provisionerName = provisioner.getProvisionerName(); // Retrieve the name of the provisioner in advance to keep the code clean
-
-                log.info("Initiating shutdown of CRL Generator for Provisioner '{}'.", provisionerName);
-
-                try {
-                    shutdown();
-                    log.info("Shutdown of CRL Generator for Provisioner '{}' completed successfully.", provisionerName);
-                } catch (Exception e) {
-                    log.error("An error occurred during the shutdown of CRL Generator for Provisioner '{}': {}", provisionerName, e.getMessage(), e);
-                }
-            }
-        });
-
     }
 
 
@@ -100,12 +69,12 @@ public class CRL {
      * generates a new CRL based on the retrieved data, and updates the current CRL cache.
      * It also logs the time of the last update and handles any exceptions that occur during the process.
      */
-    private void updateCRLCache() {
+    public void updateCachedCRL(int updateMinutes) {
         try {
             // Get the list of revoked certificates from the database
             List<RevokedCertificate> revokedCertificates = Database.getRevokedCertificates(provisioner.getProvisionerName());
             // Generate a new CRL
-            X509CRL crl = CertificateRevokationListGenerator.generateCRL(revokedCertificates, provisioner.getIntermediateCaCertificate(), provisioner.getIntermediateCaKeyPair().getPrivate(), UPDATE_MINUTES);
+            X509CRL crl = CertificateRevokationListGenerator.generateCRL(revokedCertificates, provisioner.getIntermediateCaCertificate(), provisioner.getIntermediateCaKeyPair().getPrivate(), updateMinutes);
             // Update the current CRL cache
             currentCrlBytes = getCrlAsBytes(crl);
             currentCrl = crl;
@@ -146,13 +115,6 @@ public class CRL {
         return lastUpdate;
     }
 
-    /**
-     * Shuts down the executor service.
-     * Should be called when the CRL instance is no longer needed.
-     */
-    public void shutdown() {
-        scheduler.shutdown();
-    }
 
     public Provisioner getProvisioner() {
         return provisioner;

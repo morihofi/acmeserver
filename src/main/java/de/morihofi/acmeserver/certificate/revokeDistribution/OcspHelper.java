@@ -41,7 +41,7 @@ public class OcspHelper {
      * @throws CertificateEncodingException if there is an issue with encoding certificates.
      * @throws OperatorCreationException if there is an issue with operator creation.
      */
-    public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRL crlGenerator, Provisioner provisioner) throws OCSPException, CRLException, CertificateEncodingException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+    public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRLGenerator crlGenerator, Provisioner provisioner) throws OCSPException, CRLException, CertificateEncodingException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
         CertificateStatus certStatus = getCertificateStatus(serialNumber, crlGenerator);
 
         log.info("Status for serial number {} is: {}", serialNumber, (certStatus != null ? "revoked" : "valid"));
@@ -83,7 +83,7 @@ public class OcspHelper {
      *         details such as the revocation date and reason are provided.
      * @throws CRLException If there is an issue obtaining the current CRL from the {@code crlGenerator}.
      */
-    private static CertificateStatus getCertificateStatus(BigInteger serialNumber, CRL crlGenerator) throws CRLException {
+    private static CertificateStatus getCertificateStatus(BigInteger serialNumber, CRLGenerator crlGenerator) throws CRLException {
         X509CRL crl = crlGenerator.getCurrentCrl(); // Current CRL
 
         CertificateStatus certStatus;

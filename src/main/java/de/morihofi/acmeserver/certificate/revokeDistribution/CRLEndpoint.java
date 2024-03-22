@@ -10,19 +10,16 @@ import java.nio.ByteBuffer;
 public class CRLEndpoint implements Handler {
 
     private final Provisioner provisioner;
-    private final CRL crl;
 
     /**
      * Constructor for the CRLEndpoint class.
      * Initializes a new instance with a given Provisioner and CRL (Certificate Revocation List) object.
      *
      * @param provisioner the Provisioner instance to be associated with this endpoint
-     * @param crl the CRL instance for handling certificate revocation related operations
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public CRLEndpoint(Provisioner provisioner, CRL crl) {
+    public CRLEndpoint(Provisioner provisioner) {
         this.provisioner = provisioner;
-        this.crl = crl;
     }
 
 
@@ -37,7 +34,7 @@ public class CRLEndpoint implements Handler {
     @Override
     public void handle(Context ctx) throws Exception {
         ctx.status(200);
-        ByteBuffer buffer = ByteBuffer.wrap(crl.getCurrentCrlBytes());
+        ByteBuffer buffer = ByteBuffer.wrap(CRLScheduler.getCrlGeneratorForProvisioner(provisioner.getProvisionerName()).getCurrentCrlBytes());
 
         ctx.header("Content-Type", "application/pkix-crl");
         ctx.header("Content-Length", String.valueOf(buffer.capacity()));

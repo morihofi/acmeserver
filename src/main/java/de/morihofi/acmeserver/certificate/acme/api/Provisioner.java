@@ -1,7 +1,8 @@
 package de.morihofi.acmeserver.certificate.acme.api;
 
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
+import de.morihofi.acmeserver.certificate.revokeDistribution.CRLGenerator;
+import de.morihofi.acmeserver.certificate.revokeDistribution.CRLScheduler;
 import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.DomainNameRestrictionConfig;
 import de.morihofi.acmeserver.config.MetadataConfig;
@@ -86,7 +87,6 @@ public class Provisioner {
      */
     private final ProvisionerConfig config;
 
-    private CRL crlGenerator;
 
     /**
      * Constructs a new Provisioner object.
@@ -290,11 +290,8 @@ public class Provisioner {
         return config;
     }
 
-    public CRL getCrlGenerator() {
-        return crlGenerator;
+    public CRLGenerator getCrlGenerator() {
+        return CRLScheduler.getCrlGeneratorForProvisioner(provisionerName);
     }
 
-    public void setCrlGenerator(CRL crlGenerator) {
-        this.crlGenerator = crlGenerator;
-    }
 }

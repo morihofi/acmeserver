@@ -17,10 +17,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.FinalizeOrder
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
 import de.morihofi.acmeserver.certificate.queue.CertificateIssuer;
-import de.morihofi.acmeserver.certificate.revokeDistribution.CRL;
-import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
-import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointGet;
-import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointPost;
+import de.morihofi.acmeserver.certificate.revokeDistribution.*;
 import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.config.certificateAlgorithms.EcdsaAlgorithmParams;
@@ -164,17 +161,16 @@ public class AcmeApiServer {
             cryptoStoreManager.registerProvisioner(provisioner);
 
             //CRL generator
-            CRL crlGenerator = new CRL(provisioner);
-            provisioner.setCrlGenerator(crlGenerator);
+            CRLScheduler.addProvisionerToScheduler(provisioner);
 
             String prefix = "/acme/" + provisioner.getProvisionerName();
 
             // CRL distribution
-            app.get(provisioner.getCrlPath(), new CRLEndpoint(provisioner, crlGenerator));
+            app.get(provisioner.getCrlPath(), new CRLEndpoint(provisioner));
 
             // OCSP (Online Certificate Status Protocol) endpoints
-            app.post(provisioner.getOcspPath(), new OcspEndpointPost(provisioner, crlGenerator));
-            app.get(provisioner.getOcspPath() + "/{ocspRequest}", new OcspEndpointGet(provisioner, crlGenerator));
+            app.post(provisioner.getOcspPath(), new OcspEndpointPost(provisioner));
+            app.get(provisioner.getOcspPath() + "/{ocspRequest}", new OcspEndpointGet(provisioner));
 
             // ACME Directory
             app.get(prefix + "/directory", new DirectoryEndpoint(provisioner));
@@ -218,6 +214,8 @@ public class AcmeApiServer {
             log.info("Provisioner {} registered", provisioner.getProvisionerName());
         }
 
+        log.info("Starting the CRL generation Scheduler");
+        CRLScheduler.startScheduler();
 
         app.start();
         log.info("\u2705 Configure Routes completed. Ready for incoming requests");
@@ -514,13 +512,8 @@ public class AcmeApiServer {
 
         Set<Provisioner> provisioners = cryptoStoreManager.getProvisioners();
 
-        log.info("Shutting down CRL generators");
-        for (CRL crlGenerator : provisioners.stream()
-                .map(Provisioner::getCrlGenerator)
-                .toList()) {
-            log.info("Gracefully shutdown CRL generator for provisioner {}", crlGenerator.getProvisioner());
-            crlGenerator.shutdown();
-        }
+        log.info("Shutting down CRL scheduler");
+        CRLScheduler.shutdown();
 
         log.info("Shutting down Certificate watchers");
         for (CertificateRenewWatcher certificateRenewWatcher : cryptoStoreManager.getCertificateRenewWatchers()) {
