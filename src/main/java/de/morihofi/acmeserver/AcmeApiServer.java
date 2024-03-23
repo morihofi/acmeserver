@@ -23,6 +23,7 @@ import de.morihofi.acmeserver.webui.WebUI;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
+import io.javalin.json.JavalinGson;
 import io.javalin.rendering.template.JavalinJte;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -85,6 +86,7 @@ public class AcmeApiServer {
             //TODO: Make it compatible again with modules
             javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
             javalinConfig.fileRenderer(new JavalinJte(WebUI.createTemplateEngine()));
+            javalinConfig.jsonMapper(new JavalinGson());
         });
 
         JavalinSecurityHelper.initSecureApi(app, cryptoStoreManager, appConfig, certificateRenewManager);

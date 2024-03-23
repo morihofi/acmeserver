@@ -110,7 +110,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         response.setContact(emails);
         response.setOrders(provisioner.getApiURL() + "/acme/acct/" + accountId + "/orders");
 
-        ctx.result(gson.toJson(response));
+        ctx.json(response);
     }
 
 

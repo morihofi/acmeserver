@@ -39,10 +39,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
     public Provisioner getProvisioner() {
         return provisioner;
     }
-
-    public Gson getGson() {
-        return gson;
-    }
+    
 
     @Override
     public void handle(@NotNull Context ctx) throws Exception {

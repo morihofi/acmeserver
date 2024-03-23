@@ -152,7 +152,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         response.setIdentifiers(identifierList);
         response.setAuthorizations(authorizationsList);
 
-        ctx.result(gson.toJson(response));
+        ctx.json(response);
 
     }
 

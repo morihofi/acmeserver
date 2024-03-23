@@ -1,5 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
@@ -29,21 +31,27 @@ public class DirectoryEndpoint implements Handler {
         // Response is JSON
         ctx.header("Content-Type", "application/json");
 
-        JSONObject responseJSON = new JSONObject();
+        // Create the Gson instance
+        Gson gson = new Gson();
 
-        JSONObject metaObject = new JSONObject();
-        metaObject.put("website", provisioner.getAcmeMetadataConfig().getWebsite().trim());
-        metaObject.put("termsOfService", provisioner.getAcmeMetadataConfig().getTos().trim());
+        // Create the meta object
+        JsonObject metaObject = new JsonObject();
+        metaObject.addProperty("website", provisioner.getAcmeMetadataConfig().getWebsite().trim());
+        metaObject.addProperty("termsOfService", provisioner.getAcmeMetadataConfig().getTos().trim());
 
+        // Create the main JSON object
+        JsonObject responseJSON = new JsonObject();
+        responseJSON.add("meta", metaObject);
+        responseJSON.addProperty("newAccount", provisioner.getApiURL() + "/acme/new-acct");
+        responseJSON.addProperty("newNonce", provisioner.getApiURL() + "/acme/new-nonce");
+        responseJSON.addProperty("newOrder", provisioner.getApiURL() + "/acme/new-order");
+        responseJSON.addProperty("revokeCert", provisioner.getApiURL() + "/acme/revoke-cert");
+        responseJSON.addProperty("keyChange", provisioner.getApiURL() + "/acme/key-change");
 
-        responseJSON.put("meta", metaObject);
-        responseJSON.put("newAccount", provisioner.getApiURL() + "/acme/new-acct");
-        responseJSON.put("newNonce", provisioner.getApiURL() + "/acme/new-nonce");
-        responseJSON.put("newOrder", provisioner.getApiURL() + "/acme/new-order");
-        responseJSON.put("revokeCert", provisioner.getApiURL() + "/acme/revoke-cert");
-        responseJSON.put("keyChange", provisioner.getApiURL() + "/acme/key-change");
+        // Convert the JsonObject to a String
+        String jsonResponse = gson.toJson(responseJSON);
 
-        ctx.result(responseJSON.toString());
+        ctx.result(jsonResponse);
 
     }
 }

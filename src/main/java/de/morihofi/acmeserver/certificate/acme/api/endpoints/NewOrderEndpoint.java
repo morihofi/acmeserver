@@ -202,7 +202,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Content-Type", "application/json");
         ctx.header("Location", provisioner.getApiURL() + "/acme/order/" + orderId);
 
-        ctx.result(gson.toJson(response));
+        ctx.json(response);
     }
 
 

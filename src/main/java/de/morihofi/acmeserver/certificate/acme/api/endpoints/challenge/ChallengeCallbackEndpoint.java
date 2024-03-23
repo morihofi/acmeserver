@@ -105,6 +105,6 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
 
         // "Up"-Link header is required for certbot
         ctx.header("Link", "<" + provisioner.getApiURL() + "/acme/authz/" + identifierChallenge.getIdentifier().getAuthorizationId() + ">;rel=\"up\"");
-        ctx.result(gson.toJson(response));
+        ctx.json(response);
     }
 }

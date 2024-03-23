@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.account;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
@@ -103,7 +104,16 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Content-Type", "application/json");
         ctx.status(200);
         if(account.isDeactivated()){
-            ctx.result(new JSONObject().put("status", AcmeStatus.DEACTIVATED.getRfcName()).toString());
+            // Create a new JsonObject
+            JsonObject responseObj = new JsonObject();
+            // Add the "status" property with the value from AcmeStatus.DEACTIVATED.getRfcName()
+            responseObj.addProperty("status", AcmeStatus.DEACTIVATED.getRfcName());
+            // Create a Gson instance
+
+            // Convert the JsonObject to a JSON string
+            String jsonResponse = gson.toJson(responseObj);
+
+            ctx.result(jsonResponse);
         }else {
             ctx.result("{}"); // Empty JSON response
         }

@@ -138,7 +138,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         response.setIdentifier(idObj);
         response.setChallenges(challengeResponses);
 
-        ctx.result(gson.toJson(response));
+        ctx.json(response);
     }
 
 
