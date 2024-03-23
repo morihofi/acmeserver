@@ -15,6 +15,7 @@ import de.morihofi.acmeserver.tools.JavalinSecurityHelper;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
 import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
+import de.morihofi.acmeserver.tools.certificate.helper.CaInitHelper;
 import de.morihofi.acmeserver.tools.certificate.renew.IntermediateCaRenew;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewManager;
 import de.morihofi.acmeserver.tools.regex.ConfigCheck;
@@ -74,7 +75,7 @@ public class AcmeApiServer {
         AcmeApiServer.certificateRenewManager = new CertificateRenewManager(cryptoStoreManager);
 
         log.info("Starting in Normal Mode");
-        Main.initializeCA(cryptoStoreManager);
+        CaInitHelper.initializeCA(cryptoStoreManager, appConfig);
 
         log.info("Initializing database");
         HibernateUtil.initDatabase();
