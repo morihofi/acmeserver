@@ -82,18 +82,21 @@ public class SendMail {
         Properties emailProp = new Properties();
         emailProp.put("mail.smtp.auth", "true");
         emailProp.put("mail.smtp.host", emailConfig.getHost());
-        emailProp.put("mail.smtp.port", String.valueOf(emailConfig.getPort()));
+        emailProp.put("mail.smtp.port", emailConfig.getPort());
 
-        if ("starttls".equals(emailConfig.getEncryption())) {
-            emailProp.put("mail.smtp.starttls.enable", "true");
-        } else if ("ssl".equals(emailConfig.getEncryption()) || "tls".equals(emailConfig.getEncryption())) {
-            emailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-            emailProp.put("mail.smtp.ssl.checkserveridentity", "true");
-        } else {
-            // No encryption, use a plain connection
-            emailProp.put("mail.smtp.starttls.enable", "false");
-            emailProp.put("mail.smtp.ssl.trust", "*");
+        switch (emailConfig.getEncryption()) {
+            case "starttls":
+                emailProp.put("mail.smtp.starttls.enable", "true");
+                break;
+            case "ssl":
+            case "tls":
+                emailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+                emailProp.put("mail.smtp.ssl.checkserveridentity", "true");
+                break;
+            default:
+                log.warn("Unencrypted email connection. Consider using SSL or STARTTLS for enhanced security.");
         }
+
         return emailProp;
     }
 }
