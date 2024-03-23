@@ -100,23 +100,17 @@ public class Main {
         USE_ASYNC_CERTIFICATE_ISSUING
     }
 
-
     private static final Set<SERVER_OPTION> serverOptions = new HashSet<>();
-
     public static Set<SERVER_OPTION> getServerOptions(){
         return Collections.unmodifiableSet(serverOptions);
     }
-
     private static final Gson CONFIG_GSON = new GsonBuilder()
             .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
             .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())
             .registerTypeAdapter(DatabaseConfig.class, new DatabaseConfigDeserializer())
             .setPrettyPrinting()
             .create();
-
-
     public static final Path CONFIG_PATH = FILES_DIR.resolve("settings.json");
-
 
     public static void main(String[] args) throws Exception {
         // runArgs are needed to restart the whole server
@@ -199,7 +193,6 @@ public class Main {
             }
 
         }
-
 
     }
 
