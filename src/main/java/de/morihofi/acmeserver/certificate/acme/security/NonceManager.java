@@ -1,5 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.security;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.HttpNonces;
@@ -9,7 +11,6 @@ import jakarta.persistence.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
-import org.json.JSONObject;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,8 +31,8 @@ public class NonceManager {
      * @throws ACMEBadNonceException If the nonce has already been used.
      */
     public static void checkNonceFromDecodedProtected(String decodedProtected) {
-        JSONObject reqBodyProtectedObj = new JSONObject(decodedProtected);
-        String nonce = reqBodyProtectedObj.getString("nonce");
+        JsonObject reqBodyProtectedObj = JsonParser.parseString(decodedProtected).getAsJsonObject();
+        String nonce = reqBodyProtectedObj.get("nonce").getAsString();
 
         if (isNonceUsed(nonce)) {
             throw new ACMEBadNonceException("Nonce already used");

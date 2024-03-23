@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
@@ -15,7 +17,7 @@ import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.json.JSONObject;
+
 
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
@@ -48,9 +50,10 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
 
-        //Payload is Base64 Encoded
-        JSONObject reqBodyPayloadObj = new JSONObject(acmeRequestBody.getDecodedPayload());
-        JSONObject reqBodyProtectedObj = new JSONObject(acmeRequestBody.getDecodedProtected());
+        //Payload is Base64 Encoded, so we get the decoded one
+        JsonObject reqBodyPayloadObj = JsonParser.parseString(acmeRequestBody.getDecodedPayload()).getAsJsonObject();
+        JsonObject reqBodyProtectedObj = JsonParser.parseString(acmeRequestBody.getDecodedProtected()).getAsJsonObject();
+
 
         //Check which method our server uses:
         //String accountId = null;
@@ -78,7 +81,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
         log.info("Account ID {} wants to revoke a certificate", accountId);
 
-        String certificateBase64 = reqBodyPayloadObj.getString("certificate");
+        String certificateBase64 = reqBodyPayloadObj.get("certificate").getAsString();
 
         //Parse certificate
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
@@ -146,7 +149,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
             7: (Unspecified)
             8: Remove From CRL - The certificate was mistakenly placed on the revocation list.
          */
-        int reason = reqBodyPayloadObj.getInt("reason");
+        int reason = reqBodyPayloadObj.get("reason").getAsInt();
 
         //Check reason code
         if (reason < 0 || reason > 8 || reason == 7) {

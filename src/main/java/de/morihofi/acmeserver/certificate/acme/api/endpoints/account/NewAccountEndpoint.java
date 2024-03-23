@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.account;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
@@ -24,7 +26,6 @@ import org.hibernate.Transaction;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.lang.JoseException;
-import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Objects;
@@ -69,7 +70,13 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
         // Create new account in database
         String accountId = UUID.randomUUID().toString();
-        String jwkString = new JSONObject(acmeRequestBody.getDecodedProtected()).getJSONObject("jwk").toString();
+
+        // Parse the JSON string to a JsonElement or directly to JsonObject
+        JsonObject decodedProtectedJsonObject = JsonParser.parseString(acmeRequestBody.getDecodedProtected()).getAsJsonObject();
+
+        // Extract the "jwk" JsonObject as a string
+        String jwkString = decodedProtectedJsonObject.getAsJsonObject("jwk").toString();
+
 
         PublicJsonWebKey publicJsonWebKey;
         try {
