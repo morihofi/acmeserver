@@ -213,6 +213,7 @@ public class JettySslHelper {
                 sslContextFactory.setExcludeProtocols();
                 sslContextFactory.setExcludeCipherSuites();
                 sslContextFactory.setRenegotiationAllowed(false);
+                sslContextFactory.setUseCipherSuitesOrder(true);
 
                 sslContextFactory.setIncludeCipherSuites(mozillaConfig.ciphers().toArray(new String[0]));
                 sslContextFactory.setIncludeProtocols(mozillaConfig.protocols().toArray(new String[0]));
