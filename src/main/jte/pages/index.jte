@@ -54,6 +54,10 @@ context = context
                     <i class="fa-solid fa-download"></i>&nbsp;
                     ${localizer.lookup("web.index.btn.downloadCA.pem")}
                 </a>
+                <a class="dropdown-item" href="/ca.cab">
+                    <i class="fa-brands fa-windows"></i>&nbsp;
+                    ${localizer.lookup("web.index.btn.downloadCA.cab")}
+                </a>
             </div>
         </div>
 

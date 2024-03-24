@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver;
 
+import de.morihofi.acmeserver.certificate.api.download.DownloadCaCabEndpoint;
 import de.morihofi.acmeserver.certificate.api.download.DownloadCaDerEndpoint;
 import de.morihofi.acmeserver.certificate.api.download.DownloadCaPemEndpoint;
 import de.morihofi.acmeserver.certificate.api.serverInfo.ApiServerInfoEndpoint;
@@ -15,6 +16,7 @@ public class API {
         app.get("/ca.crt", new DownloadCaPemEndpoint(cryptoStoreManager));
         app.get("/ca.pem", new DownloadCaPemEndpoint(cryptoStoreManager));
         app.get("/ca.der", new DownloadCaDerEndpoint(cryptoStoreManager));
+        app.get("/ca.cab", new DownloadCaCabEndpoint(cryptoStoreManager));
 
 
         app.get("/api/stats/provisioners/certificates-issued", new ApiStatsProvisionerCertificatesIssued());
