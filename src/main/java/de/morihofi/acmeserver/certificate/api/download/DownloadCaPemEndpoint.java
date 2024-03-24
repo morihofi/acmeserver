@@ -8,7 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
-public class DownloadCaEndpoint implements Handler {
+public class DownloadCaPemEndpoint implements Handler {
 
     /**
      * Logger
@@ -25,7 +25,7 @@ public class DownloadCaEndpoint implements Handler {
      *
      * @param cryptoStoreManager Instance of {@link CryptoStoreManager} for accessing KeyStores
      */
-    public DownloadCaEndpoint(CryptoStoreManager cryptoStoreManager) {
+    public DownloadCaPemEndpoint(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
     }
 

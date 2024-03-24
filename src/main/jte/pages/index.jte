@@ -36,10 +36,28 @@ context = context
         <h1>${localizer.lookup("web.index.title")}</h1>
         ${localizer.lookup("web.index.intro")}<br/>
         <br/>
-        <a href="/ca.crt" class="btn btn-primary btn-lg">
-            <i class="fa-solid fa-download"></i>&nbsp;
-            ${localizer.lookup("web.index.btn.downloadCA")}
-        </a>
+
+        <div class="btn-group">
+            <a  href="/ca.crt" class="btn btn-primary btn-lg" type="button">
+                <i class="fa-solid fa-download"></i>&nbsp;
+                ${localizer.lookup("web.index.btn.downloadCA")}
+            </a>
+            <button type="button" class="btn btn-lg btn-primary dropdown-toggle dropdown-toggle-split" data-bs-reference="parent" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="visually-hidden">Toggle Dropdown</span>
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="/ca.der">
+                    <i class="fa-solid fa-download"></i>&nbsp;
+                    ${localizer.lookup("web.index.btn.downloadCA.der")}
+                </a>
+                <a class="dropdown-item" href="/ca.pem">
+                    <i class="fa-solid fa-download"></i>&nbsp;
+                    ${localizer.lookup("web.index.btn.downloadCA.pem")}
+                </a>
+            </div>
+        </div>
+
+
     </div>
 
     <br/>
