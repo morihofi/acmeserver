@@ -142,7 +142,7 @@ This version is not fully RFC 8555 compliant, but should work with most clients.
 | [MariaDB](https://mariadb.org)            | Yes                  | ✅           |                                                                                                       |
 | [H2](https://h2database.com)              | Yes                  | ✅           | Only embedded mode has been tested, cause this is the only supported at the moment                    |
 | [PostgreSQL](https://www.postgresql.org/) | Yes                  | ✅           | Use a up-to-date database version. Tested with PostgreSQL 16.2, older version may won't work properly |
-| [MySQL](https://mysql.com/)               | No                   | ❓           |                                                                                                       |
+| [MySQL](https://mysql.com/)               | No                   | ❓           | Hibernate configuration has been prepared, but not tested yet                                         |
 
 If you want to use a database engine, where the JDBC driver isn't built in,
 you have to add the driver manually to the classpath and specify the Main-Class manually.
