@@ -100,7 +100,7 @@ java -jar acmeserver-VERSION.jar
   using [Mozilla's SSL Config Guidelines](https://ssl-config.mozilla.org/),
   see [Wiki](https://wiki.mozilla.org/Security/Server_Side_TLS) here (JSON configuration from 4.0 until 5.7 (latest at
   writing this) are included, if specified version not available it will try to fetch these from the Mozilla server.
-  Note: Version before 5.1 )
+  Note: Version before 5.1 might be a bit buggy)
 
 ## 📒 Disclaimer
 
