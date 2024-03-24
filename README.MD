@@ -81,7 +81,7 @@ java -jar acmeserver-VERSION.jar
   - HTTP-01
   - DNS-01
 - Statistics 
-- API and WebUI TLS Security can be automatically configured using [Mozilla's SSL Config Guidelines](https://ssl-config.mozilla.org/), see [Wiki](https://wiki.mozilla.org/Security/Server_Side_TLS) here (JSON configuration from 4.0 until 5.7 (latest at writing this) are included, if specified version not available it will try to fetch these from the Mozilla server)
+- API and WebUI TLS Security can be automatically configured using [Mozilla's SSL Config Guidelines](https://ssl-config.mozilla.org/), see [Wiki](https://wiki.mozilla.org/Security/Server_Side_TLS) here (JSON configuration from 4.0 until 5.7 (latest at writing this) are included, if specified version not available it will try to fetch these from the Mozilla server. Note: Version before 5.1 )
 
 ## 📒 Disclaimer
 This version is not fully RFC 8555 compliant, but should work with most clients. 
