@@ -5,7 +5,12 @@
       "https": 443,
       "http": 80
     },
-    "enableSniCheck": true
+    "enableSniCheck": true,
+    "mozillaSslConfig": {
+      "enabled": false,
+      "version": "5.7",
+      "configuration": "intermediate"
+    }
   },
   "keyStore": {
     "type": "pkcs12",

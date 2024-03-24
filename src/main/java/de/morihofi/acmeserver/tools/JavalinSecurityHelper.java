@@ -9,6 +9,9 @@ import de.morihofi.acmeserver.tools.certificate.generator.ServerCertificateGener
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewManager;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import de.morihofi.acmeserver.tools.network.JettySslHelper;
+import de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.MozillaSslConfigHelper;
+import de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.response.version5dot1up.Configuration;
+import de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.response.version5dot1up.MozillaSslConfiguration5dot1upResponse;
 import io.javalin.Javalin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,6 +59,27 @@ public class JavalinSecurityHelper {
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
 
+        MozillaSslConfigHelper.BasicConfiguration mozillaSSlConfig;
+        if(appConfig.getServer().getMozillaSslConfig().isEnabled()){
+            // This is needed to be able to turn on TLS 1.0, TLS 1.1 and TLS 1.2
+            Security.setProperty("jdk.tls.disabledAlgorithms", "");
+            Security.setProperty("jdk.certpath.disabledAlgorithms", "");
+
+            MozillaSslConfigHelper.CONFIGURATION configuration = switch (appConfig.getServer().getMozillaSslConfig().getConfiguration()){
+               case "modern" -> MozillaSslConfigHelper.CONFIGURATION.MODERN;
+               case "intermediate" -> MozillaSslConfigHelper.CONFIGURATION.INTERMEDIATE;
+               case "old" -> MozillaSslConfigHelper.CONFIGURATION.OLD;
+                default ->
+                        throw new IllegalStateException("Unexpected value: " + appConfig.getServer().getMozillaSslConfig().getConfiguration() + " must be one of modern, intermediate or old");
+            };
+
+            mozillaSSlConfig = MozillaSslConfigHelper.getConfigurationGuidelinesForVersion(appConfig.getServer().getMozillaSslConfig().getVersion(),MozillaSslConfigHelper.CONFIGURATION.OLD);
+
+            log.info("Using Mozilla's SSL Configuration guidelines configuration {} version {} at {} with the following oldest clients supporting it {}", configuration, mozillaSSlConfig.version(), mozillaSSlConfig.href(), mozillaSSlConfig.oldestClients());
+        } else {
+            mozillaSSlConfig = null;
+        }
+
 
         {
             String alias = CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI;
@@ -89,7 +113,7 @@ public class JavalinSecurityHelper {
          * libraries and Bouncy Castle, which is platform independent.
          */
 
-        JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(), enableSniCheck);
+        JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(), enableSniCheck, mozillaSSlConfig);
 
         log.info("Registering ACME API certificate expiration watcher");
 
@@ -99,7 +123,7 @@ public class JavalinSecurityHelper {
         }, () -> {
             try {
                 log.info("Certificate renewed successfully, now reloading ACME API certificate");
-                JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(), enableSniCheck);
+                JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(), enableSniCheck, mozillaSSlConfig);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
