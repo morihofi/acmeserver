@@ -17,7 +17,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    @template.layout.head()
+    @template.html5.layout.head()
 
     <title>${localizer.lookup("app.name")}</title>
     <style>
@@ -30,7 +30,7 @@
     </style>
 </head>
 <body>
-@template.layout.navigation(
+@template.html5.layout.navigation(
 localizer = localizer,
 context = context
 )
@@ -112,7 +112,7 @@ context = context
 
 
 </main>
-@template.layout.footer(
+@template.html5.layout.footer(
 serverInfoResponse = serverInfoResponse,
 localizer = localizer
 )

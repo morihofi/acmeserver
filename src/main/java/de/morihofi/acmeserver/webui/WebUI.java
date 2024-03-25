@@ -14,6 +14,7 @@ import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.api.serverInfo.ApiServerInfoEndpoint;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.webui.handler.CommandBuilderHandler;
+import de.morihofi.acmeserver.webui.handler.IndexHandler;
 import de.morihofi.acmeserver.webui.handler.ProvisionerInfoHandler;
 import de.morihofi.acmeserver.webui.handler.StatsHandler;
 import gg.jte.ContentType;
@@ -119,10 +120,10 @@ public class WebUI {
      * </ul>
      *
      * @param cryptoStoreManager the cryptographic store manager used by the application.
-     * @param context the current request context.
+     * @param context            the current request context.
      * @return a {@link Map} containing default objects and information for frontend use.
      */
-    public static Map<String, Object> getDefaultFrontendMap(CryptoStoreManager cryptoStoreManager, Context context){
+    public static Map<String, Object> getDefaultFrontendMap(CryptoStoreManager cryptoStoreManager, Context context) {
         return Map.of(
                 "serverInfoResponse", ApiServerInfoEndpoint.getServerInfoResponse(appConfig.getProvisioner()),
                 "cryptoStoreManager", cryptoStoreManager,
@@ -136,7 +137,7 @@ public class WebUI {
 
 
         // Default routes
-        app.get(FRONTEND_PAGES.INDEX.getRoute(), context -> context.render("pages/index.jte", getDefaultFrontendMap(cryptoStoreManager, context)));
+        app.get(FRONTEND_PAGES.INDEX.getRoute(), new IndexHandler(cryptoStoreManager));
         app.get(FRONTEND_PAGES.STATISTICS.getRoute(), new StatsHandler(cryptoStoreManager));
         app.get("/provisioner-info", new ProvisionerInfoHandler(cryptoStoreManager));
         app.get(FRONTEND_PAGES.COMMAND_BUILDER.getRoute(), new CommandBuilderHandler(cryptoStoreManager));
@@ -180,5 +181,38 @@ public class WebUI {
         URL classURL = Main.class.getClassLoader().getResource(className);
         return classURL != null && classURL.getProtocol().equals("jar");
     }
+
+    public static boolean isLegacyBrowser(Context context) {
+        String userAgent = context.userAgent();
+        System.out.println(userAgent);
+
+        try {
+            // Überprüfen, ob der User-Agent-String auf IE 9 oder älter hinweist
+            assert userAgent != null;
+            if (userAgent.contains("MSIE")) {
+                // Extrahiere die Version von IE aus dem User-Agent-String
+                String versionString = userAgent.substring(userAgent.indexOf("MSIE") + 5);
+                versionString = versionString.substring(0, versionString.indexOf(";"));
+                double version = Double.parseDouble(versionString);
+
+                // Überprüfe, ob die Version ≤ 9 ist
+                if (version <= 9.0) {
+                    return true;
+                }
+            }
+
+            // Überprüfe auf Pocket Internet Explorer durch spezifische Schlüsselwörter im User-Agent-String
+            // Beachte, dass es viele Variationen des User-Agent-Strings für Pocket IE gibt
+            // und diese Überprüfung möglicherweise angepasst werden muss, um spezifische Versionen zu erfassen
+            if (userAgent.contains("Windows CE") || userAgent.contains("IEMobile")) {
+                return true;
+            }
+        }catch (Exception ex){
+            log.error("Error checking if User Agent {} is a legacy browser", userAgent, ex);
+        }
+
+        return false;
+    }
+
 
 }

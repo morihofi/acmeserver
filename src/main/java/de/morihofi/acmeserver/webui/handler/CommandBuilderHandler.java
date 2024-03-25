@@ -46,6 +46,6 @@ public class CommandBuilderHandler implements Handler {
         }
 
 
-        context.render("pages/cmd-builder.jte", params);
+        context.render("html5/pages/cmd-builder.jte", params);
     }
 }

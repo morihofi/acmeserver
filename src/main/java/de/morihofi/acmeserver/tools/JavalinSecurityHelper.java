@@ -65,6 +65,9 @@ public class JavalinSecurityHelper {
             Security.setProperty("jdk.tls.disabledAlgorithms", "");
             Security.setProperty("jdk.certpath.disabledAlgorithms", "");
 
+            System.setProperty("jdk.tls.allowLegacyResumption", String.valueOf(appConfig.getServer().getSslServerConfig().isAllowLegacyResumption()));
+
+
             MozillaSslConfigHelper.CONFIGURATION configuration = switch (appConfig.getServer().getMozillaSslConfig().getConfiguration()){
                case "modern" -> MozillaSslConfigHelper.CONFIGURATION.MODERN;
                case "intermediate" -> MozillaSslConfigHelper.CONFIGURATION.INTERMEDIATE;

@@ -13,12 +13,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    @template.layout.head()
+    @template.html5.layout.head()
 
     <title>${localizer.lookup("app.name")}</title>
 </head>
 <body>
-@template.layout.navigation(
+@template.html5.layout.navigation(
 localizer = localizer,
 context = context
 )
@@ -137,7 +137,7 @@ context = context
 
     <!-- Server Info -->
     <h2>${localizer.lookup("web.core.component.serverInfo.title")}</h2>
-    @template.components.serverInfo(serverInfoResponse = serverInfoResponse, localizer = localizer)
+    @template.html5.components.serverInfo(serverInfoResponse = serverInfoResponse, localizer = localizer)
 
 
 </main>
@@ -217,7 +217,7 @@ context = context
     }
 
 </script>
-@template.layout.footer(
+@template.html5.layout.footer(
 serverInfoResponse = serverInfoResponse,
 localizer = localizer
 )

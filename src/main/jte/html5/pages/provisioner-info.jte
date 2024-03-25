@@ -17,12 +17,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    @template.layout.head()
+    @template.html5.layout.head()
 
     <title>${localizer.lookup("app.name")}</title>
 </head>
 <body>
-@template.layout.navigation(
+@template.html5.layout.navigation(
 localizer = localizer,
 context = context,
 )
@@ -32,13 +32,13 @@ context = context,
     ${localizer.lookup("web.provisionerInfo.intro")}
 
     <h2 class="mt-3">${localizer.lookup("web.provisionerInfo.general.title")}</h2>
-    @template.components.stringTable(localizer = localizer, table = provisionerTableMap)
+    @template.html5.components.stringTable(localizer = localizer, table = provisionerTableMap)
 
     <h2 class="mt-3">${localizer.lookup("web.provisionerInfo.intermediate.title")}</h2>
-    @template.components.stringTable(localizer = localizer, table = provisionerIntermediateTableMap)
+    @template.html5.components.stringTable(localizer = localizer, table = provisionerIntermediateTableMap)
 
 </main>
-@template.layout.footer(
+@template.html5.layout.footer(
 serverInfoResponse = serverInfoResponse,
 localizer = localizer
 )

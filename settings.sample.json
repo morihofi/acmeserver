@@ -10,6 +10,9 @@
       "enabled": false,
       "version": "5.7",
       "configuration": "intermediate"
+    },
+    "sslServerConfig": {
+      "allowLegacyResumption": false
     }
   },
   "keyStore": {

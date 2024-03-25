@@ -63,7 +63,7 @@ public class ProvisionerInfoHandler implements Handler {
         params.put("provisionerTableMap", provisionerTableMap);
         params.put("provisionerIntermediateTableMap", provisionerIntermediateTableMap);
 
-        context.render("pages/provisioner-info.jte", params);
+        context.render("html5/pages/provisioner-info.jte", params);
     }
 
     /**

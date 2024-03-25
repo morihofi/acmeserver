@@ -12,7 +12,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    @template.layout.head()
+    @template.html5.layout.head()
 
     <title>${localizer.lookup("app.name")}</title>
     <style>
@@ -108,7 +108,7 @@ body {
 </main>
 
 
-@template.layout.footer(
+@template.html5.layout.footer(
 showFooter = false,
 localizer = localizer
 )

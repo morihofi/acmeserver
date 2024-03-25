@@ -59,7 +59,7 @@ public class StatsHandler implements Handler {
             params.put("statisticsDatabase", statisticsDatabase);
         }
 
-        context.render("pages/stats.jte", params);
+        context.render("html5/pages/stats.jte", params);
     }
 
     private List<StatisticItem> getDatabaseStatistics() {

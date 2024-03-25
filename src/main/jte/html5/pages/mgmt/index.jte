@@ -14,7 +14,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    @template.layout.head()
+    @template.html5.layout.head()
 
 
     <title>${localizer.lookup("app.name")}</title>
@@ -23,13 +23,13 @@
 
 
 <main class="d-flex flex-nowrap">
-    @template.layout.mgmtNavigation(localizer = localizer, context = context, user = user)
+    @template.html5.layout.mgmtNavigation(localizer = localizer, context = context, user = user)
 
     Test
 
 </main>
 
-@template.layout.footer(localizer = localizer)
+@template.html5.layout.footer(localizer = localizer)
 
 </body>
 </html>

@@ -64,7 +64,7 @@ public class LoginUiHandler implements Handler {
             }
 
             params.put("state", loginState);
-            context.render("pages/login.jte", params);
+            context.render("html5/pages/login.jte", params);
         }
 
 

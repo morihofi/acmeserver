@@ -15,6 +15,7 @@ public class ServerConfig implements Serializable {
     private boolean enableSniCheck = true;
 
     private MozillaSslConfig mozillaSslConfig = new MozillaSslConfig();
+    private SslServerConfig sslServerConfig = new SslServerConfig();
 
     /**
      * Get the DNS name of the server.
@@ -68,5 +69,13 @@ public class ServerConfig implements Serializable {
 
     public void setMozillaSslConfig(MozillaSslConfig mozillaSslConfig) {
         this.mozillaSslConfig = mozillaSslConfig;
+    }
+
+    public SslServerConfig getSslServerConfig() {
+        return sslServerConfig;
+    }
+
+    public void setSslServerConfig(SslServerConfig sslServerConfig) {
+        this.sslServerConfig = sslServerConfig;
     }
 }
