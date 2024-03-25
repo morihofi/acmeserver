@@ -77,7 +77,7 @@ java -jar acmeserver-VERSION.jar
 - Self-hosted ACME Server for use with your own CA
 - Download CA support 
   - Download in standard formats like CRT, PEM, DER
-  - CAB file CA export for install on legacy Windows Mobile based devices (e.g. older embedded devices, old PDAs, ...)
+  - [CAB file CA export](http://web.archive.org/web/20060427213220/http://blogs.msdn.com/windowsmobile/archive/2006/01/28/making_a_root_cert_cab_file.aspx) for install on legacy Windows Mobile based devices (e.g. older embedded devices, old PDAs, ...)
 - Support for PKCS#12 (.p12) KeyStore and PKCS#11 Hardware Security Modules (HSM)
 - Revokation support for certificates
 - ACME Account deactivation
