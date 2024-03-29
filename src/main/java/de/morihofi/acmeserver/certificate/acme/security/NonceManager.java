@@ -54,7 +54,6 @@ public class NonceManager {
         }
 
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            assert session != null;
             org.hibernate.Transaction transaction = session.beginTransaction();
 
             // Check if the nonce exists in the database
