@@ -10,12 +10,13 @@
     <inceptionYear>2023</inceptionYear>
 
     <properties>
+        <!-- Maven Options -->
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.release>17</maven.compiler.release>
-
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <!-- Building timestamp for inclusion into properties -->
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>dd-MM-yyyy HH:mm</maven.build.timestamp.format>
 
@@ -125,7 +126,8 @@
                     <verbose>true</verbose>
                     <offline>true</offline>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties
+                    </generateGitPropertiesFilename>
                     <commitIdGenerationMode>full</commitIdGenerationMode>
                 </configuration>
             </plugin>
@@ -186,7 +188,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -196,7 +197,6 @@
                     <nohelp>true</nohelp>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>gg.jte</groupId>
                 <artifactId>jte-maven-plugin</artifactId>
@@ -217,8 +217,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-
             <plugin>
                 <artifactId>jdeb</artifactId>
                 <groupId>org.vafer</groupId>
