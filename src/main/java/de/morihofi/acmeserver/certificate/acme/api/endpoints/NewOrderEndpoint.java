@@ -23,6 +23,7 @@ import de.morihofi.acmeserver.tools.regex.DomainAndIpValidation;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.h2.schema.Domain;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -99,7 +100,8 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             //Check DNS if type is DNS
             if(identifier.getType().equals("dns")){
                 if (!DomainAndIpValidation.isValidDomain(identifier.getDataValue(), provisioner.isWildcardAllowed())) {
-                    throw new ACMERejectedIdentifierException("Identifier \"" + identifier.getDataValue() + "\" is invalid (Wildcard allowed: " + provisioner.isWildcardAllowed() + ")");
+                    throw new ACMERejectedIdentifierException("DNS-Identifier \"" + identifier.getDataValue() + "\" is invalid. (Wildcard allowed in provisioner: " + provisioner.isWildcardAllowed() + ")" +
+                            (DomainAndIpValidation.isIpAddress(identifier.getDataValue()) ? " It looks like you put an IP Address into a DNS Identifier. Please use am \"ip\"-identifier instead, if enabled in current provisioner." : ""));
 
                 }
 
@@ -110,8 +112,11 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
             //Check IP if type is IP
             if(identifier.getType().equals("ip")){
-                if (!DomainAndIpValidation.isIpAddress(identifier.getDataValue())) {
-                    throw new ACMERejectedIdentifierException("Identifier IP \"" + identifier.getDataValue() + "\" is invalid");
+                if(!getProvisioner().isIpAllowed()){ //IP Address issuing is not allowed
+                    throw new ACMERejectedIdentifierException("Issuing for IP Addresses has been disabled for this provisioner");
+                }
+                if (!DomainAndIpValidation.isIpAddress(identifier.getDataValue())) { //Not an IP Address
+                    throw new ACMERejectedIdentifierException("IP-Identifier \"" + identifier.getDataValue() + "\" is invalid");
                 }
             }
 

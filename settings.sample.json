@@ -81,6 +81,7 @@
         "years": 0
       },
       "wildcardAllowed": false,
+      "ipAllowed": true,
       "domainNameRestriction": {
         "enabled": false,
         "mustEndWith": [
@@ -119,6 +120,7 @@
         "years": 0
       },
       "wildcardAllowed": true,
+      "ipAllowed": true,
       "domainNameRestriction": {
         "enabled": false,
         "mustEndWith": [

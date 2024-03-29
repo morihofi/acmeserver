@@ -16,6 +16,8 @@ public class ProvisionerConfig implements Serializable {
     private CertificateExpiration issuedCertificateExpiration;
     private DomainNameRestrictionConfig domainNameRestriction;
     private boolean wildcardAllowed;
+    private boolean ipAllowed;
+
 
     /**
      * Get the name of the provisioner.
@@ -111,5 +113,13 @@ public class ProvisionerConfig implements Serializable {
      */
     public void setWildcardAllowed(boolean wildcardAllowed) {
         this.wildcardAllowed = wildcardAllowed;
+    }
+
+    public boolean isIpAllowed() {
+        return ipAllowed;
+    }
+
+    public void setIpAllowed(boolean ipAllowed) {
+        this.ipAllowed = ipAllowed;
     }
 }

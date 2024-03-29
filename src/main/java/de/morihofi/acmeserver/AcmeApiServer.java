@@ -27,6 +27,7 @@ import io.javalin.json.JavalinGson;
 import io.javalin.rendering.template.JavalinJte;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import java.lang.management.ManagementFactory;
 import java.security.*;
 import java.security.cert.X509Certificate;
@@ -122,7 +123,7 @@ public class AcmeApiServer {
             ctx.header("Content-Type", "application/problem+json");
             //ctx.header("Link", "<" + provisioner.getApiURL() + "/directory>;rel=\"index\"");
             ctx.result(gson.toJson(exception.getErrorResponse()));
-            log.error("ACME Exception thrown: {} ({})", exception.getErrorResponse().getDetail(), exception.getErrorResponse().getType());
+            log.error("ACME Exception thrown {} : {} ({})", exception.getClass().getSimpleName(), exception.getErrorResponse().getDetail(), exception.getErrorResponse().getType());
         });
 
 
@@ -177,7 +178,7 @@ public class AcmeApiServer {
 
             KeyPair intermediateKeyPair = null;
             X509Certificate intermediateCertificate;
-            final Provisioner provisioner = new Provisioner(provisionerName, config.getMeta(), config.getIssuedCertificateExpiration(), config.getDomainNameRestriction(), config.isWildcardAllowed(), cryptoStoreManager, config);
+            final Provisioner provisioner = new Provisioner(provisionerName, config.getMeta(), config.getIssuedCertificateExpiration(), config.getDomainNameRestriction(), config.isWildcardAllowed(), cryptoStoreManager, config, config.isIpAllowed());
 
 
             //Check if root ca does exist
@@ -232,7 +233,6 @@ public class AcmeApiServer {
 
     /**
      * see {@link #reloadConfiguration(Runnable)}
-     *
      */
     public static void reloadConfiguration() throws Exception {
         reloadConfiguration(null);

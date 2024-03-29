@@ -87,6 +87,8 @@ public class Provisioner {
      */
     private final ProvisionerConfig config;
 
+    private boolean ipAllowed;
+
 
     /**
      * Constructs a new Provisioner object.
@@ -103,7 +105,7 @@ public class Provisioner {
      * @param config                         configuration of the provisioner
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public Provisioner(String provisionerName, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager, ProvisionerConfig config) {
+    public Provisioner(String provisionerName, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration, DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager, ProvisionerConfig config, boolean ipAllowed) {
         this.provisionerName = provisionerName;
         this.acmeMetadataConfig = acmeMetadataConfig;
         this.generatedCertificateExpiration = generatedCertificateExpiration;
@@ -111,6 +113,7 @@ public class Provisioner {
         this.wildcardAllowed = wildcardAllowed;
         this.cryptoStoreManager = cryptoStoreManager;
         this.config = config;
+        this.ipAllowed = ipAllowed;
     }
 
     /**
@@ -294,4 +297,11 @@ public class Provisioner {
         return CRLScheduler.getCrlGeneratorForProvisioner(provisionerName);
     }
 
+    public void setIpAllowed(boolean ipAllowed) {
+        this.ipAllowed = ipAllowed;
+    }
+
+    public boolean isIpAllowed() {
+        return ipAllowed;
+    }
 }
