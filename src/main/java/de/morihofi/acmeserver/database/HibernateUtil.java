@@ -130,9 +130,8 @@ public class HibernateUtil {
         // Database dialect and driver based on JDBC URL
         configureDialectAndDriver(configuration, jdbcUrl);
 
-        //Use connection pool
-        //TODO: Let user decide
-        if(true){
+        //Use connection pool, but use no connection pool when in Debug mode
+        if(!Main.debug){
             // Agroal Connection Pool settings
             configureAgroalConnectionPool(configuration);
         }else {
