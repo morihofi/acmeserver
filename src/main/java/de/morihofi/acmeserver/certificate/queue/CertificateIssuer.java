@@ -121,58 +121,52 @@ public class CertificateIssuer {
     }
 
 
-    private static class CertificateIssuingTask implements Runnable {
-
-        private final CryptoStoreManager cryptoStoreManager;
-
-        public CertificateIssuingTask(CryptoStoreManager cryptoStoreManager) {
-            this.cryptoStoreManager = cryptoStoreManager;
-        }
+    private record CertificateIssuingTask(CryptoStoreManager cryptoStoreManager) implements Runnable {
 
         @SuppressFBWarnings("REC_CATCH_EXCEPTION")
-        @Override
-        public void run() {
-            log.info("Certificate issuing thread started!");
+            @Override
+            public void run() {
+                log.info("Certificate issuing thread started!");
 
-            while (!Thread.currentThread().isInterrupted()) {
-                log.trace("Looking for certificates to be issued in the database");
+                while (!Thread.currentThread().isInterrupted()) {
+                    log.trace("Looking for certificates to be issued in the database");
 
 
-                List<ACMEOrder> waitingOrders = ACMEOrder.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE);
+                    List<ACMEOrder> waitingOrders = ACMEOrder.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE);
 
-                if (!waitingOrders.isEmpty()) {
+                    if (!waitingOrders.isEmpty()) {
 
-                    try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+                        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
 
-                        //CryptoStoreManager csm = CryptoStoreManager;
+                            //CryptoStoreManager csm = CryptoStoreManager;
 
-                        ACMEOrder order = waitingOrders.get(0);
-                        generateCertificateForOrder(order, cryptoStoreManager, session);
+                            ACMEOrder order = waitingOrders.get(0);
+                            generateCertificateForOrder(order, cryptoStoreManager, session);
 
-                    } catch (Exception ex) {
-                        log.error("Error generating and/or store certificate", ex);
+                        } catch (Exception ex) {
+                            log.error("Error generating and/or store certificate", ex);
+                        }
+
+                    } else {
+
+                        //Waiting for new CSRs and try in a few seconds again
+                        try {
+
+                            Thread.sleep(20 * 1000); //Sleep 20 seconds
+
+                        } catch (InterruptedException e) {
+                            log.warn("Thread sleep is interrupted");
+                            Thread.currentThread().interrupt();
+                        }
+
                     }
 
-                } else {
-
-                    //Waiting for new CSRs and try in a few seconds again
-                    try {
-
-                        Thread.sleep(20 * 1000); //Sleep 20 seconds
-
-                    } catch (InterruptedException e) {
-                        log.warn("Thread sleep is interrupted");
-                        Thread.currentThread().interrupt();
-                    }
 
                 }
-
-
+                log.info("Certificate issuing thread is stopping gracefully.");
             }
-            log.info("Certificate issuing thread is stopping gracefully.");
+
+
         }
-
-
-    }
 
 }
