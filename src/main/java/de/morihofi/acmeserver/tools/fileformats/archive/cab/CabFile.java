@@ -134,21 +134,6 @@ public class CabFile {
         }
 
         public CabFile build() {
-
-            /*Vector<String> initFileNames = new Vector<>();
-            Vector<byte[]> initFileData = new Vector<>();
-*/
-           /* for (int i = 0; i < Math.min(fileContents.size(), filenames.size()); i++) {
-
-
-                byte[] file1 = ;
-
-                initFileNames.add(FILENAME_1);
-
-                initFileData.add(file1);
-            }*/
-
-
             return new CabFile(filenames,fileContents);
         }
     }
