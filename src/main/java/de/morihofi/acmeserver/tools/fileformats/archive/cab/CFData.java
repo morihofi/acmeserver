@@ -56,7 +56,7 @@ public class CFData {
     }
 
     public Vector<Byte> makeByteArray() {
-        Vector<Byte> b = new Vector<Byte>();
+        Vector<Byte> b = new Vector<>();
 
         b.addAll(convertToByte(csum, 4));
         b.addAll(convertToByte(cbData, 2));
@@ -68,7 +68,7 @@ public class CFData {
     }
 
     private Vector<Byte> convertToByte(int val, int numBytes) {
-        Vector<Byte> b = new Vector<Byte>();
+        Vector<Byte> b = new Vector<>();
         Integer tempInt;
         Byte byteToAdd;
         if (numBytes == 1) {

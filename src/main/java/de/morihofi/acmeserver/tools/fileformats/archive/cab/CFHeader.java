@@ -94,7 +94,7 @@ public class CFHeader {
     
     public Vector<Byte> makeByteArray()
     {
-        Vector<Byte> b = new Vector<Byte>();
+        Vector<Byte> b = new Vector<>();
         
         b.addAll(convertToByte(signature[0], 1));
         b.addAll(convertToByte(signature[1], 1));

@@ -39,8 +39,8 @@ public class CabFile {
         cfdata = new Vector<>();
         Vector<Byte> alldata = new Vector<>();
         for (byte[] b : fileContents) {
-            for (int i = 0; i < b.length; i++) {
-                alldata.add(b[i]);
+            for (byte value : b) {
+                alldata.add(value);
             }
         }
         //alldata is a vector of bytes containing all bytes to be saved
