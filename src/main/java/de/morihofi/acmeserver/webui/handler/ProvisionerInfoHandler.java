@@ -397,8 +397,7 @@ public class ProvisionerInfoHandler implements Handler {
     public static ASN1Primitive toAsn1Object(byte[] data) throws IOException {
         try (ASN1InputStream asn1InputStream = new ASN1InputStream(data)) {
             ASN1Primitive obj = asn1InputStream.readObject();
-            if (obj instanceof DEROctetString) {
-                DEROctetString oct = (DEROctetString) obj;
+            if (obj instanceof DEROctetString oct) {
                 try (ASN1InputStream asn1InputStreamOct = new ASN1InputStream(new ByteArrayInputStream(oct.getOctets()))) {
                     return asn1InputStreamOct.readObject();
                 }

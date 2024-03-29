@@ -184,8 +184,7 @@ public class JettySslHelper {
 
 
         for (Connector connector : server.getConnectors()) {
-            if (connector instanceof ServerConnector) {
-                ServerConnector serverConnector = (ServerConnector) connector;
+            if (connector instanceof ServerConnector serverConnector) {
 
                 // Stoppe den Connector nur, wenn er läuft.
                 if (serverConnector.isStarted()) {
@@ -244,8 +243,7 @@ public class JettySslHelper {
         server.setConnectors(connectors.toArray(new Connector[0]));
 
         for (Connector connector : server.getConnectors()) {
-            if (connector instanceof ServerConnector && connector.getProtocols().contains("ssl")) {
-                ServerConnector sslConnector = (ServerConnector) connector;
+            if (connector instanceof ServerConnector sslConnector && connector.getProtocols().contains("ssl")) {
                 sslConnector.start();
                 break;
             }
