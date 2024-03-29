@@ -22,7 +22,7 @@ public class NonceManager {
     /**
      * Logger
      */
-    public static final Logger log = LogManager.getLogger(NonceManager.class);
+    private static final Logger LOG = LogManager.getLogger(NonceManager.class);
 
     /**
      * Checks if a nonce from a decoded protected request body has already been used.
@@ -74,7 +74,7 @@ public class NonceManager {
             // Return true if nonce exists, false if it was added
             return nonceExists;
         } catch (Exception e) {
-            log.error("Error checking or adding nonce", e);
+            LOG.error("Error checking or adding nonce", e);
             return false;
         }
     }

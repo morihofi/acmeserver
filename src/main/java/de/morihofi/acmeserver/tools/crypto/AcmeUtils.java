@@ -19,6 +19,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.lang.invoke.MethodHandles;
 import java.net.IDN;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -36,6 +37,8 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.Certificate;
@@ -48,6 +51,12 @@ import org.bouncycastle.cert.X509CertificateHolder;
  * change their signature or disappear without prior announcement.
  */
 public final class AcmeUtils {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+
     private static final char[] HEX = "0123456789abcdef".toCharArray();
     private static final String ACME_ERROR_PREFIX = "urn:ietf:params:acme:error:";
 

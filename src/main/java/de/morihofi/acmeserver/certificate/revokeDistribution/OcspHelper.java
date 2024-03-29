@@ -24,7 +24,7 @@ import java.util.Date;
 
 public class OcspHelper {
 
-    public static final Logger log = LogManager.getLogger(OcspHelper.class);
+    private static final Logger LOG = LogManager.getLogger(OcspHelper.class);
 
 
     /**
@@ -44,7 +44,7 @@ public class OcspHelper {
     public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRLGenerator crlGenerator, Provisioner provisioner) throws OCSPException, CRLException, CertificateEncodingException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
         CertificateStatus certStatus = getCertificateStatus(serialNumber, crlGenerator);
 
-        log.info("Status for serial number {} is: {}", serialNumber, (certStatus != null ? "revoked" : "valid"));
+        LOG.info("Status for serial number {} is: {}", serialNumber, (certStatus != null ? "revoked" : "valid"));
 
         X509Certificate caCert = provisioner.getIntermediateCaCertificate();
         KeyPair caKeyPair = provisioner.getIntermediateCaKeyPair();

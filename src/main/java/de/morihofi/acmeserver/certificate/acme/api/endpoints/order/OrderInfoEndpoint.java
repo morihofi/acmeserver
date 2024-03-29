@@ -17,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,8 +27,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
-
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     public OrderInfoEndpoint(Provisioner provisioner) {
         super(provisioner);

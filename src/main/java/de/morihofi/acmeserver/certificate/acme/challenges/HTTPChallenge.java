@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.*;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -27,7 +28,7 @@ public class HTTPChallenge {
     /**
      * Logger
      */
-    public static final Logger log = LogManager.getLogger(HTTPChallenge.class);
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     private static final OkHttpClient httpClient = new OkHttpClient.Builder().proxy(getHTTPChallengeProxy()).build();
 
     /**
@@ -84,7 +85,7 @@ public class HTTPChallenge {
 
 
         } catch (Exception ex) {
-            log.error("Failed to initialize proxy configuration", ex);
+            LOG.error("Failed to initialize proxy configuration", ex);
         }
 
 
@@ -124,8 +125,8 @@ public class HTTPChallenge {
                     .header("User-Agent", USER_AGENT)
                     .build();
 
-            if (log.isDebugEnabled()) {
-                log.debug("Performing GET request to \"{}\"", request.url());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Performing GET request to \"{}\"", request.url());
             }
 
             // Execute the HTTP GET request and retrieve the response
@@ -134,27 +135,27 @@ public class HTTPChallenge {
 
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     // Successful response, check the token in the response
-                    log.debug("Got response, checking token in response.");
+                    LOG.debug("Got response, checking token in response.");
                     assert response.body() != null;
                     String acmeTokenFromHost = response.body().string();
                     String expectedValue = getToken(authToken, acmeAccountPublicKey);
 
                     if (expectedValue.equals(acmeTokenFromHost)) {
                         passed = true;
-                        log.info("HTTP Challenge has validated for host {}. Expected: {}; Got: {}", host, expectedValue, acmeTokenFromHost);
+                        LOG.info("HTTP Challenge has validated for host {}. Expected: {}; Got: {}", host, expectedValue, acmeTokenFromHost);
                     } else {
-                        log.error("HTTP Challenge validation failed for host {}. Content doesn't match. Expected: {}; Got: {}", host, expectedValue, acmeTokenFromHost);
+                        LOG.error("HTTP Challenge validation failed for host {}. Content doesn't match. Expected: {}; Got: {}", host, expectedValue, acmeTokenFromHost);
                         lastError = "HTTP Challenge validation failed, cause content doesn't match";
                     }
                 } else {
-                    log.error("HTTP Challenge failed for host {}, got HTTP status code {}", host, responseCode);
+                    LOG.error("HTTP Challenge failed for host {}, got HTTP status code {}", host, responseCode);
                     lastError = "HTTP Challenge failed, got HTTP status code " + responseCode;
                 }
             }
 
 
         } catch (IOException e) {
-            log.error("HTTP Challenge failed for host {}. Is it reachable?", host, e);
+            LOG.error("HTTP Challenge failed for host {}. Is it reachable?", host, e);
             if(e instanceof ConnectException){
                 lastError = e.getMessage();
             }

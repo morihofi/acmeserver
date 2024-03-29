@@ -55,6 +55,7 @@ The first release candidate of version 2.0 is now out!
 - Database connection pool is now only in debug mode disabled
 - IP issuing support can now be manually enabled/disabled for a provisioner
 - Better error message when a IP Address has been used in an `dns`-identifier instead of an `ip`-identifier
+- Logger in classes is now private and final everywhere and has been renamed from `log` to `LOG`
 
 ## 🐳 Getting started with Docker (recommended)
 

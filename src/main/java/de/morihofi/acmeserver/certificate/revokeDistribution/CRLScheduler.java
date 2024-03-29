@@ -15,7 +15,7 @@ public class CRLScheduler {
     /**
      * Logger
      */
-    private static final Logger log = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     private static final int UPDATE_MINUTES = 5;
 
 
@@ -31,25 +31,25 @@ public class CRLScheduler {
 
 
     public static void startScheduler(){
-        log.info("Initialized CRL Generation Scheduler");
+        LOG.info("Initialized CRL Generation Scheduler");
         // Start the scheduled task to update the CRL every 5 minutes
         scheduler.scheduleAtFixedRate(CRLScheduler::schedule, 0, UPDATE_MINUTES, TimeUnit.MINUTES);
     }
 
     private static void schedule() {
-        log.info("CRL Generation Scheduler is running");
+        LOG.info("CRL Generation Scheduler is running");
 
         for (CRLGenerator crlGenerator : crlMap.values()){
-            log.info("Generating CRL for {} provisioner", crlGenerator.getProvisioner().getProvisionerName());
+            LOG.info("Generating CRL for {} provisioner", crlGenerator.getProvisioner().getProvisionerName());
 
             crlGenerator.updateCachedCRL(UPDATE_MINUTES);
         }
 
-        log.info("CRL Generation Scheduler finished execution");
+        LOG.info("CRL Generation Scheduler finished execution");
     }
 
     public static void addProvisionerToScheduler(Provisioner provisioner){
-        log.info("{} provisioner has been added for CRL generation scheduling", provisioner.getProvisionerName());
+        LOG.info("{} provisioner has been added for CRL generation scheduling", provisioner.getProvisionerName());
         crlMap.put(provisioner.getProvisionerName(), new CRLGenerator(provisioner));
     }
 
@@ -58,7 +58,7 @@ public class CRLScheduler {
      * Should be called when the CRL instance is no longer needed.
      */
     public static void shutdown() {
-        log.info("CRL Scheduler is shutting down");
+        LOG.info("CRL Scheduler is shutting down");
         scheduler.shutdown();
         crlMap.clear();
     }

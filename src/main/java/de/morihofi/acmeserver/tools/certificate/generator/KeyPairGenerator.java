@@ -1,9 +1,18 @@
 package de.morihofi.acmeserver.tools.certificate.generator;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
 
 public class KeyPairGenerator {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Generates an RSA KeyPair with the specified key size.

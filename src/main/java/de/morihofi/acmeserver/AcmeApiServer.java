@@ -28,6 +28,7 @@ import io.javalin.rendering.template.JavalinJte;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.management.ManagementFactory;
 import java.security.*;
 import java.security.cert.X509Certificate;
@@ -36,11 +37,11 @@ import java.util.*;
 public class AcmeApiServer {
     private AcmeApiServer() {
     }
-
+    
     /**
      * Logger
      */
-    public static final Logger log = LogManager.getLogger(AcmeApiServer.class);
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Holds a static reference to the {@link CryptoStoreManager} instance used throughout the application
@@ -76,13 +77,13 @@ public class AcmeApiServer {
         AcmeApiServer.cryptoStoreManager = cryptoStoreManager;
         AcmeApiServer.certificateRenewManager = new CertificateRenewManager(cryptoStoreManager);
 
-        log.info("Starting in Normal Mode");
+        LOG.info("Starting in Normal Mode");
         CaInitHelper.initializeCA(cryptoStoreManager, appConfig);
 
-        log.info("Initializing database");
+        LOG.info("Initializing database");
         HibernateUtil.initDatabase();
 
-        log.info("Starting ACME API WebServer");
+        LOG.info("Starting ACME API WebServer");
         app = Javalin.create(javalinConfig -> {
             //TODO: Make it compatible again with modules
             javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
@@ -106,7 +107,7 @@ public class AcmeApiServer {
                 ctx.attribute(WebUI.ATTR_LOCALE, locale);
             }
 
-            log.info("API Call [{}] {}", ctx.method(), ctx.path());
+            LOG.info("API Call [{}] {}", ctx.method(), ctx.path());
         });
         app.options("/*", ctx -> {
             ctx.status(204); // No Content
@@ -123,7 +124,7 @@ public class AcmeApiServer {
             ctx.header("Content-Type", "application/problem+json");
             //ctx.header("Link", "<" + provisioner.getApiURL() + "/directory>;rel=\"index\"");
             ctx.result(gson.toJson(exception.getErrorResponse()));
-            log.error("ACME Exception thrown {} : {} ({})", exception.getClass().getSimpleName(), exception.getErrorResponse().getDetail(), exception.getErrorResponse().getType());
+            LOG.error("ACME Exception thrown {} : {} ({})", exception.getClass().getSimpleName(), exception.getErrorResponse().getDetail(), exception.getErrorResponse().getType());
         });
 
 
@@ -135,22 +136,22 @@ public class AcmeApiServer {
             ProvisionerManager.registerProvisioner(app, provisioner);
         }
 
-        log.info("Starting the CRL generation Scheduler");
+        LOG.info("Starting the CRL generation Scheduler");
         CRLScheduler.startScheduler();
-        log.info("Starting the certificate renew watcher");
+        LOG.info("Starting the certificate renew watcher");
         certificateRenewManager.startScheduler();
 
 
         if (Main.getServerOptions().contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
-            log.info("Starting Certificate Issuer");
+            LOG.info("Starting Certificate Issuer");
             CertificateIssuer.startThread(cryptoStoreManager);
         }
 
 
         app.start();
-        log.info("\u2705 Configure Routes completed. Ready for incoming requests");
+        LOG.info("\u2705 Configure Routes completed. Ready for incoming requests");
         Main.startupTime = (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000L; //in seconds
-        log.info("Startup took {} seconds", Main.startupTime);
+        LOG.info("Startup took {} seconds", Main.startupTime);
 
 
     }
@@ -190,14 +191,14 @@ public class AcmeApiServer {
                 // Create Intermediate Certificate
 
                 if (config.getIntermediate().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
-                    log.info("Using RSA algorithm");
-                    log.info("Generating RSA {} bit Key Pair for Intermediate CA", rsaParams.getKeySize());
+                    LOG.info("Using RSA algorithm");
+                    LOG.info("Generating RSA {} bit Key Pair for Intermediate CA", rsaParams.getKeySize());
                     intermediateKeyPair = KeyPairGenerator.generateRSAKeyPair(rsaParams.getKeySize(), cryptoStoreManager.getKeyStore().getProvider().getName());
                 }
                 if (config.getIntermediate().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
-                    log.info("Using ECDSA algorithm (Elliptic curves");
+                    LOG.info("Using ECDSA algorithm (Elliptic curves");
 
-                    log.info("Generating ECDSA Key Pair using curve {} for Intermediate CA", ecdsaAlgorithmParams.getCurveName());
+                    LOG.info("Generating ECDSA Key Pair using curve {} for Intermediate CA", ecdsaAlgorithmParams.getCurveName());
                     intermediateKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName(), cryptoStoreManager.getKeyStore().getProvider().getName());
 
                 }
@@ -206,9 +207,9 @@ public class AcmeApiServer {
                 }
 
 
-                log.info("Generating Intermediate CA");
+                LOG.info("Generating Intermediate CA");
                 intermediateCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(cryptoStoreManager, intermediateKeyPair, config.getIntermediate().getMetadata(), config.getIntermediate().getExpiration(), provisioner.getFullCrlUrl(), provisioner.getFullOcspUrl());
-                log.info("Storing generated Intermedia CA");
+                LOG.info("Storing generated Intermedia CA");
                 X509Certificate[] chain = new X509Certificate[]{intermediateCertificate, (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)};
                 cryptoStoreManager.getKeyStore().setKeyEntry(
                         IntermediateKeyAlias,
@@ -216,7 +217,7 @@ public class AcmeApiServer {
                         "".toCharArray(),
                         chain
                 );
-                log.info("Saving KeyStore");
+                LOG.info("Saving KeyStore");
                 cryptoStoreManager.saveKeystore();
 
             }
@@ -268,27 +269,27 @@ public class AcmeApiServer {
      */
 
     public static void reloadConfiguration(Runnable runWhenEverythingIsShutDown) throws Exception {
-        log.info("Reloading configuration was triggered. Service will be disrupted for a moment, please wait ...");
-        log.info("Initiating shutdown of components ...");
+        LOG.info("Reloading configuration was triggered. Service will be disrupted for a moment, please wait ...");
+        LOG.info("Initiating shutdown of components ...");
 
-        log.info("Shutting down WebServer");
+        LOG.info("Shutting down WebServer");
         app.stop();
         app = null;
 
-        log.info("Shutting down CRL scheduler");
+        LOG.info("Shutting down CRL scheduler");
         CRLScheduler.shutdown();
 
-        log.info("Shutting down Certificate watchers");
+        LOG.info("Shutting down Certificate watchers");
 
-        log.info("Gracefully shutdown certificate watchers");
+        LOG.info("Gracefully shutdown certificate watchers");
         certificateRenewManager.shutdown();
 
         if (Main.getServerOptions().contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
-            log.info("Shutting down Certificate Issuer");
+            LOG.info("Shutting down Certificate Issuer");
             CertificateIssuer.shutdown();
         }
 
-        log.info("Shutting down Database");
+        LOG.info("Shutting down Database");
         HibernateUtil.shutdown();
 
         // At this point the VM should shut down itself with exit code 0,

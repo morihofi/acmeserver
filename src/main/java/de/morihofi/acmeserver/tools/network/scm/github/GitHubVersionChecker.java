@@ -5,10 +5,18 @@ import de.morihofi.acmeserver.tools.network.scm.github.responses.Release;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 
 public class GitHubVersionChecker {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     private static final OkHttpClient httpClient = new OkHttpClient();
     private static final String PROJECT_NAME = "acmeserver";
     private static final String PROJECT_OWNER = "morihofi";

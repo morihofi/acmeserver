@@ -26,6 +26,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,7 +41,7 @@ public class Main {
     /**
      * Logger
      */
-    public static final Logger log = LogManager.getLogger(Main.class);
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * `serverdata` directory as an absolute path
@@ -116,12 +117,12 @@ public class Main {
         SLF4JBridgeHandler.install();
 
         //Register Bouncy Castle Provider
-        log.info("Register Bouncy Castle Security Provider");
+        LOG.info("Register Bouncy Castle Security Provider");
         Security.addProvider(new BouncyCastleProvider());
-        log.info("Register Bouncy Castle JSSE Security Provider");
+        LOG.info("Register Bouncy Castle JSSE Security Provider");
         Security.addProvider(new BouncyCastleJsseProvider());
 
-        log.info("Initializing directories");
+        LOG.info("Initializing directories");
         ensureFilesDirectoryExists();
 
         loadServerConfiguration();
@@ -146,43 +147,43 @@ public class Main {
             }
             if (cliArgument.getParameterName().equals("debug")) {
                 debug = true;
-                log.info("Debug mode activated by cli argument");
+                LOG.info("Debug mode activated by cli argument");
             }
             /*
              * Following are options that change the behavior of the server
              */
             if (cliArgument.getParameterName().equals("option-use-async-certificate-issuing")) {
                 serverOptions.add(SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING);
-                log.info("Enabled async certificate issuing");
+                LOG.info("Enabled async certificate issuing");
             }
         }
 
 
         if (Objects.equals(System.getenv("DEBUG"), "TRUE")) {
             debug = true;
-            log.info("Debug mode activated by DEBUG environment variable set to TRUE");
+            LOG.info("Debug mode activated by DEBUG environment variable set to TRUE");
         }
 
 
         if (debug) {
-            log.warn("!!! RUNNING IN DEBUG MODE - BEHAVIOR CAN BE DIFFERENT. DO NOT USE IN PRODUCTION !!!");
+            LOG.warn("!!! RUNNING IN DEBUG MODE - BEHAVIOR CAN BE DIFFERENT. DO NOT USE IN PRODUCTION !!!");
         }
 
 
         switch (selectedMode) {
             case NORMAL -> {
                 initializeCoreComponents();
-                log.info("Starting normally");
+                LOG.info("Starting normally");
                 AcmeApiServer.startServer(cryptoStoreManager, appConfig);
             }
             case POSTSETUP -> {
                 //Do not init core components, due to changing passwords in UI
-                log.info("Starting Post Setup");
+                LOG.info("Starting Post Setup");
                 PostSetup.run(cryptoStoreManager, appConfig, FILES_DIR, args);
             }
             case KEYSTORE_MIGRATION_PEM2KS -> {
                 initializeCoreComponents();
-                log.info("Starting in KeyStore migration Mode (PEM to KeyStore)");
+                LOG.info("Starting in KeyStore migration Mode (PEM to KeyStore)");
                 KSMigrationTool.run(args, cryptoStoreManager, appConfig, FILES_DIR);
             }
 
@@ -191,15 +192,15 @@ public class Main {
     }
 
     public static void loadServerConfiguration() throws IOException {
-        log.info("Loading configuration ...");
+        LOG.info("Loading configuration ...");
         appConfig = CONFIG_GSON.fromJson(Files.readString(CONFIG_PATH), Config.class);
-        log.info("Configuration loaded");
+        LOG.info("Configuration loaded");
     }
 
     public static void saveServerConfiguration() throws IOException {
-        log.info("Saving configuration ...");
+        LOG.info("Saving configuration ...");
         Files.writeString(CONFIG_PATH, CONFIG_GSON.toJson(appConfig));
-        log.info("Configuration saved");
+        LOG.info("Configuration saved");
     }
 
 
@@ -253,7 +254,7 @@ public class Main {
         if (coreComponentsInitialized) {
             return;
         }
-        log.info("Initializing core components...");
+        LOG.info("Initializing core components...");
 
         {
             //Initialize KeyStore
@@ -292,11 +293,11 @@ public class Main {
      */
     private static void ensureFilesDirectoryExists() throws IOException {
         if (!Files.exists(FILES_DIR)) {
-            log.info("First run detected, creating settings directory");
+            LOG.info("First run detected, creating settings directory");
             Files.createDirectories(FILES_DIR);
         }
         if (!Files.exists(CONFIG_PATH)) {
-            log.fatal("No configuration was found. Please create a file called \"settings.json\" in \"{}\". Then try again", FILES_DIR.toAbsolutePath());
+            LOG.fatal("No configuration was found. Please create a file called \"settings.json\" in \"{}\". Then try again", FILES_DIR.toAbsolutePath());
             System.exit(1);
         }
     }
@@ -307,13 +308,13 @@ public class Main {
     private static void loadBuildAndGitMetadata() {
 
         loadMetadata("/build.properties", properties -> {
-            log.info("Loading build metadata");
+            LOG.info("Loading build metadata");
             buildMetadataVersion = properties.getProperty("build.version");
             buildMetadataBuildTime = properties.getProperty("build.date") + " UTC";
         });
 
         loadMetadata("/git.properties", properties -> {
-            log.info("Loading git metadata");
+            LOG.info("Loading git metadata");
             buildMetadataGitCommit = properties.getProperty("git.commit.id.full");
             buildMetadataGitCommit = properties.getProperty("git.commit.id.full");
             buildMetadataGitClosestTagName = properties.getProperty("git.closest.tag.name");
@@ -327,10 +328,10 @@ public class Main {
                 properties.load(is);
                 propertiesConsumer.accept(properties);
             } else {
-                log.warn("Unable to load metadata from {}", fileName);
+                LOG.warn("Unable to load metadata from {}", fileName);
             }
         } catch (IOException e) {
-            log.error("Unable to load metadata from {}", fileName, e);
+            LOG.error("Unable to load metadata from {}", fileName, e);
         }
     }
 

@@ -11,6 +11,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.Req;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.util.Base64;
 
@@ -23,7 +24,7 @@ public class OcspEndpointGet implements Handler {
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Constructor for OcspEndpointGet class. Processes GET Requests
@@ -63,7 +64,7 @@ public class OcspEndpointGet implements Handler {
         }
 
         BigInteger serialNumber = requestList[0].getCertID().getSerialNumber();
-        log.info("Checking revokation status for serial number {}", serialNumber);
+        LOG.info("Checking revokation status for serial number {}", serialNumber);
 
         // Processing the request and creating the OCSP response
         OCSPResp ocspResponse = OcspHelper.processOCSPRequest(serialNumber, CRLScheduler.getCrlGeneratorForProvisioner(provisioner.getProvisionerName()), provisioner);

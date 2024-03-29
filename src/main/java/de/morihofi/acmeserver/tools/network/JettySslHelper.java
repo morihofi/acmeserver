@@ -14,6 +14,7 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -29,7 +30,7 @@ public class JettySslHelper {
     /**
      * Logger
      */
-    public static final Logger log = LogManager.getLogger(JettySslHelper.class);
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Creates an SSLContext with the specified certificate chain and key pair.
@@ -128,7 +129,7 @@ public class JettySslHelper {
     public static Server getSslJetty(int httpsPort, int httpPort, Path certificatePath, Path privateKeyPath, Path publicKeyPath, boolean enableSniCheck, MozillaSslConfigHelper.BasicConfiguration mozillaConfig)
             throws Exception {
 
-        log.info("Loading Key Pair");
+        LOG.info("Loading Key Pair");
         KeyPair jettyKeyPair = PemUtil.loadKeyPair(privateKeyPath, publicKeyPath);
 
         X509Certificate[] certificateChain = PemUtil.loadCertificateChain(certificatePath);
@@ -196,7 +197,7 @@ public class JettySslHelper {
         List<Connector> connectors = new ArrayList<>();
 
         if (httpsPort != 0 && sslContext != null) {
-            log.info("API HTTPS support is ENABLED");
+            LOG.info("API HTTPS support is ENABLED");
             HttpConfiguration https = new HttpConfiguration();
             SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
             secureRequestCustomizer.setSniHostCheck(enableSniCheck);
@@ -205,7 +206,7 @@ public class JettySslHelper {
             SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
             sslContextFactory.setSslContext(sslContext); // Your SSL context
             if(mozillaConfig != null){
-                log.info("Configuring TLS using Mozilla configuration");
+                LOG.info("Configuring TLS using Mozilla configuration");
                 sslContextFactory.setExcludeProtocols();
                 sslContextFactory.setExcludeCipherSuites();
                 sslContextFactory.setRenegotiationAllowed(false);
@@ -226,18 +227,18 @@ public class JettySslHelper {
 
             connectors.add(sslConnector);
         } else {
-            log.info("API HTTPS support is DISABLED. THIS IS NOT RECOMMENDED; YOU MAY ENCOUNTER UNEXPECTED BEHAVIOR!");
+            LOG.info("API HTTPS support is DISABLED. THIS IS NOT RECOMMENDED; YOU MAY ENCOUNTER UNEXPECTED BEHAVIOR!");
         }
 
         if (httpPort != 0) {
-            log.info("API HTTP support is ENABLED");
+            LOG.info("API HTTP support is ENABLED");
             // HTTP Configuration
             ServerConnector httpConnector = new ServerConnector(server);
             httpConnector.setPort(httpPort);
 
             connectors.add(httpConnector);
         } else {
-            log.info("API HTTP support is DISABLED");
+            LOG.info("API HTTP support is DISABLED");
         }
 
         server.setConnectors(connectors.toArray(new Connector[0]));

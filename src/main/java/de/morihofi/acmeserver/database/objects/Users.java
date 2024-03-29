@@ -12,12 +12,21 @@ package de.morihofi.acmeserver.database.objects;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 import java.util.Set;
 
 @Entity
 @Table(name = "users")
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class Users {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

@@ -27,8 +27,7 @@ public class JavalinSecurityHelper {
     /**
      * Logger
      */
-    private static final Logger log = LogManager.getLogger(MethodHandles.lookup().getClass());
-
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Initializes secure API settings for a Javalin application, configuring SSL/TLS using a custom
@@ -76,7 +75,7 @@ public class JavalinSecurityHelper {
 
             mozillaSSlConfig = MozillaSslConfigHelper.getConfigurationGuidelinesForVersion(appConfig.getServer().getMozillaSslConfig().getVersion(),MozillaSslConfigHelper.CONFIGURATION.OLD);
 
-            log.info("Using Mozilla's SSL Configuration guidelines configuration {} version {} at {} with the following oldest clients supporting it {}", configuration, mozillaSSlConfig.version(), mozillaSSlConfig.href(), mozillaSSlConfig.oldestClients());
+            LOG.info("Using Mozilla's SSL Configuration guidelines configuration {} version {} at {} with the following oldest clients supporting it {}", configuration, mozillaSSlConfig.version(), mozillaSSlConfig.href(), mozillaSSlConfig.oldestClients());
         } else {
             mozillaSSlConfig = null;
         }
@@ -87,7 +86,7 @@ public class JavalinSecurityHelper {
             CertificateRenewManager.CertificateData certData = generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
 
             if(certData.keyPair() != null && certData.certificateChain() != null){
-                log.info("Saving certificate and key for alias {} in keystore", alias);
+                LOG.info("Saving certificate and key for alias {} in keystore", alias);
                 //Save the new certificate in keystore
                 keyStore.deleteEntry(alias);
                 keyStore.setKeyEntry(
@@ -101,7 +100,7 @@ public class JavalinSecurityHelper {
 
         }
 
-        log.info("Updating Javalin's TLS configuration");
+        LOG.info("Updating Javalin's TLS configuration");
 
         int httpPort = appConfig.getServer().getPorts().getHttp();
         int httpsPort = appConfig.getServer().getPorts().getHttps();
@@ -116,14 +115,14 @@ public class JavalinSecurityHelper {
 
         JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(), enableSniCheck, mozillaSSlConfig);
 
-        log.info("Registering ACME API certificate expiration watcher");
+        LOG.info("Registering ACME API certificate expiration watcher");
 
         certificateRenewManager.registerNewCertificateRenewWatcher(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, null, (provisioner, x509Certificate, keyPair) -> {
             //Generate new certificate in place
             return generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
         }, () -> {
             try {
-                log.info("Certificate renewed successfully, now reloading ACME API certificate");
+                LOG.info("Certificate renewed successfully, now reloading ACME API certificate");
                 JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(), enableSniCheck, mozillaSSlConfig);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -160,14 +159,14 @@ public class JavalinSecurityHelper {
             // Create Certificate for our ACME Web Server API (Client Certificate)
 
 
-            log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
+            LOG.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
             acmeAPIKeyPair = KeyPairGenerator.generateRSAKeyPair(4096, cryptoStoreManager.getKeyStore().getProvider().getName());
 
-            log.info("Using root CA for generation");
+            LOG.info("Using root CA for generation");
             X509Certificate rootCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
             X509Certificate intermediateCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(rootCaAlias);
 
-            log.info("Creating Server Certificate");
+            LOG.info("Creating Server Certificate");
             Date startDate = new Date(); // Starts now
             Date endDate = DateTools.makeDateForOutliveIntermediateCertificate(
                     intermediateCertificate.getNotAfter(),

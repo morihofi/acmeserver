@@ -21,7 +21,7 @@ public class CaInitHelper {
     /**
      * Logger
      */
-    public static final Logger log = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
 
     /**
@@ -46,14 +46,14 @@ public class CaInitHelper {
 
             KeyPair caKeyPair = null;
             if (appConfig.getRootCA().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
-                log.info("Using RSA algorithm");
-                log.info("Generating RSA {} bit Key Pair for Root CA", rsaParams.getKeySize());
+                LOG.info("Using RSA algorithm");
+                LOG.info("Generating RSA {} bit Key Pair for Root CA", rsaParams.getKeySize());
                 caKeyPair = de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator.generateRSAKeyPair(rsaParams.getKeySize(), caKeyStore.getProvider().getName());
             }
             if (appConfig.getRootCA().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
-                log.info("Using ECDSA algorithm (Elliptic curves");
+                LOG.info("Using ECDSA algorithm (Elliptic curves");
 
-                log.info("Generating ECDSA Key Pair using curve {} for Root CA", ecdsaAlgorithmParams.getCurveName());
+                LOG.info("Generating ECDSA Key Pair using curve {} for Root CA", ecdsaAlgorithmParams.getCurveName());
                 caKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName(), caKeyStore.getProvider().getName());
 
             }
@@ -61,15 +61,15 @@ public class CaInitHelper {
                 throw new IllegalArgumentException("Unknown algorithm " + appConfig.getRootCA().getAlgorithm() + " used for root certificate");
             }
 
-            log.info("Creating CA");
+            LOG.info("Creating CA");
             X509Certificate caCertificate = CertificateAuthorityGenerator.generateCertificateAuthorityCertificate(appConfig.getRootCA(), caKeyPair);
 
             // Dumping CA Certificate to HDD, so other clients can install it
-            log.info("Writing CA to keystore");
+            LOG.info("Writing CA to keystore");
             caKeyStore.setKeyEntry(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA, caKeyPair.getPrivate(), "".toCharArray(), //No password
                     new X509Certificate[]{caCertificate});
             // Save CA in Keystore
-            log.info("Saving keystore");
+            LOG.info("Saving keystore");
             cryptoStoreManager.saveKeystore();
         }
 

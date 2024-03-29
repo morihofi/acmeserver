@@ -22,10 +22,19 @@
  */
 package de.morihofi.acmeserver.tools.fileformats.archive.cab;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Vector;
 
 public class CabFile {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     private CFHeader header;
     private Vector<CFFolder> folders;

@@ -22,6 +22,10 @@
  */
 package de.morihofi.acmeserver.tools.fileformats.archive.cab;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 import java.util.Vector;
 
 /**
@@ -29,7 +33,10 @@ import java.util.Vector;
  * @author Graham Rivers-Brown
  */
 public class CFHeader {
-
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     private int[] signature;       /* cabinet file signature */
     private int reserved1;         /* reserved */
     private int cbCabinet;         /* size of this cabinet file in bytes */

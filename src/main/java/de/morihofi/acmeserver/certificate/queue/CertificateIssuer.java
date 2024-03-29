@@ -21,6 +21,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -36,29 +37,29 @@ public class CertificateIssuer {
     /**
      * Logger
      */
-    private static final Logger log = LogManager.getLogger(CertificateIssuer.class);
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     private static Thread certificateQueueIssueThread = null;
 
     public static synchronized void startThread(CryptoStoreManager cryptoStoreManager) {
-        log.info("Starting certificate issuing thread...");
+        LOG.info("Starting certificate issuing thread...");
         if (certificateQueueIssueThread == null) {
             certificateQueueIssueThread = new Thread(new CertificateIssuingTask(cryptoStoreManager), "Certificate Issuing Thread");
             certificateQueueIssueThread.setDaemon(false); // Continue running until explicitly stopped, so only exit when all certificates are issued
             certificateQueueIssueThread.start();
         } else {
-            log.info("Certificate issuing thread is already running.");
+            LOG.info("Certificate issuing thread is already running.");
         }
     }
 
     public static void shutdown() throws InterruptedException {
         if (!certificateQueueIssueThread.isInterrupted()) {
-            log.info("Stopping {}", certificateQueueIssueThread.getName());
+            LOG.info("Stopping {}", certificateQueueIssueThread.getName());
             certificateQueueIssueThread.interrupt();
             while (certificateQueueIssueThread.isAlive()) {
-                log.info("Waiting for {} to exiting", certificateQueueIssueThread.getName());
+                LOG.info("Waiting for {} to exiting", certificateQueueIssueThread.getName());
                 Thread.sleep(1000);
             }
-            log.info("{} has been stopped", certificateQueueIssueThread.getName());
+            LOG.info("{} has been stopped", certificateQueueIssueThread.getName());
         }
     }
 
@@ -76,7 +77,7 @@ public class CertificateIssuer {
                             We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using the Basic Constrain etc.
                          */
 
-        log.info("Creating Certificate for order \"{}\" with DNS Names {}", order.getOrderId(),
+        LOG.info("Creating Certificate for order \"{}\" with DNS Names {}", order.getOrderId(),
                 String.join(", ", csrIdentifiers.stream()
                         .map(identifier -> identifier.getTypeAsEnumConstant().toString() + ":" + identifier.getValue())
                         .toList()
@@ -115,7 +116,7 @@ public class CertificateIssuer {
 
         transaction.commit();
 
-        log.info("Stored certificate successful");
+        LOG.info("Stored certificate successful");
 
 
     }
@@ -126,10 +127,10 @@ public class CertificateIssuer {
         @SuppressFBWarnings("REC_CATCH_EXCEPTION")
             @Override
             public void run() {
-                log.info("Certificate issuing thread started!");
+                LOG.info("Certificate issuing thread started!");
 
                 while (!Thread.currentThread().isInterrupted()) {
-                    log.trace("Looking for certificates to be issued in the database");
+                    LOG.trace("Looking for certificates to be issued in the database");
 
 
                     List<ACMEOrder> waitingOrders = ACMEOrder.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE);
@@ -144,7 +145,7 @@ public class CertificateIssuer {
                             generateCertificateForOrder(order, cryptoStoreManager, session);
 
                         } catch (Exception ex) {
-                            log.error("Error generating and/or store certificate", ex);
+                            LOG.error("Error generating and/or store certificate", ex);
                         }
 
                     } else {
@@ -155,7 +156,7 @@ public class CertificateIssuer {
                             Thread.sleep(20 * 1000); //Sleep 20 seconds
 
                         } catch (InterruptedException e) {
-                            log.warn("Thread sleep is interrupted");
+                            LOG.warn("Thread sleep is interrupted");
                             Thread.currentThread().interrupt();
                         }
 
@@ -163,7 +164,7 @@ public class CertificateIssuer {
 
 
                 }
-                log.info("Certificate issuing thread is stopping gracefully.");
+                LOG.info("Certificate issuing thread is stopping gracefully.");
             }
 
 

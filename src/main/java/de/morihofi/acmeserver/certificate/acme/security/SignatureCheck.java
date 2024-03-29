@@ -25,7 +25,7 @@ import java.security.spec.*;
  */
 public class SignatureCheck {
 
-    public static final Logger log = LogManager.getLogger(SignatureCheck.class);
+    private static final Logger LOG = LogManager.getLogger(SignatureCheck.class);
 
     private SignatureCheck() {
     }
@@ -82,12 +82,12 @@ public class SignatureCheck {
 
             if (!isSignatureValid) {
                 // Signature verification failed
-                log.error("Signature verification failed for account {}", accountId);
+                LOG.error("Signature verification failed for account {}", accountId);
                 throw new ACMEBadSignatureAlgorithmException("Signature does not match");
             }
         }catch (JoseException | IOException | NoSuchAlgorithmException | NoSuchProviderException |
                 InvalidKeySpecException ex){
-            log.error("An exception occurred while verifying signature for account {}", accountId, ex);
+            LOG.error("An exception occurred while verifying signature for account {}", accountId, ex);
             throw new ACMEBadSignatureAlgorithmException("An server side exception occurred while verifying signature");
         }
     }

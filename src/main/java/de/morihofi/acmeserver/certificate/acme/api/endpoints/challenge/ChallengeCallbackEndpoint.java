@@ -18,6 +18,8 @@ import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.invoke.MethodHandles;
+
 /**
  * A handler endpoint for processing challenge callbacks.
  */
@@ -26,7 +28,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    private final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
 
     /**
@@ -71,17 +73,17 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
             case "dns-01" ->
                     DNSChallenge.check(identifierChallenge.getAuthorizationToken(), nonWildcardDomain, identifierChallenge.getIdentifier().getOrder().getAccount());
             default -> {
-                log.error("Unsupported challenge type: " + challengeType);
+                LOG.error("Unsupported challenge type: " + challengeType);
                 throw new ACMEConnectionErrorException("Unsupported challenge type: " + challengeType);
             }
         };
 
-        log.info("Validating ownership of host {}", nonWildcardDomain);
+        LOG.info("Validating ownership of host {}", nonWildcardDomain);
         if (result.isSuccessful()) {
             // Mark challenge as passed
             ACMEOrderIdentifierChallenge.passChallenge(challengeId);
         } else {
-            log.error("Throwing API error: Host verification failed with method {}", challengeType);
+            LOG.error("Throwing API error: Host verification failed with method {}", challengeType);
             throw new ACMEConnectionErrorException(result.getErrorReason());
             // TODO: Fail challenge in database
             //Database.failChallenge(challengeId);

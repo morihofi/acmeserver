@@ -9,17 +9,23 @@ import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class MozillaSslConfigHelper {
-
-    private static OkHttpClient okHttpClient = new OkHttpClient();
-    private static Gson mozillaSslGson = new Gson();
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final OkHttpClient okHttpClient = new OkHttpClient();
+    private static final Gson mozillaSslGson = new Gson();
     public enum CONFIGURATION {
         MODERN, INTERMEDIATE, OLD
     }

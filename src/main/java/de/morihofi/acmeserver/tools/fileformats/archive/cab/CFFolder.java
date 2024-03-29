@@ -22,6 +22,10 @@
  */
 package de.morihofi.acmeserver.tools.fileformats.archive.cab;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 import java.util.Vector;
 
 /**
@@ -29,9 +33,11 @@ import java.util.Vector;
  * @author Graham Rivers-Brown
  */
 public class CFFolder {
-
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     public static final int NO_COMPRESSION = 0;
-
     private int coffCabStart;    /* offset of the first CFDATA block in this folder */
     private int cCFData;    /* number of CFDATA blocks in this folder */
     private final int typeCompress;    /* compression type indicator */

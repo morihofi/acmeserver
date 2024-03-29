@@ -19,7 +19,7 @@ public class KeyStoreUtils {
 
     private KeyStoreUtils(){}
 
-    public static final Logger log = LogManager.getLogger(KeyStoreUtils.class);
+    private static final Logger LOG = LogManager.getLogger(KeyStoreUtils.class);
     private static final String PKCS12_INSTANCE_NAME = "PKCS12";
 
 

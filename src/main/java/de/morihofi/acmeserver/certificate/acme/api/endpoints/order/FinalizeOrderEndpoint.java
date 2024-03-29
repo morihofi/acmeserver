@@ -30,6 +30,7 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,7 +39,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * ACME Endpoint for finalize an order
@@ -117,7 +118,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
                     //Use async certificate issuing
 
 
-                    log.info("Saved CSR for order {} in database", order.getOrderId());
+                    LOG.info("Saved CSR for order {} in database", order.getOrderId());
 
                     //Set response, that our certificate is processing in separate thread
                     response.setStatus(AcmeStatus.PROCESSING.getRfcName());
@@ -131,7 +132,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
 
             } catch (Exception e) {
-                log.error("Unable to process CSR for order {} and save in database", order.getOrderId(), e);
+                LOG.error("Unable to process CSR for order {} and save in database", order.getOrderId(), e);
             }
         } else {
             //We have a certificate

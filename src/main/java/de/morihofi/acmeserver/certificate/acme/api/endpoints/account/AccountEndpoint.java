@@ -19,6 +19,7 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,7 +33,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Endpoint for managing ACME Account settings. Change E-Mail etc.
@@ -64,7 +65,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
 
 
             // Update Account Settings, e.g., Email change
-            log.info("Update account settings for account {}", account.getAccountId());
+            LOG.info("Update account settings for account {}", account.getAccountId());
 
             List<String> emails = acmeAccountRequestPayload.getContact();
             if (emails != null) {
@@ -72,17 +73,17 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
                     email = email.replace("mailto:", "");
 
                     if (!EmailValidation.isValidEmail(email) || email.split("\\@")[0].equals("localhost")) {
-                        log.error("E-Mail format validation failed for email {}", email);
+                        LOG.error("E-Mail format validation failed for email {}", email);
                         throw new ACMEInvalidContactException("E-Mail address format is invalid");
                     }
-                    log.info("E-Mail validation successful for email {}", email);
+                    LOG.info("E-Mail validation successful for email {}", email);
                 }
 
                 // Update email
                 account.getEmails().clear();
                 account.getEmails().addAll(emails);
                 session.merge(account);
-                log.info("ACME account {} updated emails to {}", account.getAccountId(), String.join(",", emails));
+                LOG.info("ACME account {} updated emails to {}", account.getAccountId(), String.join(",", emails));
 
             }
 
@@ -91,7 +92,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
                 if (status.equals(AcmeStatus.DEACTIVATED.getRfcName())) {
                     account.setDeactivated(true);
                     session.merge(account);
-                    log.info("ACME account {} has been deactivated", account.getAccountId());
+                    LOG.info("ACME account {} has been deactivated", account.getAccountId());
                 }
             }
 

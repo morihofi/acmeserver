@@ -6,6 +6,8 @@ import de.morihofi.acmeserver.config.CertificateMetadata;
 import de.morihofi.acmeserver.tools.certificate.CertMisc;
 import de.morihofi.acmeserver.tools.certificate.X509;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -21,6 +23,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -31,6 +34,11 @@ import java.util.Date;
 public class CertificateAuthorityGenerator {
     private CertificateAuthorityGenerator() {
     }
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Generates an X509 certificate for a certificate authority (CA) based on the provided configuration and key pair.

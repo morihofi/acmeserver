@@ -10,12 +10,14 @@ import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.invoke.MethodHandles;
+
 public class OrderCertEndpoint extends AbstractAcmeEndpoint {
 
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     public OrderCertEndpoint(Provisioner provisioner) {
         super(provisioner);

@@ -28,7 +28,7 @@ public class ApiServerInfoEndpoint implements Handler {
     /**
      * Logger
      */
-    public static final Logger log = LogManager.getLogger(ApiServerInfoEndpoint.class);
+    private static final Logger LOG = LogManager.getLogger(ApiServerInfoEndpoint.class);
 
     /**
      * List of provisioners, specified in config
@@ -91,7 +91,7 @@ public class ApiServerInfoEndpoint implements Handler {
                     cachedLatestReleaseUrl = GitHubVersionChecker.getLatestReleaseURL();
                     cacheTimestamp = Instant.now();
                 } catch (IOException ex) {
-                    log.error("Failed to fetch the latest release information");
+                    LOG.error("Failed to fetch the latest release information");
                 }
             }
 

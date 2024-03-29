@@ -1,12 +1,21 @@
 package de.morihofi.acmeserver.tools.cli;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 
 /**
  * Represents a command-line argument that may have a prefix, a parameter name, and an optional value.
  * For example, in the argument "-port=8080", the prefix is "-", the parameter name is "port", and the value is "8080".
  */
 public class CLIArgument {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * The name of the parameter (e.g., "port" in "-port=8080")

@@ -22,6 +22,10 @@
  */
 package de.morihofi.acmeserver.tools.fileformats.archive.cab;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 import java.util.Calendar;
 import java.util.Vector;
 
@@ -30,7 +34,10 @@ import java.util.Vector;
  * @author Graham Rivers-Brown
  */
 public class CFFile {
-
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     private final int cbFile;             /* uncompressed size of this file in bytes */
     private final int uoffFolderStart;    /* uncompressed offset of this file in the folder */
     private final int iFolder;            /* index into the CFFOLDER area */

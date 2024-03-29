@@ -25,6 +25,7 @@ import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Map;
@@ -98,7 +99,7 @@ public class WebUI {
     /**
      * Logger
      */
-    public static final Logger log = LogManager.getLogger(WebUI.class);
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
 
     /**
@@ -133,7 +134,7 @@ public class WebUI {
     }
 
     public static void init(Javalin app, CryptoStoreManager cryptoStoreManager) {
-        log.info("Initializing WebUI and registering routes ...");
+        LOG.info("Initializing WebUI and registering routes ...");
 
 
         // Default routes
@@ -163,12 +164,12 @@ public class WebUI {
 
 
         if (isDev) {
-            log.info("Looks like this application is running from an IDE or outside a jar, using a JRE compiler resolver");
+            LOG.info("Looks like this application is running from an IDE or outside a jar, using a JRE compiler resolver");
 
             DirectoryCodeResolver codeResolver = new DirectoryCodeResolver(Path.of("src", "main", "jte"));
             return TemplateEngine.create(codeResolver, ContentType.Html);
         } else {
-            log.info("Running inside a JAR -> using precompiled classes for web ui");
+            LOG.info("Running inside a JAR -> using precompiled classes for web ui");
 
             return TemplateEngine.createPrecompiled(ContentType.Html);
         }
@@ -208,7 +209,7 @@ public class WebUI {
                 return true;
             }
         }catch (Exception ex){
-            log.error("Error checking if User Agent {} is a legacy browser", userAgent, ex);
+            LOG.error("Error checking if User Agent {} is a legacy browser", userAgent, ex);
         }
 
         return false;

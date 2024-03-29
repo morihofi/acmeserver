@@ -7,6 +7,7 @@ import jakarta.mail.internet.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Properties;
 
 public class SendMail {
@@ -14,7 +15,10 @@ public class SendMail {
     private SendMail() {
     }
 
-    public static final Logger log = LogManager.getLogger(SendMail.class);
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Sends an email using the specified email configuration, including optional encryption settings.
@@ -28,7 +32,7 @@ public class SendMail {
         EmailConfig emailConfig = Main.appConfig.getEmailSmtp();
 
         if (!emailConfig.getEnabled()) {
-            log.info("Not sending email, because email sending is disabled in the config");
+            LOG.info("Not sending email, because email sending is disabled in the config");
             return;
         }
 
@@ -54,9 +58,9 @@ public class SendMail {
 
         message.setContent(multipart);
 
-        log.info("Sending E-Mail with subject \"{}\" to \"{}\"", subject, toEmail);
+        LOG.info("Sending E-Mail with subject \"{}\" to \"{}\"", subject, toEmail);
         Transport.send(message);
-        log.info("E-Mail has been sent");
+        LOG.info("E-Mail has been sent");
     }
 
     /**
@@ -94,7 +98,7 @@ public class SendMail {
                 emailProp.put("mail.smtp.ssl.checkserveridentity", "true");
                 break;
             default:
-                log.warn("Unencrypted email connection. Consider using SSL or STARTTLS for enhanced security.");
+                LOG.warn("Unencrypted email connection. Consider using SSL or STARTTLS for enhanced security.");
         }
 
         return emailProp;

@@ -27,6 +27,7 @@ import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.lang.JoseException;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -36,7 +37,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
 
     public NewAccountEndpoint(Provisioner provisioner) {
@@ -62,7 +63,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
             for (String email : emails) {
                 email = email.replace("mailto:", "");
                 if (!EmailValidation.isValidEmail(email) || email.split("@")[0].equals("localhost")) {
-                    log.error("E-Mail validation failed for email {}", email);
+                    LOG.error("E-Mail validation failed for email {}", email);
                     throw new ACMEInvalidContactException("Mail validation failed for email " + email);
                 }
             }
@@ -82,7 +83,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         try {
             publicJsonWebKey = (PublicJsonWebKey) JsonWebKey.Factory.newJwk(jwkString);
         } catch (JoseException e) {
-            log.error("Error parsing JWK", e);
+            LOG.error("Error parsing JWK", e);
             throw new ACMEServerInternalException("Error parsing JWK: " + e.getMessage());
         }
 
@@ -98,9 +99,9 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
             account.setProvisioner(provisioner.getProvisionerName());
             session.persist(account);
             transaction.commit();
-            log.info("New ACME account created with account id {}", accountId);
+            LOG.info("New ACME account created with account id {}", accountId);
         } catch (Exception e) {
-            log.error("Unable to create new ACME account", e);
+            LOG.error("Unable to create new ACME account", e);
             throw new ACMEServerInternalException(e.getMessage());
         }
 

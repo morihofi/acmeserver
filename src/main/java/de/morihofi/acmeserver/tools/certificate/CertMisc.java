@@ -1,5 +1,9 @@
 package de.morihofi.acmeserver.tools.certificate;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
@@ -7,6 +11,11 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.RSAPrivateKey;
 
 public class CertMisc {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Generates a secure random serial number.

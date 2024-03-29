@@ -36,7 +36,7 @@ public class ACMEOrder implements Serializable {
     /**
      * Logger
      */
-    private static final Logger log = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
 
     @Id
@@ -338,11 +338,11 @@ public class ACMEOrder implements Serializable {
                     .getSingleResult();
 
             if (order != null) {
-                log.info("Got ACME certificate with serial number {} in database", serialNumber);
+                LOG.info("Got ACME certificate with serial number {} in database", serialNumber);
             }
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable get ACME order for certificate serial number id {}", serialNumber, e);
+            LOG.error("Unable get ACME order for certificate serial number id {}", serialNumber, e);
         }
         return order;
     }
@@ -412,7 +412,7 @@ public class ACMEOrder implements Serializable {
                     return null; //Returning null if it looks like that the server is generating in background
                 }
 
-                log.info("Getting Certificate for authorization Id {} -> Expires at {}", certificateId, certificateExpires);
+                LOG.info("Getting Certificate for authorization Id {} -> Expires at {}", certificateId, certificateExpires);
 
                 pemBuilder.append(certificatePEM);
             }
@@ -422,7 +422,7 @@ public class ACMEOrder implements Serializable {
 
 
         //Certificate chain
-        log.info("Adding Intermediate and CA certificate");
+        LOG.info("Adding Intermediate and CA certificate");
         pemBuilder.append("\n");
 
         List<X509Certificate> certificateChain = TypeSafetyHelper.safeCastToClassOfType(
@@ -441,7 +441,7 @@ public class ACMEOrder implements Serializable {
         }
 
 
-        log.info("Returning certificate chain of intermediate and root-ca {}", certificateChain);
+        LOG.info("Returning certificate chain of intermediate and root-ca {}", certificateChain);
 
         return pemBuilder.toString();
     }
@@ -477,7 +477,7 @@ public class ACMEOrder implements Serializable {
 
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable to get revoked certificates", e);
+            LOG.error("Unable to get revoked certificates", e);
         }
 
         return certificates;
@@ -501,9 +501,9 @@ public class ACMEOrder implements Serializable {
             session.merge(order);
 
             transaction.commit();
-            log.info("Revoked certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(), order.getAccount().getProvisioner());
+            LOG.info("Revoked certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(), order.getAccount().getProvisioner());
         } catch (Exception e) {
-            log.error("Unable to revoke certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(), order.getAccount().getProvisioner(), e);
+            LOG.error("Unable to revoke certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(), order.getAccount().getProvisioner(), e);
             throw new ACMEServerInternalException("Unable to revoke certificate");
         }
     }

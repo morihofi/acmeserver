@@ -19,6 +19,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 
 import java.io.ByteArrayInputStream;
+import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.PublicKey;
 import java.security.cert.CertificateFactory;
@@ -31,7 +32,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Constructs a new RevokeCertEndpoint instance.
@@ -71,14 +72,14 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         ACMEAccount account = ACMEAccount.getAccount(accountId);
         //Check if account exists
         if (account == null) {
-            log.error("Throwing API error: Account {} not found", accountId);
+            LOG.error("Throwing API error: Account {} not found", accountId);
             throw new ACMEAccountNotFoundException("The account id was not found");
         }
 
         //Check signature and nonce
         performSignatureAndNonceCheck(ctx,account, acmeRequestBody);
 
-        log.info("Account ID {} wants to revoke a certificate", accountId);
+        LOG.info("Account ID {} wants to revoke a certificate", accountId);
 
         String certificateBase64 = reqBodyPayloadObj.get("certificate").getAsString();
 
@@ -91,7 +92,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         // Check certificate (optional)
         // You can perform various checks here, e.g. validity date, issuer, etc.
         // Check issuer information
-        log.debug("Issuer: {}", certificate.getIssuerX500Principal());
+        LOG.debug("Issuer: {}", certificate.getIssuerX500Principal());
 
         // Read in root certificate
         X509Certificate intermediateCertificate = provisioner.getIntermediateCaCertificate();
@@ -101,9 +102,9 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         try {
             PublicKey intermediateCertificatePublicKey = intermediateCertificate.getPublicKey();
             certificate.verify(intermediateCertificatePublicKey);
-            log.debug("Certificate is valid");
+            LOG.debug("Certificate is valid");
         } catch (Exception e) {
-            log.error("Certificate is invalid or not from this CA", e);
+            LOG.error("Certificate is invalid or not from this CA", e);
             isValid = false;
         }
 
@@ -111,9 +112,9 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         // Validate validation date
         try {
             certificate.checkValidity(new Date());
-            log.debug("Certificate date is valid");
+            LOG.debug("Certificate date is valid");
         } catch (Exception e) {
-            log.error("Certificate date is invalid");
+            LOG.error("Certificate date is invalid");
             isValid = false;
         }
 
@@ -155,7 +156,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEBadRevocationReasonException("Invalid revokation reason: " + reason);
         }
 
-        log.info("Revoking certificate for reason {}", reason);
+        LOG.info("Revoking certificate for reason {}", reason);
 
         //Revoke it
         ACMEOrder.revokeCertificate(order, reason);

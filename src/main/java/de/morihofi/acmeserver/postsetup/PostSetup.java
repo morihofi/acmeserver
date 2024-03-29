@@ -34,7 +34,7 @@ public class PostSetup extends WindowBase {
     private final CryptoStoreManager cryptoStoreManager;
     private final Config appConfig;
     private final Path filesDir;
-    public static final Logger log = LogManager.getLogger(PostSetup.class);
+    private static final Logger LOG = LogManager.getLogger(PostSetup.class);
 
     /**
      * Runs the PostSetup configuration assistant with the specified parameters.

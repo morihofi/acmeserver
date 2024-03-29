@@ -30,7 +30,7 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
     /**
      * Logger
      */
-    private static final Logger log = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     @Id
     @Column(name = "challengeId", nullable = false)
@@ -155,18 +155,18 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
                     .uniqueResult();
 
             if (challenge != null) {
-                log.info("(Challenge ID: {}) Got ACME identifier of type {} with value {}",
+                LOG.info("(Challenge ID: {}) Got ACME identifier of type {} with value {}",
                         challengeId,
                         challenge.getIdentifier().getType(),
                         challenge.getIdentifier().getDataValue()
 
                 );
             } else {
-                log.error("Challenge ID {} returns null for the ACMEOrderIdentifierChallenge, must be something went wrong", challengeId);
+                LOG.error("Challenge ID {} returns null for the ACMEOrderIdentifierChallenge, must be something went wrong", challengeId);
             }
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable get ACME identifiers for challenge id {}", challengeId, e);
+            LOG.error("Unable get ACME identifiers for challenge id {}", challengeId, e);
         }
         return challenge;
     }
@@ -188,14 +188,14 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
                 orderIdentifierChallenge.setVerifiedTime(Timestamp.from(Instant.now()));
                 session.merge(orderIdentifierChallenge);
 
-                log.info("ACME challenge {} was marked as passed", challengeId);
+                LOG.info("ACME challenge {} was marked as passed", challengeId);
 
 
                 transaction.commit();
 
 
             } else {
-                log.warn("No ACME challenge found with id {}", challengeId);
+                LOG.warn("No ACME challenge found with id {}", challengeId);
             }
 
 
@@ -203,7 +203,7 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
             if (transaction != null) {
                 transaction.rollback();
             }
-            log.error("Unable to mark ACME challenge as passed", e);
+            LOG.error("Unable to mark ACME challenge as passed", e);
         }
     }
 }

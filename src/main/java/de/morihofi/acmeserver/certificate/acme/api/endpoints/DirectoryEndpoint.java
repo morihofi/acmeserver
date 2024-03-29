@@ -10,10 +10,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.invoke.MethodHandles;
+
 
 public class DirectoryEndpoint implements Handler {
     private final Provisioner provisioner;
-    public final Logger log = LogManager.getLogger(getClass());
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public DirectoryEndpoint(Provisioner provisioner) {

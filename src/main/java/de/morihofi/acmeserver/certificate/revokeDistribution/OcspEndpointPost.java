@@ -8,6 +8,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.cert.ocsp.*;
 import org.jetbrains.annotations.NotNull;
+
+import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 
 public class OcspEndpointPost implements Handler {
@@ -20,7 +22,7 @@ public class OcspEndpointPost implements Handler {
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
 
     /**
@@ -54,7 +56,7 @@ public class OcspEndpointPost implements Handler {
         }
 
         BigInteger serialNumber = requestList[0].getCertID().getSerialNumber();
-        log.info("Checking revokation status for serial number {}", serialNumber);
+        LOG.info("Checking revokation status for serial number {}", serialNumber);
 
         // Processing the request and creating the OCSP response
         OCSPResp ocspResponse = OcspHelper.processOCSPRequest(serialNumber, CRLScheduler.getCrlGeneratorForProvisioner(provisioner.getProvisionerName()), provisioner);

@@ -23,10 +23,10 @@ import de.morihofi.acmeserver.tools.regex.DomainAndIpValidation;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.h2.schema.Domain;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.lang.invoke.MethodHandles;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -36,7 +36,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
 
     public NewOrderEndpoint(Provisioner provisioner) {
@@ -49,10 +49,10 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         ACMEAccount account = ACMEAccount.getAccount(accountId);
         //Check if account exists
         if (account == null) {
-            log.error("Throwing API error: Account {} not found", accountId);
+            LOG.error("Throwing API error: Account {} not found", accountId);
             throw new ACMEAccountNotFoundException("The account id was not found");
         }
-        log.info("Account {} wants to create a new order", accountId);
+        LOG.info("Account {} wants to create a new order", accountId);
         //Check signature and nonce
         performSignatureAndNonceCheck(ctx,accountId,acmeRequestBody);
 
@@ -93,7 +93,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
             //Only IP and DNS
             if (!(identifier.getType().equals("dns") || identifier.getType().equals("ip"))) {
-                log.error("Throwing API error: Unknown or not allowed identifier type {} for value {}", identifier.getType(), identifier.getDataValue());
+                LOG.error("Throwing API error: Unknown or not allowed identifier type {} for value {}", identifier.getType(), identifier.getDataValue());
                 throw new ACMERejectedIdentifierException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
             }
 
@@ -164,7 +164,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             order.setCertificateId(certificateId);
             session.persist(order);
 
-            log.info("Created new order {}", orderId);
+            LOG.info("Created new order {}", orderId);
 
             // Create order identifiers
             for (ACMEOrderIdentifier identifier : acmeOrderIdentifiersWithAuthorizationData) {
@@ -172,7 +172,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
                 identifier.setOrder(order);
                 session.persist(identifier);
 
-                log.info("Added identifier {} of type {} to order {}",
+                LOG.info("Added identifier {} of type {} to order {}",
                         identifier.getDataValue(),
                         identifier.getType(),
                         orderId
@@ -187,7 +187,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         try {
             SendMail.sendMail(account.getEmails().get(0), "New ACME order created", "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeOrderIdentifiers.get(0).getDataValue() + "</i> was created.");
         } catch (Exception ex) {
-            log.error("Unable to send email", ex);
+            LOG.error("Unable to send email", ex);
         }
 
         NewOrderResponse response = new NewOrderResponse();

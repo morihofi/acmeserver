@@ -5,9 +5,12 @@ import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -16,6 +19,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 public class IntermediateCaRenew {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Renews an intermediate certificate for a provisioner and updates it in the keystore.

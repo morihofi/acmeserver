@@ -22,10 +22,17 @@
  */
 package de.morihofi.acmeserver.tools.fileformats.archive.cab;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 import java.util.Vector;
 
 public class CFData {
-
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     private final int csum;           /* checksum of this CFDATA entry */
     private final int cbData;         /* number of compressed bytes in this block */
     private final int cbUncomp;    /* number of uncompressed bytes in this block */

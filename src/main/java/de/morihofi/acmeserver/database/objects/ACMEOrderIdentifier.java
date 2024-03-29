@@ -25,7 +25,7 @@ public class ACMEOrderIdentifier implements Serializable {
     /**
      * Logger
      */
-    private static final Logger log = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     @Id
     @Column(name = "identifierId", nullable = false)
@@ -178,7 +178,7 @@ public class ACMEOrderIdentifier implements Serializable {
                     .getSingleResult();
 
             if (identifier != null) {
-                log.info("(Authorization ID: {}) Got ACME identifier of type {} with value {}",
+                LOG.info("(Authorization ID: {}) Got ACME identifier of type {} with value {}",
                         authorizationId,
                         identifier.getType(),
                         identifier.getDataValue()
@@ -186,7 +186,7 @@ public class ACMEOrderIdentifier implements Serializable {
             }
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable get ACME identifiers for authorization id {}", authorizationId, e);
+            LOG.error("Unable get ACME identifiers for authorization id {}", authorizationId, e);
         }
         return identifier;
     }

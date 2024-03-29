@@ -33,7 +33,7 @@ public class CertificateRenewManager {
     /**
      * Logger
      */
-    private static final Logger log = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     public CertificateRenewManager(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
@@ -54,7 +54,7 @@ public class CertificateRenewManager {
     }
 
     public void startScheduler() {
-        log.info("Initialized Certificate Renew Scheduler");
+        LOG.info("Initialized Certificate Renew Scheduler");
         // Start the scheduled task
         scheduler.scheduleAtFixedRate(this::schedule, 0, period, timeUnit);
     }
@@ -90,23 +90,23 @@ public class CertificateRenewManager {
             TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> function = renewEntry.renewFunction();
             Provisioner provisioner = renewEntry.provisioner();
 
-            log.info("Checking if certificate for alias {} needs to be renewed", alias);
+            LOG.info("Checking if certificate for alias {} needs to be renewed", alias);
             try {
                 X509Certificate certificateFromKeyStore = (X509Certificate) keyStore.getCertificate(alias);
 
                 if (shouldRenew(certificateFromKeyStore)) {
 
-                    log.info("Certificate for alias {} needs to be renewed, renewing now ...", alias);
+                    LOG.info("Certificate for alias {} needs to be renewed, renewing now ...", alias);
 
                     // Now we call the user defined function to renew the certificate
                     CertificateData newCertificateData = function.apply(provisioner, certificateFromKeyStore, KeyStoreUtil.getKeyPair(alias, keyStore));
 
                     if (newCertificateData.certificateChain() == null || newCertificateData.keyPair() == null) {
-                        log.warn("Certificate for alias {} hasn't saved, because returned certificate chain or keypair is null", alias);
+                        LOG.warn("Certificate for alias {} hasn't saved, because returned certificate chain or keypair is null", alias);
                         continue;
                     }
 
-                    log.info("Saving certificate and key for alias {} in keystore", alias);
+                    LOG.info("Saving certificate and key for alias {} in keystore", alias);
                     //Save the new certificate in keystore
                     keyStore.deleteEntry(alias);
                     keyStore.setKeyEntry(
@@ -118,15 +118,15 @@ public class CertificateRenewManager {
                     cryptoStoreManager.saveKeystore();
 
                     if(renewEntry.triggerAfterRegeneration != null){
-                        log.info("Running post configuration runnable");
+                        LOG.info("Running post configuration runnable");
                         renewEntry.triggerAfterRegeneration.run();
                     }
 
                 }else{
-                    log.info("Certificate for alias {} doesn't need to be renewed -> NotAfter date {} is more than {} days in the future", alias, certificateFromKeyStore.getNotAfter(), RENEWAL_THRESHOLD_DAYS);
+                    LOG.info("Certificate for alias {} doesn't need to be renewed -> NotAfter date {} is more than {} days in the future", alias, certificateFromKeyStore.getNotAfter(), RENEWAL_THRESHOLD_DAYS);
                 }
             } catch (Exception ex) {
-                log.error("Error renewing certificate", ex);
+                LOG.error("Error renewing certificate", ex);
             }
 
         }
@@ -138,7 +138,7 @@ public class CertificateRenewManager {
      * Shuts down the executor service.
      */
     public void shutdown() {
-        log.info("Certificate Renew Watcher is shutting down");
+        LOG.info("Certificate Renew Watcher is shutting down");
         scheduler.shutdown();
         renewMap.clear();
     }

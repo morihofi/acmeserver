@@ -7,6 +7,8 @@ import de.morihofi.acmeserver.tools.certificate.generator.CertificateRevokationL
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 import java.security.cert.CRLException;
 import java.security.cert.X509CRL;
 import java.time.LocalTime;
@@ -33,7 +35,7 @@ public class CRLGenerator {
     /**
      * Logger
      */
-    private final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
 
     /**
@@ -82,7 +84,7 @@ public class CRLGenerator {
             lastUpdate = LocalTime.now();
         } catch (Exception e) {
             // Handle exceptions
-            log.error("Unable to update CRL revokation list", e);
+            LOG.error("Unable to update CRL revokation list", e);
         }
     }
 

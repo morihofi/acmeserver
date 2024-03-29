@@ -23,7 +23,7 @@ public class ACMEAccount implements Serializable {
     /**
      * Logger
      */
-    private static final Logger log = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -182,7 +182,7 @@ public class ACMEAccount implements Serializable {
 
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable to get ACME Account {}", accountId, e);
+            LOG.error("Unable to get ACME Account {}", accountId, e);
         }
 
         return acmeAccount;
@@ -199,7 +199,7 @@ public class ACMEAccount implements Serializable {
 
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable to get all ACME Accounts", e);
+            LOG.error("Unable to get all ACME Accounts", e);
         }
 
         return acmeAccounts;
@@ -225,7 +225,7 @@ public class ACMEAccount implements Serializable {
 
             transaction.commit();
         } catch (Exception e) {
-            log.error("Unable to get ACME Account for order {}", orderId, e);
+            LOG.error("Unable to get ACME Account for order {}", orderId, e);
         }
 
         return null;
