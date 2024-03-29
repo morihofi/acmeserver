@@ -46,6 +46,16 @@ The first release candidate of version 2.0 is now out!
 - Database connection jdbc url is now in configuration file -> will be automatically migrated
 - PostgreSQL database is now officially tested and supported (most recent version)
 
+#### Changes to from 2.0-rc1 to 2.0-rc2 include:
+- removed org.json dependency
+- Moved code from `Database` class into its identifiers for better code cleanness
+- built-in support for Mozilla's SSL Config JSONs
+- `*.cab` CA download support for legacy Windows Mobile 5+ devices
+- Legacy CA download page for legacy user agents (IE 9 and older, incl. Pocket PC); Must be used with Mozilla's old ssl config and enabled `allowLegacyResumption` in configuration to access web UI using https
+- Database connection pool is now only in debug mode disabled
+- IP issuing support can now be manually enabled/disabled for a provisioner
+- Better error message when a IP Address has been used in an `dns`-identifier instead of an `ip`-identifier
+
 ## 🐳 Getting started with Docker (recommended)
 
 1. Install [Docker Engine](https://docs.docker.com/engine/install/) with `docker compose` plugin, if you haven't already
