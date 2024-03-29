@@ -2,7 +2,7 @@ package de.morihofi.acmeserver.certificate.revokeDistribution;
 
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
-import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateRevokationListGenerator;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
@@ -72,7 +72,7 @@ public class CRLGenerator {
     public void updateCachedCRL(int updateMinutes) {
         try {
             // Get the list of revoked certificates from the database
-            List<RevokedCertificate> revokedCertificates = Database.getRevokedCertificates(provisioner.getProvisionerName());
+            List<RevokedCertificate> revokedCertificates = ACMEOrder.getRevokedCertificates(provisioner.getProvisionerName());
             // Generate a new CRL
             X509CRL crl = CertificateRevokationListGenerator.generateCRL(revokedCertificates, provisioner.getIntermediateCaCertificate(), provisioner.getIntermediateCaKeyPair().getPrivate(), updateMinutes);
             // Update the current CRL cache

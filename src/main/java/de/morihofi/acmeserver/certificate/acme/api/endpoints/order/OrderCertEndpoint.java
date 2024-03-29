@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import io.javalin.http.Context;
@@ -30,10 +29,10 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Replay-Nonce", Crypto.createNonce());
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
 
-        ACMEOrder order = Database.getACMEOrder(orderId);
+        ACMEOrder order = ACMEOrder.getACMEOrder(orderId);
         StringBuilder responseCertificateChainBuilder = new StringBuilder();
 
-        String individualCertificateChain = Database.getCertificateChainPEMofACMEbyCertificateId(
+        String individualCertificateChain = ACMEOrder.getCertificateChainPEMofACMEbyCertificateId(
                 order.getCertificateId(),
                 provisioner
         );

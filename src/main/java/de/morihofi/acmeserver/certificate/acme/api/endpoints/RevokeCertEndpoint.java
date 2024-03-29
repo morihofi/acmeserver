@@ -7,7 +7,6 @@ import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.exception.exceptions.*;
@@ -69,7 +68,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         }
 
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
-        ACMEAccount account = Database.getAccount(accountId);
+        ACMEAccount account = ACMEAccount.getAccount(accountId);
         //Check if account exists
         if (account == null) {
             log.error("Throwing API error: Account {} not found", accountId);
@@ -126,7 +125,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         BigInteger serialNumber = certificate.getSerialNumber();
 
         //Get the identifier, where the certificate belongs to
-        ACMEOrder order = Database.getACMEOrderCertificateSerialNumber(serialNumber);
+        ACMEOrder order = ACMEOrder.getACMEOrderCertificateSerialNumber(serialNumber);
 
         if (!order.getAccount().getAccountId().equals(accountId)) {
             throw new ACMEServerInternalException("Rejected: You cannot revoke a certificate, that belongs to another account.");
@@ -159,7 +158,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         log.info("Revoking certificate for reason {}", reason);
 
         //Revoke it
-        Database.revokeCertificate(order, reason);
+        ACMEOrder.revokeCertificate(order, reason);
 
         ctx.status(200);
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");

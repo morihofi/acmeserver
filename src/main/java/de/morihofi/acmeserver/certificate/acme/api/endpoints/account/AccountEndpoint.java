@@ -7,7 +7,6 @@ import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEnd
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
@@ -54,7 +53,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
         performSignatureAndNonceCheck(ctx, accountId, acmeRequestBody);
 
         // Check if account exists
-        ACMEAccount account = Database.getAccount(accountId);
+        ACMEAccount account = ACMEAccount.getAccount(accountId);
         if (account == null) {
             throw new ACMEAccountNotFoundException("Account with ID " + accountId + " not found!");
         }

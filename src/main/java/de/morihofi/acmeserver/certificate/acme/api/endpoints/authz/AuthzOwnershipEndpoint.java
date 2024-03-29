@@ -9,7 +9,6 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.challenges.AcmeChallengeType;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
@@ -50,7 +49,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Replay-Nonce", Crypto.createNonce());
         ctx.status(200);
 
-        ACMEOrderIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
+        ACMEOrderIdentifier identifier = ACMEOrderIdentifier.getACMEIdentifierByAuthorizationId(authorizationId);
 
         // Not found handling
         if (identifier == null) {

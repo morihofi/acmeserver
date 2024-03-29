@@ -12,7 +12,6 @@ import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
@@ -56,7 +55,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
-        ACMEOrder order = Database.getACMEOrder(orderId);
+        ACMEOrder order = ACMEOrder.getACMEOrder(orderId);
         ACMEAccount account = order.getAccount();
 
         // Check signature and nonce
@@ -68,7 +67,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         String csr = reqBodyPayloadObj.getCsr();
 
         // Get our ACME identifiers
-        List<ACMEOrderIdentifier> identifiers = Database.getACMEOrder(orderId).getOrderIdentifiers();
+        List<ACMEOrderIdentifier> identifiers = ACMEOrder.getACMEOrder(orderId).getOrderIdentifiers();
 
         //We just use the verification, that throws exceptions, here not the resulting identifiers
         CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);

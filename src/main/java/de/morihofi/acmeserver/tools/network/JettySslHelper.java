@@ -3,7 +3,6 @@ package de.morihofi.acmeserver.tools.network;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.MozillaSslConfigHelper;
-import de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.response.version5dot1up.Configuration;
 import io.javalin.jetty.JettyServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,9 +19,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class JettySslHelper {
 

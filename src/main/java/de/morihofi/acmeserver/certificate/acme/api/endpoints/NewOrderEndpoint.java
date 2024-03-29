@@ -9,7 +9,6 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderRes
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
@@ -46,7 +45,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
-        ACMEAccount account = Database.getAccount(accountId);
+        ACMEAccount account = ACMEAccount.getAccount(accountId);
         //Check if account exists
         if (account == null) {
             log.error("Throwing API error: Account {} not found", accountId);

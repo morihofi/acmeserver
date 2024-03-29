@@ -10,8 +10,6 @@ import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewMa
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import de.morihofi.acmeserver.tools.network.JettySslHelper;
 import de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.MozillaSslConfigHelper;
-import de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.response.version5dot1up.Configuration;
-import de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.response.version5dot1up.MozillaSslConfiguration5dot1upResponse;
 import io.javalin.Javalin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

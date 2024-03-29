@@ -3,7 +3,6 @@ package de.morihofi.acmeserver.certificate.acme.security;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadSignatureAlgorithmException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEUnauthorizedException;
@@ -12,15 +11,12 @@ import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.security.*;
 import java.security.spec.*;
-import java.util.Base64;
 
 /**
  * Provides methods for verifying the signatures of ACME requests.
@@ -68,7 +64,7 @@ public class SignatureCheck {
 
         try {
             // Obtain the client's public key
-            ACMEAccount account = Database.getAccount(accountId);
+            ACMEAccount account = ACMEAccount.getAccount(accountId);
 
             if(account.isDeactivated()){
                 throw new ACMEUnauthorizedException("Account is deactivated");

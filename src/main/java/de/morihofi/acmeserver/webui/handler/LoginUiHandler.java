@@ -10,7 +10,6 @@
 
 package de.morihofi.acmeserver.webui.handler;
 
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.webui.WebUI;
@@ -52,7 +51,7 @@ public class LoginUiHandler implements Handler {
             String redirect = context.queryParam("redir");
             String email = context.queryParam("email");
 
-            List<ACMEAccount> acmeAccountList = Database.getAllACMEAccountsForEmail(email);
+            List<ACMEAccount> acmeAccountList = ACMEAccount.getAllACMEAccountsForEmail(email);
             LOGIN_STATE loginState;
             if(acmeAccountList.isEmpty()){
                 loginState = LOGIN_STATE.ERR_NO_USER_FOUND;

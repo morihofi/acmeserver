@@ -5,10 +5,8 @@ import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
-import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
@@ -17,6 +15,7 @@ import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -41,7 +40,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", Crypto.createNonce());
 
-        ACMEOrder order = Database.getACMEOrder(orderId);
+        ACMEOrder order = ACMEOrder.getACMEOrder(orderId);
         List<ACMEOrderIdentifier> identifiers = order.getOrderIdentifiers();
         if (identifiers.isEmpty()) {
             throw new IllegalArgumentException("Identifiers empty, FIXME");

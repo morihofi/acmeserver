@@ -4,7 +4,6 @@ import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.database.AcmeOrderState;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
@@ -139,7 +138,7 @@ public class CertificateIssuer {
                 log.trace("Looking for certificates to be issued in the database");
 
 
-                List<ACMEOrder> waitingOrders = Database.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE);
+                List<ACMEOrder> waitingOrders = ACMEOrder.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE);
 
                 if (!waitingOrders.isEmpty()) {
 

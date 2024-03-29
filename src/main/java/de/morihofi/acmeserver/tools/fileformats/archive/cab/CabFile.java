@@ -22,10 +22,7 @@
  */
 package de.morihofi.acmeserver.tools.fileformats.archive.cab;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
 
 public class CabFile {

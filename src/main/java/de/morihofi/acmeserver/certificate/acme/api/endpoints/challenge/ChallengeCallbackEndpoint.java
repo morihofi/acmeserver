@@ -9,7 +9,6 @@ import de.morihofi.acmeserver.certificate.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
 import de.morihofi.acmeserver.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
@@ -48,7 +47,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Replay-Nonce", Crypto.createNonce());
 
         // Check if challenge is valid
-        ACMEOrderIdentifierChallenge identifierChallenge = Database.getACMEIdentifierChallenge(challengeId);
+        ACMEOrderIdentifierChallenge identifierChallenge = ACMEOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId);
 
         assert identifierChallenge != null;
 
@@ -80,7 +79,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         log.info("Validating ownership of host {}", nonWildcardDomain);
         if (result.isSuccessful()) {
             // Mark challenge as passed
-            Database.passChallenge(challengeId);
+            ACMEOrderIdentifierChallenge.passChallenge(challengeId);
         } else {
             log.error("Throwing API error: Host verification failed with method {}", challengeType);
             throw new ACMEConnectionErrorException(result.getErrorReason());
@@ -89,7 +88,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         }
 
         // Reload identifier, e.g., host has validated
-        identifierChallenge = Database.getACMEIdentifierChallenge(challengeId);
+        identifierChallenge = ACMEOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId);
 
         // Creating response object
         ACMEChallengeResponse response = new ACMEChallengeResponse();
