@@ -170,47 +170,10 @@ Enable debug mode by set environment variable `DEBUG` to `TRUE` or start ACME Se
 Do not use this in production as it disables some security mechanisms (e.g. nonce check) and can lead to misuse of your
 CA.
 
-## 🌟 Use Cases for a Self-Hosted ACME Server
+## 💻 Development Contributions
 
-A self-hosted ACME Server is a versatile solution for a variety of environments and needs. Here are some key use cases:
-
-### Internal Networks and Intranets
-
-Ideal for organizations needing secure SSL/TLS certificates for internal web services, without reliance on external
-Certificate Authorities.
-
-### Own Certificate Authorities
-
-Allows organizations to operate their own Certificate Authority, managing certificates efficiently with complete control
-over issuance processes and policies.
-
-### Development and Testing Environments
-
-Provides developers and test teams with a platform for generating certificates for development and testing purposes,
-without using real certificates or external services.
-
-### Compliance and Security
-
-Meets the needs of organizations with stringent security policies or compliance requirements.
-
-### Educational and Research Institutions
-
-Universities and research institutions can use this server to impart practical understanding of certificate management.
-
-### Custom Certificate Policies
-
-Supports organizations with specific requirements for SSL/TLS certificates, such as unique key lengths, algorithms, or
-validity periods.
-
-### Network Devices and IoT Environments
-
-Simplifies certificate management in networks with a multitude of devices or in IoT environments, especially when
-devices frequently change.
-
-### Geographic and Network Restrictions
-
-Ideal for regions or networks with strict internet restrictions or in isolated networks.
-
+We welcome every contribution to the ACME Server project. Please refer to our style guide located in the `styleguide` directory for more information 
+on coding standards and practices. This ensures that the code keeps readable and easier to test.
 
 ---
 
