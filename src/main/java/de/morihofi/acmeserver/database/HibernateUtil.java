@@ -197,6 +197,9 @@ public class HibernateUtil {
         configuration.setProperty("hibernate.agroal.maxSize", "50");
         configuration.setProperty("hibernate.agroal.initialSize", "25");
         configuration.setProperty("hibernate.agroal.maxLifetime", "PT1000S"); //Lifetime of 1000 seconds
+        configuration.setProperty("hibernate.agroal.validationTimeout", "PT5S"); // Setzt das Timeout für die Verbindungsüberprüfung auf 5 Sekunden
+        configuration.setProperty("hibernate.agroal.validationQuery", "SELECT 1"); // SQL-Query zur Überprüfung der Verbindung
+
     }
 
 
