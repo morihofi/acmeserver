@@ -190,16 +190,14 @@ public class HibernateUtil {
     }
 
     private static void configureAgroalConnectionPool(Configuration configuration) {
-        // Beispielhafte Agroal Konfigurationseinstellungen
         log.info("Configuring Agroal connection pool");
         configuration.setProperty("hibernate.connection.provider_class", "org.hibernate.agroal.internal.AgroalConnectionProvider");
         configuration.setProperty("hibernate.agroal.minSize", "10");
         configuration.setProperty("hibernate.agroal.maxSize", "50");
         configuration.setProperty("hibernate.agroal.initialSize", "25");
         configuration.setProperty("hibernate.agroal.maxLifetime", "PT1000S"); //Lifetime of 1000 seconds
-        configuration.setProperty("hibernate.agroal.validationTimeout", "PT5S"); // Setzt das Timeout für die Verbindungsüberprüfung auf 5 Sekunden
-        configuration.setProperty("hibernate.agroal.validationQuery", "SELECT 1"); // SQL-Query zur Überprüfung der Verbindung
-
+        configuration.setProperty("hibernate.agroal.validationTimeout", "PT5S"); // Set timeout for checking database connectivity to 5 seconds
+        configuration.setProperty("hibernate.agroal.validationQuery", "SELECT 1"); // SQL query to check if database is available
     }
 
 
