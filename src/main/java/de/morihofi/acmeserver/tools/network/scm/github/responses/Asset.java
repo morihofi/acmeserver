@@ -2,7 +2,9 @@ package de.morihofi.acmeserver.tools.network.scm.github.responses;
 
 
 import com.google.gson.annotations.SerializedName;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+@SuppressFBWarnings("EI_EXPOSE_REP")
 public class Asset {
     @SerializedName("created_at")
     private String createdAt;
@@ -49,6 +51,7 @@ public class Asset {
 
     public String getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(String value) { this.updatedAt = value; }
+
 
     public Author getUploader() { return uploader; }
     public void setUploader(Author value) { this.uploader = value; }

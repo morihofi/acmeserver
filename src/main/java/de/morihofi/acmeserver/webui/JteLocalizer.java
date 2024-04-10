@@ -14,6 +14,7 @@ import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -30,9 +31,9 @@ import java.util.ResourceBundle;
 public class JteLocalizer implements gg.jte.support.LocalizationSupport {
 
     /**
-     * Logger for logging warnings when localization keys are not found.
+     * Logger
      */
-    public static final Logger log = LogManager.getLogger(JteLocalizer.class);
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * The locale for this instance of the localizer.
@@ -81,7 +82,7 @@ public class JteLocalizer implements gg.jte.support.LocalizationSupport {
         if (bundle.containsKey(key)) {
             return bundle.getString(key);
         }
-        log.warn("WebUI language key {} not found for language {}", key, bundle.getLocale());
+        LOG.warn("WebUI language key {} not found for language {}", key, bundle.getLocale());
         return key;
     }
 
@@ -99,7 +100,7 @@ public class JteLocalizer implements gg.jte.support.LocalizationSupport {
         if (bundle.containsKey(key)) {
             return String.format(bundle.getString(key), variables);
         }
-        log.warn("WebUI language key {} not found for language {}", key, bundle.getLocale());
+        LOG.warn("WebUI language key {} not found for language {}", key, bundle.getLocale());
         return key;
     }
 

@@ -1,5 +1,7 @@
 package de.morihofi.acmeserver.tools.certificate;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -13,6 +15,7 @@ import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
 
 import java.io.*;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +29,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PemUtil {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     private PemUtil(){}
 

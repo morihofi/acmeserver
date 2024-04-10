@@ -1,6 +1,5 @@
 package de.morihofi.acmeserver.tools.regex;
 
-import java.net.InetAddress;
 import java.util.regex.Pattern;
 
 /**

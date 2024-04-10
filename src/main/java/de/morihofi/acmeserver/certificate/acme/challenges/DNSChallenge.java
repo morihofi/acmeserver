@@ -11,17 +11,20 @@ import org.xbill.DNS.*;
 import org.xbill.DNS.Record;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.UnknownHostException;
 import java.security.*;
-
+/**
+ * Provides functionality for handling DNS challenges in the ACME (Automated Certificate Management Environment) protocol.
+ * This class includes methods for validating DNS challenges by querying DNS TXT records and comparing them to expected values.
+ * It is designed to validate domain control by ensuring that DNS records contain specific tokens.
+ */
 public class DNSChallenge {
 
     /**
-     * Provides functionality for handling DNS challenges in the ACME (Automated Certificate Management Environment) protocol.
-     * This class includes methods for validating DNS challenges by querying DNS TXT records and comparing them to expected values.
-     * It is designed to validate domain control by ensuring that DNS records contain specific tokens.
+     * Logger
      */
-    public static final Logger log = LogManager.getLogger(DNSChallenge.class);
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     private DNSChallenge(){}
 
@@ -48,7 +51,7 @@ public class DNSChallenge {
             // Abfrage des TXT-Eintrags für die ACME Challenge
             Lookup lookup = new Lookup("_acme-challenge." + domain, Type.TXT);
             lookup.run();
-            String txtValue = "";
+            String txtValue;
             if (lookup.getResult() == Lookup.SUCCESSFUL) {
                 // Check TXT-Entries
                 for (Record dnsRecord : lookup.getAnswers()) {
@@ -59,23 +62,23 @@ public class DNSChallenge {
                             return new ChallengeResult(true, "");
                         }else {
                             lastError = "TXT record value doesn't match";
-                            log.error(" TXT record value doesn't match. Expected: {} but got {}", dnsExpectedValue, txtValue);
+                            LOG.error(" TXT record value doesn't match. Expected: {} but got {}", dnsExpectedValue, txtValue);
                         }
                     }
                 }
-                log.error("DNS Challenge validation failed for challenge domain {}. TXT record not found", ("_acme-challenge." + domain));
+                LOG.error("DNS Challenge validation failed for challenge domain {}. TXT record not found", ("_acme-challenge." + domain));
 
 
             }else {
-                log.error("DNS Challenge validation failed for challenge domain {}. Lookup wasn't successful.", ("_acme-challenge." + domain));
+                LOG.error("DNS Challenge validation failed for challenge domain {}. Lookup wasn't successful.", ("_acme-challenge." + domain));
 
             }
 
         } catch (TextParseException e) {
-            log.error("Error parsing domain name {}", domain, e);
+            LOG.error("Error parsing domain name {}", domain, e);
             lastError = "Error parsing domain name";
         } catch (Exception e) {
-            log.error("DNS Challenge failed for domain {}", domain, e);
+            LOG.error("DNS Challenge failed for domain {}", domain, e);
             lastError = "Unknown exception. Server logs show more information";
         }
 
@@ -94,7 +97,7 @@ public class DNSChallenge {
     /**
      * Setting the DNS resolver manually
      * @param dnsServerIP DNS Server to use
-     * @throws UnknownHostException
+     * @throws UnknownHostException host is unknown
      */
     public static void setManualDNSResolver(String dnsServerIP) throws UnknownHostException {
         // Setting the DNS resolver manually

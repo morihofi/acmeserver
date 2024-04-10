@@ -6,8 +6,8 @@ import java.io.Serializable;
  * Represents configuration for HTTP and HTTPS ports.
  */
 public class Ports implements Serializable {
-    private int http;
-    private int https;
+    private int http = 80;
+    private int https = 443;
 
     /**
      * Get the HTTP port number.

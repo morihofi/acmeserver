@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.tools.certificate.cryptoops;
 
 import de.morihofi.acmeserver.tools.javaversion.JavaVersion;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -9,6 +11,7 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,6 +22,11 @@ import java.util.Iterator;
 import java.util.concurrent.CancellationException;
 
 public class PKCS11KeyStoreLoader {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Demo for loading a PKCS#11 HSM KeyStore
@@ -72,7 +80,7 @@ public class PKCS11KeyStoreLoader {
         AuthProvider authProvider = (AuthProvider) selectedProvider;
         authProvider.setCallbackHandler(new CallbackHandler() {
             @Override
-            public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+            public void handle(Callback[] callbacks) throws UnsupportedCallbackException {
 
                 for (Callback callback : callbacks) {
                     if (callback instanceof PasswordCallback passwordCallback) {

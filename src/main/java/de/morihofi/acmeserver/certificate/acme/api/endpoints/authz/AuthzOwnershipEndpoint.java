@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.authz;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.AuthzResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.ChallengeResponse;
@@ -9,9 +9,7 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.challenges.AcmeChallengeType;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
-import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
@@ -24,8 +22,7 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import java.sql.Timestamp;
-import java.time.Instant;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -36,8 +33,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    private final Logger log = LogManager.getLogger(getClass());
-
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     /**
      * @param provisioner Provisioner instance
      */
@@ -53,11 +49,11 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Replay-Nonce", Crypto.createNonce());
         ctx.status(200);
 
-        ACMEOrderIdentifier identifier = Database.getACMEIdentifierByAuthorizationId(authorizationId);
+        ACMEOrderIdentifier identifier = ACMEOrderIdentifier.getACMEIdentifierByAuthorizationId(authorizationId);
 
         // Not found handling
         if (identifier == null) {
-            log.error("Throwing API error: For the requested authorization id {} was no identifier found", authorizationId);
+            LOG.error("Throwing API error: For the requested authorization id {} was no identifier found", authorizationId);
             throw new ACMEMalformedException("For the requested authorization id was no identifier found");
         }
 
@@ -117,7 +113,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
                transaction.commit();
            } catch (Exception e) {
-               log.error("Unable to persist ACME Identifier Challenges for authorization id {} (for account {})", authorizationId, identifier.getOrder().getAccount().getAccountId(), e);
+               LOG.error("Unable to persist ACME Identifier Challenges for authorization id {} (for account {})", authorizationId, identifier.getOrder().getAccount().getAccountId(), e);
                throw new ACMEServerInternalException("Unable to create new ACME Order");
            }
 
@@ -141,7 +137,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         response.setIdentifier(idObj);
         response.setChallenges(challengeResponses);
 
-        ctx.result(gson.toJson(response));
+        ctx.json(response);
     }
 
 

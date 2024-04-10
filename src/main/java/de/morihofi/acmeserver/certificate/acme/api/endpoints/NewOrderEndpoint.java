@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderRequestPayload;
@@ -9,8 +9,9 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderRes
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.Database;
+import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
+import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
@@ -22,11 +23,12 @@ import de.morihofi.acmeserver.tools.regex.DomainAndIpValidation;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.lang.invoke.MethodHandles;
+import java.sql.Timestamp;
+import java.util.*;
 
 public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
@@ -34,7 +36,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
 
     public NewOrderEndpoint(Provisioner provisioner) {
@@ -44,13 +46,13 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
-        ACMEAccount account = Database.getAccount(accountId);
+        ACMEAccount account = ACMEAccount.getAccount(accountId);
         //Check if account exists
         if (account == null) {
-            log.error("Throwing API error: Account {} not found", accountId);
+            LOG.error("Throwing API error: Account {} not found", accountId);
             throw new ACMEAccountNotFoundException("The account id was not found");
         }
-        log.info("Account {} wants to create a new order", accountId);
+        LOG.info("Account {} wants to create a new order", accountId);
         //Check signature and nonce
         performSignatureAndNonceCheck(ctx,accountId,acmeRequestBody);
 
@@ -91,14 +93,15 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
             //Only IP and DNS
             if (!(identifier.getType().equals("dns") || identifier.getType().equals("ip"))) {
-                log.error("Throwing API error: Unknown or not allowed identifier type {} for value {}", identifier.getType(), identifier.getDataValue());
+                LOG.error("Throwing API error: Unknown or not allowed identifier type {} for value {}", identifier.getType(), identifier.getDataValue());
                 throw new ACMERejectedIdentifierException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
             }
 
             //Check DNS if type is DNS
             if(identifier.getType().equals("dns")){
                 if (!DomainAndIpValidation.isValidDomain(identifier.getDataValue(), provisioner.isWildcardAllowed())) {
-                    throw new ACMERejectedIdentifierException("Identifier \"" + identifier.getDataValue() + "\" is invalid (Wildcard allowed: " + provisioner.isWildcardAllowed() + ")");
+                    throw new ACMERejectedIdentifierException("DNS-Identifier \"" + identifier.getDataValue() + "\" is invalid. (Wildcard allowed in provisioner: " + provisioner.isWildcardAllowed() + ")" +
+                            (DomainAndIpValidation.isIpAddress(identifier.getDataValue()) ? " It looks like you put an IP Address into a DNS Identifier. Please use am \"ip\"-identifier instead, if enabled in current provisioner." : ""));
 
                 }
 
@@ -109,8 +112,11 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
             //Check IP if type is IP
             if(identifier.getType().equals("ip")){
-                if (!DomainAndIpValidation.isIpAddress(identifier.getDataValue())) {
-                    throw new ACMERejectedIdentifierException("Identifier IP \"" + identifier.getDataValue() + "\" is invalid");
+                if(!getProvisioner().isIpAllowed()){ //IP Address issuing is not allowed
+                    throw new ACMERejectedIdentifierException("Issuing for IP Addresses has been disabled for this provisioner");
+                }
+                if (!DomainAndIpValidation.isIpAddress(identifier.getDataValue())) { //Not an IP Address
+                    throw new ACMERejectedIdentifierException("IP-Identifier \"" + identifier.getDataValue() + "\" is invalid");
                 }
             }
 
@@ -128,23 +134,67 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         }
 
-        // Add authorizations to Database
-        Database.createOrder(account, orderId, acmeOrderIdentifiersWithAuthorizationData, certificateId);
+
+        ACMEOrder order;
+
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            Transaction transaction = session.beginTransaction();
+
+
+
+            Date startDate = new Date(); // Starts now
+            Date endDate = DateTools.makeDateForOutliveIntermediateCertificate(
+                    provisioner.getIntermediateCaCertificate().getNotAfter(),
+                    DateTools.addToDate(startDate,
+                        provisioner.getConfig().getIntermediate().getExpiration().getYears(),
+                        provisioner.getConfig().getIntermediate().getExpiration().getMonths(),
+                        provisioner.getConfig().getIntermediate().getExpiration().getDays()
+                    )
+            );
+
+
+            // Create order
+            order = new ACMEOrder();
+            order.setOrderId(orderId);
+            order.setAccount(account);
+            order.setCreated(Timestamp.from(startDate.toInstant()));
+            order.setExpires(Timestamp.from(endDate.toInstant()));
+            order.setNotBefore(Timestamp.from(startDate.toInstant()));
+            order.setNotAfter(Timestamp.from(endDate.toInstant()));
+            order.setCertificateId(certificateId);
+            session.persist(order);
+
+            LOG.info("Created new order {}", orderId);
+
+            // Create order identifiers
+            for (ACMEOrderIdentifier identifier : acmeOrderIdentifiersWithAuthorizationData) {
+                identifier.setIdentifierId(Crypto.generateRandomId());
+                identifier.setOrder(order);
+                session.persist(identifier);
+
+                LOG.info("Added identifier {} of type {} to order {}",
+                        identifier.getDataValue(),
+                        identifier.getType(),
+                        orderId
+                );
+            }
+
+            transaction.commit();
+        }
+
 
         //Send E-Mail if order was created
         try {
             SendMail.sendMail(account.getEmails().get(0), "New ACME order created", "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeOrderIdentifiers.get(0).getDataValue() + "</i> was created.");
         } catch (Exception ex) {
-            log.error("Unable to send email", ex);
+            LOG.error("Unable to send email", ex);
         }
 
-
-        //TODO: Set better Date/Time
         NewOrderResponse response = new NewOrderResponse();
         response.setStatus(AcmeStatus.PENDING.getRfcName());
-        response.setExpires(DateTools.formatDateForACME(new Date()));
-        response.setNotBefore(DateTools.formatDateForACME(new Date()));
-        response.setNotAfter(DateTools.formatDateForACME(new Date()));
+        response.setExpires(DateTools.formatDateForACME(order.getExpires()));
+        response.setNotBefore(DateTools.formatDateForACME(order.getNotBefore()));
+        response.setNotAfter(DateTools.formatDateForACME(order.getNotAfter()));
         response.setIdentifiers(respIdentifiers);
         response.setAuthorizations(respAuthorizations);
         response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
@@ -156,7 +206,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Content-Type", "application/json");
         ctx.header("Location", provisioner.getApiURL() + "/acme/order/" + orderId);
 
-        ctx.result(gson.toJson(response));
+        ctx.json(response);
     }
 
 

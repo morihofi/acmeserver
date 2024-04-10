@@ -10,9 +10,12 @@ import java.lang.String;
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ServerConfig implements Serializable {
-    private String dnsName;
-    private Ports ports;
-    private boolean enableSniCheck;
+    private String dnsName = "example.com";
+    private Ports ports = new Ports();
+    private boolean enableSniCheck = true;
+
+    private MozillaSslConfig mozillaSslConfig = new MozillaSslConfig();
+    private SslServerConfig sslServerConfig = new SslServerConfig();
 
     /**
      * Get the DNS name of the server.
@@ -58,5 +61,21 @@ public class ServerConfig implements Serializable {
 
     public void setEnableSniCheck(boolean enableSniCheck) {
         this.enableSniCheck = enableSniCheck;
+    }
+
+    public MozillaSslConfig getMozillaSslConfig() {
+        return mozillaSslConfig;
+    }
+
+    public void setMozillaSslConfig(MozillaSslConfig mozillaSslConfig) {
+        this.mozillaSslConfig = mozillaSslConfig;
+    }
+
+    public SslServerConfig getSslServerConfig() {
+        return sslServerConfig;
+    }
+
+    public void setSslServerConfig(SslServerConfig sslServerConfig) {
+        this.sslServerConfig = sslServerConfig;
     }
 }

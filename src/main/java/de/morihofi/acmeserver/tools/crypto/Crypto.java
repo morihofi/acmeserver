@@ -1,5 +1,9 @@
 package de.morihofi.acmeserver.tools.crypto;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -9,7 +13,10 @@ public class Crypto {
 
 
     private Crypto(){}
-
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     /**
      * Generates a nonce (number used once) for security purposes.
      *

@@ -1,5 +1,9 @@
 package de.morihofi.acmeserver.tools.crypto;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -9,7 +13,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class Hashing {
 
     private Hashing(){}
-
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Calculates the SHA-256 hash of a given string.

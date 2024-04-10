@@ -1,8 +1,12 @@
 package de.morihofi.acmeserver.tools.certificate.cryptoops;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.*;
@@ -14,6 +18,11 @@ import java.security.cert.CertificateException;
  * Original source <a href="https://github.com/gerritjvv/engsectools/blob/master/pkcs11/src/main/java/engsec/KeyStoreUtil.java">GitHub gerritjvv/engsectools</a> and modified some methods.
  */
 public class KeyStoreUtil {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Saves the KeyStore to the specified path.

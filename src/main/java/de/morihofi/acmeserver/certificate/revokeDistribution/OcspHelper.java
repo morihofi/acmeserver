@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.tools.certificate.CertMisc;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,7 +24,7 @@ import java.util.Date;
 
 public class OcspHelper {
 
-    public static final Logger log = LogManager.getLogger(OcspHelper.class);
+    private static final Logger LOG = LogManager.getLogger(OcspHelper.class);
 
 
     /**
@@ -41,10 +41,10 @@ public class OcspHelper {
      * @throws CertificateEncodingException if there is an issue with encoding certificates.
      * @throws OperatorCreationException if there is an issue with operator creation.
      */
-    public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRL crlGenerator, Provisioner provisioner) throws OCSPException, CRLException, CertificateEncodingException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+    public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRLGenerator crlGenerator, Provisioner provisioner) throws OCSPException, CRLException, CertificateEncodingException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
         CertificateStatus certStatus = getCertificateStatus(serialNumber, crlGenerator);
 
-        log.info("Status for serial number {} is: {}", serialNumber, (certStatus != null ? "revoked" : "valid"));
+        LOG.info("Status for serial number {} is: {}", serialNumber, (certStatus != null ? "revoked" : "valid"));
 
         X509Certificate caCert = provisioner.getIntermediateCaCertificate();
         KeyPair caKeyPair = provisioner.getIntermediateCaKeyPair();
@@ -83,7 +83,7 @@ public class OcspHelper {
      *         details such as the revocation date and reason are provided.
      * @throws CRLException If there is an issue obtaining the current CRL from the {@code crlGenerator}.
      */
-    private static CertificateStatus getCertificateStatus(BigInteger serialNumber, CRL crlGenerator) throws CRLException {
+    private static CertificateStatus getCertificateStatus(BigInteger serialNumber, CRLGenerator crlGenerator) throws CRLException {
         X509CRL crl = crlGenerator.getCurrentCrl(); // Current CRL
 
         CertificateStatus certStatus;

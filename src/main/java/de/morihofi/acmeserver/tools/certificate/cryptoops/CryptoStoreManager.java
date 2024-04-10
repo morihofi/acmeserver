@@ -1,11 +1,8 @@
 package de.morihofi.acmeserver.tools.certificate.cryptoops;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.IKeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
-import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewWatcher;
-import de.morihofi.acmeserver.tools.collectors.SingletonCollector;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,12 +11,12 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.*;
 
 /**
  * The CryptoStoreManager class manages cryptographic operations, including loading and saving
@@ -28,6 +25,11 @@ import java.util.*;
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class CryptoStoreManager {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Alias for the root certificate authority in the keystore.
@@ -59,17 +61,13 @@ public class CryptoStoreManager {
      */
     private KeyStore keyStore;
 
-    /**
-     * Instance for referencing all certificate renew watchers
-     */
-    private final Vector<CertificateRenewWatcher> certificateRenewWatchers = new Vector<>();
+
 
     /**
      * Check if the ACME Server is running for the first time, so the user can upload its existing CA
      */
     private boolean firstRun = false;
 
-    private final Set<Provisioner> provisioners = new HashSet<>();
 
 
     public static String getKeyStoreAliasForProvisionerIntermediate(String provisioner) {
@@ -128,21 +126,6 @@ public class CryptoStoreManager {
         }
     }
 
-    public void registerProvisioner(Provisioner provisioner){
-        provisioners.add(provisioner);
-    }
-
-    public Provisioner getProvisionerForName(String provisionerName) {
-        Optional<Provisioner> provisionerOptional = provisioners.stream()
-                .filter(provisioner -> provisioner.getProvisionerName().equals(provisionerName))
-                .findFirst();
-
-        return provisionerOptional.orElse(null);
-    }
-
-    public Set<Provisioner> getProvisioners(){
-        return Collections.unmodifiableSet(provisioners);
-    }
 
     /**
      * Retrieves the key pair for the root certificate authority from the keystore.
@@ -223,9 +206,5 @@ public class CryptoStoreManager {
     public void disableFirstRunFlag(){
         firstRun = false;
         log.info("KeyStore first time use has been disabled (if not been done before)");
-    }
-
-    public Vector<CertificateRenewWatcher> getCertificateRenewWatchers() {
-        return certificateRenewWatchers;
     }
 }

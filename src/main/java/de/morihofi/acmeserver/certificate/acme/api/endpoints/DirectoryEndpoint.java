@@ -1,18 +1,24 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONObject;
+
+import java.lang.invoke.MethodHandles;
 
 
 public class DirectoryEndpoint implements Handler {
     private final Provisioner provisioner;
-    public final Logger log = LogManager.getLogger(getClass());
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public DirectoryEndpoint(Provisioner provisioner) {
@@ -22,29 +28,34 @@ public class DirectoryEndpoint implements Handler {
     /**
      * Method for handling the request
      * @param ctx Javalin Context
-     * @throws Exception thrown when there was an error processing the request
      */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handle(@NotNull Context ctx) {
 
         // Response is JSON
         ctx.header("Content-Type", "application/json");
 
-        JSONObject responseJSON = new JSONObject();
+        // Create the Gson instance
+        Gson gson = new Gson();
 
-        JSONObject metaObject = new JSONObject();
-        metaObject.put("website", provisioner.getAcmeMetadataConfig().getWebsite().trim());
-        metaObject.put("termsOfService", provisioner.getAcmeMetadataConfig().getTos().trim());
+        // Create the meta object
+        JsonObject metaObject = new JsonObject();
+        metaObject.addProperty("website", provisioner.getAcmeMetadataConfig().getWebsite().trim());
+        metaObject.addProperty("termsOfService", provisioner.getAcmeMetadataConfig().getTos().trim());
 
+        // Create the main JSON object
+        JsonObject responseJSON = new JsonObject();
+        responseJSON.add("meta", metaObject);
+        responseJSON.addProperty("newAccount", provisioner.getApiURL() + "/acme/new-acct");
+        responseJSON.addProperty("newNonce", provisioner.getApiURL() + "/acme/new-nonce");
+        responseJSON.addProperty("newOrder", provisioner.getApiURL() + "/acme/new-order");
+        responseJSON.addProperty("revokeCert", provisioner.getApiURL() + "/acme/revoke-cert");
+        responseJSON.addProperty("keyChange", provisioner.getApiURL() + "/acme/key-change");
 
-        responseJSON.put("meta", metaObject);
-        responseJSON.put("newAccount", provisioner.getApiURL() + "/acme/new-acct");
-        responseJSON.put("newNonce", provisioner.getApiURL() + "/acme/new-nonce");
-        responseJSON.put("newOrder", provisioner.getApiURL() + "/acme/new-order");
-        responseJSON.put("revokeCert", provisioner.getApiURL() + "/acme/revoke-cert");
-        responseJSON.put("keyChange", provisioner.getApiURL() + "/acme/key-change");
+        // Convert the JsonObject to a String
+        String jsonResponse = gson.toJson(responseJSON);
 
-        ctx.result(responseJSON.toString());
+        ctx.result(jsonResponse);
 
     }
 }

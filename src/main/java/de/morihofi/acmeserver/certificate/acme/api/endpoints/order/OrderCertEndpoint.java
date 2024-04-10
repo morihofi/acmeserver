@@ -1,25 +1,23 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.order;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
-import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.List;
+import java.lang.invoke.MethodHandles;
 
 public class OrderCertEndpoint extends AbstractAcmeEndpoint {
 
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     public OrderCertEndpoint(Provisioner provisioner) {
         super(provisioner);
@@ -33,10 +31,10 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Replay-Nonce", Crypto.createNonce());
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
 
-        ACMEOrder order = Database.getACMEOrder(orderId);
+        ACMEOrder order = ACMEOrder.getACMEOrder(orderId);
         StringBuilder responseCertificateChainBuilder = new StringBuilder();
 
-        String individualCertificateChain = Database.getCertificateChainPEMofACMEbyCertificateId(
+        String individualCertificateChain = ACMEOrder.getCertificateChainPEMofACMEbyCertificateId(
                 order.getCertificateId(),
                 provisioner
         );

@@ -1,14 +1,14 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.account;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.AccountResponse;
-import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
@@ -26,8 +26,8 @@ import org.hibernate.Transaction;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.lang.JoseException;
-import org.json.JSONObject;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -37,7 +37,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
 
     public NewAccountEndpoint(Provisioner provisioner) {
@@ -51,7 +51,6 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
         // Deserialize payload and protected objects
         ACMEAccountRequestPayload payload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);
-        JSONObject reqBodyProtectedObj = new JSONObject(acmeRequestBody.getDecodedProtected());
 
         // Check terms of service agreement
         if (!payload.getTermsOfServiceAgreed()) {
@@ -64,7 +63,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
             for (String email : emails) {
                 email = email.replace("mailto:", "");
                 if (!EmailValidation.isValidEmail(email) || email.split("@")[0].equals("localhost")) {
-                    log.error("E-Mail validation failed for email {}", email);
+                    LOG.error("E-Mail validation failed for email {}", email);
                     throw new ACMEInvalidContactException("Mail validation failed for email " + email);
                 }
             }
@@ -72,13 +71,19 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
         // Create new account in database
         String accountId = UUID.randomUUID().toString();
-        String jwkString = new JSONObject(acmeRequestBody.getDecodedProtected()).getJSONObject("jwk").toString();
 
-        PublicJsonWebKey publicJsonWebKey = null;
+        // Parse the JSON string to a JsonElement or directly to JsonObject
+        JsonObject decodedProtectedJsonObject = JsonParser.parseString(acmeRequestBody.getDecodedProtected()).getAsJsonObject();
+
+        // Extract the "jwk" JsonObject as a string
+        String jwkString = decodedProtectedJsonObject.getAsJsonObject("jwk").toString();
+
+
+        PublicJsonWebKey publicJsonWebKey;
         try {
             publicJsonWebKey = (PublicJsonWebKey) JsonWebKey.Factory.newJwk(jwkString);
         } catch (JoseException e) {
-            log.error("Error parsing JWK", e);
+            LOG.error("Error parsing JWK", e);
             throw new ACMEServerInternalException("Error parsing JWK: " + e.getMessage());
         }
 
@@ -94,19 +99,11 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
             account.setProvisioner(provisioner.getProvisionerName());
             session.persist(account);
             transaction.commit();
-            log.info("New ACME account created with account id {}", accountId);
+            LOG.info("New ACME account created with account id {}", accountId);
         } catch (Exception e) {
-            log.error("Unable to create new ACME account", e);
+            LOG.error("Unable to create new ACME account", e);
             throw new ACMEServerInternalException(e.getMessage());
         }
-
-
-
-
-
-
-
-
 
 
         // Construct response
@@ -121,7 +118,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         response.setContact(emails);
         response.setOrders(provisioner.getApiURL() + "/acme/acct/" + accountId + "/orders");
 
-        ctx.result(gson.toJson(response));
+        ctx.json(response);
     }
 
 

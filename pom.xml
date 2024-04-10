@@ -6,21 +6,35 @@
 
     <groupId>de.morihofi.acmeserver</groupId>
     <artifactId>acmeserver</artifactId>
-    <version>2.0-rc1-SNAPSHOT</version>
+    <version>2.0-rc3-SNAPSHOT</version>
     <inceptionYear>2023</inceptionYear>
 
     <properties>
+        <!-- Maven Options -->
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <!-- Building timestamp for inclusion into properties -->
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>dd-MM-yyyy HH:mm</maven.build.timestamp.format>
 
+        <!-- Logging -->
+        <log4j.version>2.23.1</log4j.version>
+        <slf4j2.version>2.0.12</slf4j2.version>
+
+        <!-- Cryptographic libraries -->
         <bouncycastle.version>1.77</bouncycastle.version>
+        <jose4j.version>0.9.6</jose4j.version>
+
+        <!-- WebServer and Template Engine -->
         <javalin.version>6.1.3</javalin.version>
-        <jose4j.version>0.9.5</jose4j.version>
-        <jte.version>2.2.1</jte.version>
+        <jte.version>2.3.2</jte.version>
+
+        <!-- Hibernate and connection pool -->
+        <hibernate.version>6.4.4.Final</hibernate.version>
+        <agroal.version>2.3</agroal.version>
     </properties>
 
     <licenses>
@@ -116,7 +130,8 @@
                     <verbose>true</verbose>
                     <offline>true</offline>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties
+                    </generateGitPropertiesFilename>
                     <commitIdGenerationMode>full</commitIdGenerationMode>
                 </configuration>
             </plugin>
@@ -177,7 +192,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -187,7 +201,6 @@
                     <nohelp>true</nohelp>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>gg.jte</groupId>
                 <artifactId>jte-maven-plugin</artifactId>
@@ -208,8 +221,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-
             <plugin>
                 <artifactId>jdeb</artifactId>
                 <groupId>org.vafer</groupId>
@@ -292,11 +303,6 @@
             <version>${jte.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20240205</version>
-        </dependency>
-        <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
             <version>${bouncycastle.version}</version>
@@ -314,24 +320,31 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.23.0</version>
+            <version>${log4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>2.23.0</version>
+            <version>${log4j.version}</version>
         </dependency>
         <!-- SLF4J Bridge -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j2-impl</artifactId>
-            <version>2.23.0</version>
+            <version>${log4j.version}</version>
         </dependency>
         <!-- java.util Logger to SLF4J -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
-            <version>2.0.12</version>
+            <version>${slf4j2.version}</version>
+        </dependency>
+
+        <!-- Database drivers -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.3</version>
         </dependency>
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
@@ -343,6 +356,8 @@
             <artifactId>h2</artifactId>
             <version>2.2.224</version>
         </dependency>
+        <!-- Database drivers end -->
+
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
@@ -351,13 +366,32 @@
         <dependency>
             <groupId>org.eclipse.angus</groupId>
             <artifactId>angus-mail</artifactId>
-            <version>2.0.1</version>
+            <version>2.0.3</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-community-dialects</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>6.4.4.Final</version>
+            <artifactId>hibernate-agroal</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.agroal</groupId>
+            <artifactId>agroal-api</artifactId>
+            <version>${agroal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.agroal</groupId>
+            <artifactId>agroal-pool</artifactId>
+            <version>${agroal.version}</version>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>
@@ -398,18 +432,6 @@
             <version>${jose4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.10.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.10.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
             <version>4.8.3</version>
@@ -424,6 +446,19 @@
             <groupId>org.passay</groupId>
             <artifactId>passay</artifactId>
             <version>1.6.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.10.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.10.1</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

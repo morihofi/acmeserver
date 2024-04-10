@@ -17,7 +17,7 @@ public class TypeSafetyHelper {
     private TypeSafetyHelper(){}
 
     @SuppressWarnings({"rawtypes"})
-    public static <T extends Object> List<T> safeCastToClassOfType(List listToCast, Class<T> targetClass) {
+    public static <T> List<T> safeCastToClassOfType(List listToCast, Class<T> targetClass) {
         List<T> targetList = new ArrayList<>();
 
         for (Object obj : listToCast) {

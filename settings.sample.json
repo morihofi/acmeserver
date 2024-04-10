@@ -5,7 +5,15 @@
       "https": 443,
       "http": 80
     },
-    "enableSniCheck": true
+    "enableSniCheck": true,
+    "mozillaSslConfig": {
+      "enabled": false,
+      "version": "5.7",
+      "configuration": "intermediate"
+    },
+    "sslServerConfig": {
+      "allowLegacyResumption": false
+    }
   },
   "keyStore": {
     "type": "pkcs12",
@@ -13,11 +21,9 @@
     "location": "./serverdata/test.p12"
   },
   "database": {
-    "engine": "h2",
-    "host": "",
+    "jdbcUrl": "jdbc:h2:./serverdata/acme;DB_CLOSE_DELAY=-1",
     "user": "root",
-    "password": "changeme",
-    "name": "./serverdata/acme"
+    "password": ""
   },
   "emailSmtp": {
     "enabled": false,
@@ -75,6 +81,7 @@
         "years": 0
       },
       "wildcardAllowed": false,
+      "ipAllowed": true,
       "domainNameRestriction": {
         "enabled": false,
         "mustEndWith": [
@@ -113,6 +120,7 @@
         "years": 0
       },
       "wildcardAllowed": true,
+      "ipAllowed": true,
       "domainNameRestriction": {
         "enabled": false,
         "mustEndWith": [

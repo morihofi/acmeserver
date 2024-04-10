@@ -1,12 +1,14 @@
 package de.morihofi.acmeserver.webui.handler;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.collectors.SingletonCollector;
 import de.morihofi.acmeserver.webui.JteLocalizer;
 import de.morihofi.acmeserver.webui.WebUI;
 import de.morihofi.acmeserver.webui.compontents.table.TableKey;
 import de.morihofi.acmeserver.webui.compontents.table.TableValue;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import jakarta.xml.bind.DatatypeConverter;
@@ -41,14 +43,14 @@ public class ProvisionerInfoHandler implements Handler {
     }
 
     @Override
-    public void handle(@NotNull Context context) throws Exception {
+    public void handle(@NotNull Context context) {
         this.localizer = JteLocalizer.getLocalizerFromContext(context);
         this.dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM, localizer.getLocale());
 
         String provisionerName = context.queryParam("name");
 
 
-        Provisioner provisioner = cryptoStoreManager.getProvisioners().stream()
+        Provisioner provisioner = ProvisionerManager.getProvisioners().stream()
                 .filter(lstProvisioner -> lstProvisioner.getProvisionerName().equals(provisionerName))
                 .collect(SingletonCollector.toSingleton());
 
@@ -61,7 +63,7 @@ public class ProvisionerInfoHandler implements Handler {
         params.put("provisionerTableMap", provisionerTableMap);
         params.put("provisionerIntermediateTableMap", provisionerIntermediateTableMap);
 
-        context.render("pages/provisioner-info.jte", params);
+        context.render("html5/pages/provisioner-info.jte", params);
     }
 
     /**
@@ -75,7 +77,6 @@ public class ProvisionerInfoHandler implements Handler {
      *         icons, and values are {@link TableValue} objects containing the metadata values. Some
      *         values, such as terms of service and website, are treated as links.
      */
-    @NotNull
     private Map<TableKey, TableValue> getProvisionerMetadata(Provisioner provisioner) {
         Map<TableKey, TableValue> provisionerTableMap = new LinkedHashMap<>();
         provisionerTableMap.put(new TableKey("web.core.provisioner.meta.name", "fa-solid fa-info"), new TableValue(provisioner.getProvisionerName()));
@@ -90,7 +91,6 @@ public class ProvisionerInfoHandler implements Handler {
      * @param provisioner The provisioner for which to get the metadata.
      * @return A map containing key-value pairs of the metadata.
      */
-    @NotNull
     private Map<TableKey, TableValue> getIntermediateMetadata(Provisioner provisioner) {
         Map<TableKey, TableValue> metadataMap = new LinkedHashMap<>();
 
@@ -200,6 +200,7 @@ public class ProvisionerInfoHandler implements Handler {
      * @throws IllegalArgumentException if the provided certificate is null or contains a public key type
      *         not handled by this method.
      */
+    @SuppressFBWarnings({"VA_FORMAT_STRING_USES_NEWLINE"})
     private String publicKeyDetails(X509Certificate certificate) {
         PublicKey publicKey = certificate.getPublicKey();
 
@@ -246,7 +247,6 @@ public class ProvisionerInfoHandler implements Handler {
      *         start and end.
      * @throws IllegalArgumentException if {@code lengthFirstLast} is negative or if the string is null.
      */
-    @NotNull
     private static String shortenLongString(String string, int lengthFirstLast) {
         if (string == null) {
             throw new IllegalArgumentException("String cannot be null.");
@@ -397,8 +397,7 @@ public class ProvisionerInfoHandler implements Handler {
     public static ASN1Primitive toAsn1Object(byte[] data) throws IOException {
         try (ASN1InputStream asn1InputStream = new ASN1InputStream(data)) {
             ASN1Primitive obj = asn1InputStream.readObject();
-            if (obj instanceof DEROctetString) {
-                DEROctetString oct = (DEROctetString) obj;
+            if (obj instanceof DEROctetString oct) {
                 try (ASN1InputStream asn1InputStreamOct = new ASN1InputStream(new ByteArrayInputStream(oct.getOctets()))) {
                     return asn1InputStreamOct.readObject();
                 }

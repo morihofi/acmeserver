@@ -1,10 +1,11 @@
 package de.morihofi.acmeserver.tools.certificate.generator;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
-import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.tools.certificate.CertMisc;
 import de.morihofi.acmeserver.tools.certificate.X509;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -18,18 +19,23 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
+import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 
 public class ServerCertificateGenerator {
 
     private ServerCertificateGenerator() {
     }
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Generates an X509 server certificate using provided parameters and cryptographic elements.
@@ -45,30 +51,17 @@ public class ServerCertificateGenerator {
      * @param intermediateCertificate The byte array intermediate certificate.
      * @param serverPublicKeyBytes    The byte array representing the server's public key.
      * @param identifiers             An array of Identifiers to be associated with the server certificate.
-     * @param certificateExpiration   Certificate expiration
      * @return An X509Certificate which represents the server certificate.
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
      * @throws CertificateException      If there's an error in processing the certificate data.
      * @throws CertIOException           If there's an IO error during certificate generation.
      */
-    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate, byte[] serverPublicKeyBytes, Identifier[] identifiers, CertificateExpiration certificateExpiration, Provisioner provisioner) throws OperatorCreationException, CertificateException, CertIOException {
+    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate, byte[] serverPublicKeyBytes, Identifier[] identifiers, Date startDate, Date endDate, Provisioner provisioner) throws OperatorCreationException, CertificateException, CertIOException {
 
         // Create our virtual "CSR"
         X500Name issuerName = X509.getX500NameFromX509Certificate(intermediateCertificate);
         BigInteger serialNumber = CertMisc.generateSerialNumber();
-        Date startDate = new Date(); // Starts now
 
-        // Calculate the proposed end date based on provisioner settings
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(startDate);
-        calendar.add(Calendar.YEAR, certificateExpiration.getYears());
-        calendar.add(Calendar.MONTH, certificateExpiration.getMonths());
-        calendar.add(Calendar.DATE, certificateExpiration.getDays());
-        Date proposedEndDate = calendar.getTime();
-
-        // Ensure the server certificate does not outlive the intermediate certificate
-        Date intermediateEndDate = intermediateCertificate.getNotAfter();
-        Date endDate = (proposedEndDate.before(intermediateEndDate)) ? proposedEndDate : intermediateEndDate;
 
 
         X500Name subjectName = new X500Name("CN=" + identifiers[0].getValue());

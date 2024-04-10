@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,9 +35,9 @@ public class KSMigrationTool {
     private KSMigrationTool(){}
 
     /**
-     * Logger for the `KSMigrationTool` class.
+     * Logger
      */
-    public static final Logger log = LogManager.getLogger(KSMigrationTool.class);
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Runs the migration process to import certificates into the KeyStore.
@@ -51,12 +52,12 @@ public class KSMigrationTool {
      * @throws NoSuchAlgorithmException If a required algorithm is not available.
      */
     public static void run(String[] args, CryptoStoreManager cryptoStoreManager, Config appConfig, Path filesDir) throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
-        log.info("Starting in migration mode");
+        LOG.info("Starting in migration mode");
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
         if(appConfig.getKeyStore() instanceof PKCS12KeyStoreParams pkcs12KeyStoreParams){
             if(Files.exists(Paths.get(pkcs12KeyStoreParams.getLocation()))){
-                log.info("An keystore does already exist. Delete it and try again.");
+                LOG.info("An keystore does already exist. Delete it and try again.");
                 return;
             }
         }
@@ -65,7 +66,7 @@ public class KSMigrationTool {
         {
             Path rootCaDir = filesDir.resolve("_rootCA");
             if (!Files.exists(rootCaDir) && !Files.isDirectory(rootCaDir)) {
-                log.error("Cannot proceed. RootCA folder does not exist.");
+                LOG.error("Cannot proceed. RootCA folder does not exist.");
                 return;
             }
 
@@ -74,16 +75,16 @@ public class KSMigrationTool {
             Path caPrivateKeyPath = rootCaDir.resolve("private_key.pem");
 
             if (!Files.exists(caCertificatePath) || !Files.exists(caPublicKeyPath) || !Files.exists(caPrivateKeyPath)) {
-                log.error("At least one of the required CA files were not found. Unable to proceed");
+                LOG.error("At least one of the required CA files were not found. Unable to proceed");
                 return;
             }
 
-            log.info("Loading CA KeyPair and Certificate Bytes into memory");
+            LOG.info("Loading CA KeyPair and Certificate Bytes into memory");
             KeyPair caKeyPair = PemUtil.loadKeyPair(caPrivateKeyPath, caPublicKeyPath);
             byte[] caCertificateBytes = CertTools.getCertificateBytes(caCertificatePath, caKeyPair);
             X509Certificate caCertificate = X509.convertToX509Cert(caCertificateBytes);
 
-            log.info("Adding " + CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA + " to KeyStore");
+            LOG.info("Adding " + CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA + " to KeyStore");
             keyStore.setKeyEntry(
                     CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA,
                     caKeyPair.getPrivate(),
@@ -104,20 +105,20 @@ public class KSMigrationTool {
 
 
                 if (!Files.exists(intermediateKeyPairPublicFile) || !Files.exists(intermediateKeyPairPrivateFile) || !Files.exists(intermediateCertificateFile)) {
-                    log.warn("Cannot use intermediate {} cause not all required files are existing.", provisionerName);
+                    LOG.warn("Cannot use intermediate {} cause not all required files are existing.", provisionerName);
 
                     //Use next provisioner, we cannot import the certificates
                     continue;
                 }
 
-                log.info("Loading Intermediate CA for provisioner {} from disk", provisionerName);
-                log.info("Loading Key Pair");
+                LOG.info("Loading Intermediate CA for provisioner {} from disk", provisionerName);
+                LOG.info("Loading Key Pair");
                 KeyPair intermediateKeyPair = PemUtil.loadKeyPair(intermediateKeyPairPrivateFile, intermediateKeyPairPublicFile);
-                log.info("Loading Intermediate CA certificate");
+                LOG.info("Loading Intermediate CA certificate");
                 byte[] intermediateCertificateBytes = CertTools.getCertificateBytes(intermediateCertificateFile, intermediateKeyPair);
                 X509Certificate intermediateCertificate = X509.convertToX509Cert(intermediateCertificateBytes);
 
-                log.info("Adding {} to KeyStore", KeyStoreAliasName);
+                LOG.info("Adding {} to KeyStore", KeyStoreAliasName);
                 X509Certificate[] chain = new X509Certificate[]{
                         intermediateCertificate, caCertificate
                 };
@@ -130,7 +131,7 @@ public class KSMigrationTool {
             }
 
             cryptoStoreManager.saveKeystore();
-            log.info("Finished! Migration was successful");
+            LOG.info("Finished! Migration was successful");
         }
     }
 }

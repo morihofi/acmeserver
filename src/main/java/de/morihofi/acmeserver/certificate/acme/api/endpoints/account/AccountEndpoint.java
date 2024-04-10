@@ -1,12 +1,12 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.account;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import com.google.gson.JsonObject;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
@@ -14,13 +14,12 @@ import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.tools.regex.EmailValidation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
-import jakarta.persistence.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.json.JSONObject;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,7 +33,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Endpoint for managing ACME Account settings. Change E-Mail etc.
@@ -55,7 +54,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
         performSignatureAndNonceCheck(ctx, accountId, acmeRequestBody);
 
         // Check if account exists
-        ACMEAccount account = Database.getAccount(accountId);
+        ACMEAccount account = ACMEAccount.getAccount(accountId);
         if (account == null) {
             throw new ACMEAccountNotFoundException("Account with ID " + accountId + " not found!");
         }
@@ -66,7 +65,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
 
 
             // Update Account Settings, e.g., Email change
-            log.info("Update account settings for account {}", account.getAccountId());
+            LOG.info("Update account settings for account {}", account.getAccountId());
 
             List<String> emails = acmeAccountRequestPayload.getContact();
             if (emails != null) {
@@ -74,17 +73,17 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
                     email = email.replace("mailto:", "");
 
                     if (!EmailValidation.isValidEmail(email) || email.split("\\@")[0].equals("localhost")) {
-                        log.error("E-Mail format validation failed for email {}", email);
+                        LOG.error("E-Mail format validation failed for email {}", email);
                         throw new ACMEInvalidContactException("E-Mail address format is invalid");
                     }
-                    log.info("E-Mail validation successful for email {}", email);
+                    LOG.info("E-Mail validation successful for email {}", email);
                 }
 
                 // Update email
                 account.getEmails().clear();
                 account.getEmails().addAll(emails);
                 session.merge(account);
-                log.info("ACME account {} updated emails to {}", account.getAccountId(), String.join(",", emails));
+                LOG.info("ACME account {} updated emails to {}", account.getAccountId(), String.join(",", emails));
 
             }
 
@@ -93,7 +92,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
                 if (status.equals(AcmeStatus.DEACTIVATED.getRfcName())) {
                     account.setDeactivated(true);
                     session.merge(account);
-                    log.info("ACME account {} has been deactivated", account.getAccountId());
+                    LOG.info("ACME account {} has been deactivated", account.getAccountId());
                 }
             }
 
@@ -104,7 +103,16 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Content-Type", "application/json");
         ctx.status(200);
         if(account.isDeactivated()){
-            ctx.result(new JSONObject().put("status", AcmeStatus.DEACTIVATED.getRfcName()).toString());
+            // Create a new JsonObject
+            JsonObject responseObj = new JsonObject();
+            // Add the "status" property with the value from AcmeStatus.DEACTIVATED.getRfcName()
+            responseObj.addProperty("status", AcmeStatus.DEACTIVATED.getRfcName());
+            // Create a Gson instance
+
+            // Convert the JsonObject to a JSON string
+            String jsonResponse = gson.toJson(responseObj);
+
+            ctx.result(jsonResponse);
         }else {
             ctx.result("{}"); // Empty JSON response
         }

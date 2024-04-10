@@ -1,13 +1,19 @@
 package de.morihofi.acmeserver.tools.crypto;
 
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.lang.JoseException;
 
+import java.lang.invoke.MethodHandles;
 import java.security.PublicKey;
 
 public class AcmeTokenCryptography {
-
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     private AcmeTokenCryptography(){}
 
     /**

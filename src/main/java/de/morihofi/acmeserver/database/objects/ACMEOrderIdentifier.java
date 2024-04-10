@@ -2,14 +2,18 @@ package de.morihofi.acmeserver.database.objects;
 
 
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.tools.crypto.Crypto;
+import de.morihofi.acmeserver.database.HibernateUtil;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import java.io.Serializable;
-import java.math.BigInteger;
-import java.sql.Timestamp;
+import java.lang.invoke.MethodHandles;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents an ACME identifier entity used for managing order identifiers, challenges, and certificates.
@@ -17,6 +21,11 @@ import java.util.List;
 @Entity
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ACMEOrderIdentifier implements Serializable {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     @Id
     @Column(name = "identifierId", nullable = false)
@@ -30,8 +39,6 @@ public class ACMEOrderIdentifier implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "orderId", referencedColumnName = "orderId")
     private ACMEOrder order;
-
-
 
     @Column(name = "hasChallengesGenerated", nullable = false)
     private boolean hasChallengesGenerated = false;
@@ -151,5 +158,36 @@ public class ACMEOrderIdentifier implements Serializable {
 
     public void setHasChallengesGenerated(boolean hasChallengesGenerated) {
         this.hasChallengesGenerated = hasChallengesGenerated;
+    }
+
+
+
+    /**
+     * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated authorization ID.
+     *
+     * @param authorizationId The unique identifier of the authorization associated with the ACME identifier.
+     * @return The ACME identifier matching the provided authorization ID, or null if not found.
+     */
+    public static ACMEOrderIdentifier getACMEIdentifierByAuthorizationId(String authorizationId) {
+        ACMEOrderIdentifier identifier = null;
+        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            Transaction transaction = session.beginTransaction();
+            identifier = session.createQuery("FROM ACMEOrderIdentifier WHERE authorizationId = :authorizationId", ACMEOrderIdentifier.class)
+                    .setParameter("authorizationId", authorizationId)
+                    .setMaxResults(1)
+                    .getSingleResult();
+
+            if (identifier != null) {
+                LOG.info("(Authorization ID: {}) Got ACME identifier of type {} with value {}",
+                        authorizationId,
+                        identifier.getType(),
+                        identifier.getDataValue()
+                );
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            LOG.error("Unable get ACME identifiers for authorization id {}", authorizationId, e);
+        }
+        return identifier;
     }
 }

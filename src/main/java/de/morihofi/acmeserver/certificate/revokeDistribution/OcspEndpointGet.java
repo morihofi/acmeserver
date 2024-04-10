@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -11,6 +11,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.Req;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.util.Base64;
 
@@ -21,26 +22,19 @@ public class OcspEndpointGet implements Handler {
     private final Provisioner provisioner;
 
     /**
-     * Instance of the CRL Generator
-     */
-    private final CRL crlGenerator;
-
-    /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Constructor for OcspEndpointGet class. Processes GET Requests
      * Creates an instance with specified Provisioner and CRL generator.
      *
      * @param provisioner  the Provisioner instance for OCSP handling
-     * @param crlGenerator the CRL (Certificate Revocation List) generator for managing revoked certificates
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public OcspEndpointGet(Provisioner provisioner, CRL crlGenerator) {
+    public OcspEndpointGet(Provisioner provisioner) {
         this.provisioner = provisioner;
-        this.crlGenerator = crlGenerator;
     }
 
     /**
@@ -70,10 +64,10 @@ public class OcspEndpointGet implements Handler {
         }
 
         BigInteger serialNumber = requestList[0].getCertID().getSerialNumber();
-        log.info("Checking revokation status for serial number {}", serialNumber);
+        LOG.info("Checking revokation status for serial number {}", serialNumber);
 
         // Processing the request and creating the OCSP response
-        OCSPResp ocspResponse = OcspHelper.processOCSPRequest(serialNumber, crlGenerator, provisioner);
+        OCSPResp ocspResponse = OcspHelper.processOCSPRequest(serialNumber, CRLScheduler.getCrlGeneratorForProvisioner(provisioner.getProvisionerName()), provisioner);
 
         // Sending the OCSP response
         ctx.contentType("application/ocsp-response");

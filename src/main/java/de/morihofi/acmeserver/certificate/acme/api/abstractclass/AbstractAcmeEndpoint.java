@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.abstractclass;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
@@ -39,10 +39,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
     public Provisioner getProvisioner() {
         return provisioner;
     }
-
-    public Gson getGson() {
-        return gson;
-    }
+    
 
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
@@ -53,7 +50,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
 
     public abstract void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception;
 
-    public void performSignatureAndNonceCheck(Context ctx, String accountId, ACMERequestBody acmeRequestBody) throws NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, InvalidKeyException, NoSuchProviderException {
+    public void performSignatureAndNonceCheck(Context ctx, String accountId, ACMERequestBody acmeRequestBody) {
         // Check signature and nonce
         SignatureCheck.checkSignature(ctx, accountId, gson);
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());

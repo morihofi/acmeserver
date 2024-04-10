@@ -1,5 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.security;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.HttpNonces;
@@ -9,7 +11,6 @@ import jakarta.persistence.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
-import org.json.JSONObject;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,7 +22,7 @@ public class NonceManager {
     /**
      * Logger
      */
-    public static final Logger log = LogManager.getLogger(NonceManager.class);
+    private static final Logger LOG = LogManager.getLogger(NonceManager.class);
 
     /**
      * Checks if a nonce from a decoded protected request body has already been used.
@@ -30,8 +31,8 @@ public class NonceManager {
      * @throws ACMEBadNonceException If the nonce has already been used.
      */
     public static void checkNonceFromDecodedProtected(String decodedProtected) {
-        JSONObject reqBodyProtectedObj = new JSONObject(decodedProtected);
-        String nonce = reqBodyProtectedObj.getString("nonce");
+        JsonObject reqBodyProtectedObj = JsonParser.parseString(decodedProtected).getAsJsonObject();
+        String nonce = reqBodyProtectedObj.get("nonce").getAsString();
 
         if (isNonceUsed(nonce)) {
             throw new ACMEBadNonceException("Nonce already used");
@@ -53,7 +54,6 @@ public class NonceManager {
         }
 
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            assert session != null;
             org.hibernate.Transaction transaction = session.beginTransaction();
 
             // Check if the nonce exists in the database
@@ -74,7 +74,7 @@ public class NonceManager {
             // Return true if nonce exists, false if it was added
             return nonceExists;
         } catch (Exception e) {
-            log.error("Error checking or adding nonce", e);
+            LOG.error("Error checking or adding nonce", e);
             return false;
         }
     }

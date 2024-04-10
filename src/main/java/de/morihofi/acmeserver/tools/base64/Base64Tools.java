@@ -1,9 +1,18 @@
 package de.morihofi.acmeserver.tools.base64;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class Base64Tools {
+
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Decodes a Base64-encoded string into its original string representation.

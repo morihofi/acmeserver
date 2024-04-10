@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.objects.ACMEChallengeResponse;
 import de.morihofi.acmeserver.certificate.acme.challenges.ChallengeResult;
@@ -9,8 +9,6 @@ import de.morihofi.acmeserver.certificate.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.Database;
-import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
 import de.morihofi.acmeserver.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
@@ -20,6 +18,8 @@ import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.invoke.MethodHandles;
+
 /**
  * A handler endpoint for processing challenge callbacks.
  */
@@ -28,7 +28,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    private final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
 
     /**
@@ -49,7 +49,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Replay-Nonce", Crypto.createNonce());
 
         // Check if challenge is valid
-        ACMEOrderIdentifierChallenge identifierChallenge = Database.getACMEIdentifierChallenge(challengeId);
+        ACMEOrderIdentifierChallenge identifierChallenge = ACMEOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId);
 
         assert identifierChallenge != null;
 
@@ -67,33 +67,30 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEMalformedException("DNS-01 method is only valid for non wildcard domains");
         }
 
-        ChallengeResult result;
-        switch (challengeType) {
-            case "http-01" -> {
-                result = HTTPChallenge.check(identifierChallenge.getAuthorizationToken(), identifierChallenge.getIdentifier().getDataValue(), identifierChallenge.getIdentifier().getOrder().getAccount());
-           }
-            case "dns-01" -> {
-                result = DNSChallenge.check(identifierChallenge.getAuthorizationToken(), nonWildcardDomain, identifierChallenge.getIdentifier().getOrder().getAccount());
-            }
+        ChallengeResult result = switch (challengeType) {
+            case "http-01" ->
+                    HTTPChallenge.check(identifierChallenge.getAuthorizationToken(), identifierChallenge.getIdentifier().getDataValue(), identifierChallenge.getIdentifier().getOrder().getAccount());
+            case "dns-01" ->
+                    DNSChallenge.check(identifierChallenge.getAuthorizationToken(), nonWildcardDomain, identifierChallenge.getIdentifier().getOrder().getAccount());
             default -> {
-                log.error("Unsupported challenge type: " + challengeType);
+                LOG.error("Unsupported challenge type: " + challengeType);
                 throw new ACMEConnectionErrorException("Unsupported challenge type: " + challengeType);
             }
-        }
+        };
 
-        log.info("Validating ownership of host {}", nonWildcardDomain);
+        LOG.info("Validating ownership of host {}", nonWildcardDomain);
         if (result.isSuccessful()) {
             // Mark challenge as passed
-            Database.passChallenge(challengeId);
+            ACMEOrderIdentifierChallenge.passChallenge(challengeId);
         } else {
-            log.error("Throwing API error: Host verification failed with method {}", challengeType);
+            LOG.error("Throwing API error: Host verification failed with method {}", challengeType);
             throw new ACMEConnectionErrorException(result.getErrorReason());
             // TODO: Fail challenge in database
             //Database.failChallenge(challengeId);
         }
 
         // Reload identifier, e.g., host has validated
-        identifierChallenge = Database.getACMEIdentifierChallenge(challengeId);
+        identifierChallenge = ACMEOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId);
 
         // Creating response object
         ACMEChallengeResponse response = new ACMEChallengeResponse();
@@ -109,6 +106,6 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
 
         // "Up"-Link header is required for certbot
         ctx.header("Link", "<" + provisioner.getApiURL() + "/acme/authz/" + identifierChallenge.getIdentifier().getAuthorizationId() + ">;rel=\"up\"");
-        ctx.result(gson.toJson(response));
+        ctx.json(response);
     }
 }

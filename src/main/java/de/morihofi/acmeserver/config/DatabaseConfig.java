@@ -5,44 +5,10 @@ import java.io.Serializable;
 /**
  * Represents configuration parameters for a database connection, including engine, host, user, password, and database name.
  */
-public class DatabaseConfig implements Serializable {
-    private String engine;
-    private String host;
+public abstract class DatabaseConfig implements Serializable {
+
     private String user;
     private String password;
-    private String name;
-
-    /**
-     * Get the database engine type.
-     * @return The database engine.
-     */
-    public String getEngine() {
-        return engine;
-    }
-
-    /**
-     * Set the database engine type.
-     * @param engine The database engine to set.
-     */
-    public void setEngine(String engine) {
-        this.engine = engine;
-    }
-
-    /**
-     * Get the host address of the database server.
-     * @return The database host address.
-     */
-    public String getHost() {
-        return host;
-    }
-
-    /**
-     * Set the host address of the database server.
-     * @param host The database host address to set.
-     */
-    public void setHost(String host) {
-        this.host = host;
-    }
 
     /**
      * Get the username for the database connection.
@@ -76,19 +42,4 @@ public class DatabaseConfig implements Serializable {
         this.password = password;
     }
 
-    /**
-     * Get the name of the database.
-     * @return The database name.
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Set the name of the database.
-     * @param name The database name to set.
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
 }

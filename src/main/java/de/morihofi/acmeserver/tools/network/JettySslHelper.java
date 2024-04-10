@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.tools.network;
 
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
+import de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.MozillaSslConfigHelper;
 import io.javalin.jetty.JettyServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,6 +14,7 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -20,8 +22,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class
-JettySslHelper {
+public class JettySslHelper {
 
     private JettySslHelper() {
     }
@@ -29,7 +30,7 @@ JettySslHelper {
     /**
      * Logger
      */
-    public static final Logger log = LogManager.getLogger(JettySslHelper.class);
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Creates an SSLContext with the specified certificate chain and key pair.
@@ -62,6 +63,7 @@ JettySslHelper {
         // Initialize the TrustManagerFactory with the KeyStore
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(keyStore);
+
 
         // Create and initialize the SSL context
         SSLContext sslContext = SSLContext.getInstance("TLS", BouncyCastleJsseProvider.PROVIDER_NAME);
@@ -124,18 +126,17 @@ JettySslHelper {
      * @throws KeyManagementException    If there is an issue with key management.
      * @throws NoSuchProviderException   If a required security provider is not available.
      */
-    public static Server getSslJetty(int httpsPort, int httpPort, Path certificatePath, Path privateKeyPath, Path publicKeyPath, boolean enableSniCheck)
-            throws CertificateException, IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException,
-            KeyManagementException, NoSuchProviderException {
+    public static Server getSslJetty(int httpsPort, int httpPort, Path certificatePath, Path privateKeyPath, Path publicKeyPath, boolean enableSniCheck, MozillaSslConfigHelper.BasicConfiguration mozillaConfig)
+            throws Exception {
 
-        log.info("Loading Key Pair");
+        LOG.info("Loading Key Pair");
         KeyPair jettyKeyPair = PemUtil.loadKeyPair(privateKeyPath, publicKeyPath);
 
         X509Certificate[] certificateChain = PemUtil.loadCertificateChain(certificatePath);
 
         SSLContext sslContext = createSSLContext(certificateChain, jettyKeyPair);
 
-        return getSslJetty(httpsPort, httpPort, sslContext, null, enableSniCheck);
+        return getSslJetty(httpsPort, httpPort, sslContext, null, enableSniCheck, mozillaConfig);
     }
 
     /**
@@ -149,17 +150,17 @@ JettySslHelper {
      * @return A Jetty Server instance configured for both secure and non-secure communication.
      * @throws Exception If an error occurs while creating or configuring the Jetty Server.
      */
-    public static Server getSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String alias, JettyServer jettyServer, boolean enableSniCheck)
+    public static Server getSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String alias, JettyServer jettyServer, boolean enableSniCheck, MozillaSslConfigHelper.BasicConfiguration mozillaConfig)
             throws Exception {
 
 
         SSLContext sslContext = createSSLContext(keyStore, alias, "");
 
-        return getSslJetty(httpsPort, httpPort, sslContext, jettyServer, enableSniCheck);
+        return getSslJetty(httpsPort, httpPort, sslContext, jettyServer, enableSniCheck, mozillaConfig);
     }
 
-    public static void updateSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String keystoreAliasAcmeapi, JettyServer jettyServer, boolean enableSniCheck) throws Exception {
-        getSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, jettyServer, enableSniCheck);
+    public static void updateSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String keystoreAliasAcmeapi, JettyServer jettyServer, boolean enableSniCheck, MozillaSslConfigHelper.BasicConfiguration mozillaConfig) throws Exception {
+        getSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, jettyServer, enableSniCheck, mozillaConfig);
     }
 
     /**
@@ -171,7 +172,7 @@ JettySslHelper {
      * @param jettyServer Jetty server wrapper of Javalin
      * @return A configured Jetty Server instance.
      */
-    public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext, JettyServer jettyServer, boolean enableSniCheck) {
+    public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext, JettyServer jettyServer, boolean enableSniCheck, MozillaSslConfigHelper.BasicConfiguration mozillaConfig) throws Exception {
     /*
         If the port is not 0, the Service (e.g., HTTP/HTTPS) is enabled. Otherwise, it is disabled.
     */
@@ -181,10 +182,22 @@ JettySslHelper {
         } else {
             server = new Server();
         }
+
+
+        for (Connector connector : server.getConnectors()) {
+            if (connector instanceof ServerConnector serverConnector) {
+
+                // Stoppe den Connector nur, wenn er läuft.
+                if (serverConnector.isStarted()) {
+                    serverConnector.stop();
+                }
+            }
+        }
+
         List<Connector> connectors = new ArrayList<>();
 
         if (httpsPort != 0 && sslContext != null) {
-            log.info("API HTTPS support is ENABLED");
+            LOG.info("API HTTPS support is ENABLED");
             HttpConfiguration https = new HttpConfiguration();
             SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
             secureRequestCustomizer.setSniHostCheck(enableSniCheck);
@@ -192,6 +205,20 @@ JettySslHelper {
 
             SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
             sslContextFactory.setSslContext(sslContext); // Your SSL context
+            if(mozillaConfig != null){
+                LOG.info("Configuring TLS using Mozilla configuration");
+                sslContextFactory.setExcludeProtocols();
+                sslContextFactory.setExcludeCipherSuites();
+                sslContextFactory.setRenegotiationAllowed(false);
+                sslContextFactory.setUseCipherSuitesOrder(true);
+
+                sslContextFactory.setIncludeCipherSuites(mozillaConfig.ciphers().toArray(new String[0]));
+                sslContextFactory.setIncludeProtocols(mozillaConfig.protocols().toArray(new String[0]));
+
+                secureRequestCustomizer.setStsMaxAge(mozillaConfig.hstsMinAge());
+                secureRequestCustomizer.setStsIncludeSubDomains(false);
+            }
+
 
             ServerConnector sslConnector = new ServerConnector(server,
                     new SslConnectionFactory(sslContextFactory, "http/1.1"),
@@ -200,21 +227,29 @@ JettySslHelper {
 
             connectors.add(sslConnector);
         } else {
-            log.info("API HTTPS support is DISABLED. THIS IS NOT RECOMMENDED; YOU MAY ENCOUNTER UNEXPECTED BEHAVIOR!");
+            LOG.info("API HTTPS support is DISABLED. THIS IS NOT RECOMMENDED; YOU MAY ENCOUNTER UNEXPECTED BEHAVIOR!");
         }
 
         if (httpPort != 0) {
-            log.info("API HTTP support is ENABLED");
+            LOG.info("API HTTP support is ENABLED");
             // HTTP Configuration
             ServerConnector httpConnector = new ServerConnector(server);
             httpConnector.setPort(httpPort);
 
             connectors.add(httpConnector);
         } else {
-            log.info("API HTTP support is DISABLED");
+            LOG.info("API HTTP support is DISABLED");
         }
 
         server.setConnectors(connectors.toArray(new Connector[0]));
+
+        for (Connector connector : server.getConnectors()) {
+            if (connector instanceof ServerConnector sslConnector && connector.getProtocols().contains("ssl")) {
+                sslConnector.start();
+                break;
+            }
+        }
+
         return server;
     }
 

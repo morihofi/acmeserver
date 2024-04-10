@@ -3,7 +3,7 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.order;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.acme.api.Provisioner;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
@@ -12,7 +12,6 @@ import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.Database;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
@@ -31,6 +30,7 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,7 +39,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * ACME Endpoint for finalize an order
@@ -56,7 +56,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
-        ACMEOrder order = Database.getACMEOrder(orderId);
+        ACMEOrder order = ACMEOrder.getACMEOrder(orderId);
         ACMEAccount account = order.getAccount();
 
         // Check signature and nonce
@@ -68,7 +68,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         String csr = reqBodyPayloadObj.getCsr();
 
         // Get our ACME identifiers
-        List<ACMEOrderIdentifier> identifiers = Database.getACMEOrder(orderId).getOrderIdentifiers();
+        List<ACMEOrderIdentifier> identifiers = ACMEOrder.getACMEOrder(orderId).getOrderIdentifiers();
 
         //We just use the verification, that throws exceptions, here not the resulting identifiers
         CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
@@ -114,11 +114,11 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
                 transaction.commit();
 
-                if (Main.serverOptions.contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
+                if (Main.getServerOptions().contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
                     //Use async certificate issuing
 
 
-                    log.info("Saved CSR for order {} in database", order.getOrderId());
+                    LOG.info("Saved CSR for order {} in database", order.getOrderId());
 
                     //Set response, that our certificate is processing in separate thread
                     response.setStatus(AcmeStatus.PROCESSING.getRfcName());
@@ -132,7 +132,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
 
             } catch (Exception e) {
-                log.error("Unable to process CSR for order {} and save in database", order.getOrderId(), e);
+                LOG.error("Unable to process CSR for order {} and save in database", order.getOrderId(), e);
             }
         } else {
             //We have a certificate
@@ -152,7 +152,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         response.setIdentifiers(identifierList);
         response.setAuthorizations(authorizationsList);
 
-        ctx.result(gson.toJson(response));
+        ctx.json(response);
 
     }
 

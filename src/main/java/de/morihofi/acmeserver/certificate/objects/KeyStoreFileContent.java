@@ -10,23 +10,15 @@ import java.security.cert.X509Certificate;
  * This class encapsulates a key pair, a certificate, and the alias used for the certificate within the KeyStore.
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-public class KeyStoreFileContent {
-    private final KeyPair keyPair;
-    private final X509Certificate cert;
-    private final String certificateAlias;
-
-
+public record KeyStoreFileContent(KeyPair keyPair, X509Certificate cert, String certificateAlias) {
     /**
      * Constructs a new KeyStoreFileContent object with the specified key pair, certificate, and certificate alias.
      *
-     * @param keyPair The {@link KeyPair} to be stored in the KeyStore.
-     * @param cert The {@link X509Certificate} to be associated with the key pair.
+     * @param keyPair          The {@link KeyPair} to be stored in the KeyStore.
+     * @param cert             The {@link X509Certificate} to be associated with the key pair.
      * @param certificateAlias The alias used to reference the certificate in the KeyStore.
      */
-    public KeyStoreFileContent(KeyPair keyPair, X509Certificate cert, String certificateAlias) {
-        this.keyPair = keyPair;
-        this.cert = cert;
-        this.certificateAlias = certificateAlias;
+    public KeyStoreFileContent {
     }
 
 
@@ -35,7 +27,8 @@ public class KeyStoreFileContent {
      *
      * @return The {@link KeyPair} associated with the certificate in the KeyStore.
      */
-    public KeyPair getKeyPair() {
+    @Override
+    public KeyPair keyPair() {
         return keyPair;
     }
 
@@ -44,7 +37,8 @@ public class KeyStoreFileContent {
      *
      * @return The {@link X509Certificate} associated with the key pair in the KeyStore.
      */
-    public X509Certificate getCert() {
+    @Override
+    public X509Certificate cert() {
         return cert;
     }
 
@@ -54,7 +48,8 @@ public class KeyStoreFileContent {
      *
      * @return The alias of the certificate as a {@code String}.
      */
-    public String getCertificateAlias() {
+    @Override
+    public String certificateAlias() {
         return certificateAlias;
     }
 }

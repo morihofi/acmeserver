@@ -6,8 +6,8 @@ import jakarta.mail.*;
 import jakarta.mail.internet.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Properties;
 
 public class SendMail {
@@ -15,7 +15,10 @@ public class SendMail {
     private SendMail() {
     }
 
-    public static final Logger log = LogManager.getLogger(SendMail.class);
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Sends an email using the specified email configuration, including optional encryption settings.
@@ -29,7 +32,7 @@ public class SendMail {
         EmailConfig emailConfig = Main.appConfig.getEmailSmtp();
 
         if (!emailConfig.getEnabled()) {
-            log.info("Not sending email, because email sending is disabled in the config");
+            LOG.info("Not sending email, because email sending is disabled in the config");
             return;
         }
 
@@ -55,9 +58,9 @@ public class SendMail {
 
         message.setContent(multipart);
 
-        log.info("Sending E-Mail with subject \"{}\" to \"{}\"", subject, toEmail);
+        LOG.info("Sending E-Mail with subject \"{}\" to \"{}\"", subject, toEmail);
         Transport.send(message);
-        log.info("E-Mail has been sent");
+        LOG.info("E-Mail has been sent");
     }
 
     /**
@@ -83,18 +86,21 @@ public class SendMail {
         Properties emailProp = new Properties();
         emailProp.put("mail.smtp.auth", "true");
         emailProp.put("mail.smtp.host", emailConfig.getHost());
-        emailProp.put("mail.smtp.port", String.valueOf(emailConfig.getPort()));
+        emailProp.put("mail.smtp.port", emailConfig.getPort());
 
-        if ("starttls".equals(emailConfig.getEncryption())) {
-            emailProp.put("mail.smtp.starttls.enable", "true");
-        } else if ("ssl".equals(emailConfig.getEncryption()) || "tls".equals(emailConfig.getEncryption())) {
-            emailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-            emailProp.put("mail.smtp.ssl.checkserveridentity", "true");
-        } else {
-            // No encryption, use a plain connection
-            emailProp.put("mail.smtp.starttls.enable", "false");
-            emailProp.put("mail.smtp.ssl.trust", "*");
+        switch (emailConfig.getEncryption()) {
+            case "starttls":
+                emailProp.put("mail.smtp.starttls.enable", "true");
+                break;
+            case "ssl":
+            case "tls":
+                emailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+                emailProp.put("mail.smtp.ssl.checkserveridentity", "true");
+                break;
+            default:
+                LOG.warn("Unencrypted email connection. Consider using SSL or STARTTLS for enhanced security.");
         }
+
         return emailProp;
     }
 }
