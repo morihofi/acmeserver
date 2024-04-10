@@ -41,15 +41,27 @@ Changelog has been moved [here](CHANGELOG.MD)
 
 > You can run `docker compose logs -f` if you want to see the logs of the server. Press `Crtl`+`C` to quit
 
-## 🏗 Building and running on bare metal
+## 🏗 Building
 
+### Prerequisites
+You'll need the following prerequisites to be able to build ACME Server
+
+- Java 17
+- Maven
+
+### Initiating the build
 Run the following command to build this application
 
 ```bash
 mvn clean package
 ```
 
-then start it with
+### Running on bare metal
+
+You'll find then the jar file, you've built in the previous step, 
+in the `target/` folder. 
+
+Then you can execute it with the following command to run it:
 
 ```bash
 java -jar acmeserver-VERSION.jar
