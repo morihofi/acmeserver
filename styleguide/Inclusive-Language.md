@@ -39,4 +39,4 @@ Certain terms in technology, such as "blacklist" and "whitelist," can unconsciou
 
 - Replace "blacklist" with "blocklist" and "whitelist" with "allowlist" or other neutral terms that convey the intended meaning without racial connotations.
 
-This guide is inspired by the practices of projects like Chromium and aims to foster an inclusive and respectful coding environment. Adopting these recommendations can contribute to a more inclusive culture within the ACME Server project and the broader tech community.
+This guide is inspired by the practices of projects like Chromium and aims to foster an inclusive and respectful coding environment.
