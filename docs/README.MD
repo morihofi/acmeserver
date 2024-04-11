@@ -202,7 +202,68 @@ If you're just searching the JDBC URL you have to use, try googling `jdbc dbms_n
 
 ACME Server requires a Root certificate authority to be able to operate and generate certificates.
 
-...
+```json
+{
+   /* ... */
+   "rootCA": {
+      "metadata": {
+         "commonName": "ACMEServer Root CA",
+         "organisation": null,
+         "organisationalUnit": null,
+         "countryCode": null
+      },
+      "expiration": {
+         "days": 3,
+         "months": 6,
+         "years": 10
+      },
+      "algorithm": {
+         /* see below */
+      }
+   }
+   /* .. */
+}
+```
+
+#### Metadata
+The `commonName` MUST be set, but SHOULD set `organisation`, `organisationalUnit` and `countryCode`.
+
+If you set a `countryCode`, it must be in a two letter format following the [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) standard.
+For example e.g. `DE` for Germany, `US` for the United States of America and so on ...
+
+#### Expiration
+
+The `days`, `months`, `years` values are the specify the validity period for generate certificate after generation. 
+
+#### Algorithm
+Algorithms can be `rsa` and `ecdsa`, both are supported and take different parameters. 
+For backwards compatibility it is recommended to use an RSA based certificate.
+
+##### RSA
+You MUST specify a key size. It SHOULD higher or equal than 2048 bit. It is highly RECOMMENDED to have 4096 bit.
+```json
+{
+   /* ... */
+   "algorithm": {
+      "type": "rsa",
+      "keySize": 4096
+   }
+   /* ... */
+}
+```
+
+##### ECDSA
+You MUST specify a curve name. You can find a list [here](https://github.com/bcgit/bc-java/wiki/Support-for-ECDSA,-ECGOST-Curves)
+```json
+{
+   /* ... */
+   "algorithm": {
+      "type": "ecdsa",
+      "curveName": "P-256"
+   }
+   /* ... */
+}
+```
 
 ### Provisioners
 
