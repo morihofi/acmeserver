@@ -14,7 +14,7 @@ It is basically a fully automated, self-hosted certificate authority.
 
 ## Terminology
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
 "OPTIONAL" in this document are to be interpreted as described in
 [BCP 14](https://www.rfc-editor.org/info/bcp14) [RFC2119](https://datatracker.ietf.org/doc/html/rfc2119) [RFC8174](https://datatracker.ietf.org/doc/html/rfc8174)
@@ -51,7 +51,7 @@ Copy the sample file into the `serverdata` directory and call it `settings.json`
 
 ### Basic configuration
 
-You MUST change the `dnsName` value to a DNS name (Not an IP-Address -> won't work) that is resolvable of your ACME
+You MUST change the `dnsName` value to a DNS name (Not an IP-Address -> won't work) that is resolvable to your ACME
 server. It will be written into certificates, and also served in the ACME API.
 You MAY change the ports serving the API and Website. If you set the `http`-Port to `0`, HTTP will be disabled.
 
@@ -183,7 +183,7 @@ Following a table with a few JDBC configuration strings for the configuration. Y
 If you want to use a database engine, where the JDBC driver isn't built in,
 you have to add the driver manually to the classpath and specify the Main-Class manually.
 
-If you just searching the JDBC URL you have to use, try googling `jdbc dbms_name_here connection string`
+If you're just searching the JDBC URL you have to use, try googling `jdbc dbms_name_here connection string`
 (replace `dbms_name_here` with your database management system name)
 
 ```json
