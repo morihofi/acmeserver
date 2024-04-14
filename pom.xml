@@ -25,7 +25,7 @@
         <slf4j2.version>2.0.12</slf4j2.version>
 
         <!-- Cryptographic libraries -->
-        <bouncycastle.version>1.77</bouncycastle.version>
+        <bouncycastle.version>1.78</bouncycastle.version>
         <jose4j.version>0.9.6</jose4j.version>
 
         <!-- WebServer and Template Engine -->
@@ -182,8 +182,7 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <target>
-                                <copy file="${project.basedir}/settings.sample.json"
-                                      tofile="${project.build.directory}/settings.json"/>
+                                <copy file="${project.basedir}/settings.sample.json" tofile="${project.build.directory}/settings.json"/>
                             </target>
                         </configuration>
                         <goals>
