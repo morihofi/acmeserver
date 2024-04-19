@@ -176,7 +176,7 @@ Following a table with a few JDBC configuration strings for the configuration. Y
 |                                           | JDBC Driver Built-in | Test status | JDBC URL                                                           | Notes                                                                                                 |
 |-------------------------------------------|----------------------|-------------|--------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
 | [MariaDB](https://mariadb.org)            | Yes                  | ✅           | `jdbc:mariadb://localhost:3306/database_name`                      |                                                                                                       |
-| [H2](https://h2database.com)              | Yes                  | ✅           | `jdbc:h2:./serverdata/acme;DB_CLOSE_DELAY=-1` (database in a file) | Only embedded mode has been tested, cause this is the only supported at the moment                    |
+| [H2](https://h2database.com)              | Yes                  | ✅           | `jdbc:h2:./serverdata/acme;DB_CLOSE_DELAY=-1` (database in a file) |                                                                                                       |
 | [PostgreSQL](https://www.postgresql.org/) | Yes                  | ✅           | `jdbc:postgresql://localhost:5740/database_name`                   | Use a up-to-date database version. Tested with PostgreSQL 16.2, older version may won't work properly |
 | [MySQL](https://mysql.com/)               | No                   | ❓           | `jdbc:mysql://localhost:3306/database_name`                        | Hibernate configuration has been prepared, but not tested yet                                         |
 
@@ -253,7 +253,8 @@ You MUST specify a key size. It SHOULD higher or equal than 2048 bit. It is high
 ```
 
 ##### ECDSA
-You MUST specify a curve name. You can find a list [here](https://github.com/bcgit/bc-java/wiki/Support-for-ECDSA,-ECGOST-Curves)
+You MUST specify a curve name. You can find a list [here](https://github.com/bcgit/bc-java/wiki/Support-for-ECDSA,-ECGOST-Curves). 
+Please note that the selected curve must be compatible with BouncyCastle. NIST curves are RECOMMENDED.
 ```json
 {
    /* ... */
@@ -268,6 +269,26 @@ You MUST specify a curve name. You can find a list [here](https://github.com/bcg
 ### Provisioners
 
 With provisioners, you can split this CA into multiple certificate generation policies.
-Every provisioner creates its certificates in a different intermediate certificate.
+Every provisioner creates its certificates in a different intermediate certificate. 
+Provisioners and Intermediate certificates are in a 1:1 relationship, like in the following diagram:
 
+```
+Root CA (installed on client devices)
+|
+|--+ Intermediate for Provisioner 1 
+|  |  
+|  |-- ACME Generated Cert 1  
+|  |-- ACME Generated Cert 2  
+|  |-- ACME Generated Cert ...
+|
+|--+ Intermediate for Provisioner 2
+|  |  
+|  |-- ACME Generated Cert 1  
+|  |-- ACME Generated Cert 2  
+|  |-- ACME Generated Cert ...
+|
 ...
+```
+
+You can configure the intermediate certificate the provisioner uses in the `intermediate`-subobject. 
+For configuration see how to Root CA configuration above works, it uses the same syntax with the same fields.
