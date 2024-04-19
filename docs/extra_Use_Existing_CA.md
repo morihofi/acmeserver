@@ -39,6 +39,12 @@ Just execute the following command inside the `_rootCA` directory:
 openssl x509 -pubkey -noout -in root_ca_certificate.pem  > public_key.pem
 ```
 
+### Apply CA to keystore
+
+```bash
+java -jar acmeserver-VERSION.jar --migrate-pem-to-keystore
+```
+After executing this command, you can delete the whole `_rootCA` directory, because the CA lives now in the keystore.
 
 
 That's all!
