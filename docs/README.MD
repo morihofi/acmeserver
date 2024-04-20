@@ -352,3 +352,28 @@ For configuration see how to Root CA configuration above works, it uses the same
       | hello.test.example.com       | Yes          |
       | hellotest.example.com        | Yes          |
       | hello.test.example.org       | No           |
+
+#### E-Mail sending (alpha state)
+ACME Server supports sending E-Mails when an certificate has been ordered. This feature is currently in alpha state.
+
+```json
+  /* ... */
+  "emailSmtp": {
+    "enabled": false,
+    "port": 587,
+    "encryption": "starttls",
+    "host": "mail.example.com",
+    "username": "acme-noreply@example.com",
+    "password": "insecurepassword"
+  }
+  /* ... */
+```
+- `enabled`: Enable this feature ìf set to `true`, otherwise it is disabled
+- `host`: Host of the SMTP Service
+- `port`: Port of the SMTP Service
+- `encryption`: Encryption to use to connect to the SMTP server. Values can be one of the following:
+  - `starttls`: StartTLS Encryption
+  - `ssl` or `tls`: TLS Encryption
+  - `none`: No encryption. This is NOT RECOMMENDED.
+- `username`: Username (mostly the E-Mail) to authenticate
+- `password`: Password to authenticate
