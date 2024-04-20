@@ -269,8 +269,8 @@ Please note that the selected curve must be compatible with BouncyCastle. NIST c
 ### Provisioners
 
 With provisioners, you can split this CA into multiple certificate generation policies.
-Every provisioner creates its certificates in a different intermediate certificate. 
-Provisioners and Intermediate certificates are in a 1:1 relationship, like in the following diagram:
+Each provisioner operates under its own intermediate certificate, 
+forming a 1:1 relationship with it, like in the following diagram:
 
 ```
 Root CA (installed on client devices)
@@ -292,3 +292,63 @@ Root CA (installed on client devices)
 
 You can configure the intermediate certificate the provisioner uses in the `intermediate`-subobject. 
 For configuration see how to Root CA configuration above works, it uses the same syntax with the same fields.
+
+```json
+   /* ... */
+  "provisioner": [
+    {
+      "name": "my_provisioner",
+      "meta": {
+        "website": "https://example.com/testing-ca",
+        "tos": " https://example.com/terms-of-service-testing.html"
+      },
+      "intermediate": {
+        /* see Root CA section above -> uses same config style */
+      },
+      "issuedCertificateExpiration": {
+        "days": 3,
+        "months": 0,
+        "years": 0
+      },
+      "wildcardAllowed": false,
+      "ipAllowed": true,
+      "domainNameRestriction": {
+        "enabled": false,
+        "mustEndWith": [
+          ".test.example.com",
+          ".test.example.org"
+        ]
+      }
+    },
+    ...
+  ]
+  /* ... */
+```
+- `name`: Name of the provisioner. Provisioner name can only contain lowercase letters a-z, numbers 0-9, "-" and "_"
+- `meta`: Metadata shown to the ACME client when creating account and ordering
+  - `website`: Website of the CA responsible for this provisioner, probably your website
+  - `tos`: Terms of Service for this provisioner, probably the CA terms of server subpage of your website
+- `intermediate`: See Root CA above
+- `issuedCertificateExpiration`: How long should a certificate, issued by the ACME Protocol, live after its after creation.
+- `wildcardAllowed`: Should be issuing wildcards for DNS Domains allowed, e.g. `*.example.com`?
+- `ipAllowed`: Should be issuing for IP Addresses enabled for both IPv4 and IPv6?
+- `domainNameRestriction`: Restrict domain names allowed for issuing. This does not apply for the reverse DNS of an IP address, because reverse DNS isn't supported at the moment.
+  - `enabled`: Enable this policy ìf set to `true`, otherwise it is disabled
+  - `mustEndWith`: These are the names the domains must end with. Add as many as you wish.
+    - For example all domains must end with `.test.example.com`:
+     
+      | Domain                       | Would accept |
+      |------------------------------|--------------|
+      | hello.world.test.example.com | Yes          |
+      | hello.test.example.com       | Yes          |
+      | hellotest.example.com        | No           |
+      | hello.test.example.org       | No           |
+
+    - For example all domains must end with `test.example.com` (without the dot at the beginning):
+     
+      | Domain                       | Would accept |
+      |------------------------------|--------------|
+      | hello.world.test.example.com | Yes          |
+      | hello.test.example.com       | Yes          |
+      | hellotest.example.com        | Yes          |
+      | hello.test.example.org       | No           |
