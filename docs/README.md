@@ -34,7 +34,7 @@ capitals, as shown here.
    intermediate/client certificates for finding revokation list etc. and ACME client configuration will be get broken.
 5. Run `docker compose up -d` in this directory. That's all!
 
-> You can run `docker compose logs -f` if you want to see the logs of the server. Press `Crtl`+`C` to quit
+> You can run `docker compose logs -f` if you want to see the logs of the server. Press `Ctrl`+`C` to quit
 
 ### ... on bare Metal
 First you need to build ACME Server. Checkout the Building below section, then come back to this section
@@ -69,7 +69,7 @@ You'll need the following prerequisites to be able to build ACME Server
 - Maven 3.9
 
 ### Initiating the build
-Run the following command to build ACME Server from the root directory of this repository (the directory where the `pom.xml` file is located.
+Run the following command to build ACME Server from the root directory of this repository (the directory where the `pom.xml` file is located)
 
 ```bash
 mvn clean package
@@ -88,7 +88,7 @@ You MUST change the `dnsName` value to a DNS name (Not an IP-Address -> won't wo
 server. It will be written into certificates, and also served in the ACME API.
 You MAY change the ports serving the API and Website. If you set the `http`-Port to `0`, HTTP will be disabled.
 
-It is recommended to **not run** ACME Server behind a reverse proxy.
+It is RECOMMENDED to **not run** ACME Server behind a reverse proxy.
 
 ```json
 {
