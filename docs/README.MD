@@ -1,8 +1,9 @@
-# 📖 ACME Server Docs
+# 📖 ACME Server Documentation
 
-Welcome to the official ACME Server documentation. This is a work in progress documentation
+Welcome to the official ACME Server documentation. 
+This documentation applies to Version 2.0 release of morihofi's ACME Server.
 
-TOC HERE
+[TOC]
 
 ## What is an ACME Server?
 
@@ -35,13 +36,45 @@ capitals, as shown here.
 
 > You can run `docker compose logs -f` if you want to see the logs of the server. Press `Crtl`+`C` to quit
 
-### ℹ Command line switches
+### ... on bare Metal
+First you need to build ACME Server. Checkout the Building below section, then come back to this section
+
+You'll find then the jar file, you've built in the previous step,
+in the `target/` folder.
+
+Then you can execute it with the following command to run it:
+
+```bash
+java -jar acmeserver-VERSION.jar
+```
+It will tell you what to do next.
+
+
+### Command line switches
 
 | Command line option                      | Description                                                                                                       |
 |------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
 | `--option-use-async-certificate-issuing` | Issues certificates in a separate thread (⚠ do not use with certbot at the moment)                                |
 | `--debug`                                | Debug mode (see above)                                                                                            |
 | `--migrate-pem-to-keystore`              | If you use an old Version 1.x, that uses the PEM files in filesystem, you can use this to migrate into a Keystore |
+
+
+### Building from scratch
+If you don't use a released JAR, you need to build it yourself.
+
+#### Prerequisites
+You'll need the following prerequisites to be able to build ACME Server
+
+- Java 17
+- Maven 3.9
+
+#### Initiating the build
+Run the following command to build ACME Server from the root directory of this repository (the directory where the `pom.xml` file is located.
+
+```bash
+mvn clean package
+```
+You'll find then the jar file, you've built in the `target/` folder.
 
 ## Configuration
 
@@ -377,3 +410,34 @@ ACME Server supports sending E-Mails when an certificate has been ordered. This 
   - `none`: No encryption. This is NOT RECOMMENDED.
 - `username`: Username (mostly the E-Mail) to authenticate
 - `password`: Password to authenticate
+
+# Proxy support
+ACME Server supports the use of proxies specifically for the HTTP-01 Challenge. 
+This feature is essential for routing ACME challenge traffic through a specified proxy server.
+
+```json
+  /* ... */
+  "proxy": {
+    "httpChallenge": {
+      "enabled": false,
+      "type": "socks",
+      "host": "127.0.0.1",
+      "port": 9050,
+      "authentication": {
+        "enabled": false,
+        "username": "username",
+        "password": "password"
+      }
+    }
+  }
+  /* ... */
+```
+
+- `enabled`: Enable this feature if set to true, otherwise it remains disabled.
+- `type`: Type of the proxy. Supported types are `socks` for SOCKS5 proxy, or `http` for HTTP proxy.
+- `host`: Host address of the proxy server.
+- `port`: Port number on which the proxy server is listening.
+- `authentication`: Contains the authentication details required to connect to the proxy server.
+   - `enabled`: Enable authentication if set to `true`, otherwise no authentication is used.
+   - `username`: Username required for authentication.
+   - `password`: Password required for authentication.

@@ -101,13 +101,8 @@ java -jar acmeserver-VERSION.jar
 
 This version is not fully RFC 8555 compliant, but should work with most clients.
 
-## ℹ Command line switches
-
-| Command line option                      | Description                                                                                                        |
-|------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| `--option-use-async-certificate-issuing` | Issues certificates in a separate thread (⚠ do not use with certbot at the moment)                                 |
-| `--debug`                                | Debug mode (see above)                                                                                             |
-| `--migrate-pem-to-keystore`              | If you use an old Version 1.x, that uses the PEM files in filesystem, you can use this to mirgrate into a Keystore |
+## 📖 Documentation
+Documentation is now located [here](docs/README.md).
 
 ## ✅ Testing status
 
