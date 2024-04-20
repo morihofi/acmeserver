@@ -50,7 +50,7 @@ java -jar acmeserver-VERSION.jar
 It will tell you what to do next.
 
 
-### Command line switches
+## Command line switches
 
 | Command line option                      | Description                                                                                                       |
 |------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
@@ -59,16 +59,16 @@ It will tell you what to do next.
 | `--migrate-pem-to-keystore`              | If you use an old Version 1.x, that uses the PEM files in filesystem, you can use this to migrate into a Keystore |
 
 
-### Building from scratch
+## Building from scratch
 If you don't use a released JAR, you need to build it yourself.
 
-#### Prerequisites
+### Prerequisites
 You'll need the following prerequisites to be able to build ACME Server
 
 - Java 17
 - Maven 3.9
 
-#### Initiating the build
+### Initiating the build
 Run the following command to build ACME Server from the root directory of this repository (the directory where the `pom.xml` file is located.
 
 ```bash
