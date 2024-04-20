@@ -16,9 +16,9 @@ This is an implementation of an Automatic Certificate Management Environment (AC
 ## 🎉 ACME Server is now one year old!
 
 One year ago, I started this project. I'm happy to announce that this project is now one year old!
-The first release candidate of version 2.0 is now out!
+And we're reaching version 2.0 😮 with a lots of features.
 
-## ⚠ Breaking Changes - Version 2.x
+## ⚠ Breaking Changes from Version 1.x to Version 2.x
 
 - Provisioner directory is now in /acme/provisionername/directory
 - Database scheme has been complete rebuilt, please clean database before use
@@ -29,50 +29,22 @@ The first release candidate of version 2.0 is now out!
 
 Changelog has been moved [here](CHANGELOG.MD)
 
-## 🐳 Getting started with Docker (recommended)
+## 📒 Disclaimer
 
-1. Install [Docker Engine](https://docs.docker.com/engine/install/) with `docker compose` plugin, if you haven't already
-2. Create two directories called `serverdata` and `logs` in this directory
-3. Copy the `settings.sample.json` into the new `serverdata` directory and rename it to `settings.json`
-4. Adjust the settings, especially the `dnsName` (of your host), and the `http`/`https` ports. (Don't forget to change
-   these also in the `docker-compose.yml`-file) You can't change these later, because they will be written into the
-   intermediate/client certificates for finding revokation list etc. and ACME client configuration will be get broken.
-5. Run `docker compose up -d` in this directory. That's all!
+This version is not fully RFC 8555 compliant, but should work with most clients. 
+I'll hope to say one day that we are fully compliant.
 
-> You can run `docker compose logs -f` if you want to see the logs of the server. Press `Crtl`+`C` to quit
+## 📖 Documentation
 
-## 🏗 Building
-
-### Prerequisites
-You'll need the following prerequisites to be able to build ACME Server
-
-- Java 17
-- Maven
-
-### Initiating the build
-Run the following command to build this application
-
-```bash
-mvn clean package
-```
-
-### Running on bare metal
-
-You'll find then the jar file, you've built in the previous step, 
-in the `target/` folder. 
-
-Then you can execute it with the following command to run it:
-
-```bash
-java -jar acmeserver-VERSION.jar
-```
+Documentation is now located [here](docs/README.md). In the same directory are also other tutorials related to this ACME Server.
 
 ## ✨ Features
 
 - Self-hosted ACME Server for use with your own CA
-- Download CA support 
-  - Download in standard formats like CRT, PEM, DER
-  - [CAB file CA export](http://web.archive.org/web/20060427213220/http://blogs.msdn.com/windowsmobile/archive/2006/01/28/making_a_root_cert_cab_file.aspx) for install on legacy Windows Mobile based devices (e.g. older embedded devices, old PDAs, ...)
+- Download CA support
+    - Download in standard formats like CRT, PEM, DER
+    - [CAB file CA export](http://web.archive.org/web/20060427213220/http://blogs.msdn.com/windowsmobile/archive/2006/01/28/making_a_root_cert_cab_file.aspx)
+      for install on legacy Windows Mobile based devices (e.g. older embedded devices, old PDAs, ...)
 - Support for PKCS#12 (.p12) KeyStore and PKCS#11 Hardware Security Modules (HSM)
 - Revokation support for certificates
 - ACME Account deactivation
@@ -97,25 +69,18 @@ java -jar acmeserver-VERSION.jar
   writing this) are included, if specified version not available it will try to fetch these from the Mozilla server.
   Note: Version before 5.1 might be a bit buggy)
 
-## 📒 Disclaimer
-
-This version is not fully RFC 8555 compliant, but should work with most clients.
-
-## 📖 Documentation
-Documentation is now located [here](docs/README.md).
-
 ## ✅ Testing status
 
 ### 🤖 Tested ACME Clients
 
-|                                                               | HTTP-01 | DNS-01 |                                                                                                                         |
-|---------------------------------------------------------------|---------|--------|-------------------------------------------------------------------------------------------------------------------------|
-| [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree) | ✅       | ✅      | -> modified version is included                                                                                         |
-| [Certbot](https://certbot.eff.org)                            | ✅       | ✅      | ℹ Note, works only correctly, if certificate issuing is not async in the server (default)                               |
-| [acme.sh](https://github.com/acmesh-official/acme.sh)         | 🐞      | ✅      | For HTTP-01 use Standalone mode, nginx mode won't work for no reason                                                    |
-| [Traefik](https://github.com/traefik/traefik)                 | ✅       | ❓      |                                                                                                                         |
-| [win-acme](https://www.win-acme.com/)                         | ✅       | ❓      | Tested with IIS 8.5 on Win Server 2012 r2. Only use Provisioner with RSA, because IIS doesn't support Elliptical Curves |
-| [acme4j](https://acme4j.shredzone.org)                        | ✅       | ✅      |                                                                                                                         |
+|                                                               | HTTP-01 | DNS-01 |                                                                                                                                            |
+|---------------------------------------------------------------|---------|--------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree) | ✅       | ✅      | -> modified version is included                                                                                                            |
+| [Certbot](https://certbot.eff.org)                            | ✅       | ✅      | ℹ Note, works only correctly, if certificate issuing is not async in the server (default)                                                  |
+| [acme.sh](https://github.com/acmesh-official/acme.sh)         | 🐞      | ✅      | For HTTP-01 use Standalone mode, nginx mode won't work for no reason. Should also work for OPNsense, cause it also uses acme.sh as backend |
+| [Traefik](https://github.com/traefik/traefik)                 | ✅       | ❓      |                                                                                                                                            |
+| [win-acme](https://www.win-acme.com/)                         | ✅       | ❓      | Tested with IIS 8.5 on Win Server 2012 r2. Only use Provisioner with RSA, because IIS doesn't support Elliptical Curves                    |
+| [acme4j](https://acme4j.shredzone.org)                        | ✅       | ✅      |                                                                                                                                            |
 
 ### 💻 Tested Operating Systems
 
@@ -151,7 +116,8 @@ CA.
 
 ## 💻 Development Contributions
 
-We welcome every contribution to the ACME Server project. Please refer to our style guide located in the `styleguide` directory for more information 
+We welcome every contribution to the ACME Server project. Please refer to our style guide located in the `styleguide`
+directory for more information
 on coding standards and practices. This ensures that the code keeps readable and easier to test.
 
 ---
