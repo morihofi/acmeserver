@@ -182,8 +182,7 @@
                         <phase>prepare-package</phase>
                         <configuration>
                             <target>
-                                <copy file="${project.basedir}/settings.sample.json"
-                                      tofile="${project.build.directory}/settings.json"/>
+                                <copy file="${project.basedir}/settings.sample.json" tofile="${project.build.directory}/settings.json"/>
                             </target>
                         </configuration>
                         <goals>
