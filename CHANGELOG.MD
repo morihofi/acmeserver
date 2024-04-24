@@ -30,5 +30,6 @@
 - Better error message when a IP Address has been used in an `dns`-identifier instead of an `ip`-identifier
 - Logger in classes is now private and final everywhere and has been renamed from `log` to `LOG`
 
-## Changes to from 2.0-rc2 to 2.0-rc3 include:
+## Changes to from 2.0-rc2 to 2.0 release include:
 - Database reconnect no longer fails
+- Better documentation
