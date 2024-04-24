@@ -97,8 +97,9 @@ public class SendMail {
                 emailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
                 emailProp.put("mail.smtp.ssl.checkserveridentity", "true");
                 break;
+            case "none":
             default:
-                LOG.warn("Unencrypted email connection. Consider using SSL or STARTTLS for enhanced security.");
+                LOG.warn("Unencrypted email connection. Consider using SSL/TLS or STARTTLS for enhanced security.");
         }
 
         return emailProp;

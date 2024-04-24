@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class CommandBuilderHandler implements Handler {
 
-    final CryptoStoreManager cryptoStoreManager;
+    private final CryptoStoreManager cryptoStoreManager;
 
     public CommandBuilderHandler(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;

@@ -53,7 +53,6 @@
   "provisioner": [
     {
       "name": "testing",
-      "useThisProvisionerForAcmeApi": false,
       "meta": {
         "website": "https://example.com/testing-ca",
         "tos": " https://example.com/terms-of-service-testing.html"
@@ -92,7 +91,6 @@
     },
     {
       "name": "production",
-      "useThisProvisionerIntermediateForAcmeApi": true,
       "meta": {
         "website": "https://example.com/production-ca",
         "tos": " https://example.com/terms-of-service-production.html"

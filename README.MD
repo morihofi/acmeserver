@@ -7,7 +7,7 @@
 
 ## 📃 About
 
-This is a proof-of-concept Automatic Certificate Management Environment (ACME) Server, fully written in Java
+This is an implementation of an Automatic Certificate Management Environment (ACME) Server, fully written in Java
 
 - Java 17 and up
 - Any JDBC (and Hibernate compatible) database. Currently, H2, MariaDB and PostgreSQL drivers are in classpath
@@ -16,9 +16,9 @@ This is a proof-of-concept Automatic Certificate Management Environment (ACME) S
 ## 🎉 ACME Server is now one year old!
 
 One year ago, I started this project. I'm happy to announce that this project is now one year old!
-The first release candidate of version 2.0 is now out!
+And we're reaching version 2.0 😮 with a lots of features.
 
-## ⚠ Breaking Changes - Version 2.x
+## ⚠ Breaking Changes from Version 1.x to Version 2.x
 
 - Provisioner directory is now in /acme/provisionername/directory
 - Database scheme has been complete rebuilt, please clean database before use
@@ -27,68 +27,24 @@ The first release candidate of version 2.0 is now out!
 
 ### 📰 Changelog
 
-#### Changes to from 1.x to 2.0-rc0 include:
+Changelog has been moved [here](CHANGELOG.MD)
 
-- new interactive WebUI (management UI is coming soon)
-- better Database design
-- certificates can now be issued in a separate thread
-- IP support works now (IPv4 and IPv6)
-- error messages of failed challenges are now more informative
-- multiple Domains in one order works now
-- fixed several security issues
+## 📒 Disclaimer
 
-#### Changes to from 2.0-rc0 to 2.0-rc1 include:
+This version is not fully RFC 8555 compliant, but should work with most clients. 
+I'll hope to say one day that we are fully compliant.
 
-- fixed update available badge always visible
-- faster statistics loading incl. interactive charts
-- more efficient CRL generation and certificate expiration/renew watcher
-- Database connection pooling
-- Database connection jdbc url is now in configuration file -> will be automatically migrated
-- PostgreSQL database is now officially tested and supported (most recent version)
+## 📖 Documentation
 
-#### Changes to from 2.0-rc1 to 2.0-rc2 include:
-- removed org.json dependency
-- Moved code from `Database` class into its identifiers for better code cleanness
-- built-in support for Mozilla's SSL Config JSONs
-- `*.cab` CA download support for legacy Windows Mobile 5+ devices
-- Legacy CA download page for legacy user agents (IE 9 and older, incl. Pocket PC); Must be used with Mozilla's old ssl config and enabled `allowLegacyResumption` in configuration to access web UI using https
-- Database connection pool is now only in debug mode disabled
-- IP issuing support can now be manually enabled/disabled for a provisioner
-- Better error message when a IP Address has been used in an `dns`-identifier instead of an `ip`-identifier
-- Logger in classes is now private and final everywhere and has been renamed from `log` to `LOG`
-
-## 🐳 Getting started with Docker (recommended)
-
-1. Install [Docker Engine](https://docs.docker.com/engine/install/) with `docker compose` plugin, if you haven't already
-2. Create two directories called `serverdata` and `logs` in this directory
-3. Copy the `settings.sample.json` into the new `serverdata` directory and rename it to `settings.json`
-4. Adjust the settings, especially the `dnsName` (of your host), and the `http`/`https` ports. (Don't forget to change
-   these also in the `docker-compose.yml`-file) You can't change these later, because they will be written into the
-   intermediate/client certificates for finding revokation list etc. and ACME client configuration will be get broken.
-5. Run `docker compose up -d` in this directory. That's all!
-
-> You can run `docker compose logs -f` if you want to see the logs of the server. Press `Crtl`+`C` to quit
-
-## 🏗 Building and running on bare metal
-
-Run the following command to build this application
-
-```bash
-mvn clean package
-```
-
-then start it with
-
-```bash
-java -jar acmeserver-VERSION.jar
-```
+Documentation is now located [here](docs/README.md). In the same directory are also other tutorials related to this ACME Server.
 
 ## ✨ Features
 
 - Self-hosted ACME Server for use with your own CA
-- Download CA support 
-  - Download in standard formats like CRT, PEM, DER
-  - [CAB file CA export](http://web.archive.org/web/20060427213220/http://blogs.msdn.com/windowsmobile/archive/2006/01/28/making_a_root_cert_cab_file.aspx) for install on legacy Windows Mobile based devices (e.g. older embedded devices, old PDAs, ...)
+- Download CA support
+    - Download in standard formats like CRT, PEM, DER
+    - [CAB file CA export](http://web.archive.org/web/20060427213220/http://blogs.msdn.com/windowsmobile/archive/2006/01/28/making_a_root_cert_cab_file.aspx)
+      for install on legacy Windows Mobile based devices (e.g. older embedded devices, old PDAs, ...)
 - Support for PKCS#12 (.p12) KeyStore and PKCS#11 Hardware Security Modules (HSM)
 - Revokation support for certificates
 - ACME Account deactivation
@@ -113,30 +69,18 @@ java -jar acmeserver-VERSION.jar
   writing this) are included, if specified version not available it will try to fetch these from the Mozilla server.
   Note: Version before 5.1 might be a bit buggy)
 
-## 📒 Disclaimer
-
-This version is not fully RFC 8555 compliant, but should work with most clients.
-
-## ℹ Command line switches
-
-| Command line option                      | Description                                                                                                        |
-|------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| `--option-use-async-certificate-issuing` | Issues certificates in a separate thread (⚠ do not use with certbot at the moment)                                 |
-| `--debug`                                | Debug mode (see above)                                                                                             |
-| `--migrate-pem-to-keystore`              | If you use an old Version 1.x, that uses the PEM files in filesystem, you can use this to mirgrate into a Keystore |
-
 ## ✅ Testing status
 
 ### 🤖 Tested ACME Clients
 
-|                                                               | HTTP-01 | DNS-01 |                                                                                                                         |
-|---------------------------------------------------------------|---------|--------|-------------------------------------------------------------------------------------------------------------------------|
-| [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree) | ✅       | ✅      | -> modified version is included                                                                                         |
-| [Certbot](https://certbot.eff.org)                            | ✅       | ✅      | ℹ Note, works only correctly, if certificate issuing is not async in the server (default)                               |
-| [acme.sh](https://github.com/acmesh-official/acme.sh)         | 🐞      | ✅      | For HTTP-01 use Standalone mode, nginx mode won't work for no reason                                                    |
-| [Traefik](https://github.com/traefik/traefik)                 | ✅       | ❓      |                                                                                                                         |
-| [win-acme](https://www.win-acme.com/)                         | ✅       | ❓      | Tested with IIS 8.5 on Win Server 2012 r2. Only use Provisioner with RSA, because IIS doesn't support Elliptical Curves |
-| [acme4j](https://acme4j.shredzone.org)                        | ✅       | ✅      |                                                                                                                         |
+|                                                               | HTTP-01 | DNS-01 |                                                                                                                                            |
+|---------------------------------------------------------------|---------|--------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree) | ✅       | ✅      | -> modified version is included                                                                                                            |
+| [Certbot](https://certbot.eff.org)                            | ✅       | ✅      | ℹ Note, works only correctly, if certificate issuing is not async in the server (default)                                                  |
+| [acme.sh](https://github.com/acmesh-official/acme.sh)         | 🐞      | ✅      | For HTTP-01 use Standalone mode, nginx mode won't work for no reason. Should also work for OPNsense, cause it also uses acme.sh as backend |
+| [Traefik](https://github.com/traefik/traefik)                 | ✅       | ❓      |                                                                                                                                            |
+| [win-acme](https://www.win-acme.com/)                         | ✅       | ❓      | Tested with IIS 8.5 on Win Server 2012 r2. Only use Provisioner with RSA, because IIS doesn't support Elliptical Curves                    |
+| [acme4j](https://acme4j.shredzone.org)                        | ✅       | ✅      |                                                                                                                                            |
 
 ### 💻 Tested Operating Systems
 
@@ -172,7 +116,8 @@ CA.
 
 ## 💻 Development Contributions
 
-We welcome every contribution to the ACME Server project. Please refer to our style guide located in the `styleguide` directory for more information 
+We welcome every contribution to the ACME Server project. Please refer to our style guide located in the `styleguide`
+directory for more information
 on coding standards and practices. This ensures that the code keeps readable and easier to test.
 
 ---
