@@ -1,8 +1,9 @@
-# 📖 ACME Server Docs
+# 📖 ACME Server Documentation
 
-Welcome to the official ACME Server documentation. This is a work in progress documentation
+Welcome to the official ACME Server documentation. 
+This documentation applies to Version 2.0 release of morihofi's ACME Server.
 
-TOC HERE
+[TOC]
 
 ## What is an ACME Server?
 
@@ -33,15 +34,47 @@ capitals, as shown here.
    intermediate/client certificates for finding revokation list etc. and ACME client configuration will be get broken.
 5. Run `docker compose up -d` in this directory. That's all!
 
-> You can run `docker compose logs -f` if you want to see the logs of the server. Press `Crtl`+`C` to quit
+> You can run `docker compose logs -f` if you want to see the logs of the server. Press `Ctrl`+`C` to quit
 
-### ℹ Command line switches
+### ... on bare Metal
+First you need to build ACME Server. Checkout the Building below section, then come back to this section
+
+You'll find then the jar file, you've built in the previous step,
+in the `target/` folder.
+
+Then you can execute it with the following command to run it:
+
+```bash
+java -jar acmeserver-VERSION.jar
+```
+It will tell you what to do next.
+
+
+## Command line switches
 
 | Command line option                      | Description                                                                                                       |
 |------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
 | `--option-use-async-certificate-issuing` | Issues certificates in a separate thread (⚠ do not use with certbot at the moment)                                |
 | `--debug`                                | Debug mode (see above)                                                                                            |
 | `--migrate-pem-to-keystore`              | If you use an old Version 1.x, that uses the PEM files in filesystem, you can use this to migrate into a Keystore |
+
+
+## Building from scratch
+If you don't use a released JAR, you need to build it yourself.
+
+### Prerequisites
+You'll need the following prerequisites to be able to build ACME Server
+
+- Java 17
+- Maven 3.9
+
+### Initiating the build
+Run the following command to build ACME Server from the root directory of this repository (the directory where the `pom.xml` file is located)
+
+```bash
+mvn clean package
+```
+You'll find then the jar file, you've built in the `target/` folder.
 
 ## Configuration
 
@@ -55,7 +88,7 @@ You MUST change the `dnsName` value to a DNS name (Not an IP-Address -> won't wo
 server. It will be written into certificates, and also served in the ACME API.
 You MAY change the ports serving the API and Website. If you set the `http`-Port to `0`, HTTP will be disabled.
 
-It is recommended to **not run** ACME Server behind a reverse proxy.
+It is RECOMMENDED to **not run** ACME Server behind a reverse proxy.
 
 ```json
 {
@@ -269,8 +302,8 @@ Please note that the selected curve must be compatible with BouncyCastle. NIST c
 ### Provisioners
 
 With provisioners, you can split this CA into multiple certificate generation policies.
-Every provisioner creates its certificates in a different intermediate certificate. 
-Provisioners and Intermediate certificates are in a 1:1 relationship, like in the following diagram:
+Each provisioner operates under its own intermediate certificate, 
+forming a 1:1 relationship with it, like in the following diagram:
 
 ```
 Root CA (installed on client devices)
@@ -291,4 +324,120 @@ Root CA (installed on client devices)
 ```
 
 You can configure the intermediate certificate the provisioner uses in the `intermediate`-subobject. 
-For configuration see how to Root CA configuration above works, it uses the same syntax with the same fields.
+For configuration see how the Root CA configuration above works, it uses the same syntax with the same fields.
+
+```json
+   /* ... */
+  "provisioner": [
+    {
+      "name": "my_provisioner",
+      "meta": {
+        "website": "https://example.com/testing-ca",
+        "tos": " https://example.com/terms-of-service-testing.html"
+      },
+      "intermediate": {
+        /* see Root CA section above -> uses same config style */
+      },
+      "issuedCertificateExpiration": {
+        "days": 3,
+        "months": 0,
+        "years": 0
+      },
+      "wildcardAllowed": false,
+      "ipAllowed": true,
+      "domainNameRestriction": {
+        "enabled": false,
+        "mustEndWith": [
+          ".test.example.com",
+          ".test.example.org"
+        ]
+      }
+    },
+    ...
+  ]
+  /* ... */
+```
+- `name`: Name of the provisioner. Provisioner name can only contain lowercase letters a-z, numbers 0-9, "-" and "_"
+- `meta`: Metadata shown to the ACME client when creating account and ordering
+  - `website`: Website of the CA responsible for this provisioner, probably your website
+  - `tos`: Terms of Service for this provisioner, probably the CA terms of server subpage of your website
+- `intermediate`: See Root CA above
+- `issuedCertificateExpiration`: How long should a certificate, issued by the ACME Protocol, live after its after creation.
+- `wildcardAllowed`: Should be issuing wildcards for DNS Domains allowed, e.g. `*.example.com`?
+- `ipAllowed`: Should be issuing for IP Addresses enabled for both IPv4 and IPv6?
+- `domainNameRestriction`: Restrict domain names allowed for issuing. This does not apply for the reverse DNS of an IP address, because reverse DNS isn't supported at the moment.
+  - `enabled`: Enable this policy ìf set to `true`, otherwise it is disabled
+  - `mustEndWith`: These are the names the domains must end with. Add as many as you wish.
+    - For example all domains must end with `.test.example.com`:
+     
+      | Domain                       | Would accept |
+      |------------------------------|--------------|
+      | hello.world.test.example.com | Yes          |
+      | hello.test.example.com       | Yes          |
+      | hellotest.example.com        | No           |
+      | hello.test.example.org       | No           |
+
+    - For example all domains must end with `test.example.com` (without the dot at the beginning):
+     
+      | Domain                       | Would accept |
+      |------------------------------|--------------|
+      | hello.world.test.example.com | Yes          |
+      | hello.test.example.com       | Yes          |
+      | hellotest.example.com        | Yes          |
+      | hello.test.example.org       | No           |
+
+#### E-Mail sending (alpha state)
+ACME Server supports sending E-Mails when an certificate has been ordered. This feature is currently in alpha state.
+
+```json
+  /* ... */
+  "emailSmtp": {
+    "enabled": false,
+    "port": 587,
+    "encryption": "starttls",
+    "host": "mail.example.com",
+    "username": "acme-noreply@example.com",
+    "password": "insecurepassword"
+  }
+  /* ... */
+```
+- `enabled`: Enable this feature ìf set to `true`, otherwise it is disabled
+- `host`: Host of the SMTP Service
+- `port`: Port of the SMTP Service
+- `encryption`: Encryption to use to connect to the SMTP server. Values can be one of the following:
+  - `starttls`: StartTLS Encryption
+  - `ssl` or `tls`: TLS Encryption
+  - `none`: No encryption. This is NOT RECOMMENDED.
+- `username`: Username (mostly the E-Mail) to authenticate
+- `password`: Password to authenticate
+
+# Proxy support
+ACME Server supports the use of proxies specifically for the HTTP-01 Challenge. 
+This feature is essential for routing ACME challenge traffic through a specified proxy server.
+
+```json
+  /* ... */
+  "proxy": {
+    "httpChallenge": {
+      "enabled": false,
+      "type": "socks",
+      "host": "127.0.0.1",
+      "port": 9050,
+      "authentication": {
+        "enabled": false,
+        "username": "username",
+        "password": "password"
+      }
+    }
+  }
+  /* ... */
+```
+
+- `enabled`: Enable this feature if set to true, otherwise it remains disabled.
+- `type`: Type of the proxy. Supported types are `socks` for SOCKS5 proxy, or `http` for HTTP proxy.
+- `host`: Host address of the proxy server.
+- `port`: Port number on which the proxy server is listening.
+- `authentication`: Contains the authentication details required to connect to the proxy server.
+   - `enabled`: Enable authentication if set to `true`, otherwise no authentication is used.
+   - `username`: Username required for authentication.
+   - `password`: Password required for authentication.

@@ -60,12 +60,10 @@ public class HTTPChallenge {
             proxyPort = Main.appConfig.getProxy().getHttpChallenge().getPort();
             proxyHost = Main.appConfig.getProxy().getHttpChallenge().getHost();
 
-
             if (Main.appConfig.getProxy().getHttpChallenge().getEnabled()) {
                 SocketAddress socketAddress = new InetSocketAddress(proxyHost, proxyPort);
                 proxy = new Proxy(proxyType, socketAddress);
             }
-
 
             if (Main.appConfig.getProxy().getHttpChallenge().getAuthentication().isEnabled()) {
                 proxyUser = Main.appConfig.getProxy().getHttpChallenge().getAuthentication().getUsername();
