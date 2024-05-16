@@ -124,9 +124,6 @@
                 </executions>
                 <configuration>
                     <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-                    <!--
-                    <prefix>git</prefix>
-                    -->
                     <verbose>true</verbose>
                     <offline>true</offline>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
