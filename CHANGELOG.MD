@@ -10,7 +10,7 @@
 - multiple Domains in one order works now
 - fixed several security issues
 
-## Changes to from 2.0-rc0 to 2.0-rc1 include:
+## 2.0-rc1
 
 - fixed update available badge always visible
 - faster statistics loading incl. interactive charts
@@ -19,7 +19,7 @@
 - Database connection jdbc url is now in configuration file -> will be automatically migrated
 - PostgreSQL database is now officially tested and supported (most recent version)
 
-## Changes to from 2.0-rc1 to 2.0-rc2 include:
+## 2.0-rc2
 - removed org.json dependency
 - Moved code from `Database` class into its identifiers for better code cleanness
 - built-in support for Mozilla's SSL Config JSONs
@@ -30,6 +30,13 @@
 - Better error message when a IP Address has been used in an `dns`-identifier instead of an `ip`-identifier
 - Logger in classes is now private and final everywhere and has been renamed from `log` to `LOG`
 
-## Changes to from 2.0-rc2 to 2.0 release include:
+## 2.0
 - Database reconnect no longer fails
 - Better documentation
+
+## 2.0.1
+- Dependency Updates
+  - org.hibernate.orm:hibernate-core 6.4.4.Final to 6.4.5.Final
+  - org.slf4j:jul-to-slf4j from 2.0.12 to 2.0.13 
+  - jakarta.interceptor:jakarta.interceptor-api from 2.1.0 to 2.2.0
+  - com.github.spotbugs:spotbugs-annotations from 4.8.3 to 4.8.4
