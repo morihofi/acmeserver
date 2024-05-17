@@ -185,7 +185,7 @@ public class WebUI {
 
     public static boolean isLegacyBrowser(Context context) {
         String userAgent = context.userAgent();
-        System.out.println(userAgent);
+        //System.out.println(userAgent);
 
         try {
             // Überprüfen, ob der User-Agent-String auf IE 9 oder älter hinweist
