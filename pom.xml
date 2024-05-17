@@ -6,7 +6,7 @@
 
     <groupId>de.morihofi.acmeserver</groupId>
     <artifactId>acmeserver</artifactId>
-    <version>2.0</version>
+    <version>2.0.1</version>
     <inceptionYear>2023</inceptionYear>
 
     <properties>
@@ -22,7 +22,7 @@
 
         <!-- Logging -->
         <log4j.version>2.23.1</log4j.version>
-        <slf4j2.version>2.0.12</slf4j2.version>
+        <slf4j2.version>2.0.13</slf4j2.version>
 
         <!-- Cryptographic libraries -->
         <bouncycastle.version>1.78.1</bouncycastle.version>
@@ -33,7 +33,7 @@
         <jte.version>2.3.2</jte.version>
 
         <!-- Hibernate and connection pool -->
-        <hibernate.version>6.4.4.Final</hibernate.version>
+        <hibernate.version>6.4.5.Final</hibernate.version>
         <agroal.version>2.3</agroal.version>
     </properties>
 
@@ -124,9 +124,6 @@
                 </executions>
                 <configuration>
                     <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-                    <!--
-                    <prefix>git</prefix>
-                    -->
                     <verbose>true</verbose>
                     <offline>true</offline>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
@@ -378,7 +375,7 @@
             <version>${hibernate.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-agroal</artifactId>
             <version>${hibernate.version}</version>
         </dependency>
@@ -412,7 +409,7 @@
         <dependency>
             <groupId>jakarta.interceptor</groupId>
             <artifactId>jakarta.interceptor-api</artifactId>
-            <version>2.1.0</version>
+            <version>2.2.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -433,7 +430,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.8.3</version>
+            <version>4.8.4</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

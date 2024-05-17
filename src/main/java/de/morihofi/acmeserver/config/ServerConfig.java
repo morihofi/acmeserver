@@ -13,6 +13,7 @@ public class ServerConfig implements Serializable {
     private String dnsName = "example.com";
     private Ports ports = new Ports();
     private boolean enableSniCheck = true;
+    private String loggingDirectory = null;
 
     private MozillaSslConfig mozillaSslConfig = new MozillaSslConfig();
     private SslServerConfig sslServerConfig = new SslServerConfig();
@@ -58,6 +59,13 @@ public class ServerConfig implements Serializable {
         return enableSniCheck;
     }
 
+    public String getLoggingDirectory() {
+        return loggingDirectory;
+    }
+
+    public void setLoggingDirectory(String loggingDirectory) {
+        this.loggingDirectory = loggingDirectory;
+    }
 
     public void setEnableSniCheck(boolean enableSniCheck) {
         this.enableSniCheck = enableSniCheck;

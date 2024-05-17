@@ -6,6 +6,7 @@
       "http": 80
     },
     "enableSniCheck": true,
+    "loggingDirectory": "./serverdata/logs",
     "mozillaSslConfig": {
       "enabled": false,
       "version": "5.7",

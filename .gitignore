@@ -43,3 +43,4 @@ logs/
 *.pem
 *.p12
 jte-classes/
+*.log
