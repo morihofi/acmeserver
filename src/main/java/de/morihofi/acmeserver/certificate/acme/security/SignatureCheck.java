@@ -2,9 +2,11 @@ package de.morihofi.acmeserver.certificate.acme.security;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadSignatureAlgorithmException;
+import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEUnauthorizedException;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
@@ -53,20 +55,22 @@ public class SignatureCheck {
      * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
      */
     public static void checkSignature(Context ctx, String accountId, Gson gson) {
-        ACMERequestBody requestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
-
-        String protectedHeader = requestBody.getProtected();
-        String payload = requestBody.getPayload();
-        String signature = requestBody.getSignature();
-
-        // Combine protected header and payload into a complete JWS representation
-        String serializedJws = protectedHeader + "." + payload + "." + signature;
-
         try {
+
+            ACMERequestBody requestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
+
+            String protectedHeader = requestBody.getProtected();
+            String payload = requestBody.getPayload();
+            String signature = requestBody.getSignature();
+
+            // Combine protected header and payload into a complete JWS representation
+            String serializedJws = protectedHeader + "." + payload + "." + signature;
+
+
             // Obtain the client's public key
             ACMEAccount account = ACMEAccount.getAccount(accountId);
 
-            if(account.isDeactivated()){
+            if (account.isDeactivated()) {
                 throw new ACMEUnauthorizedException("Account is deactivated");
             }
 
@@ -85,10 +89,15 @@ public class SignatureCheck {
                 LOG.error("Signature verification failed for account {}", accountId);
                 throw new ACMEBadSignatureAlgorithmException("Signature does not match");
             }
-        }catch (JoseException | IOException | NoSuchAlgorithmException | NoSuchProviderException |
-                InvalidKeySpecException ex){
+        } catch (IOException | NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException ex) {
             LOG.error("An exception occurred while verifying signature for account {}", accountId, ex);
             throw new ACMEBadSignatureAlgorithmException("An server side exception occurred while verifying signature");
+        } catch (JsonParseException e) {
+            LOG.error("Unable to parse request body from JSON", e);
+            throw new ACMEMalformedException("Unable to parse request body from JSON");
+        } catch (JoseException e) {
+            LOG.error("Unable to verify the request signature", e);
+            throw new ACMEMalformedException("Unable to verify the request signature");
         }
     }
 
@@ -99,11 +108,10 @@ public class SignatureCheck {
      * @return The account ID extracted from the "kid," or null if not found.
      */
     public static String getAccountIdFromProtectedKID(JsonObject protectedHeader) {
-        String prefix = "/acme/acct/";
-        String kid = protectedHeader.get("kid").getAsString();
+        final String prefix = "/acme/acct/";
+        final String kid = protectedHeader.get("kid").getAsString();
 
-
-        int startIndex = kid.indexOf(prefix);
+        final int startIndex = kid.indexOf(prefix);
         if (startIndex != -1) {
             // Add the length of the prefix to the start index to find the start of the UUID.
             return kid.substring(startIndex + prefix.length());
