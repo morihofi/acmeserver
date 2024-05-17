@@ -19,6 +19,7 @@ import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
 import de.morihofi.acmeserver.tools.certificate.helper.CaInitHelper;
 import de.morihofi.acmeserver.tools.certificate.renew.IntermediateCaRenew;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewManager;
+import de.morihofi.acmeserver.tools.network.logging.HTTPAccessLogger;
 import de.morihofi.acmeserver.tools.regex.ConfigCheck;
 import de.morihofi.acmeserver.webui.WebUI;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -67,6 +68,7 @@ public class AcmeApiServer {
     @SuppressFBWarnings({"MS_PKGPROTECT", "MS_CANNOT_BE_FINAL"})
     public static CertificateRenewManager certificateRenewManager;
 
+    private static HTTPAccessLogger httpAccessLogger;
 
     /**
      * Method to start the ACME API Server
@@ -78,6 +80,7 @@ public class AcmeApiServer {
     public static void startServer(CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
         AcmeApiServer.cryptoStoreManager = cryptoStoreManager;
         AcmeApiServer.certificateRenewManager = new CertificateRenewManager(cryptoStoreManager);
+        AcmeApiServer.httpAccessLogger = new HTTPAccessLogger(appConfig);
 
         LOG.info("Starting in Normal Mode");
         CaInitHelper.initializeCA(cryptoStoreManager, appConfig);
@@ -109,8 +112,6 @@ public class AcmeApiServer {
                 ctx.attribute(WebUI.ATTR_LOCALE, locale);
             }
 
-            LOG.info("API Call [{}] {}", ctx.method(), ctx.path());
-
             // Check for correct content type, except for directory
             if(
                     ctx.method() == HandlerType.POST && //Only for POST Requests
@@ -128,6 +129,11 @@ public class AcmeApiServer {
             ctx.header("Access-Control-Allow-Methods", "*");
             ctx.header("Access-Control-Allow-Headers", "*");
             ctx.header("Access-Control-Max-Age", "3600");
+        });
+
+        app.after("/*", ctx -> {
+            // This handler is just for access logging
+            httpAccessLogger.log(ctx);
         });
 
         app.exception(ACMEException.class, (exception, ctx) -> {
