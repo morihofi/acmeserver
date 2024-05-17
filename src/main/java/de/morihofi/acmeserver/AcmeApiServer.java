@@ -11,6 +11,7 @@ import de.morihofi.acmeserver.config.certificateAlgorithms.EcdsaAlgorithmParams;
 import de.morihofi.acmeserver.config.certificateAlgorithms.RSAAlgorithmParams;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.exception.ACMEException;
+import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.tools.JavalinSecurityHelper;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
@@ -22,6 +23,7 @@ import de.morihofi.acmeserver.tools.regex.ConfigCheck;
 import de.morihofi.acmeserver.webui.WebUI;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.Javalin;
+import io.javalin.http.HandlerType;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.json.JavalinGson;
 import io.javalin.rendering.template.JavalinJte;
@@ -99,7 +101,7 @@ public class AcmeApiServer {
             ctx.header("Access-Control-Allow-Headers", "*");
             ctx.header("Access-Control-Max-Age", "3600");
 
-            //This is for the WebUI to auto use same language as browser, if supported
+            // This is for the WebUI to auto use same language as browser, if supported
             {
                 String acceptLanguage = ctx.header("Accept-Language");
                 Locale locale = Locale.forLanguageTag(acceptLanguage != null ? acceptLanguage.split(",")[0] : "en-US");
@@ -108,6 +110,17 @@ public class AcmeApiServer {
             }
 
             LOG.info("API Call [{}] {}", ctx.method(), ctx.path());
+
+            // Check for correct content type, except for directory
+            if(
+                    ctx.method() == HandlerType.POST && //Only for POST Requests
+                    (ctx.path().startsWith("/acme/") && !"application/jose+json".equals(ctx.contentType())) //True when ACME API
+            ){
+                throw new ACMEMalformedException("Invalid Content-Type header on POST. Content-Type must be \"application/jose+json\"");
+            }
+
+
+
         });
         app.options("/*", ctx -> {
             ctx.status(204); // No Content
