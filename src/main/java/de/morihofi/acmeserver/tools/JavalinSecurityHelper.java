@@ -210,7 +210,7 @@ public class JavalinSecurityHelper {
                     intermediateCertificate,
                     acmeAPIKeyPair.getPublic().getEncoded(),
                     new Identifier[]{
-                            new Identifier(Identifier.IDENTIFIER_TYPE.DNS.name(), appConfig.getServer().getDnsName())
+                            new Identifier(Identifier.IDENTIFIER_TYPE.DNS, appConfig.getServer().getDnsName())
                     },
                     startDate,
                     endDate,

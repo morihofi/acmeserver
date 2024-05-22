@@ -40,9 +40,13 @@ public class Identifier {
      * @param type  The type of the identifier (e.g., 'dns').
      * @param value The value of the identifier (e.g., a DNS name).
      */
-    public Identifier(String type, String value) {
-        this.type = type;
+    public Identifier(IDENTIFIER_TYPE type, String value) {
+        this.type = type.name();
         this.value = value;
+    }
+
+    public Identifier(String type, String value) {
+        this(IDENTIFIER_TYPE.getTypeByName(type), value);
     }
 
     /**

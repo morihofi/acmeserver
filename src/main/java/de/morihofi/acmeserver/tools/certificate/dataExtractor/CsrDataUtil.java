@@ -66,7 +66,7 @@ public class CsrDataUtil {
         RDN cnRDN = subject.getRDNs(BCStyle.CN)[0];  // Assumes there's only one CN RDN
         if (cnRDN != null) {
             String commonName = cnRDN.getFirst().getValue().toString();
-            domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.DNS.name(), commonName));
+            domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, commonName));
         }
 
         // Extract the SAN extension
@@ -79,12 +79,12 @@ public class CsrDataUtil {
             for (GeneralName name : names) {
                 if (name.getTagNo() == GeneralName.dNSName) {
                     String dnsName = name.getName().toString();
-                    domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.DNS.name(), dnsName));
+                    domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, dnsName));
                 } else if (name.getTagNo() == GeneralName.iPAddress) {
                     // Convert the octet sequence into a human-readable IP address
                     byte[] ip = ASN1OctetString.getInstance(name.getName()).getOctets();
                     String ipAddress = convertToIP(ip);
-                    domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.IP.name(), ipAddress));
+                    domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.IP, ipAddress));
                 }
             }
         }
