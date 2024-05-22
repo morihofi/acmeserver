@@ -112,8 +112,8 @@ public class Identifier {
     }
 
     /**
-     * Compares this Identifier to the specified object. The result is true if and only if the argument is not null
-     * and is an Identifier object that has the same type and value as this object.
+     * Compares this Identifier to the specified object. The result is true if and only if the argument is not null and is an Identifier
+     * object that has the same type and value as this object.
      *
      * @param obj The object to compare this Identifier against.
      * @return true if the given object represents an Identifier equivalent to this identifier, false otherwise.
@@ -131,4 +131,19 @@ public class Identifier {
                 this.getType().equals(otherIdentifier.getType());
     }
 
+    /**
+     * Returns a hash code value for the object. This method is supported for the benefit of hash tables such as those provided by
+     * java.util.HashMap.
+     * <p>
+     * The hash code is calculated based on the type and value of this Identifier.
+     *
+     * @return a hash code value for this object.
+     */
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        return result;
+    }
 }
