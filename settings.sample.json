@@ -1,4 +1,5 @@
 {
+  "$schema": "schema.settings.json",
   "server": {
     "dnsName": "acme.example.com",
     "ports": {

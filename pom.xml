@@ -180,6 +180,7 @@
                         <configuration>
                             <target>
                                 <copy file="${project.basedir}/settings.sample.json" tofile="${project.build.directory}/settings.json"/>
+                                <copy file="${project.basedir}/schema.settings.json" tofile="${project.build.directory}/schema.settings.json"/>
                             </target>
                         </configuration>
                         <goals>
@@ -244,6 +245,18 @@
                                 <!-- default settings file for ACME Server -->
                                 <data>
                                     <src>${project.build.directory}/settings.json</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <prefix>/opt/${project.artifactId}/serverdata</prefix>
+                                        <type>perm</type>
+                                        <filemode>644</filemode>
+                                        <user>www-data</user>
+                                        <group>www-data</group>
+                                    </mapper>
+                                </data>
+                                <!-- JSON Configuration Schema -->
+                                <data>
+                                    <src>${project.build.directory}/schema.settings.json</src>
                                     <type>file</type>
                                     <mapper>
                                         <prefix>/opt/${project.artifactId}/serverdata</prefix>

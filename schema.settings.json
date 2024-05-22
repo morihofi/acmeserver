@@ -1,0 +1,204 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "server": {
+      "type": "object",
+      "properties": {
+        "dnsName": { "type": "string" },
+        "ports": {
+          "type": "object",
+          "properties": {
+            "https": { "type": "integer" },
+            "http": { "type": "integer" }
+          },
+          "required": ["https", "http"]
+        },
+        "enableSniCheck": { "type": "boolean" },
+        "loggingDirectory": { "type": "string" },
+        "mozillaSslConfig": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "version": { "type": "string" },
+            "configuration": { "type": "string" }
+          },
+          "required": ["enabled", "version", "configuration"]
+        },
+        "sslServerConfig": {
+          "type": "object",
+          "properties": {
+            "allowLegacyResumption": { "type": "boolean" }
+          },
+          "required": ["allowLegacyResumption"]
+        }
+      },
+      "required": ["dnsName", "ports", "enableSniCheck", "loggingDirectory", "mozillaSslConfig", "sslServerConfig"]
+    },
+    "keyStore": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "password": { "type": "string" },
+        "location": { "type": "string" },
+        "libraryLocation": { "type": "string" }
+      },
+      "required": ["type", "password"]
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "jdbcUrl": { "type": "string" },
+        "user": { "type": "string" },
+        "password": { "type": "string" }
+      },
+      "required": ["jdbcUrl", "user", "password"]
+    },
+    "emailSmtp": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "port": { "type": "integer" },
+        "encryption": { "type": "string" },
+        "host": { "type": "string" },
+        "username": { "type": "string" },
+        "password": { "type": "string" }
+      },
+      "required": ["enabled", "port", "encryption", "host", "username", "password"]
+    },
+    "rootCA": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "commonName": { "type": "string" },
+            "organisation": { "type": ["string", "null"] },
+            "organisationalUnit": { "type": ["string", "null"] },
+            "countryCode": { "type": ["string", "null"] }
+          },
+          "required": ["commonName"]
+        },
+        "expiration": {
+          "type": "object",
+          "properties": {
+            "days": { "type": "integer" },
+            "months": { "type": "integer" },
+            "years": { "type": "integer" }
+          },
+          "required": ["days", "months", "years"]
+        },
+        "algorithm": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string" },
+            "keySize": { "type": "integer" },
+            "curveName": { "type": "string" }
+          },
+          "required": ["type"]
+        }
+      },
+      "required": ["metadata", "expiration", "algorithm"]
+    },
+    "provisioner": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "website": { "type": "string" },
+              "tos": { "type": "string" }
+            },
+            "required": ["website", "tos"]
+          },
+          "intermediate": {
+            "type": "object",
+            "properties": {
+              "metadata": {
+                "type": "object",
+                "properties": {
+                  "commonName": { "type": "string" },
+                  "organisation": { "type": ["string", "null"] },
+                  "organisationalUnit": { "type": ["string", "null"] },
+                  "countryCode": { "type": ["string", "null"] }
+                },
+                "required": ["commonName"]
+              },
+              "expiration": {
+                "type": "object",
+                "properties": {
+                  "days": { "type": "integer" },
+                  "months": { "type": "integer" },
+                  "years": { "type": "integer" }
+                },
+                "required": ["days", "months", "years"]
+              },
+              "algorithm": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string" },
+                  "keySize": { "type": "integer" },
+                  "curveName": { "type": "string" }
+                },
+                "required": ["type"]
+              }
+            },
+            "required": ["metadata", "expiration", "algorithm"]
+          },
+          "issuedCertificateExpiration": {
+            "type": "object",
+            "properties": {
+              "days": { "type": "integer" },
+              "months": { "type": "integer" },
+              "years": { "type": "integer" }
+            },
+            "required": ["days", "months", "years"]
+          },
+          "wildcardAllowed": { "type": "boolean" },
+          "ipAllowed": { "type": "boolean" },
+          "domainNameRestriction": {
+            "type": "object",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "mustEndWith": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "required": ["enabled", "mustEndWith"]
+          }
+        },
+        "required": ["name", "meta", "intermediate", "issuedCertificateExpiration", "wildcardAllowed", "ipAllowed", "domainNameRestriction"]
+      }
+    },
+    "proxy": {
+      "type": "object",
+      "properties": {
+        "httpChallenge": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "type": { "type": "string" },
+            "host": { "type": "string" },
+            "port": { "type": "integer" },
+            "authentication": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "username": { "type": "string" },
+                "password": { "type": "string" }
+              },
+              "required": ["enabled", "username", "password"]
+            }
+          },
+          "required": ["enabled", "type", "host", "port", "authentication"]
+        }
+      },
+      "required": ["httpChallenge"]
+    }
+  },
+  "required": ["server", "keyStore", "database", "emailSmtp", "rootCA", "provisioner", "proxy"]
+}
