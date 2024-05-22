@@ -24,7 +24,10 @@ import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
@@ -34,8 +37,9 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CsrDataUtil {
 
@@ -51,11 +55,19 @@ public class CsrDataUtil {
      * @return A list of domain names (Subject Alternative Names) extracted from the CSR. Including DNS and IP Adresses
      * @throws IOException If an error occurs while processing the CSR.
      */
-    public static List<Identifier> getDomainsAndIPsFromCSR(String csr) throws IOException {
+    public static Set<Identifier> getDomainsAndIPsFromCSR(String csr) throws IOException {
         byte[] csrBytes = Base64Tools.decodeBase64URLAsBytes(csr);
         PKCS10CertificationRequest certRequest = new PKCS10CertificationRequest(csrBytes);
 
-        List<Identifier> domainAndIpList = new ArrayList<>();
+        Set<Identifier> domainAndIpList = new HashSet<>();
+
+        // Extract the subject DN to get the Common Name (CN)
+        X500Name subject = certRequest.getSubject();
+        RDN cnRDN = subject.getRDNs(BCStyle.CN)[0];  // Assumes there's only one CN RDN
+        if (cnRDN != null) {
+            String commonName = cnRDN.getFirst().getValue().toString();
+            domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.DNS.name(), commonName));
+        }
 
         // Extract the SAN extension
         Extension sanExtension = certRequest.getRequestedExtensions().getExtension(Extension.subjectAlternativeName);
@@ -70,7 +82,7 @@ public class CsrDataUtil {
                     domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.DNS.name(), dnsName));
                 } else if (name.getTagNo() == GeneralName.iPAddress) {
                     // Convert the octet sequence into a human-readable IP address
-                    byte[] ip = DEROctetString.getInstance(name.getName()).getOctets();
+                    byte[] ip = ASN1OctetString.getInstance(name.getName()).getOctets();
                     String ipAddress = convertToIP(ip);
                     domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.IP.name(), ipAddress));
                 }
@@ -91,10 +103,10 @@ public class CsrDataUtil {
         return ipAddress.getHostAddress();
     }
 
-    public static List<Identifier> getCsrIdentifiersAndVerifyWithIdentifiers(
+    public static Set<Identifier> getCsrIdentifiersAndVerifyWithIdentifiers(
             String csr, List<ACMEOrderIdentifier> identifiers) throws IOException {
         // Extract CSR Domain Names
-        List<Identifier> csrDomainNames = getDomainsAndIPsFromCSR(csr);
+        Set<Identifier> csrDomainNames = getDomainsAndIPsFromCSR(csr);
         if (csrDomainNames.isEmpty()) {
             throw new ACMEBadCsrException("CSR does not contain any domain names");
         }

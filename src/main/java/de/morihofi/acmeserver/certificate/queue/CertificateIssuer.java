@@ -47,6 +47,7 @@ import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public class CertificateIssuer {
 
@@ -89,7 +90,7 @@ public class CertificateIssuer {
         PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
         PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
 
-        List<Identifier> csrIdentifiers = CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
+        Set<Identifier> csrIdentifiers = CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
         Provisioner provisioner = ProvisionerManager.getProvisionerForName(order.getAccount().getProvisioner());
 
                         /*
