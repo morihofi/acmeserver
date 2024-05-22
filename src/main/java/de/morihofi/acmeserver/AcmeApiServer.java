@@ -77,6 +77,9 @@ public class AcmeApiServer {
      * operation of the web-based components of the application.
      */
     private static Javalin app = null;
+    /**
+     * Instance to log access of the WebAPI
+     */
     private static HTTPAccessLogger httpAccessLogger;
 
     /**
