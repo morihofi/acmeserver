@@ -58,14 +58,11 @@ public class CsrDataUtil {
                     String ipAddress = convertToIP(ip);
                     domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.IP.name(), ipAddress));
                 }
-
             }
         }
 
-
         return domainAndIpList;
     }
-
 
     /**
      * Converts a byte array into a human-readable IP address.
@@ -108,5 +105,4 @@ public class CsrDataUtil {
 
         return csrDomainNames;
     }
-
 }

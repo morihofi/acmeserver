@@ -14,7 +14,13 @@ package de.morihofi.acmeserver.tools.crypto;
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import edu.umd.cs.findbugs.annotations.Nullable;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
+import org.bouncycastle.asn1.x509.Certificate;
+import org.bouncycastle.cert.X509CertificateHolder;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -36,19 +42,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.bouncycastle.asn1.ASN1Integer;
-import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
-import org.bouncycastle.asn1.x509.Certificate;
-import org.bouncycastle.cert.X509CertificateHolder;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Contains utility methods that are frequently used for the ACME protocol.
  * <p>
- * This class is internal. You may use it in your own code, but be warned that methods may
- * change their signature or disappear without prior announcement.
+ * This class is internal. You may use it in your own code, but be warned that methods may change their signature or disappear without prior
+ * announcement.
  */
 public final class AcmeUtils {
 
@@ -82,36 +82,9 @@ public final class AcmeUtils {
     private static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
 
     /**
-     * Enumeration of PEM labels.
-     */
-    public enum PemLabel {
-        CERTIFICATE("CERTIFICATE"),
-        CERTIFICATE_REQUEST("CERTIFICATE REQUEST"),
-        PRIVATE_KEY("PRIVATE KEY"),
-        PUBLIC_KEY("PUBLIC KEY");
-
-        private final String label;
-
-        PemLabel(String label) {
-            this.label = label;
-        }
-
-        @Override
-        public String toString() {
-            return label;
-        }
-    }
-
-
-    private AcmeUtils() {
-        // Utility class without constructor
-    }
-
-    /**
      * Computes a SHA-256 hash of the given string.
      *
-     * @param z
-     *            String to hash
+     * @param z String to hash
      * @return Hash
      */
     public static byte[] sha256hash(String z) {
@@ -127,8 +100,7 @@ public final class AcmeUtils {
     /**
      * Hex encodes the given byte array.
      *
-     * @param data
-     *            byte array to hex encode
+     * @param data byte array to hex encode
      * @return Hex encoded string of the data (with lower case characters)
      */
     public static String hexEncode(byte[] data) {
@@ -144,8 +116,7 @@ public final class AcmeUtils {
     /**
      * Base64 encodes the given byte array, using URL style encoding.
      *
-     * @param data
-     *            byte array to base64 encode
+     * @param data byte array to base64 encode
      * @return base64 encoded string
      */
     public static String base64UrlEncode(byte[] data) {
@@ -155,8 +126,7 @@ public final class AcmeUtils {
     /**
      * Base64 decodes to a byte array, using URL style encoding.
      *
-     * @param base64
-     *            base64 encoded string
+     * @param base64 base64 encoded string
      * @return decoded data
      */
     public static byte[] base64UrlDecode(String base64) {
@@ -166,11 +136,9 @@ public final class AcmeUtils {
     /**
      * Validates that the given {@link String} is a valid base64url encoded value.
      *
-     * @param base64
-     *            {@link String} to validate
-     * @return {@code true}: String contains a valid base64url encoded value.
-     *         {@code false} if the {@link String} was {@code null} or contained illegal
-     *         characters.
+     * @param base64 {@link String} to validate
+     * @return {@code true}: String contains a valid base64url encoded value. {@code false} if the {@link String} was {@code null} or
+     * contained illegal characters.
      * @since 2.6
      */
     public static boolean isValidBase64Url(@Nullable String base64) {
@@ -186,8 +154,7 @@ public final class AcmeUtils {
      * <p>
      * It is safe to pass in ACE encoded domains, they will be returned unchanged.
      *
-     * @param domain
-     *            Domain name to encode
+     * @param domain Domain name to encode
      * @return Encoded domain name, white space trimmed and lower cased.
      */
     public static String toAce(String domain) {
@@ -198,11 +165,9 @@ public final class AcmeUtils {
     /**
      * Parses a RFC 3339 formatted date.
      *
-     * @param str
-     *            Date string
+     * @param str Date string
      * @return {@link Instant} that was parsed
-     * @throws IllegalArgumentException
-     *             if the date string was not RFC 3339 formatted
+     * @throws IllegalArgumentException if the date string was not RFC 3339 formatted
      * @see <a href="https://www.ietf.org/rfc/rfc3339.txt">RFC 3339</a>
      */
     public static Instant parseTimestamp(String str) {
@@ -242,8 +207,7 @@ public final class AcmeUtils {
     /**
      * Converts the given locale to an Accept-Language header value.
      *
-     * @param locale
-     *         {@link Locale} to be used in the header
+     * @param locale {@link Locale} to be used in the header
      * @return Value that can be used in an Accept-Language header
      */
     public static String localeToLanguageHeader(@Nullable Locale locale) {
@@ -265,11 +229,9 @@ public final class AcmeUtils {
     /**
      * Strips the acme error prefix from the error string.
      * <p>
-     * For example, for "urn:ietf:params:acme:error:unauthorized", "unauthorized" is
-     * returned.
+     * For example, for "urn:ietf:params:acme:error:unauthorized", "unauthorized" is returned.
      *
-     * @param type
-     *            Error type to strip the prefix from. {@code null} is safe.
+     * @param type Error type to strip the prefix from. {@code null} is safe.
      * @return Stripped error type, or {@code null} if the prefix was not found.
      */
     @Nullable
@@ -284,12 +246,9 @@ public final class AcmeUtils {
     /**
      * Writes an encoded key or certificate to a file in PEM format.
      *
-     * @param encoded
-     *            Encoded data to write
-     * @param label
-     *            {@link PemLabel} to be used
-     * @param out
-     *            {@link Writer} to write to. It will not be closed after use!
+     * @param encoded Encoded data to write
+     * @param label   {@link PemLabel} to be used
+     * @param out     {@link Writer} to write to. It will not be closed after use!
      */
     public static void writeToPem(byte[] encoded, PemLabel label, Writer out)
             throws IOException {
@@ -301,11 +260,9 @@ public final class AcmeUtils {
     /**
      * Extracts the content type of a Content-Type header.
      *
-     * @param header
-     *            Content-Type header
+     * @param header Content-Type header
      * @return Content-Type, or {@code null} if the header was invalid or empty
-     * @throws IllegalArgumentException
-     *             if the Content-Type header contains a different charset than "utf-8".
+     * @throws IllegalArgumentException if the Content-Type header contains a different charset than "utf-8".
      */
     @Nullable
     public static String getContentType(@Nullable String header) {
@@ -325,10 +282,8 @@ public final class AcmeUtils {
     /**
      * Validates a contact {@link URI}.
      *
-     * @param contact
-     *            Contact {@link URI} to validate
-     * @throws IllegalArgumentException
-     *             if the contact {@link URI} is not suitable for account contacts.
+     * @param contact Contact {@link URI} to validate
+     * @throws IllegalArgumentException if the contact {@link URI} is not suitable for account contacts.
      */
     public static void validateContact(URI contact) {
         if ("mailto".equalsIgnoreCase(contact.getScheme())) {
@@ -341,15 +296,11 @@ public final class AcmeUtils {
     }
 
     /**
-     * Returns the certificate's unique identifier for renewal according to
-     * draft-ietf-acme-ari-03.
+     * Returns the certificate's unique identifier for renewal according to draft-ietf-acme-ari-03.
      *
-     * @param certificate
-     *         Certificate to get the unique identifier for.
+     * @param certificate Certificate to get the unique identifier for.
      * @return Unique identifier
-     * @throws IllegalArgumentException
-     *         if the certificate is invalid or does not provide the necessary
-     *         information.
+     * @throws IllegalArgumentException if the certificate is invalid or does not provide the necessary information.
      */
     public static String getRenewalUniqueIdentifier(X509Certificate certificate) {
         try {
@@ -376,12 +327,10 @@ public final class AcmeUtils {
     }
 
     /**
-     * Gets the raw integer array from ASN1Integer. This is done by encoding it to a byte
-     * array, and then skipping the INTEGER identifier. Other methods of ASN1Integer only
-     * deliver a parsed integer value that might have been mangled.
+     * Gets the raw integer array from ASN1Integer. This is done by encoding it to a byte array, and then skipping the INTEGER identifier.
+     * Other methods of ASN1Integer only deliver a parsed integer value that might have been mangled.
      *
-     * @param integer
-     *         ASN1Integer to convert to raw
+     * @param integer ASN1Integer to convert to raw
      * @return Byte array of the raw integer
      */
     private static byte[] getRawInteger(ASN1Integer integer) {
@@ -393,4 +342,28 @@ public final class AcmeUtils {
         }
     }
 
+    private AcmeUtils() {
+        // Utility class without constructor
+    }
+
+    /**
+     * Enumeration of PEM labels.
+     */
+    public enum PemLabel {
+        CERTIFICATE("CERTIFICATE"),
+        CERTIFICATE_REQUEST("CERTIFICATE REQUEST"),
+        PRIVATE_KEY("PRIVATE KEY"),
+        PUBLIC_KEY("PUBLIC KEY");
+
+        private final String label;
+
+        PemLabel(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
 }

@@ -12,6 +12,7 @@ public class ACMEMalformedException extends ACMEException {
 
     /**
      * Constructs an instance of ACMEMalformedException with the specified error message.
+     *
      * @param message The error message that describes the exception.
      */
     public ACMEMalformedException(String message) {
@@ -21,7 +22,7 @@ public class ACMEMalformedException extends ACMEException {
 
     @Override
     public int getHttpStatusCode() {
-        //TODO: Check if correct
+        // TODO: Check if correct
         return 400;
     }
 
@@ -32,5 +33,4 @@ public class ACMEMalformedException extends ACMEException {
         response.setDetail(message);
         return response;
     }
-
 }

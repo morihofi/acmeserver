@@ -12,7 +12,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class Hashing {
 
-    private Hashing(){}
     /**
      * Logger
      */
@@ -39,8 +38,7 @@ public class Hashing {
     /**
      * Computes an SHA-256 hash of the given string.
      *
-     * @param z
-     *            String to hash
+     * @param z String to hash
      * @return Hash
      */
     public static byte[] sha256hash(String z) {
@@ -52,7 +50,6 @@ public class Hashing {
             throw new IllegalArgumentException("Could not compute hash", ex);
         }
     }
-
 
     /**
      * Converts a byte array to a hexadecimal string.
@@ -68,5 +65,5 @@ public class Hashing {
         return hexString.toString();
     }
 
-
+    private Hashing() {}
 }

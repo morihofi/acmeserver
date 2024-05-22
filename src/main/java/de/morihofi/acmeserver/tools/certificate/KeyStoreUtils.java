@@ -4,10 +4,17 @@ import de.morihofi.acmeserver.certificate.objects.KeyStoreFileContent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -17,11 +24,8 @@ import java.util.ArrayList;
  */
 public class KeyStoreUtils {
 
-    private KeyStoreUtils(){}
-
     private static final Logger LOG = LogManager.getLogger(KeyStoreUtils.class);
     private static final String PKCS12_INSTANCE_NAME = "PKCS12";
-
 
     /**
      * Saves a KeyPair and X.509 certificate as a PKCS12 keystore.
@@ -75,7 +79,8 @@ public class KeyStoreUtils {
      * @throws CertificateException     If there is an issue with the certificates.
      * @throws NoSuchAlgorithmException If the algorithm required for the keystore is not available.
      */
-    public static void saveAsPKCS12KeyChain(KeyPair keyPair, String password, String alias, byte[][] certificates, Path targetLocation) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
+    public static void saveAsPKCS12KeyChain(KeyPair keyPair, String password, String alias, byte[][] certificates,
+            Path targetLocation) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
 
         char[] keystorePassword = password.toCharArray();
 
@@ -91,10 +96,7 @@ public class KeyStoreUtils {
             keyStore.setKeyEntry(alias, keyPair.getPrivate(), keystorePassword, certificateChain);
             keyStore.store(os, keystorePassword);
         }
-
-
     }
-
 
     /**
      * Loads a KeyPair and X.509 certificate from a PKCS12 keystore file.
@@ -108,7 +110,8 @@ public class KeyStoreUtils {
      * @throws NoSuchAlgorithmException  If the algorithm required for the keystore is not available.
      * @throws UnrecoverableKeyException If the key cannot be recovered.
      */
-    public static KeyStoreFileContent loadFromPKCS12(Path keyStorePath, String keyStorePassword, String keyAlias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
+    public static KeyStoreFileContent loadFromPKCS12(Path keyStorePath, String keyStorePassword, String keyAlias) throws IOException,
+            KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         try (InputStream is = Files.newInputStream(keyStorePath)) {
             // Laden des KeyPairs und des Zertifikats aus einem PKCS12-Keystore
             char[] keyStorePasswordCharArr = keyStorePassword.toCharArray();
@@ -122,4 +125,5 @@ public class KeyStoreUtils {
         }
     }
 
+    private KeyStoreUtils() {}
 }

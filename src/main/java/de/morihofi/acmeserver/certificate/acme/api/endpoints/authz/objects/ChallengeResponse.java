@@ -1,8 +1,8 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects;
 
 /**
- * Represents a challenge in the context of certificate issuance and validation.
- * This class encapsulates details of a challenge, such as its type, URL, token, status, and validation information.
+ * Represents a challenge in the context of certificate issuance and validation. This class encapsulates details of a challenge, such as its
+ * type, URL, token, status, and validation information.
  */
 public class ChallengeResponse {
     private String type;
@@ -12,8 +12,7 @@ public class ChallengeResponse {
     private String validated;
 
     /**
-     * Retrieves the type of the challenge.
-     * The challenge type typically indicates the method of validation, such as DNS or HTTP.
+     * Retrieves the type of the challenge. The challenge type typically indicates the method of validation, such as DNS or HTTP.
      *
      * @return The type of the challenge as a {@code String}.
      */
@@ -22,8 +21,7 @@ public class ChallengeResponse {
     }
 
     /**
-     * Sets the type of the challenge.
-     * This method allows specifying the method of validation for the challenge.
+     * Sets the type of the challenge. This method allows specifying the method of validation for the challenge.
      *
      * @param type The challenge type as a {@code String}.
      */
@@ -32,8 +30,7 @@ public class ChallengeResponse {
     }
 
     /**
-     * Retrieves the URL associated with the challenge.
-     * This URL may be used to perform or verify the challenge.
+     * Retrieves the URL associated with the challenge. This URL may be used to perform or verify the challenge.
      *
      * @return The URL of the challenge as a {@code String}.
      */
@@ -42,8 +39,7 @@ public class ChallengeResponse {
     }
 
     /**
-     * Sets the URL associated with the challenge.
-     * This method allows specifying the URL for performing or verifying the challenge.
+     * Sets the URL associated with the challenge. This method allows specifying the URL for performing or verifying the challenge.
      *
      * @param url The challenge URL as a {@code String}.
      */
@@ -52,8 +48,7 @@ public class ChallengeResponse {
     }
 
     /**
-     * Retrieves the token of the challenge.
-     * The token is typically a unique identifier or key for the challenge.
+     * Retrieves the token of the challenge. The token is typically a unique identifier or key for the challenge.
      *
      * @return The challenge token as a {@code String}.
      */
@@ -62,8 +57,7 @@ public class ChallengeResponse {
     }
 
     /**
-     * Sets the token of the challenge.
-     * This method allows assigning a unique identifier or key for the challenge.
+     * Sets the token of the challenge. This method allows assigning a unique identifier or key for the challenge.
      *
      * @param token The challenge token as a {@code String}.
      */
@@ -72,8 +66,8 @@ public class ChallengeResponse {
     }
 
     /**
-     * Retrieves the current status of the challenge.
-     * The status indicates the progress or outcome of the challenge, such as pending or valid.
+     * Retrieves the current status of the challenge. The status indicates the progress or outcome of the challenge, such as pending or
+     * valid.
      *
      * @return The status of the challenge as a {@code String}.
      */
@@ -82,8 +76,7 @@ public class ChallengeResponse {
     }
 
     /**
-     * Sets the status of the challenge.
-     * This method allows updating the progress or outcome status of the challenge.
+     * Sets the status of the challenge. This method allows updating the progress or outcome status of the challenge.
      *
      * @param status The challenge status as a {@code String}.
      */
@@ -92,8 +85,7 @@ public class ChallengeResponse {
     }
 
     /**
-     * Retrieves the validation timestamp of the challenge.
-     * This timestamp indicates when the challenge was successfully validated.
+     * Retrieves the validation timestamp of the challenge. This timestamp indicates when the challenge was successfully validated.
      *
      * @return The validation timestamp of the challenge as a {@code String}.
      */
@@ -102,8 +94,7 @@ public class ChallengeResponse {
     }
 
     /**
-     * Sets the validation timestamp of the challenge.
-     * This method allows specifying when the challenge was successfully validated.
+     * Sets the validation timestamp of the challenge. This method allows specifying when the challenge was successfully validated.
      *
      * @param validated The validation timestamp as a {@code String}.
      */

@@ -29,9 +29,8 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 /**
- * Immutable version class constructed from a version string. Used to compare
- * versions. Only allows for simple versions strings made up of >= 0 integers
- * separated by dots or something similar.
+ * Immutable version class constructed from a version string. Used to compare versions. Only allows for simple versions strings made up of
+ * >= 0 integers separated by dots or something similar.
  */
 public class Version implements Comparable<Object>, Serializable {
     @Serial
@@ -39,8 +38,7 @@ public class Version implements Comparable<Object>, Serializable {
     private final List<Integer> iSections;
 
     /**
-     * Construct a Version object from the supplied string assuming that the
-     * string delimiter used is '.'.
+     * Construct a Version object from the supplied string assuming that the string delimiter used is '.'.
      *
      * @param version The version string.
      * @throws VersionException If the version string cannot be parsed.
@@ -68,7 +66,7 @@ public class Version implements Comparable<Object>, Serializable {
                 if (i < 0) {
                     throw new VersionException(
                             MessageFormat.format("Could not parse ''{0}'' as a ''{1}'' delimited version number.", version,
-                                                 delimiters));
+                                    delimiters));
                 }
                 versionSections.add(i);
             } catch (NumberFormatException ex) {
@@ -168,7 +166,6 @@ public class Version implements Comparable<Object>, Serializable {
         }
 
         return compareTo(object) == 0;
-
     }
 
     @Override
@@ -183,9 +180,8 @@ public class Version implements Comparable<Object>, Serializable {
     }
 
     /**
-     * Get a string representation of the version. This will always be '.'
-     * delimited. Trailing 0's originally supplied on construction will be
-     * included.
+     * Get a string representation of the version. This will always be '.' delimited. Trailing 0's originally supplied on construction will
+     * be included.
      *
      * @return A string representation of the version.
      */

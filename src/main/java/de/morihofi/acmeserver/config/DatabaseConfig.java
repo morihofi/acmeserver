@@ -12,6 +12,7 @@ public abstract class DatabaseConfig implements Serializable {
 
     /**
      * Get the username for the database connection.
+     *
      * @return The database username.
      */
     public String getUser() {
@@ -20,6 +21,7 @@ public abstract class DatabaseConfig implements Serializable {
 
     /**
      * Set the username for the database connection.
+     *
      * @param user The database username to set.
      */
     public void setUser(String user) {
@@ -28,6 +30,7 @@ public abstract class DatabaseConfig implements Serializable {
 
     /**
      * Get the password for the database connection.
+     *
      * @return The database password.
      */
     public String getPassword() {
@@ -36,10 +39,10 @@ public abstract class DatabaseConfig implements Serializable {
 
     /**
      * Set the password for the database connection.
+     *
      * @param password The database password to set.
      */
     public void setPassword(String password) {
         this.password = password;
     }
-
 }

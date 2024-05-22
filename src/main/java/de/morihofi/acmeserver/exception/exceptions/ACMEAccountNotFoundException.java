@@ -12,6 +12,7 @@ public class ACMEAccountNotFoundException extends ACMEException {
 
     /**
      * Constructs an instance of ACMEAccountNotFoundException with the specified error message.
+     *
      * @param message The error message that describes the exception.
      */
     public ACMEAccountNotFoundException(String message) {
@@ -31,5 +32,4 @@ public class ACMEAccountNotFoundException extends ACMEException {
         response.setDetail(message);
         return response;
     }
-
 }

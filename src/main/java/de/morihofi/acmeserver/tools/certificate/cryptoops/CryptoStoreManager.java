@@ -14,65 +14,58 @@ import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
- * The CryptoStoreManager class manages cryptographic operations, including loading and saving
- * key stores, providing access to key pairs, and handling various keystore configurations.
- * It supports both PKCS#11 and PKCS#12 keystore configurations.
+ * The CryptoStoreManager class manages cryptographic operations, including loading and saving key stores, providing access to key pairs,
+ * and handling various keystore configurations. It supports both PKCS#11 and PKCS#12 keystore configurations.
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class CryptoStoreManager {
 
     /**
-     * Logger
-     */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-
-    /**
      * Alias for the root certificate authority in the keystore.
      */
     public static final String KEYSTORE_ALIAS_ROOTCA = "rootCA";
-
     /**
      * Alias for the ACME API certificate in the keystore.
      */
     public static final String KEYSTORE_ALIAS_ACMEAPI = "serverAcmeApi";
-
     /**
      * Prefix for aliases of intermediate certificate authorities in the keystore.
      */
     public static final String KEYSTORE_ALIASPREFIX_INTERMEDIATECA = "intermediateCA_";
-
     /**
-     * Logger for logging messages and events.
+     * Logger
      */
-    public final Logger log = LogManager.getLogger(getClass());
-
-    /**
-     * Key store configuration, including type and parameters.
-     */
-    private final IKeyStoreConfig keyStoreConfig;
-
-    /**
-     * The loaded keystore instance for cryptographic operations.
-     */
-    private KeyStore keyStore;
-
-
-
-    /**
-     * Check if the ACME Server is running for the first time, so the user can upload its existing CA
-     */
-    private boolean firstRun = false;
-
-
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     public static String getKeyStoreAliasForProvisionerIntermediate(String provisioner) {
         return KEYSTORE_ALIASPREFIX_INTERMEDIATECA + provisioner;
     }
+    /**
+     * Logger for logging messages and events.
+     */
+    public final Logger log = LogManager.getLogger(getClass());
+    /**
+     * Key store configuration, including type and parameters.
+     */
+    private final IKeyStoreConfig keyStoreConfig;
+    /**
+     * The loaded keystore instance for cryptographic operations.
+     */
+    private KeyStore keyStore;
+    /**
+     * Check if the ACME Server is running for the first time, so the user can upload its existing CA
+     */
+    private boolean firstRun = false;
 
     /**
      * Constructs a CryptoStoreManager with the specified key store configuration.
@@ -89,7 +82,9 @@ public class CryptoStoreManager {
      * @throws NoSuchMethodException     If a required method is not found.
      * @throws NoSuchProviderException   If a cryptographic provider is not found.
      */
-    public CryptoStoreManager(IKeyStoreConfig keyStoreConfig) throws CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, NoSuchProviderException {
+    public CryptoStoreManager(IKeyStoreConfig keyStoreConfig) throws CertificateException, IOException, NoSuchAlgorithmException,
+            KeyStoreException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException,
+            NoSuchMethodException, NoSuchProviderException {
         this.keyStoreConfig = keyStoreConfig;
 
         if (keyStoreConfig instanceof PKCS11KeyStoreConfig pkcs11Config) {
@@ -98,7 +93,7 @@ public class CryptoStoreManager {
             log.info("Using PKCS#11 KeyStore with native library at {} with slot {}", libraryLocation, pkcs11Config.getSlot());
             keyStore = PKCS11KeyStoreLoader.loadPKCS11Keystore(pkcs11Config.getPassword(), pkcs11Config.getSlot(), libraryLocation);
 
-            if(!keyStore.containsAlias(KEYSTORE_ALIAS_ROOTCA)){
+            if (!keyStore.containsAlias(KEYSTORE_ALIAS_ROOTCA)) {
                 firstRun = true;
             }
         }
@@ -120,12 +115,10 @@ public class CryptoStoreManager {
             }
         }
 
-
-        if(firstRun){
+        if (firstRun) {
             log.info("KeyStore is used for the first time");
         }
     }
-
 
     /**
      * Retrieves the key pair for the root certificate authority from the keystore.
@@ -148,7 +141,8 @@ public class CryptoStoreManager {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
-    public KeyPair getIntermediateCerificateAuthorityKeyPair(String intermediateCaName) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+    public KeyPair getIntermediateCerificateAuthorityKeyPair(String intermediateCaName) throws UnrecoverableKeyException, KeyStoreException,
+            NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(getKeyStoreAliasForProvisionerIntermediate(intermediateCaName), keyStore);
     }
 
@@ -194,6 +188,7 @@ public class CryptoStoreManager {
 
     /**
      * Returns if the keystore is used the first time
+     *
      * @return is running first time
      */
     public boolean isFirstRun() {
@@ -203,7 +198,7 @@ public class CryptoStoreManager {
     /**
      * Sets the first-run in the keystore manager to false, so you can't update
      */
-    public void disableFirstRunFlag(){
+    public void disableFirstRunFlag() {
         firstRun = false;
         log.info("KeyStore first time use has been disabled (if not been done before)");
     }

@@ -6,8 +6,8 @@ import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 
 /**
- * Represents the contents of a KeyStore file.
- * This class encapsulates a key pair, a certificate, and the alias used for the certificate within the KeyStore.
+ * Represents the contents of a KeyStore file. This class encapsulates a key pair, a certificate, and the alias used for the certificate
+ * within the KeyStore.
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public record KeyStoreFileContent(KeyPair keyPair, X509Certificate cert, String certificateAlias) {
@@ -20,7 +20,6 @@ public record KeyStoreFileContent(KeyPair keyPair, X509Certificate cert, String 
      */
     public KeyStoreFileContent {
     }
-
 
     /**
      * Retrieves the key pair stored in the KeyStore file.
@@ -43,8 +42,8 @@ public record KeyStoreFileContent(KeyPair keyPair, X509Certificate cert, String 
     }
 
     /**
-     * Retrieves the alias of the certificate stored in the KeyStore file.
-     * The alias is used as a reference to the certificate within the KeyStore.
+     * Retrieves the alias of the certificate stored in the KeyStore file. The alias is used as a reference to the certificate within the
+     * KeyStore.
      *
      * @return The alias of the certificate as a {@code String}.
      */

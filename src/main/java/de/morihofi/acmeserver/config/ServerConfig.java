@@ -3,7 +3,6 @@ package de.morihofi.acmeserver.config;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serializable;
-import java.lang.String;
 
 /**
  * Represents configuration parameters for a server, including DNS name and port settings.
@@ -59,16 +58,16 @@ public class ServerConfig implements Serializable {
         return enableSniCheck;
     }
 
+    public void setEnableSniCheck(boolean enableSniCheck) {
+        this.enableSniCheck = enableSniCheck;
+    }
+
     public String getLoggingDirectory() {
         return loggingDirectory;
     }
 
     public void setLoggingDirectory(String loggingDirectory) {
         this.loggingDirectory = loggingDirectory;
-    }
-
-    public void setEnableSniCheck(boolean enableSniCheck) {
-        this.enableSniCheck = enableSniCheck;
     }
 
     public MozillaSslConfig getMozillaSslConfig() {

@@ -1,8 +1,7 @@
 package de.morihofi.acmeserver.certificate.api.serverInfo.objects;
 
 /**
- * Represents the response structure for a provisioner.
- * This class encapsulates details about a provisioner, primarily its name.
+ * Represents the response structure for a provisioner. This class encapsulates details about a provisioner, primarily its name.
  */
 public class ProvisionerResponse {
 
@@ -12,8 +11,7 @@ public class ProvisionerResponse {
     private String name;
 
     /**
-     * Retrieves the name of the provisioner.
-     * This name identifies the provisioner within the system.
+     * Retrieves the name of the provisioner. This name identifies the provisioner within the system.
      *
      * @return The name of the provisioner as a {@code String}.
      */
@@ -22,8 +20,7 @@ public class ProvisionerResponse {
     }
 
     /**
-     * Sets the name of the provisioner.
-     * This method allows assigning or changing the name of the provisioner.
+     * Sets the name of the provisioner. This method allows assigning or changing the name of the provisioner.
      *
      * @param name The new name for the provisioner as a {@code String}.
      */

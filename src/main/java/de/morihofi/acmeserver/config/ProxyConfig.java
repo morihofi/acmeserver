@@ -10,21 +10,23 @@ import java.io.Serializable;
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ProxyConfig implements Serializable {
-  private HttpChallenge httpChallenge;
+    private HttpChallenge httpChallenge;
 
-  /**
-   * Get the HTTP challenge configuration for the proxy.
-   * @return The HTTP challenge configuration.
-   */
-  public HttpChallenge getHttpChallenge() {
-    return this.httpChallenge;
-  }
+    /**
+     * Get the HTTP challenge configuration for the proxy.
+     *
+     * @return The HTTP challenge configuration.
+     */
+    public HttpChallenge getHttpChallenge() {
+        return this.httpChallenge;
+    }
 
-  /**
-   * Set the HTTP challenge configuration for the proxy.
-   * @param httpChallenge The HTTP challenge configuration to set.
-   */
-  public void setHttpChallenge(HttpChallenge httpChallenge) {
-    this.httpChallenge = httpChallenge;
-  }
+    /**
+     * Set the HTTP challenge configuration for the proxy.
+     *
+     * @param httpChallenge The HTTP challenge configuration to set.
+     */
+    public void setHttpChallenge(HttpChallenge httpChallenge) {
+        this.httpChallenge = httpChallenge;
+    }
 }

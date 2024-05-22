@@ -6,9 +6,8 @@ import java.math.BigInteger;
 import java.util.Date;
 
 /**
- * Represents a revoked certificate in a certificate revocation list (CRL).
- * This class stores information about a certificate that has been revoked,
- * including its serial number, the date of revocation, and the reason for revocation.
+ * Represents a revoked certificate in a certificate revocation list (CRL). This class stores information about a certificate that has been
+ * revoked, including its serial number, the date of revocation, and the reason for revocation.
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class RevokedCertificate {
@@ -19,8 +18,8 @@ public class RevokedCertificate {
     /**
      * Constructs a new RevokedCertificate with specified details.
      *
-     * @param serialNumber The serial number of the revoked certificate.
-     * @param revokationDate The date when the certificate was revoked.
+     * @param serialNumber     The serial number of the revoked certificate.
+     * @param revokationDate   The date when the certificate was revoked.
      * @param revokationReason The reason code for the revocation.
      */
     public RevokedCertificate(BigInteger serialNumber, Date revokationDate, int revokationReason) {

@@ -10,8 +10,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.hibernate.Session;
-import org.jetbrains.annotations.NotNull;
 import org.hibernate.stat.Statistics;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,9 +19,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Handles the generation and display of statistical information about ACME orders, accounts,
- * and provisioners. This handler collects data from the database and organizes it into various
- * statistical metrics to be displayed on the stats page.
+ * Handles the generation and display of statistical information about ACME orders, accounts, and provisioners. This handler collects data
+ * from the database and organizes it into various statistical metrics to be displayed on the stats page.
  */
 public class StatsHandler implements Handler {
     private final CryptoStoreManager cryptoStoreManager;
@@ -36,8 +35,8 @@ public class StatsHandler implements Handler {
     }
 
     /**
-     * Handles the incoming request for the statistics page, gathering and preparing all necessary
-     * statistical data to be displayed in the web UI.
+     * Handles the incoming request for the statistics page, gathering and preparing all necessary statistical data to be displayed in the
+     * web UI.
      *
      * @param context The context of the incoming request.
      */
@@ -46,13 +45,11 @@ public class StatsHandler implements Handler {
 
         Map<String, Object> params = new HashMap<>(WebUI.getDefaultFrontendMap(cryptoStoreManager, context));
 
-
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
             List<StatisticItem> statisticItemsAllProvisioners = getGlobalStatisticItems(session);
             List<ProvisionerStatistic> provisionerStatistics = getProvisionerStatistics(session);
             List<StatisticItem> statisticsDatabase = getDatabaseStatistics();
-
 
             params.put("statisticsAll", statisticItemsAllProvisioners);
             params.put("statisticsProvisioner", provisionerStatistics);
@@ -80,8 +77,7 @@ public class StatsHandler implements Handler {
     }
 
     /**
-     * Gathers global statistical items, such as total number of provisioners, issued and revoked
-     * certificates, and active ACME accounts.
+     * Gathers global statistical items, such as total number of provisioners, issued and revoked certificates, and active ACME accounts.
      *
      * @return A list of {@link StatisticItem} representing the global statistics.
      */
@@ -92,52 +88,59 @@ public class StatsHandler implements Handler {
         statisticItemsAllProvisioners.add(new StatisticItem(ProvisionerManager.getProvisioners().size(), "web.stats.name.provisioners"));
 
         // issued Certificates
-        statisticItemsAllProvisioners.add(new StatisticItem(ProvisionerStatistics.countGlobalIssuedCertificates(session), "web.stats.name.certificatesIssued"));
+        statisticItemsAllProvisioners.add(
+                new StatisticItem(ProvisionerStatistics.countGlobalIssuedCertificates(session), "web.stats.name.certificatesIssued"));
 
         // revoked Certificates
-        statisticItemsAllProvisioners.add(new StatisticItem(ProvisionerStatistics.countGlobalRevokedCertificates(session), "web.stats.name.certificatesRevoked"));
+        statisticItemsAllProvisioners.add(
+                new StatisticItem(ProvisionerStatistics.countGlobalRevokedCertificates(session), "web.stats.name.certificatesRevoked"));
 
         // (non-deactivated) ACME Accounts
-        statisticItemsAllProvisioners.add(new StatisticItem(ProvisionerStatistics.countGlobalActiveACMEAccounts(session), "web.stats.name.acmeAccounts"));
+        statisticItemsAllProvisioners.add(
+                new StatisticItem(ProvisionerStatistics.countGlobalActiveACMEAccounts(session), "web.stats.name.acmeAccounts"));
 
         return statisticItemsAllProvisioners;
     }
 
-
     /**
-     * Gathers statistical items per provisioner, including the number of ACME accounts, issued and
-     * revoked certificates, and certificates waiting to be issued for each provisioner.
+     * Gathers statistical items per provisioner, including the number of ACME accounts, issued and revoked certificates, and certificates
+     * waiting to be issued for each provisioner.
      *
      * @return A list of {@link ProvisionerStatistic} representing the statistics for each provisioner.
      */
     private List<ProvisionerStatistic> getProvisionerStatistics(Session session) {
-        //Statistics per provisioner
+        // Statistics per provisioner
         List<ProvisionerStatistic> provisionerStatistics = new ArrayList<>();
-
 
         for (Provisioner provisioner : ProvisionerManager.getProvisioners()) {
             String provisionerName = provisioner.getProvisionerName();
             List<StatisticItem> statisticItemsOfProvisioner = new ArrayList<>();
 
             // issued Certificates
-            statisticItemsOfProvisioner.add(new StatisticItem(ProvisionerStatistics.countACMEAccountsByProvisioner(session, provisionerName), "web.stats.name.acmeAccounts"));
+            statisticItemsOfProvisioner.add(
+                    new StatisticItem(ProvisionerStatistics.countACMEAccountsByProvisioner(session, provisionerName),
+                            "web.stats.name.acmeAccounts"));
 
             // issued Certificates
-            statisticItemsOfProvisioner.add(new StatisticItem(ProvisionerStatistics.countIssuedCertificatesByProvisioner(session, provisionerName), "web.stats.name.certificatesIssued"));
+            statisticItemsOfProvisioner.add(
+                    new StatisticItem(ProvisionerStatistics.countIssuedCertificatesByProvisioner(session, provisionerName),
+                            "web.stats.name.certificatesIssued"));
 
             // revoked Certificates
-            statisticItemsOfProvisioner.add(new StatisticItem(ProvisionerStatistics.countRevokedCertificatesByProvisioner(session, provisionerName), "web.stats.name.certificatesRevoked"));
+            statisticItemsOfProvisioner.add(
+                    new StatisticItem(ProvisionerStatistics.countRevokedCertificatesByProvisioner(session, provisionerName),
+                            "web.stats.name.certificatesRevoked"));
 
             // Certificates waiting to be issued
-            statisticItemsOfProvisioner.add(new StatisticItem(ProvisionerStatistics.countCertificatesWaitingForIssueByProvisioner(session, provisionerName), "web.stats.name.certificatesIssueWaiting"));
+            statisticItemsOfProvisioner.add(
+                    new StatisticItem(ProvisionerStatistics.countCertificatesWaitingForIssueByProvisioner(session, provisionerName),
+                            "web.stats.name.certificatesIssueWaiting"));
 
             provisionerStatistics.add(new ProvisionerStatistic(provisionerName, statisticItemsOfProvisioner));
         }
 
         return provisionerStatistics;
     }
-
-
 
     /**
      * Represents a single statistical item with a number and a translation key for localization.
@@ -170,14 +173,13 @@ public class StatsHandler implements Handler {
     }
 
     /**
-     * Represents a collection of statistical data related to a specific provisioner within the system.
-     * This class encapsulates both the name of the provisioner and a list of statistics that describe
-     * various aspects of its operation, such as the number of issued and revoked certificates, and
-     * accounts associated with it. Each statistic is represented by a {@link StatisticItem} object.
+     * Represents a collection of statistical data related to a specific provisioner within the system. This class encapsulates both the
+     * name of the provisioner and a list of statistics that describe various aspects of its operation, such as the number of issued and
+     * revoked certificates, and accounts associated with it. Each statistic is represented by a {@link StatisticItem} object.
      *
      * @param provisionerName The name of the provisioner to which these statistics pertain.
-     * @param stats           A list of {@link StatisticItem} objects, each representing a different statistical metric
-     *                        associated with the provisioner.
+     * @param stats           A list of {@link StatisticItem} objects, each representing a different statistical metric associated with the
+     *                        provisioner.
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public record ProvisionerStatistic(String provisionerName, List<StatisticItem> stats) {
@@ -212,5 +214,4 @@ public class StatsHandler implements Handler {
             return stats;
         }
     }
-
 }

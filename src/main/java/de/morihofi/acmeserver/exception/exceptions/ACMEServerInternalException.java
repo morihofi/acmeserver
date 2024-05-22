@@ -12,6 +12,7 @@ public class ACMEServerInternalException extends ACMEException {
 
     /**
      * Constructs an instance of ACMEServerInternalException with the specified error message.
+     *
      * @param message The error message that describes the exception.
      */
     public ACMEServerInternalException(String message) {
@@ -31,5 +32,4 @@ public class ACMEServerInternalException extends ACMEException {
         response.setDetail(message);
         return response;
     }
-
 }

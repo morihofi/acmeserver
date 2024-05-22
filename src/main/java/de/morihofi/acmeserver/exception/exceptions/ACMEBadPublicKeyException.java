@@ -12,6 +12,7 @@ public class ACMEBadPublicKeyException extends ACMEException {
 
     /**
      * Constructs an instance of ACMEBadPublicKeyException with the specified error message.
+     *
      * @param message The error message that describes the exception.
      */
     public ACMEBadPublicKeyException(String message) {
@@ -31,5 +32,4 @@ public class ACMEBadPublicKeyException extends ACMEException {
         response.setDetail(message);
         return response;
     }
-
 }

@@ -1,9 +1,9 @@
 package de.morihofi.acmeserver.certificate.provisioners;
 
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.NotImplementedEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.DirectoryEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.NewNonceEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.NewOrderEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.NotImplementedEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.RevokeCertEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.AccountEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.NewAccountEndpoint;
@@ -35,16 +35,16 @@ public class ProvisionerManager {
 
     private final static Set<Provisioner> provisioners = new HashSet<>();
 
-    private static String getProvisionerApiPrefix(String provisionerName){
+    private static String getProvisionerApiPrefix(String provisionerName) {
         return "/acme/" + provisionerName;
     }
 
-    public static void registerProvisioner(Javalin app, Provisioner provisioner){
-        if(provisioners.contains(provisioner)){
+    public static void registerProvisioner(Javalin app, Provisioner provisioner) {
+        if (provisioners.contains(provisioner)) {
             throw new IllegalArgumentException("Provisioner already registered");
         }
 
-        //CRL generator
+        // CRL generator
         CRLScheduler.addProvisionerToScheduler(provisioner);
 
         String prefix = getProvisionerApiPrefix(provisioner.getProvisionerName());
@@ -91,7 +91,6 @@ public class ProvisionerManager {
         // Get Order Certificate
         app.post(prefix + "/acme/order/{orderId}/cert", new OrderCertEndpoint(provisioner));
 
-
         // Revoke certificate
         app.post(prefix + "/acme/revoke-cert", new RevokeCertEndpoint(provisioner));
 
@@ -108,7 +107,7 @@ public class ProvisionerManager {
         return provisionerOptional.orElse(null);
     }
 
-    public static Set<Provisioner> getProvisioners(){
+    public static Set<Provisioner> getProvisioners() {
         return Collections.unmodifiableSet(provisioners);
     }
 }

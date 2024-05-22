@@ -12,6 +12,7 @@ public class ACMEAlreadyRevokedException extends ACMEException {
 
     /**
      * Constructs an instance of ACMEAlreadyRevokedException with the specified error message.
+     *
      * @param message The error message that describes the exception.
      */
     public ACMEAlreadyRevokedException(String message) {
@@ -21,7 +22,7 @@ public class ACMEAlreadyRevokedException extends ACMEException {
 
     @Override
     public int getHttpStatusCode() {
-        //TODO: Check if this is correct
+        // TODO: Check if this is correct
         return 400;
     }
 
@@ -32,5 +33,4 @@ public class ACMEAlreadyRevokedException extends ACMEException {
         response.setDetail(message);
         return response;
     }
-
 }

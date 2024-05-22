@@ -40,7 +40,9 @@ public class IntermediateCaRenew {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
-    public static CertificateRenewManager.CertificateData renewIntermediateCertificate(KeyPair provisionerKeyPair, Provisioner provisioner, CryptoStoreManager cryptoStoreManager, String intermediateAlias) throws CertificateException, OperatorCreationException, IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+    public static CertificateRenewManager.CertificateData renewIntermediateCertificate(KeyPair provisionerKeyPair, Provisioner provisioner,
+            CryptoStoreManager cryptoStoreManager, String intermediateAlias) throws CertificateException, OperatorCreationException,
+            IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
 
         ProvisionerConfig provisionerCfg = provisioner.getConfig();
 
@@ -63,6 +65,4 @@ public class IntermediateCaRenew {
 
         return new CertificateRenewManager.CertificateData(chain, provisionerKeyPair);
     }
-
-
 }

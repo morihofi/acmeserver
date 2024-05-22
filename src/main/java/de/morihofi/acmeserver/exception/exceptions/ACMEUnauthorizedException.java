@@ -32,5 +32,4 @@ public class ACMEUnauthorizedException extends ACMEException {
         response.setDetail(message);
         return response;
     }
-
 }

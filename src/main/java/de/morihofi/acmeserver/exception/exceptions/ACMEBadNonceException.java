@@ -12,6 +12,7 @@ public class ACMEBadNonceException extends ACMEException {
 
     /**
      * Constructs an instance of ACMEBadNonceException with the specified error message.
+     *
      * @param message The error message that describes the exception.
      */
     public ACMEBadNonceException(String message) {
@@ -31,5 +32,4 @@ public class ACMEBadNonceException extends ACMEException {
         response.setDetail(message);
         return response;
     }
-
 }

@@ -16,6 +16,7 @@ public class CertificateConfig implements Serializable {
 
     /**
      * Get the metadata associated with the certificate.
+     *
      * @return The certificate metadata.
      */
     public CertificateMetadata getMetadata() {
@@ -24,6 +25,7 @@ public class CertificateConfig implements Serializable {
 
     /**
      * Set the metadata for the certificate.
+     *
      * @param metadata The certificate metadata to set.
      */
 
@@ -33,6 +35,7 @@ public class CertificateConfig implements Serializable {
 
     /**
      * Get the expiration information for the certificate.
+     *
      * @return The certificate expiration information.
      */
     public CertificateExpiration getExpiration() {
@@ -41,6 +44,7 @@ public class CertificateConfig implements Serializable {
 
     /**
      * Set the expiration information for the certificate.
+     *
      * @param expiration The certificate expiration information to set.
      */
     public void setExpiration(CertificateExpiration expiration) {
@@ -49,6 +53,7 @@ public class CertificateConfig implements Serializable {
 
     /**
      * Get the algorithm parameters for the certificate.
+     *
      * @return The certificate algorithm parameters.
      */
     public AlgorithmParams getAlgorithm() {
@@ -57,6 +62,7 @@ public class CertificateConfig implements Serializable {
 
     /**
      * Set the algorithm parameters for the certificate.
+     *
      * @param algorithm The certificate algorithm parameters to set.
      */
     public void setAlgorithm(AlgorithmParams algorithm) {

@@ -3,13 +3,9 @@ package de.morihofi.acmeserver.tools.regex;
 import java.util.regex.Pattern;
 
 /**
- * Utility class for email address validation.
- * This class provides a method to validate email addresses based on their syntax.
+ * Utility class for email address validation. This class provides a method to validate email addresses based on their syntax.
  */
 public class EmailValidation {
-
-    private EmailValidation(){}
-
 
     /**
      * Check if an email has a valid syntax.
@@ -28,5 +24,5 @@ public class EmailValidation {
         return pattern.matcher(email).matches();
     }
 
-
+    private EmailValidation() {}
 }

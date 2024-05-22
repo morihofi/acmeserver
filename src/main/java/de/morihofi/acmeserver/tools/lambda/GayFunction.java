@@ -1,10 +1,9 @@
 package de.morihofi.acmeserver.tools.lambda;
 
 /**
- * A functional interface similar to {@code Function}, but with a playful twist.
- * It represents a function that accepts one argument and produces a result of the same type.
- * This interface is intended for educational or fun purposes and showcases the concept of
- * identity function in a generic way.
+ * A functional interface similar to {@code Function}, but with a playful twist. It represents a function that accepts one argument and
+ * produces a result of the same type. This interface is intended for educational or fun purposes and showcases the concept of identity
+ * function in a generic way.
  *
  * <p>This is an easter egg</p>
  *

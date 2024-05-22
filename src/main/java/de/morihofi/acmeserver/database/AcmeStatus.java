@@ -13,7 +13,6 @@ public enum AcmeStatus {
 
     EXPIRED("expired");
 
-
     private final String rfcName;
 
     AcmeStatus(String rfcName) {

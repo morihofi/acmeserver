@@ -45,8 +45,7 @@ public class VersionException extends RuntimeException {
     }
 
     /**
-     * Creates a new VersionException with the specified message and cause
-     * throwable.
+     * Creates a new VersionException with the specified message and cause throwable.
      *
      * @param causeThrowable The throwable that caused this exception to be thrown
      * @param message        Exception message

@@ -20,50 +20,47 @@ import java.lang.invoke.MethodHandles;
  * Utility class for Hibernate configuration and session management.
  */
 public class HibernateUtil {
-    private static SessionFactory sessionFactory;
-
     /**
      * Logger
      */
     private static final Logger log = LogManager.getLogger(HibernateUtil.class);
+    private static SessionFactory sessionFactory;
 
     /**
-     * Initializes the database connection and Hibernate configuration.
-     * This method should be called once during application startup.
+     * Initializes the database connection and Hibernate configuration. This method should be called once during application startup.
      */
     public static void initDatabase() throws IOException {
         if (sessionFactory == null) {
 
             DatabaseConfig databaseConfig = Main.appConfig.getDatabase();
             JDBCUrlDatabaseConfig jdbcUrlDatabaseConfig;
-            if(databaseConfig instanceof JDBCUrlDatabaseConfig jdbcDbConfig){
+            if (databaseConfig instanceof JDBCUrlDatabaseConfig jdbcDbConfig) {
                 jdbcUrlDatabaseConfig = jdbcDbConfig;
-            }else {
+            } else {
                 jdbcUrlDatabaseConfig = new JDBCUrlDatabaseConfig();
-                if(databaseConfig instanceof OldDatabaseConfig oldDatabaseConfig){
-                    log.warn("Your configuration uses the old database configuration scheme. This is deprecated. It will be automatically updated.");
+                if (databaseConfig instanceof OldDatabaseConfig oldDatabaseConfig) {
+                    log.warn(
+                            "Your configuration uses the old database configuration scheme. This is deprecated. It will be automatically "
+                                    + "updated.");
 
-
-                    String jdbcString = switch (oldDatabaseConfig.getEngine()){
-                        case "h2" ->  "jdbc:h2:" + oldDatabaseConfig.getName() + ";DB_CLOSE_DELAY=-1";
-                        case "mariadb" ->  "jdbc:mariadb://" + oldDatabaseConfig.getHost() + "/" + oldDatabaseConfig.getName();
-                        case "postgres" ->  "jdbc:postgresql://" + oldDatabaseConfig.getHost() + "/" + oldDatabaseConfig.getName();
-                        default ->
-                                throw new IllegalStateException("Unexpected database engine: " + oldDatabaseConfig.getEngine() + ". Only h2, mariadb and postgres are valid values");
+                    String jdbcString = switch (oldDatabaseConfig.getEngine()) {
+                        case "h2" -> "jdbc:h2:" + oldDatabaseConfig.getName() + ";DB_CLOSE_DELAY=-1";
+                        case "mariadb" -> "jdbc:mariadb://" + oldDatabaseConfig.getHost() + "/" + oldDatabaseConfig.getName();
+                        case "postgres" -> "jdbc:postgresql://" + oldDatabaseConfig.getHost() + "/" + oldDatabaseConfig.getName();
+                        default -> throw new IllegalStateException("Unexpected database engine: " + oldDatabaseConfig.getEngine()
+                                + ". Only h2, mariadb and postgres are valid values");
                     };
 
                     jdbcUrlDatabaseConfig.setJdbcUrl(jdbcString);
                     jdbcUrlDatabaseConfig.setUser(oldDatabaseConfig.getUser());
                     jdbcUrlDatabaseConfig.setPassword(oldDatabaseConfig.getPassword());
 
-
-                    //Update configuration file
+                    // Update configuration file
                     {
                         log.info("Updating server database configuration");
                         Main.appConfig.setDatabase(jdbcUrlDatabaseConfig);
                         Main.saveServerConfiguration();
                     }
-
                 }
             }
 
@@ -79,11 +76,9 @@ public class HibernateUtil {
                 StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder()
                         .applySettings(configuration.getProperties());
                 sessionFactory = configuration.buildSessionFactory(registryBuilder.build());
-
             } catch (Exception e) {
                 throw new ExceptionInInitializerError(e);
             }
-
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
@@ -94,26 +89,23 @@ public class HibernateUtil {
                     shutdown();
                 }
             });
-
         }
     }
 
     /**
-     * Retrieves a {@link Configuration} object configured for a specific {@link JDBCUrlDatabaseConfig}. This
-     * method configures the database connection properties based on the type of database specified
-     * by its JDBC URL. It sets properties such as the JDBC driver, connection URL, dialect, as well
-     * as user credentials and additional Hibernate settings.
+     * Retrieves a {@link Configuration} object configured for a specific {@link JDBCUrlDatabaseConfig}. This method configures the database
+     * connection properties based on the type of database specified by its JDBC URL. It sets properties such as the JDBC driver, connection
+     * URL, dialect, as well as user credentials and additional Hibernate settings.
      * <p>
-     * The method supports configuration for H2 and MariaDB databases. Depending on the {@code dbType},
-     * it sets the appropriate JDBC driver, URL format, and Hibernate dialect. Common settings like
-     * username, password, SQL logging, schema auto-update, and lazy loading are configured for all
-     * database types.
+     * The method supports configuration for H2 and MariaDB databases. Depending on the {@code dbType}, it sets the appropriate JDBC driver,
+     * URL format, and Hibernate dialect. Common settings like username, password, SQL logging, schema auto-update, and lazy loading are
+     * configured for all database types.
      * <p>
-     * Note: The database name, host, user, and password are obtained from the application's main
-     * configuration, accessed via {@code Main.appConfig.getDatabase()}.
+     * Note: The database name, host, user, and password are obtained from the application's main configuration, accessed via
+     * {@code Main.appConfig.getDatabase()}.
      *
-     * @return A {@link Configuration} object with properties set according to the specified
-     * {@code dbType} and the application's main configuration.
+     * @return A {@link Configuration} object with properties set according to the specified {@code dbType} and the application's main
+     * configuration.
      * @throws NullPointerException if {@code dbType} is null.
      */
     private static Configuration getConfigurationFor(JDBCUrlDatabaseConfig jdbcConfig) {
@@ -130,16 +122,15 @@ public class HibernateUtil {
         // Database dialect and driver based on JDBC URL
         configureDialectAndDriver(configuration, jdbcUrl);
 
-        //Use connection pool, but use no connection pool when in Debug mode
-        if(!Main.debug){
+        // Use connection pool, but use no connection pool when in Debug mode
+        if (!Main.debug) {
             // Agroal Connection Pool settings
             configureAgroalConnectionPool(configuration);
-        }else {
+        } else {
             // No connection pool
-            configuration.setProperty("hibernate.connection.provider_class", "org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProviderImpl");
+            configuration.setProperty("hibernate.connection.provider_class",
+                    "org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProviderImpl");
         }
-
-
 
         log.info("Configuring JDBC URL and login credentials");
         configuration.setProperty(Environment.JAKARTA_JDBC_URL, jdbcConfig.getJdbcUrl());
@@ -149,9 +140,8 @@ public class HibernateUtil {
         // Enable statistics
         configuration.setProperty("hibernate.generate_statistics", "true");
 
-
         if (Main.debug) {
-            //Show verbose SQL only on debug
+            // Show verbose SQL only on debug
             configuration.setProperty(Environment.SHOW_SQL, "true");
         }
         configuration.setProperty(Environment.HBM2DDL_AUTO, "update");
@@ -195,11 +185,11 @@ public class HibernateUtil {
         configuration.setProperty("hibernate.agroal.minSize", "10");
         configuration.setProperty("hibernate.agroal.maxSize", "50");
         configuration.setProperty("hibernate.agroal.initialSize", "25");
-        configuration.setProperty("hibernate.agroal.maxLifetime", "PT1000S"); //Lifetime of 1000 seconds
-        configuration.setProperty("hibernate.agroal.validationTimeout", "PT5S"); // Set timeout for checking database connectivity to 5 seconds
+        configuration.setProperty("hibernate.agroal.maxLifetime", "PT1000S"); // Lifetime of 1000 seconds
+        configuration.setProperty("hibernate.agroal.validationTimeout",
+                "PT5S"); // Set timeout for checking database connectivity to 5 seconds
         configuration.setProperty("hibernate.agroal.validationQuery", "SELECT 1"); // SQL query to check if database is available
     }
-
 
     public static void shutdown() {
         if (sessionFactory == null) {

@@ -14,12 +14,22 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.*;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -35,8 +45,6 @@ public class PemUtil {
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
-    private PemUtil(){}
-
     /**
      * Saves a KeyPair to PEM-encoded files.
      *
@@ -46,11 +54,13 @@ public class PemUtil {
      * @throws IOException If there is an issue writing the keys to the files.
      */
     public static void saveKeyPairToPEM(KeyPair keyPair, Path publicKeyFilePath, Path privateKeyFilePath) throws IOException {
-        try (JcaPEMWriter writer = new JcaPEMWriter(new OutputStreamWriter(Files.newOutputStream(privateKeyFilePath), StandardCharsets.UTF_8))) {
+        try (JcaPEMWriter writer = new JcaPEMWriter(
+                new OutputStreamWriter(Files.newOutputStream(privateKeyFilePath), StandardCharsets.UTF_8))) {
             writer.writeObject(keyPair.getPrivate());
         }
 
-        try (JcaPEMWriter writer = new JcaPEMWriter(new OutputStreamWriter(Files.newOutputStream(publicKeyFilePath), StandardCharsets.UTF_8))) {
+        try (JcaPEMWriter writer = new JcaPEMWriter(
+                new OutputStreamWriter(Files.newOutputStream(publicKeyFilePath), StandardCharsets.UTF_8))) {
             writer.writeObject(keyPair.getPublic());
         }
     }
@@ -107,7 +117,6 @@ public class PemUtil {
         return new KeyPair(publicKey, privateKey);
     }
 
-
     /**
      * Reads a public key from a PEM-encoded string and returns it as a PublicKey object.
      *
@@ -118,7 +127,8 @@ public class PemUtil {
      * @throws NoSuchProviderException  If there is no security provider available for the key algorithm.
      * @throws InvalidKeySpecException  If there is an issue parsing the key specification.
      */
-    public static PublicKey readPublicKeyFromPem(String pemKey) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+    public static PublicKey readPublicKeyFromPem(String pemKey) throws IOException, NoSuchAlgorithmException, NoSuchProviderException,
+            InvalidKeySpecException {
         PEMParser pemParser = new PEMParser(new StringReader(pemKey));
         Object object = pemParser.readObject();
         pemParser.close();
@@ -149,7 +159,8 @@ public class PemUtil {
      * @throws CertificateException    If there is an issue parsing the X.509 certificates from the PEM file.
      * @throws NoSuchProviderException If there is no security provider available for X.509 certificates.
      */
-    public static X509Certificate[] loadCertificateChain(Path pemFilePath) throws IOException, CertificateException, NoSuchProviderException {
+    public static X509Certificate[] loadCertificateChain(Path pemFilePath) throws IOException, CertificateException,
+            NoSuchProviderException {
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
 
         try (PEMParser pemParser = new PEMParser(Files.newBufferedReader(pemFilePath))) {
@@ -168,7 +179,6 @@ public class PemUtil {
             return certificates.toArray(new X509Certificate[0]);
         }
     }
-
 
     /**
      * Converts an array of byte arrays containing certificates into a PEM-encoded string representing a certificate chain.
@@ -196,7 +206,6 @@ public class PemUtil {
             throw new CertificateException("Error converting the certificate chain to PEM format", e);
         }
     }
-
 
     /**
      * Converts a byte array containing a certificate into a PEM-encoded string.
@@ -237,7 +246,6 @@ public class PemUtil {
         return stringWriter.toString();
     }
 
-
     /**
      * Converts a PEM-encoded string to a byte array containing the binary content.
      *
@@ -254,4 +262,5 @@ public class PemUtil {
         return content;
     }
 
+    private PemUtil() {}
 }

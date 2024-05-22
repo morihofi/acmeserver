@@ -3,8 +3,8 @@ package de.morihofi.acmeserver.postsetup.inputcheck;
 import de.morihofi.acmeserver.tools.regex.DomainAndIpValidation;
 
 /**
- * A utility class for checking the validity of Fully Qualified Domain Name (FQDN) input strings.
- * It implements the {@link InputChecker} functional interface to provide custom input validation.
+ * A utility class for checking the validity of Fully Qualified Domain Name (FQDN) input strings. It implements the {@link InputChecker}
+ * functional interface to provide custom input validation.
  */
 public class FQDNInputChecker implements InputChecker {
 

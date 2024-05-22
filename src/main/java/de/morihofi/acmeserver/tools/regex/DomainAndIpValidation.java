@@ -3,25 +3,19 @@ package de.morihofi.acmeserver.tools.regex;
 import java.util.regex.Pattern;
 
 /**
- * Utility class for domain and hostname validation.
- * This class provides methods to validate domain and hostname strings.
+ * Utility class for domain and hostname validation. This class provides methods to validate domain and hostname strings.
  */
 public class DomainAndIpValidation {
 
-    private DomainAndIpValidation() {
-    }
-
     /**
-     * Regular expression pattern for validating domain and hostname strings.
-     * This pattern enforces certain rules for domain and hostname format.
+     * Regular expression pattern for validating domain and hostname strings. This pattern enforces certain rules for domain and hostname
+     * format.
      */
-    private static final Pattern DOMAIN_AND_HOSTNAME_PATTERN = Pattern.compile("^(?!-)([A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z0-9-]{2,}$|^[A-Za-z0-9-]{1,63}(?<!-)$");
-
+    private static final Pattern DOMAIN_AND_HOSTNAME_PATTERN =
+            Pattern.compile("^(?!-)([A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z0-9-]{2,}$|^[A-Za-z0-9-]{1,63}(?<!-)$");
     // Define the IPv4 pattern
     private static final Pattern IPv4PATTERN = Pattern.compile(
             "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
-
-
     // Define the IPv6 pattern
     private static final Pattern IPv6PATTERN = Pattern.compile(
             "^(([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4})" + // IPv6 normal form
@@ -33,7 +27,7 @@ public class DomainAndIpValidation {
                     "|(([0-9A-Fa-f]{1,4}:){1,2}(:[0-9A-Fa-f]{1,4}){1,5})" +
                     "|([0-9A-Fa-f]{1,4}:((:[0-9A-Fa-f]{1,4}){1,6}))" +
                     "|(:((:[0-9A-Fa-f]{1,4}){1,7}|:))" + // IPv6 completely shortened
-                    "|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})" + //IPv6 with initial shortening
+                    "|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})" + // IPv6 with initial shortening
                     "|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})" + // Further variants of shortening
                     "|([0-9A-Fa-f]{1,4}:){6}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\." +
                     "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\." +
@@ -42,9 +36,7 @@ public class DomainAndIpValidation {
     );
 
     /**
-
-    /**
-     * Validates a domain or hostname string.
+     * /** Validates a domain or hostname string.
      *
      * @param domain        The domain or hostname to validate.
      * @param allowWildcard If true, wildcard domains are allowed (e.g., "*.example.com").
@@ -79,7 +71,6 @@ public class DomainAndIpValidation {
         return isIPv4Address(input) || isIPv6Address(input);
     }
 
-
     /**
      * Checks if the given string is an IPv4 address.
      *
@@ -98,5 +89,8 @@ public class DomainAndIpValidation {
      */
     public static boolean isIPv6Address(String input) {
         return IPv6PATTERN.matcher(input).matches();
+    }
+
+    private DomainAndIpValidation() {
     }
 }

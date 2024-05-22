@@ -5,10 +5,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadSignatureAlgorithmException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEUnauthorizedException;
-import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
@@ -17,24 +17,22 @@ import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
 
 import java.io.IOException;
-import java.security.*;
-import java.security.spec.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 
 /**
- * Provides methods for verifying the signatures of ACME requests.
- * This class includes functionality to validate request signatures against public keys associated with ACME accounts,
- * ensuring the authenticity and integrity of the requests.
+ * Provides methods for verifying the signatures of ACME requests. This class includes functionality to validate request signatures against
+ * public keys associated with ACME accounts, ensuring the authenticity and integrity of the requests.
  */
 public class SignatureCheck {
 
     private static final Logger LOG = LogManager.getLogger(SignatureCheck.class);
 
-    private SignatureCheck() {
-    }
-
     /**
-     * Verifies the signature of an ACME request using an ACME account's public key.
-     * The method checks the signature against the public key to ensure the request's authenticity and integrity.
+     * Verifies the signature of an ACME request using an ACME account's public key. The method checks the signature against the public key
+     * to ensure the request's authenticity and integrity.
      *
      * @param ctx     The Javalin context containing the request data.
      * @param account The ACME account whose public key is used for signature verification.
@@ -46,8 +44,8 @@ public class SignatureCheck {
     }
 
     /**
-     * Verifies the signature of an ACME request using an ACME account's public key.
-     * The method checks the signature against the public key to ensure the request's authenticity and integrity.
+     * Verifies the signature of an ACME request using an ACME account's public key. The method checks the signature against the public key
+     * to ensure the request's authenticity and integrity.
      *
      * @param ctx       The Javalin context containing the request data.
      * @param accountId The ACME account id whose public key is used for signature verification.
@@ -65,7 +63,6 @@ public class SignatureCheck {
 
             // Combine protected header and payload into a complete JWS representation
             String serializedJws = protectedHeader + "." + payload + "." + signature;
-
 
             // Obtain the client's public key
             ACMEAccount account = ACMEAccount.getAccount(accountId);
@@ -128,5 +125,8 @@ public class SignatureCheck {
      */
     public static String getAccountIdFromProtectedKID(String protectedJsonString) {
         return getAccountIdFromProtectedKID(JsonParser.parseString(protectedJsonString).getAsJsonObject());
+    }
+
+    private SignatureCheck() {
     }
 }

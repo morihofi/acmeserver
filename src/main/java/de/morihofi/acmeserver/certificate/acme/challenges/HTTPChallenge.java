@@ -14,7 +14,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.*;
+import java.net.Authenticator;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
+import java.net.SocketAddress;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
@@ -22,29 +28,24 @@ import java.security.spec.InvalidKeySpecException;
 
 public class HTTPChallenge {
 
-    private HTTPChallenge() {
-    }
-
     /**
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-    private static final OkHttpClient httpClient = new OkHttpClient.Builder().proxy(getHTTPChallengeProxy()).build();
-
     /**
      * User Agent used for checking HTTP challenges
      */
-    private static final String USER_AGENT = "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + " Java/" + System.getProperty("java.version");
-
+    private static final String USER_AGENT =
+            "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + " Java/" + System.getProperty("java.version");
     private static String proxyHost = "";
     private static int proxyPort = 0;
     private static String proxyUser = "";
     private static String proxyPassword = "";
-
+    private static final OkHttpClient httpClient = new OkHttpClient.Builder().proxy(getHTTPChallengeProxy()).build();
 
     /**
-     * Retrieves and configures an HTTP challenge proxy based on application settings.
-     * The method configures the proxy settings and authentication details, if required.
+     * Retrieves and configures an HTTP challenge proxy based on application settings. The method configures the proxy settings and
+     * authentication details, if required.
      *
      * @return A Proxy object configured based on application settings.
      */
@@ -78,22 +79,17 @@ public class HTTPChallenge {
                         return null;
                     }
                 });
-
             }
-
-
         } catch (Exception ex) {
             LOG.error("Failed to initialize proxy configuration", ex);
         }
 
-
         return proxy;
     }
 
-
     /**
-     * Validates an HTTP challenge by sending a GET request to the specified host and verifying the response.
-     * The method checks whether the response body contains the expected token, which indicates successful validation.
+     * Validates an HTTP challenge by sending a GET request to the specified host and verifying the response. The method checks whether the
+     * response body contains the expected token, which indicates successful validation.
      *
      * @param authToken   The expected authentication token value for the challenge.
      * @param host        The target host for the HTTP GET request.
@@ -104,13 +100,15 @@ public class HTTPChallenge {
      * @throws InvalidKeySpecException  If an invalid key specification is encountered.
      * @throws NoSuchProviderException  If a requested security provider is not available.
      */
-    public static ChallengeResult check(String authToken, String host, ACMEAccount acmeAccount) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
+    public static ChallengeResult check(String authToken, String host, ACMEAccount acmeAccount) throws IOException,
+            NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         boolean passed = false;
         String lastError = "";
 
         PublicKey acmeAccountPublicKey = PemUtil.readPublicKeyFromPem(acmeAccount.getPublicKeyPEM());
 
-        // Host can be an IP Address, specifically an IPv6 Address. This type of IP Address needs these "[ ]" square brackets when you use it in a URL
+        // Host can be an IP Address, specifically an IPv6 Address. This type of IP Address needs these "[ ]" square brackets when you
+        // use it in a URL
         // Let's check that
         if (DomainAndIpValidation.isIPv6Address(host)) {
             host = "[" + host + "]"; // That's it
@@ -142,7 +140,8 @@ public class HTTPChallenge {
                         passed = true;
                         LOG.info("HTTP Challenge has validated for host {}. Expected: {}; Got: {}", host, expectedValue, acmeTokenFromHost);
                     } else {
-                        LOG.error("HTTP Challenge validation failed for host {}. Content doesn't match. Expected: {}; Got: {}", host, expectedValue, acmeTokenFromHost);
+                        LOG.error("HTTP Challenge validation failed for host {}. Content doesn't match. Expected: {}; Got: {}", host,
+                                expectedValue, acmeTokenFromHost);
                         lastError = "HTTP Challenge validation failed, cause content doesn't match";
                     }
                 } else {
@@ -150,15 +149,12 @@ public class HTTPChallenge {
                     lastError = "HTTP Challenge failed, got HTTP status code " + responseCode;
                 }
             }
-
-
         } catch (IOException e) {
             LOG.error("HTTP Challenge failed for host {}. Is it reachable?", host, e);
-            if(e instanceof ConnectException){
+            if (e instanceof ConnectException) {
                 lastError = e.getMessage();
             }
         }
-
 
         return new ChallengeResult(passed, lastError);
     }
@@ -171,5 +167,6 @@ public class HTTPChallenge {
         return AcmeTokenCryptography.keyAuthorizationFor(authToken, acmeAccountPublicKey);
     }
 
-
+    private HTTPChallenge() {
+    }
 }

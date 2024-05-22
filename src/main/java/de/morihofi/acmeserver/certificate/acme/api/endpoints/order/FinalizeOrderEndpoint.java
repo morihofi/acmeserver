@@ -1,14 +1,13 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.order;
 
-
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.Main;
-import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.FinalizeOrderRequestPayload;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.AcmeStatus;
@@ -64,13 +63,14 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         performSignatureAndNonceCheck(ctx, account, acmeRequestBody);
 
         // After check parse payload
-        FinalizeOrderRequestPayload reqBodyPayloadObj = gson.fromJson(acmeRequestBody.getDecodedPayload(), FinalizeOrderRequestPayload.class);
+        FinalizeOrderRequestPayload reqBodyPayloadObj =
+                gson.fromJson(acmeRequestBody.getDecodedPayload(), FinalizeOrderRequestPayload.class);
         String csr = reqBodyPayloadObj.getCsr();
 
         // Get our ACME identifiers
         List<ACMEOrderIdentifier> identifiers = ACMEOrder.getACMEOrder(orderId).getOrderIdentifiers();
 
-        //We just use the verification, that throws exceptions, here not the resulting identifiers
+        // We just use the verification, that throws exceptions, here not the resulting identifiers
         CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
 
         // Convert ACMEOrderIdentifier into simple identifier
@@ -115,33 +115,30 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
                 transaction.commit();
 
                 if (Main.getServerOptions().contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
-                    //Use async certificate issuing
-
+                    // Use async certificate issuing
 
                     LOG.info("Saved CSR for order {} in database", order.getOrderId());
 
-                    //Set response, that our certificate is processing in separate thread
+                    // Set response, that our certificate is processing in separate thread
                     response.setStatus(AcmeStatus.PROCESSING.getRfcName());
                 } else {
 
-                    CertificateIssuer.generateCertificateForOrder(order, provisioner.getCryptoStoreManager(), session); //also resets need certificate status
+                    CertificateIssuer.generateCertificateForOrder(order, provisioner.getCryptoStoreManager(),
+                            session); // also resets need certificate status
 
-                    //Valid, cause due we generated the certificate in the request, we have now a certificate available
+                    // Valid, cause due we generated the certificate in the request, we have now a certificate available
                     response.setStatus(AcmeStatus.VALID.getRfcName());
                 }
-
-
             } catch (Exception e) {
                 LOG.error("Unable to process CSR for order {} and save in database", order.getOrderId(), e);
             }
         } else {
-            //We have a certificate
+            // We have a certificate
 
             response.setStatus(AcmeStatus.VALID.getRfcName());
             response.setExpires(DateTools.formatDateForACME(order.getCertificateExpires()));
             response.setIssued(DateTools.formatDateForACME(order.getCertificateIssued()));
         }
-
 
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", Crypto.createNonce());
@@ -153,8 +150,5 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         response.setAuthorizations(authorizationsList);
 
         ctx.json(response);
-
     }
-
-
 }

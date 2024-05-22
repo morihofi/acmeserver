@@ -19,12 +19,11 @@ public interface QuadFunction<A, B, C, D, R> {
     R apply(A a, B b, C c, D d) throws Exception;
 
     /**
-     * Returns a composed function that first applies this function to its input,
-     * and then applies the {@code after} function to the result.
+     * Returns a composed function that first applies this function to its input, and then applies the {@code after} function to the
+     * result.
      *
      * @param after the function to apply after this function is applied
-     * @return a composed function that first applies this function and then
-     *         applies the {@code after} function
+     * @return a composed function that first applies this function and then applies the {@code after} function
      * @throws NullPointerException if after is null
      */
     default <V> QuadFunction<A, B, C, D, V> andThen(
@@ -33,4 +32,3 @@ public interface QuadFunction<A, B, C, D, R> {
         return (A a, B b, C c, D d) -> after.apply(apply(a, b, c, d));
     }
 }
-

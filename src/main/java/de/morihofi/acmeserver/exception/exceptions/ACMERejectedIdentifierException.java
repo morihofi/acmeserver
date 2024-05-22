@@ -12,6 +12,7 @@ public class ACMERejectedIdentifierException extends ACMEException {
 
     /**
      * Constructs an instance of ACMERejectedIdentifierException with the specified error message.
+     *
      * @param message The error message that describes the exception.
      */
     public ACMERejectedIdentifierException(String message) {
@@ -31,5 +32,4 @@ public class ACMERejectedIdentifierException extends ACMEException {
         response.setDetail(message);
         return response;
     }
-
 }

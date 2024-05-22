@@ -7,7 +7,7 @@ import java.util.function.Function;
 public /**
  * Same as {@See BiFunction}, but with 3 Arguments
  */
-interface TriFunction<A,B,C,R> {
+interface TriFunction<A, B, C, R> {
 
     R apply(A a, B b, C c) throws Exception;
 

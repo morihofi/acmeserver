@@ -13,6 +13,7 @@ public class Base64Tools {
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final java.util.Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
     /**
      * Decodes a Base64-encoded string into its original string representation.
@@ -54,7 +55,6 @@ public class Base64Tools {
     public static String decodeBase64URL(String stringToDecode) {
         // Decoding URl
         return new String(decodeBase64URLAsBytes(stringToDecode), StandardCharsets.UTF_8);
-
     }
 
     /**
@@ -68,7 +68,6 @@ public class Base64Tools {
         java.util.Base64.Decoder decoder = java.util.Base64.getUrlDecoder();
         return decoder.decode(stringToDecode);
     }
-
 
     /**
      * Encodes a string into a Base64 URL-safe representation.
@@ -84,8 +83,6 @@ public class Base64Tools {
         // Encoding URL
         return encoder.encodeToString(stringToEncode.getBytes(StandardCharsets.UTF_8));
     }
-
-    private static final java.util.Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
     /**
      * Base64 encodes the given byte array, using URL style encoding.

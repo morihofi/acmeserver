@@ -73,5 +73,4 @@ public class TerminalFactory extends DefaultTerminalFactory {
             }
         }
     }
-
 }

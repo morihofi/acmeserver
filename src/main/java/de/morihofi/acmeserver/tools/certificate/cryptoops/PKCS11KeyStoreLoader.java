@@ -16,7 +16,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.AuthProvider;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Provider;
+import java.security.Security;
 import java.security.cert.CertificateException;
 import java.util.Iterator;
 import java.util.concurrent.CancellationException;
@@ -30,6 +36,7 @@ public class PKCS11KeyStoreLoader {
 
     /**
      * Demo for loading a PKCS#11 HSM KeyStore
+     *
      * @param args app args
      * @throws Exception if something goes wrong
      */
@@ -51,9 +58,8 @@ public class PKCS11KeyStoreLoader {
     }
 
     /**
-     * Loads a PKCS11 Keystore using the specified PIN, slot, and library location.
-     * This method involves retrieving a PKCS11 provider and initializing a KeyStore instance with it.
-     * It sets up a callback handler to manage password input for the keystore.
+     * Loads a PKCS11 Keystore using the specified PIN, slot, and library location. This method involves retrieving a PKCS11 provider and
+     * initializing a KeyStore instance with it. It sets up a callback handler to manage password input for the keystore.
      *
      * @param pin             The PIN code for accessing the keystore.
      * @param slot            The slot index of the PKCS11 provider.
@@ -69,12 +75,13 @@ public class PKCS11KeyStoreLoader {
      * @throws NoSuchMethodException     if a required method is not found.
      * @throws KeyStoreException         if there is an issue with keystore operations.
      */
-    public static KeyStore loadPKCS11Keystore(String pin, int slot, String libraryLocation) throws CertificateException, IOException, NoSuchAlgorithmException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, KeyStoreException {
+    public static KeyStore loadPKCS11Keystore(String pin, int slot, String libraryLocation) throws CertificateException, IOException,
+            NoSuchAlgorithmException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException,
+            NoSuchMethodException, KeyStoreException {
 
         Provider selectedProvider = getPkcs11Provider(slot, libraryLocation);
 
         KeyStore keyStore = KeyStore.getInstance("PKCS11", selectedProvider);
-
 
         // register password handler
         AuthProvider authProvider = (AuthProvider) selectedProvider;
@@ -98,19 +105,16 @@ public class PKCS11KeyStoreLoader {
 
                 passCb.setPassword(pin.toCharArray());
             }
-
         });
 
         keyStore.load(null, null);
         return keyStore;
-
     }
 
     /**
-     * Retrieves a PKCS11 provider for the specified slot and library location.
-     * This method configures the provider differently based on the JRE version.
-     * For JRE version 9 and above, it uses the built-in SunPKCS11 provider and configures it using reflection.
-     * For older versions, it creates an instance of the SunPKCS11 provider using its constructor.
+     * Retrieves a PKCS11 provider for the specified slot and library location. This method configures the provider differently based on the
+     * JRE version. For JRE version 9 and above, it uses the built-in SunPKCS11 provider and configures it using reflection. For older
+     * versions, it creates an instance of the SunPKCS11 provider using its constructor.
      *
      * @param slot            The slot index of the PKCS11 provider.
      * @param libraryLocation The file path of the PKCS11 library.
@@ -121,7 +125,8 @@ public class PKCS11KeyStoreLoader {
      * @throws NoSuchMethodException     if a required method is not found.
      * @throws ClassNotFoundException    if the SunPKCS11 class is not found.
      */
-    private static Provider getPkcs11Provider(int slot, String libraryLocation) throws InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException {
+    private static Provider getPkcs11Provider(int slot, String libraryLocation) throws InvocationTargetException, InstantiationException,
+            IllegalAccessException, NoSuchMethodException, ClassNotFoundException {
         String pkcs11ConfigSettings = "name = Slot" + slot + "\n" + "library = " + libraryLocation + "\n" + "slotListIndex = " + slot;
         ByteArrayInputStream confStream = new ByteArrayInputStream(pkcs11ConfigSettings.getBytes(StandardCharsets.UTF_8));
 

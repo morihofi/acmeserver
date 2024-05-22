@@ -1,13 +1,13 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderRequestPayload;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderResponse;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
@@ -28,16 +28,18 @@ import org.hibernate.Transaction;
 
 import java.lang.invoke.MethodHandles;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 public class NewOrderEndpoint extends AbstractAcmeEndpoint {
-
 
     /**
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-
 
     public NewOrderEndpoint(Provisioner provisioner) {
         super(provisioner);
@@ -47,16 +49,16 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
         ACMEAccount account = ACMEAccount.getAccount(accountId);
-        //Check if account exists
+        // Check if account exists
         if (account == null) {
             LOG.error("Throwing API error: Account {} not found", accountId);
             throw new ACMEAccountNotFoundException("The account id was not found");
         }
         LOG.info("Account {} wants to create a new order", accountId);
-        //Check signature and nonce
-        performSignatureAndNonceCheck(ctx,accountId,acmeRequestBody);
+        // Check signature and nonce
+        performSignatureAndNonceCheck(ctx, accountId, acmeRequestBody);
 
-        //Convert payload into object
+        // Convert payload into object
         NewOrderRequestPayload newOrderRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), NewOrderRequestPayload.class);
 
         ArrayList<ACMEOrderIdentifier> acmeOrderIdentifiers = new ArrayList<>();
@@ -72,37 +74,40 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         String orderId = UUID.randomUUID().toString();
 
         if (account.getEmails().isEmpty()) {
-            throw new ACMEInvalidContactException("This account doesn't have any E-Mail addresses. Please set at least one E-Mail address and try again.");
+            throw new ACMEInvalidContactException(
+                    "This account doesn't have any E-Mail addresses. Please set at least one E-Mail address and try again.");
         }
-
 
         List<Identifier> respIdentifiers = new ArrayList<>();
         List<String> respAuthorizations = new ArrayList<>();
 
         List<ACMEOrderIdentifier> acmeOrderIdentifiersWithAuthorizationData = new ArrayList<>();
 
-
-
         // Unique certificate id per order
         String certificateId = Crypto.generateRandomId();
-
 
         for (ACMEOrderIdentifier identifier : acmeOrderIdentifiers) {
             // Unique value for each domain
             String authorizationId = Crypto.generateRandomId();
 
-            //Only IP and DNS
+            // Only IP and DNS
             if (!(identifier.getType().equals("dns") || identifier.getType().equals("ip"))) {
-                LOG.error("Throwing API error: Unknown or not allowed identifier type {} for value {}", identifier.getType(), identifier.getDataValue());
-                throw new ACMERejectedIdentifierException("Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
+                LOG.error("Throwing API error: Unknown or not allowed identifier type {} for value {}", identifier.getType(),
+                        identifier.getDataValue());
+                throw new ACMERejectedIdentifierException(
+                        "Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
             }
 
-            //Check DNS if type is DNS
-            if(identifier.getType().equals("dns")){
+            // Check DNS if type is DNS
+            if (identifier.getType().equals("dns")) {
                 if (!DomainAndIpValidation.isValidDomain(identifier.getDataValue(), provisioner.isWildcardAllowed())) {
-                    throw new ACMERejectedIdentifierException("DNS-Identifier \"" + identifier.getDataValue() + "\" is invalid. (Wildcard allowed in provisioner: " + provisioner.isWildcardAllowed() + ")" +
-                            (DomainAndIpValidation.isIpAddress(identifier.getDataValue()) ? " It looks like you put an IP Address into a DNS Identifier. Please use am \"ip\"-identifier instead, if enabled in current provisioner." : ""));
-
+                    throw new ACMERejectedIdentifierException(
+                            "DNS-Identifier \"" + identifier.getDataValue() + "\" is invalid. (Wildcard allowed in provisioner: "
+                                    + provisioner.isWildcardAllowed() + ")" +
+                                    (DomainAndIpValidation.isIpAddress(identifier.getDataValue())
+                                            ? " It looks like you put an IP Address into a DNS Identifier. Please use am "
+                                            + "\"ip\"-identifier instead, if enabled in current provisioner."
+                                            : ""));
                 }
 
                 if (!checkIfDomainIsAllowed(identifier.getDataValue())) {
@@ -110,12 +115,12 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
                 }
             }
 
-            //Check IP if type is IP
-            if(identifier.getType().equals("ip")){
-                if(!getProvisioner().isIpAllowed()){ //IP Address issuing is not allowed
+            // Check IP if type is IP
+            if (identifier.getType().equals("ip")) {
+                if (!getProvisioner().isIpAllowed()) { // IP Address issuing is not allowed
                     throw new ACMERejectedIdentifierException("Issuing for IP Addresses has been disabled for this provisioner");
                 }
-                if (!DomainAndIpValidation.isIpAddress(identifier.getDataValue())) { //Not an IP Address
+                if (!DomainAndIpValidation.isIpAddress(identifier.getDataValue())) { // Not an IP Address
                     throw new ACMERejectedIdentifierException("IP-Identifier \"" + identifier.getDataValue() + "\" is invalid");
                 }
             }
@@ -130,28 +135,22 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             acmeOrderIdentifiersWithAuthorizationData.add(identifier);
 
             respAuthorizations.add(provisioner.getApiURL() + "/acme/authz/" + authorizationId);
-
-
         }
-
 
         ACMEOrder order;
 
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
-
-
             Date startDate = new Date(); // Starts now
             Date endDate = DateTools.makeDateForOutliveIntermediateCertificate(
                     provisioner.getIntermediateCaCertificate().getNotAfter(),
                     DateTools.addToDate(startDate,
-                        provisioner.getConfig().getIntermediate().getExpiration().getYears(),
-                        provisioner.getConfig().getIntermediate().getExpiration().getMonths(),
-                        provisioner.getConfig().getIntermediate().getExpiration().getDays()
+                            provisioner.getConfig().getIntermediate().getExpiration().getYears(),
+                            provisioner.getConfig().getIntermediate().getExpiration().getMonths(),
+                            provisioner.getConfig().getIntermediate().getExpiration().getDays()
                     )
             );
-
 
             // Create order
             order = new ACMEOrder();
@@ -182,10 +181,11 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             transaction.commit();
         }
 
-
-        //Send E-Mail if order was created
+        // Send E-Mail if order was created
         try {
-            SendMail.sendMail(account.getEmails().get(0), "New ACME order created", "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeOrderIdentifiers.get(0).getDataValue() + "</i> was created.");
+            SendMail.sendMail(account.getEmails().get(0), "New ACME order created",
+                    "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeOrderIdentifiers.get(0).getDataValue()
+                            + "</i> was created.");
         } catch (Exception ex) {
             LOG.error("Unable to send email", ex);
         }
@@ -199,7 +199,6 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         response.setAuthorizations(respAuthorizations);
         response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
 
-
         ctx.status(201);
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
         ctx.header("Replay-Nonce", Crypto.createNonce());
@@ -209,13 +208,11 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         ctx.json(response);
     }
 
-
     /**
      * Checks if a given domain is allowed based on domain name restrictions defined in the ACME provisioner's configuration.
      *
      * @param domain The domain to be checked for permission.
-     * @return True if the domain is allowed based on the configured restrictions or if restrictions are disabled;
-     * otherwise, false.
+     * @return True if the domain is allowed based on the configured restrictions or if restrictions are disabled; otherwise, false.
      */
     private boolean checkIfDomainIsAllowed(final String domain) {
         // Check if domain name restrictions are disabled
@@ -234,5 +231,4 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         return false; // None of the suffixes match, and restrictions are enabled
     }
-
 }

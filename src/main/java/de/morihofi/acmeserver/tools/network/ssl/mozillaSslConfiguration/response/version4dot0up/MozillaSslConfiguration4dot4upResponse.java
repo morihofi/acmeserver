@@ -1,6 +1,5 @@
 package de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.response.version4dot0up;
 
-
 public class MozillaSslConfiguration4dot4upResponse {
     private Configurations configurations;
     private String href;
@@ -18,4 +17,3 @@ public class MozillaSslConfiguration4dot4upResponse {
         return version;
     }
 }
-

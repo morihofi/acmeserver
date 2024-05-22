@@ -9,8 +9,6 @@ import org.passay.PasswordGenerator;
  */
 public class SecurePasswordGenerator {
 
-    private SecurePasswordGenerator(){}
-
     /**
      * Generates a secure random password with a specified length and character requirements.
      *
@@ -33,4 +31,6 @@ public class SecurePasswordGenerator {
         // Return the Passay generated password
         return generator.generatePassword(12, upperCaseRule, lowerCaseRule, digitRule);
     }
+
+    private SecurePasswordGenerator() {}
 }

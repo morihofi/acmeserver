@@ -18,10 +18,10 @@ public class Identifier {
     private String value;
 
     /**
-     * Constructs a new Identifier with specified type and value.
-     * This constructor initializes the Identifier with a specific type (e.g., 'dns') and its corresponding value.
+     * Constructs a new Identifier with specified type and value. This constructor initializes the Identifier with a specific type (e.g.,
+     * 'dns') and its corresponding value.
      *
-     * @param type The type of the identifier (e.g., 'dns').
+     * @param type  The type of the identifier (e.g., 'dns').
      * @param value The value of the identifier (e.g., a DNS name).
      */
     public Identifier(String type, String value) {
@@ -30,15 +30,13 @@ public class Identifier {
     }
 
     /**
-     * Default constructor for Identifier.
-     * Constructs an Identifier with default values for type and value.
+     * Default constructor for Identifier. Constructs an Identifier with default values for type and value.
      */
     public Identifier() {
     }
 
     /**
-     * Retrieves the type of this identifier.
-     * The type usually indicates the category of the identifier (e.g., 'dns' for DNS names).
+     * Retrieves the type of this identifier. The type usually indicates the category of the identifier (e.g., 'dns' for DNS names).
      *
      * @return The type of the identifier as a {@code String}.
      */
@@ -47,8 +45,7 @@ public class Identifier {
     }
 
     /**
-     * Sets the type of this identifier.
-     * This method allows changing the type of the identifier.
+     * Sets the type of this identifier. This method allows changing the type of the identifier.
      *
      * @param type The new type of the identifier as a {@code String}.
      */
@@ -56,13 +53,12 @@ public class Identifier {
         this.type = type;
     }
 
-    public IDENTIFIER_TYPE getTypeAsEnumConstant(){
+    public IDENTIFIER_TYPE getTypeAsEnumConstant() {
         return IDENTIFIER_TYPE.getTypeByName(type.toLowerCase(Locale.ROOT));
     }
 
     /**
-     * Retrieves the value of this identifier.
-     * The value is specific to the type of the identifier (e.g., a DNS name for type 'dns').
+     * Retrieves the value of this identifier. The value is specific to the type of the identifier (e.g., a DNS name for type 'dns').
      *
      * @return The value of the identifier as a {@code String}.
      */
@@ -71,8 +67,7 @@ public class Identifier {
     }
 
     /**
-     * Sets the value of this identifier.
-     * This method allows changing the value of the identifier.
+     * Sets the value of this identifier. This method allows changing the value of the identifier.
      *
      * @param value The new value of the identifier as a {@code String}.
      */
@@ -80,12 +75,11 @@ public class Identifier {
         this.value = value;
     }
 
-
     public enum IDENTIFIER_TYPE {
         DNS, IP;
 
-        public static IDENTIFIER_TYPE getTypeByName(String name){
-            switch (name){
+        public static IDENTIFIER_TYPE getTypeByName(String name) {
+            switch (name) {
                 case "dns" -> {
                     return DNS;
                 }
@@ -96,5 +90,4 @@ public class Identifier {
             }
         }
     }
-
 }

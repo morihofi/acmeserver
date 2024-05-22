@@ -12,6 +12,7 @@ public class ACMEBadCsrException extends ACMEException {
 
     /**
      * Constructs an instance of ACMEBadCsrException with the specified error message.
+     *
      * @param message The error message that describes the exception.
      */
     public ACMEBadCsrException(String message) {
@@ -21,7 +22,7 @@ public class ACMEBadCsrException extends ACMEException {
 
     @Override
     public int getHttpStatusCode() {
-        //TODO: Check if this is the correct code
+        // TODO: Check if this is the correct code
         return 400;
     }
 
@@ -32,5 +33,4 @@ public class ACMEBadCsrException extends ACMEException {
         response.setDetail(message);
         return response;
     }
-
 }

@@ -5,8 +5,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 
 /**
- * Represents configuration for a provisioner, including its name, intermediate certificate, metadata, issued certificate expiration,
- * domain name restrictions, and wildcard allowance.
+ * Represents configuration for a provisioner, including its name, intermediate certificate, metadata, issued certificate expiration, domain
+ * name restrictions, and wildcard allowance.
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ProvisionerConfig implements Serializable {
@@ -18,9 +18,9 @@ public class ProvisionerConfig implements Serializable {
     private boolean wildcardAllowed;
     private boolean ipAllowed;
 
-
     /**
      * Get the name of the provisioner.
+     *
      * @return The provisioner name.
      */
     public String getName() {
@@ -29,6 +29,7 @@ public class ProvisionerConfig implements Serializable {
 
     /**
      * Set the name of the provisioner.
+     *
      * @param name The provisioner name to set.
      */
     public void setName(String name) {
@@ -37,6 +38,7 @@ public class ProvisionerConfig implements Serializable {
 
     /**
      * Get the intermediate certificate for the provisioner.
+     *
      * @return The intermediate certificate.
      */
     public CertificateConfig getIntermediate() {
@@ -45,6 +47,7 @@ public class ProvisionerConfig implements Serializable {
 
     /**
      * Set the intermediate certificate for the provisioner.
+     *
      * @param intermediate The intermediate certificate to set.
      */
     public void setIntermediate(CertificateConfig intermediate) {
@@ -53,6 +56,7 @@ public class ProvisionerConfig implements Serializable {
 
     /**
      * Get the metadata configuration for the provisioner.
+     *
      * @return The metadata configuration.
      */
     public MetadataConfig getMeta() {
@@ -61,6 +65,7 @@ public class ProvisionerConfig implements Serializable {
 
     /**
      * Set the metadata configuration for the provisioner.
+     *
      * @param meta The metadata configuration to set.
      */
     public void setMeta(MetadataConfig meta) {
@@ -69,6 +74,7 @@ public class ProvisionerConfig implements Serializable {
 
     /**
      * Get the expiration information for issued certificates by the provisioner.
+     *
      * @return The expiration information for issued certificates.
      */
     public CertificateExpiration getIssuedCertificateExpiration() {
@@ -77,6 +83,7 @@ public class ProvisionerConfig implements Serializable {
 
     /**
      * Set the expiration information for issued certificates by the provisioner.
+     *
      * @param issuedCertificateExpiration The expiration information to set.
      */
     public void setIssuedCertificateExpiration(CertificateExpiration issuedCertificateExpiration) {
@@ -85,6 +92,7 @@ public class ProvisionerConfig implements Serializable {
 
     /**
      * Get the domain name restriction configuration for the provisioner.
+     *
      * @return The domain name restriction configuration.
      */
     public DomainNameRestrictionConfig getDomainNameRestriction() {
@@ -93,6 +101,7 @@ public class ProvisionerConfig implements Serializable {
 
     /**
      * Set the domain name restriction configuration for the provisioner.
+     *
      * @param domainNameRestriction The domain name restriction configuration to set.
      */
     public void setDomainNameRestriction(DomainNameRestrictionConfig domainNameRestriction) {
@@ -101,6 +110,7 @@ public class ProvisionerConfig implements Serializable {
 
     /**
      * Check if wildcard certificates are allowed for this provisioner.
+     *
      * @return True if wildcard certificates are allowed, false otherwise.
      */
     public boolean isWildcardAllowed() {
@@ -109,6 +119,7 @@ public class ProvisionerConfig implements Serializable {
 
     /**
      * Set whether wildcard certificates are allowed for this provisioner.
+     *
      * @param wildcardAllowed True if wildcard certificates are allowed, false otherwise.
      */
     public void setWildcardAllowed(boolean wildcardAllowed) {

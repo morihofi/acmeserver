@@ -23,20 +23,17 @@ import java.util.List;
 
 public class CertificateRevokationListGenerator {
 
-    private CertificateRevokationListGenerator(){}
-
     /**
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
-     * Generates a Certificate Revocation List (CRL) using the provided list of revoked certificates,
-     * the Certificate Authority (CA) certificate, and the CA's private key. The generated CRL will
-     * include details about the revoked certificates and will be signed using the CA's private key.
+     * Generates a Certificate Revocation List (CRL) using the provided list of revoked certificates, the Certificate Authority (CA)
+     * certificate, and the CA's private key. The generated CRL will include details about the revoked certificates and will be signed using
+     * the CA's private key.
      *
-     * @param revokedCertificates A list of {@link RevokedCertificate} objects representing the certificates
-     *                            that need to be revoked.
+     * @param revokedCertificates A list of {@link RevokedCertificate} objects representing the certificates that need to be revoked.
      * @param caCert              The X509 certificate of the Certificate Authority.
      * @param caPrivateKey        The private key of the Certificate Authority used to sign the CRL.
      * @param updateMinutes       The number of minutes after which the CRL should be updated.
@@ -46,9 +43,8 @@ public class CertificateRevokationListGenerator {
      * @throws OperatorCreationException    if there's an error in creating the content signer.
      */
     public static X509CRL generateCRL(List<RevokedCertificate> revokedCertificates,
-                                      X509Certificate caCert,
-                                      PrivateKey caPrivateKey, int updateMinutes) throws CertificateEncodingException, CRLException, OperatorCreationException {
-
+            X509Certificate caCert,
+            PrivateKey caPrivateKey, int updateMinutes) throws CertificateEncodingException, CRLException, OperatorCreationException {
 
         // Create the CRL Builder
         X509v2CRLBuilder crlBuilder = new X509v2CRLBuilder(
@@ -57,12 +53,12 @@ public class CertificateRevokationListGenerator {
         );
 
         // Add an expiration date
-        crlBuilder.setNextUpdate(new Date(System.currentTimeMillis() + updateMinutes * 60 * 1000L)); //Update in 5 minutes
-
+        crlBuilder.setNextUpdate(new Date(System.currentTimeMillis() + updateMinutes * 60 * 1000L)); // Update in 5 minutes
 
         // Add the revoked serial numbers
         for (RevokedCertificate revokedCertificate : revokedCertificates) {
-            crlBuilder.addCRLEntry(revokedCertificate.getSerialNumber(), revokedCertificate.getRevokationDate(), revokedCertificate.getRevokationReason());
+            crlBuilder.addCRLEntry(revokedCertificate.getSerialNumber(), revokedCertificate.getRevokationDate(),
+                    revokedCertificate.getRevokationReason());
         }
 
         // Sign the CRL with the CA's private key
@@ -76,4 +72,6 @@ public class CertificateRevokationListGenerator {
 
         return converter.getCRL(crlHolder);
     }
+
+    private CertificateRevokationListGenerator() {}
 }

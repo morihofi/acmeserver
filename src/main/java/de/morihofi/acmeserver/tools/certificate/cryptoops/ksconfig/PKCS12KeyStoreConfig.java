@@ -3,9 +3,8 @@ package de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig;
 import java.nio.file.Path;
 
 /**
- * Represents a configuration for a PKCS#12 keystore, which is a file-based keystore typically
- * stored in a .p12 file. This configuration includes the file path and the password required to
- * access the keystore.
+ * Represents a configuration for a PKCS#12 keystore, which is a file-based keystore typically stored in a .p12 file. This configuration
+ * includes the file path and the password required to access the keystore.
  */
 public class PKCS12KeyStoreConfig implements IKeyStoreConfig {
 
@@ -67,4 +66,3 @@ public class PKCS12KeyStoreConfig implements IKeyStoreConfig {
         this.path = path;
     }
 }
-

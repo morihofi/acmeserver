@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.tools.certificate.generator;
 
-import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.tools.certificate.CertMisc;
 import de.morihofi.acmeserver.tools.certificate.X509;
 import org.apache.logging.log4j.LogManager;
@@ -9,7 +9,16 @@ import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.asn1.x509.AccessDescription;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.CRLDistPoint;
+import org.bouncycastle.asn1.x509.DistributionPoint;
+import org.bouncycastle.asn1.x509.DistributionPointName;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -29,9 +38,6 @@ import java.util.Date;
 
 public class ServerCertificateGenerator {
 
-    private ServerCertificateGenerator() {
-    }
-
     /**
      * Logger
      */
@@ -40,12 +46,11 @@ public class ServerCertificateGenerator {
     /**
      * Generates an X509 server certificate using provided parameters and cryptographic elements.
      * <p>
-     * This method creates a virtual Certificate Signing Request (CSR) and uses the provided
-     * intermediate certificate to sign the server certificate. It sets up the certificate with
-     * basic constraints indicating it's not a certificate authority, key usage for digital signature
-     * and key encipherment, subject alternative names based on provided DNS names, CRL Distribution Points,
-     * and Authority Information Access for OCSP. The certificate is then signed using the private key
-     * from the intermediate key pair and the appropriate signature algorithm.</p>
+     * This method creates a virtual Certificate Signing Request (CSR) and uses the provided intermediate certificate to sign the server
+     * certificate. It sets up the certificate with basic constraints indicating it's not a certificate authority, key usage for digital
+     * signature and key encipherment, subject alternative names based on provided DNS names, CRL Distribution Points, and Authority
+     * Information Access for OCSP. The certificate is then signed using the private key from the intermediate key pair and the appropriate
+     * signature algorithm.</p>
      *
      * @param intermediateKeyPair     The key pair for the intermediate certificate authority.
      * @param intermediateCertificate The byte array intermediate certificate.
@@ -56,13 +61,13 @@ public class ServerCertificateGenerator {
      * @throws CertificateException      If there's an error in processing the certificate data.
      * @throws CertIOException           If there's an IO error during certificate generation.
      */
-    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate, byte[] serverPublicKeyBytes, Identifier[] identifiers, Date startDate, Date endDate, Provisioner provisioner) throws OperatorCreationException, CertificateException, CertIOException {
+    public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate,
+            byte[] serverPublicKeyBytes, Identifier[] identifiers, Date startDate, Date endDate, Provisioner provisioner) throws
+            OperatorCreationException, CertificateException, CertIOException {
 
         // Create our virtual "CSR"
         X500Name issuerName = X509.getX500NameFromX509Certificate(intermediateCertificate);
         BigInteger serialNumber = CertMisc.generateSerialNumber();
-
-
 
         X500Name subjectName = new X500Name("CN=" + identifiers[0].getValue());
         X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(
@@ -89,7 +94,6 @@ public class ServerCertificateGenerator {
 
         if (provisioner != null) {
 
-
             // CRL Distribution Points
             GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullCrlUrl());
             DistributionPointName dpn = new DistributionPointName(new GeneralNames(gn));
@@ -102,14 +106,11 @@ public class ServerCertificateGenerator {
                     new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullOcspUrl())
             );
 
-
             ASN1EncodableVector authorityInformationAccessVector = new ASN1EncodableVector();
             authorityInformationAccessVector.add(accessDescription);
             certBuilder.addExtension(
                     Extension.authorityInfoAccess, false, new DERSequence(authorityInformationAccessVector));
-
         }
-
 
         // Signature Algorithm
         String signatureAlgorithm = CertMisc.getSignatureAlgorithmBasedOnKeyType(intermediateKeyPair.getPrivate());
@@ -122,5 +123,6 @@ public class ServerCertificateGenerator {
         return converter.getCertificate(holder);
     }
 
-
+    private ServerCertificateGenerator() {
+    }
 }

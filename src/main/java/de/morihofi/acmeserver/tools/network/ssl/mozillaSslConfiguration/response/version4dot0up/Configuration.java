@@ -30,7 +30,6 @@ public class Configuration {
     @SerializedName("certificate_curves")
     private List<String> certificateCurves;
 
-
     public long getEcdhParamSize() {
         return ecdhParamSize;
     }
@@ -79,4 +78,3 @@ public class Configuration {
         return certificateCurves;
     }
 }
-

@@ -12,6 +12,7 @@ public class ACMERateLimitedException extends ACMEException {
 
     /**
      * Constructs an instance of ACMERateLimitedException with the specified error message.
+     *
      * @param message The error message that describes the exception.
      */
     public ACMERateLimitedException(String message) {
@@ -21,7 +22,7 @@ public class ACMERateLimitedException extends ACMEException {
 
     @Override
     public int getHttpStatusCode() {
-        return 429; //Too many requests
+        return 429; // Too many requests
     }
 
     @Override
@@ -31,5 +32,4 @@ public class ACMERateLimitedException extends ACMEException {
         response.setDetail(message);
         return response;
     }
-
 }

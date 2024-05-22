@@ -4,11 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.config.DatabaseConfig;
-import de.morihofi.acmeserver.config.helper.DatabaseConfigDeserializer;
-import de.morihofi.acmeserver.config.keyStoreHelpers.KeyStoreParams;
 import de.morihofi.acmeserver.config.certificateAlgorithms.AlgorithmParams;
 import de.morihofi.acmeserver.config.helper.AlgorithmParamsDeserializer;
+import de.morihofi.acmeserver.config.helper.DatabaseConfigDeserializer;
 import de.morihofi.acmeserver.config.helper.KeyStoreParamsDeserializer;
+import de.morihofi.acmeserver.config.keyStoreHelpers.KeyStoreParams;
 import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS11KeyStoreParams;
 import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS12KeyStoreParams;
 import de.morihofi.acmeserver.postsetup.PostSetup;
@@ -31,27 +31,40 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.*;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Security;
 import java.security.cert.CertificateException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class Main {
 
     /**
+     * `serverdata` directory as an absolute path
+     */
+    public static final Path FILES_DIR =
+            Paths.get(Objects.requireNonNull(AppDirectoryHelper.getAppDirectory())).resolve("serverdata").toAbsolutePath();
+    public static final Path CONFIG_PATH = FILES_DIR.resolve("settings.json");
+    /**
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-
-    /**
-     * `serverdata` directory as an absolute path
-     */
-    public static final Path FILES_DIR = Paths.get(Objects.requireNonNull(AppDirectoryHelper.getAppDirectory())).resolve("serverdata").toAbsolutePath();
-
+    private static final Set<SERVER_OPTION> serverOptions = new HashSet<>();
+    private static final Gson CONFIG_GSON = new GsonBuilder()
+            .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
+            .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())
+            .registerTypeAdapter(DatabaseConfig.class, new DatabaseConfigDeserializer())
+            .setPrettyPrinting()
+            .create();
     @SuppressFBWarnings({"MS_PKGPROTECT"})
     public static CryptoStoreManager cryptoStoreManager;
-
-    //Build Metadata
+    // Build Metadata
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataVersion;
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
@@ -60,10 +73,17 @@ public class Main {
     public static String buildMetadataGitCommit;
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataGitClosestTagName;
-
     @SuppressFBWarnings({"MS_PKGPROTECT", "MS_CANNOT_BE_FINAL"})
     public static Config appConfig;
-
+    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
+    public static boolean debug = false;
+    @SuppressFBWarnings("MS_PKGPROTECT")
+    public static MODE selectedMode = MODE.NORMAL;
+    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
+    public static long startupTime = 0; // Set after all routes are ready
+    @SuppressFBWarnings("MS_PKGPROTECT")
+    public static String[] runArgs = new String[]{};
+    private static boolean coreComponentsInitialized = false;
 
     public static void restartMain() throws Exception {
         coreComponentsInitialized = false;
@@ -71,41 +91,9 @@ public class Main {
         Main.main(runArgs);
     }
 
-    public enum MODE {
-        NORMAL, POSTSETUP, KEYSTORE_MIGRATION_PEM2KS
-    }
-
-    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
-    public static boolean debug = false;
-
-    @SuppressFBWarnings("MS_PKGPROTECT")
-    public static MODE selectedMode = MODE.NORMAL;
-
-    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
-    public static long startupTime = 0; // Set after all routes are ready
-
-    @SuppressFBWarnings("MS_PKGPROTECT")
-    public static String[] runArgs = new String[]{};
-
-    public enum SERVER_OPTION {
-        /**
-         * Enables the async certificate issuing,
-         * that is currently a buggy in certbot.
-         */
-        USE_ASYNC_CERTIFICATE_ISSUING
-    }
-
-    private static final Set<SERVER_OPTION> serverOptions = new HashSet<>();
-    public static Set<SERVER_OPTION> getServerOptions(){
+    public static Set<SERVER_OPTION> getServerOptions() {
         return Collections.unmodifiableSet(serverOptions);
     }
-    private static final Gson CONFIG_GSON = new GsonBuilder()
-            .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
-            .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())
-            .registerTypeAdapter(DatabaseConfig.class, new DatabaseConfigDeserializer())
-            .setPrettyPrinting()
-            .create();
-    public static final Path CONFIG_PATH = FILES_DIR.resolve("settings.json");
 
     public static void main(String[] args) throws Exception {
         // runArgs are needed to restart the whole server
@@ -116,7 +104,7 @@ public class Main {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
 
-        //Register Bouncy Castle Provider
+        // Register Bouncy Castle Provider
         LOG.info("Register Bouncy Castle Security Provider");
         Security.addProvider(new BouncyCastleProvider());
         LOG.info("Register Bouncy Castle JSSE Security Provider");
@@ -128,8 +116,7 @@ public class Main {
         loadServerConfiguration();
         loadBuildAndGitMetadata();
 
-
-        //Parse CLI Arguments
+        // Parse CLI Arguments
         final String argPrefix = "--";
         final char splitCharacter = '=';
 
@@ -158,17 +145,14 @@ public class Main {
             }
         }
 
-
         if (Objects.equals(System.getenv("DEBUG"), "TRUE")) {
             debug = true;
             LOG.info("Debug mode activated by DEBUG environment variable set to TRUE");
         }
 
-
         if (debug) {
             LOG.warn("!!! RUNNING IN DEBUG MODE - BEHAVIOR CAN BE DIFFERENT. DO NOT USE IN PRODUCTION !!!");
         }
-
 
         switch (selectedMode) {
             case NORMAL -> {
@@ -177,7 +161,7 @@ public class Main {
                 AcmeApiServer.startServer(cryptoStoreManager, appConfig);
             }
             case POSTSETUP -> {
-                //Do not init core components, due to changing passwords in UI
+                // Do not init core components, due to changing passwords in UI
                 LOG.info("Starting Post Setup");
                 PostSetup.run(cryptoStoreManager, appConfig, FILES_DIR, args);
             }
@@ -186,9 +170,7 @@ public class Main {
                 LOG.info("Starting in KeyStore migration Mode (PEM to KeyStore)");
                 KSMigrationTool.run(args, cryptoStoreManager, appConfig, FILES_DIR);
             }
-
         }
-
     }
 
     public static void loadServerConfiguration() throws IOException {
@@ -203,7 +185,6 @@ public class Main {
         LOG.info("Configuration saved");
     }
 
-
     /**
      * Prints a banner with a stylized text art representation.
      */
@@ -217,14 +198,10 @@ public class Main {
                 """);
     }
 
-    private static boolean coreComponentsInitialized = false;
-
-
     /**
-     * Initializes the core components of the application, including database drivers and cryptographic
-     * store management based on the application configuration. This method ensures that essential components
-     * are set up before the application starts its main operations. It is designed to be idempotent, meaning
-     * it will only perform initialization once, even if called multiple times.
+     * Initializes the core components of the application, including database drivers and cryptographic store management based on the
+     * application configuration. This method ensures that essential components are set up before the application starts its main
+     * operations. It is designed to be idempotent, meaning it will only perform initialization once, even if called multiple times.
      *
      * <p>The initialization process involves:</p>
      * <ul>
@@ -250,14 +227,16 @@ public class Main {
      * @throws IllegalAccessException    if there is illegal access to a class or field.
      * @throws NoSuchMethodException     if a method required for initialization is not found.
      */
-    private static void initializeCoreComponents() throws ClassNotFoundException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+    private static void initializeCoreComponents() throws ClassNotFoundException, CertificateException, IOException,
+            NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, InvocationTargetException, InstantiationException,
+            IllegalAccessException, NoSuchMethodException {
         if (coreComponentsInitialized) {
             return;
         }
         LOG.info("Initializing core components...");
 
         {
-            //Initialize KeyStore
+            // Initialize KeyStore
 
             if (appConfig.getKeyStore() instanceof PKCS11KeyStoreParams pkcs11KeyStoreParams) {
 
@@ -297,7 +276,8 @@ public class Main {
             Files.createDirectories(FILES_DIR);
         }
         if (!Files.exists(CONFIG_PATH)) {
-            LOG.fatal("No configuration was found. Please create a file called \"settings.json\" in \"{}\". Then try again", FILES_DIR.toAbsolutePath());
+            LOG.fatal("No configuration was found. Please create a file called \"settings.json\" in \"{}\". Then try again",
+                    FILES_DIR.toAbsolutePath());
             System.exit(1);
         }
     }
@@ -335,7 +315,14 @@ public class Main {
         }
     }
 
+    public enum MODE {
+        NORMAL, POSTSETUP, KEYSTORE_MIGRATION_PEM2KS
+    }
 
-
-
+    public enum SERVER_OPTION {
+        /**
+         * Enables the async certificate issuing, that is currently a buggy in certbot.
+         */
+        USE_ASYNC_CERTIFICATE_ISSUING
+    }
 }

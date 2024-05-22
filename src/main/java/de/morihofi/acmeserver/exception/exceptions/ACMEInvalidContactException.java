@@ -12,6 +12,7 @@ public class ACMEInvalidContactException extends ACMEException {
 
     /**
      * Constructs an instance of ACMEInvalidContactException with the specified error message.
+     *
      * @param message The error message that describes the exception.
      */
     public ACMEInvalidContactException(String message) {
@@ -31,5 +32,4 @@ public class ACMEInvalidContactException extends ACMEException {
         response.setDetail(message);
         return response;
     }
-
 }

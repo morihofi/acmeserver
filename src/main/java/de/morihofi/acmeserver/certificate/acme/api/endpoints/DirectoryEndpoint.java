@@ -12,13 +12,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandles;
 
-
 public class DirectoryEndpoint implements Handler {
-    private final Provisioner provisioner;
     /**
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private final Provisioner provisioner;
 
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public DirectoryEndpoint(Provisioner provisioner) {
@@ -27,6 +26,7 @@ public class DirectoryEndpoint implements Handler {
 
     /**
      * Method for handling the request
+     *
      * @param ctx Javalin Context
      */
     @Override
@@ -56,6 +56,5 @@ public class DirectoryEndpoint implements Handler {
         String jsonResponse = gson.toJson(responseJSON);
 
         ctx.result(jsonResponse);
-
     }
 }

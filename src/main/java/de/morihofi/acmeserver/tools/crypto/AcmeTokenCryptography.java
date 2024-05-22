@@ -14,7 +14,6 @@ public class AcmeTokenCryptography {
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-    private AcmeTokenCryptography(){}
 
     /**
      * Computes a thumbprint of the given public key.
@@ -34,16 +33,15 @@ public class AcmeTokenCryptography {
     /**
      * Computes the key authorization for the given token.
      * <p>
-     * The default is {@code token + '.' + base64url(jwkThumbprint)}. Subclasses may
-     * override this method if a different algorithm is used.
+     * The default is {@code token + '.' + base64url(jwkThumbprint)}. Subclasses may override this method if a different algorithm is used.
      *
      * @param token Token to be used
-     * @param pk Public Key to be used
+     * @param pk    Public Key to be used
      * @return Key Authorization string for that token
      */
     public static String keyAuthorizationFor(String token, PublicKey pk) {
         return token + '.' + Base64Tools.base64UrlEncode(thumbprint(pk));
     }
 
-
+    private AcmeTokenCryptography() {}
 }

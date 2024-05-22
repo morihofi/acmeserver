@@ -12,6 +12,7 @@ public class ACMEBadSignatureAlgorithmException extends ACMEException {
 
     /**
      * Constructs an instance of ACMEBadSignatureAlgorithmException with the specified error message.
+     *
      * @param message The error message that describes the exception.
      */
     public ACMEBadSignatureAlgorithmException(String message) {
@@ -31,5 +32,4 @@ public class ACMEBadSignatureAlgorithmException extends ACMEException {
         response.setDetail(message);
         return response;
     }
-
 }

@@ -1,8 +1,8 @@
 package de.morihofi.acmeserver.postsetup.inputcheck;
 
 /**
- * A utility class for checking the validity of port number input strings.
- * It implements the {@link InputChecker} functional interface to provide custom input validation.
+ * A utility class for checking the validity of port number input strings. It implements the {@link InputChecker} functional interface to
+ * provide custom input validation.
  */
 public class PortInputChecker implements InputChecker {
 

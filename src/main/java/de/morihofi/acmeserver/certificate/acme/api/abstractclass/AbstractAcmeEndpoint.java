@@ -1,22 +1,15 @@
 package de.morihofi.acmeserver.certificate.acme.api.abstractclass;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
 
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public abstract class AbstractAcmeEndpoint implements Handler {
@@ -39,7 +32,6 @@ public abstract class AbstractAcmeEndpoint implements Handler {
     public Provisioner getProvisioner() {
         return provisioner;
     }
-    
 
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
@@ -56,7 +48,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
         NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
     }
 
-    public void performSignatureAndNonceCheck(Context ctx, ACMEAccount account, ACMERequestBody acmeRequestBody) throws NoSuchAlgorithmException, SignatureException, IOException, InvalidKeySpecException, InvalidKeyException, NoSuchProviderException {
+    public void performSignatureAndNonceCheck(Context ctx, ACMEAccount account, ACMERequestBody acmeRequestBody) {
         performSignatureAndNonceCheck(ctx, account.getAccountId(), acmeRequestBody);
     }
 }

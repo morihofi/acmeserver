@@ -36,7 +36,8 @@ public class HttpNonces {
 
     /**
      * Constructs a new nonce with the given nonce string and timestamp.
-     * @param nonce The nonce string.
+     *
+     * @param nonce     The nonce string.
      * @param timestamp The timestamp when the nonce was generated.
      */
     public HttpNonces(String nonce, LocalDateTime timestamp) {
@@ -46,6 +47,7 @@ public class HttpNonces {
 
     /**
      * Get the nonce string.
+     *
      * @return The nonce string.
      */
     public String getNonce() {
@@ -54,6 +56,7 @@ public class HttpNonces {
 
     /**
      * Set the nonce string.
+     *
      * @param nonce The nonce string to set.
      */
     public void setNonce(String nonce) {
@@ -62,6 +65,7 @@ public class HttpNonces {
 
     /**
      * Get the timestamp when the nonce was generated.
+     *
      * @return The timestamp.
      */
     public LocalDateTime getTimestamp() {
@@ -70,6 +74,7 @@ public class HttpNonces {
 
     /**
      * Set the timestamp when the nonce was generated.
+     *
      * @param timestamp The timestamp to set.
      */
     public void setTimestamp(LocalDateTime timestamp) {

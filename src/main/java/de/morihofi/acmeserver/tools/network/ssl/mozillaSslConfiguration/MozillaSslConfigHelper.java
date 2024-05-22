@@ -12,7 +12,11 @@ import okhttp3.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
@@ -26,9 +30,6 @@ public class MozillaSslConfigHelper {
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     private static final OkHttpClient okHttpClient = new OkHttpClient();
     private static final Gson mozillaSslGson = new Gson();
-    public enum CONFIGURATION {
-        MODERN, INTERMEDIATE, OLD
-    }
 
     public static BasicConfiguration getLatestConfigurationGuidelines(CONFIGURATION configuration) throws IOException {
         return getConfigurationGuidelinesForVersion("latest", configuration);
@@ -38,7 +39,7 @@ public class MozillaSslConfigHelper {
 
         String guideLineJson = null;
 
-        //Look in resources, if not found then ask online
+        // Look in resources, if not found then ask online
         {
 
             InputStream is = null;
@@ -86,33 +87,38 @@ public class MozillaSslConfigHelper {
             }
         }
 
-        //Analyze the format
+        // Analyze the format
         JsonObject jsonObject = JsonParser.parseString(guideLineJson).getAsJsonObject();
         String versionFromJson = jsonObject.get("version").getAsString();
-        if(versionFromJson.equals("4.0") || versionFromJson.equals("5.0")){
-            //Old format
+        if (versionFromJson.equals("4.0") || versionFromJson.equals("5.0")) {
+            // Old format
 
-            MozillaSslConfiguration4dot4upResponse response = mozillaSslGson.fromJson(guideLineJson, MozillaSslConfiguration4dot4upResponse.class);
+            MozillaSslConfiguration4dot4upResponse response =
+                    mozillaSslGson.fromJson(guideLineJson, MozillaSslConfiguration4dot4upResponse.class);
 
-            de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.response.version4dot0up.Configuration mozConfig = switch (configuration){
-                case MODERN -> response.getConfigurations().getModern();
-                case INTERMEDIATE -> response.getConfigurations().getIntermediate();
-                case OLD -> response.getConfigurations().getOld();
-            };
+            de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.response.version4dot0up.Configuration mozConfig =
+                    switch (configuration) {
+                        case MODERN -> response.getConfigurations().getModern();
+                        case INTERMEDIATE -> response.getConfigurations().getIntermediate();
+                        case OLD -> response.getConfigurations().getOld();
+                    };
 
             Set<String> ciphers = new HashSet<>(mozConfig.getCiphersuites());
             Set<String> protocols = new HashSet<>(mozConfig.getTlsVersions());
 
-            return new BasicConfiguration(response.getVersion(), response.getHref(), ciphers, protocols, mozConfig.getHstsMinAge(), mozConfig.getOldestClients());
-        }else{
-            //New format
+            return new BasicConfiguration(response.getVersion(), response.getHref(), ciphers, protocols, mozConfig.getHstsMinAge(),
+                    mozConfig.getOldestClients());
+        } else {
+            // New format
 
-            MozillaSslConfiguration5dot1upResponse response = mozillaSslGson.fromJson(guideLineJson, MozillaSslConfiguration5dot1upResponse.class);
-            de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.response.version5dot1up.Configuration mozConfig =  switch (configuration){
-                case MODERN -> response.getConfigurations().getModern();
-                case INTERMEDIATE -> response.getConfigurations().getIntermediate();
-                case OLD -> response.getConfigurations().getOld();
-            };
+            MozillaSslConfiguration5dot1upResponse response =
+                    mozillaSslGson.fromJson(guideLineJson, MozillaSslConfiguration5dot1upResponse.class);
+            de.morihofi.acmeserver.tools.network.ssl.mozillaSslConfiguration.response.version5dot1up.Configuration mozConfig =
+                    switch (configuration) {
+                        case MODERN -> response.getConfigurations().getModern();
+                        case INTERMEDIATE -> response.getConfigurations().getIntermediate();
+                        case OLD -> response.getConfigurations().getOld();
+                    };
 
             // Set Cipher Suites and Protokolls based on Mozilla's recommendations
             // We need to concatenate this into a single list, otherwise TLS 1.3 won't work
@@ -123,14 +129,16 @@ public class MozillaSslConfigHelper {
 
             Set<String> protocols = new HashSet<>(mozConfig.getTlsVersions());
 
-            return new BasicConfiguration(response.getVersion(), response.getHref(), ciphers, protocols, mozConfig.getHstsMinAge(), mozConfig.getOldestClients());
+            return new BasicConfiguration(response.getVersion(), response.getHref(), ciphers, protocols, mozConfig.getHstsMinAge(),
+                    mozConfig.getOldestClients());
         }
-
-
-
     }
 
+    public enum CONFIGURATION {
+        MODERN, INTERMEDIATE, OLD
+    }
 
-    public record BasicConfiguration(double version, String href, Set<String> ciphers, Set<String> protocols, long hstsMinAge, List<String> oldestClients ) {
+    public record BasicConfiguration(double version, String href, Set<String> ciphers, Set<String> protocols, long hstsMinAge,
+            List<String> oldestClients) {
     }
 }

@@ -23,28 +23,26 @@ import java.util.concurrent.TimeUnit;
 public class CertificateRenewManager {
     private static final int period = 6;
     private static final TimeUnit timeUnit = TimeUnit.HOURS;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private static final int RENEWAL_THRESHOLD_DAYS = 7; // Tage vor Ablauf, an denen das Zertifikat erneuert werden soll
-
-    private final CryptoStoreManager cryptoStoreManager;
-
-    private final Map<String, RenewEntry> renewMap = Collections.synchronizedMap(new HashMap<>());
-
     /**
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final CryptoStoreManager cryptoStoreManager;
+    private final Map<String, RenewEntry> renewMap = Collections.synchronizedMap(new HashMap<>());
 
     public CertificateRenewManager(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
     }
 
-
-    public void registerNewCertificateRenewWatcher(String alias, Provisioner provisioner, TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction) {
+    public void registerNewCertificateRenewWatcher(String alias, Provisioner provisioner,
+            TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction) {
         registerNewCertificateRenewWatcher(alias, provisioner, regenerationFunction, null);
     }
 
-    public void registerNewCertificateRenewWatcher(String alias, Provisioner provisioner, TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction, Runnable triggerAfterRegeneration) {
+    public void registerNewCertificateRenewWatcher(String alias, Provisioner provisioner,
+            TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction, Runnable triggerAfterRegeneration) {
 
         if (renewMap.containsKey(alias)) {
             throw new IllegalArgumentException("An watcher was already registered for keystore alias " + alias);
@@ -59,7 +57,6 @@ public class CertificateRenewManager {
         scheduler.scheduleAtFixedRate(this::schedule, 0, period, timeUnit);
     }
 
-
     /**
      * Determines if the certificate should be renewed based on the configured threshold.
      *
@@ -73,10 +70,9 @@ public class CertificateRenewManager {
         return daysUntilExpiry <= RENEWAL_THRESHOLD_DAYS;
     }
 
-
     /**
-     * Checks if the certificate needs to be renewed based on the configured threshold.
-     * If renewal is needed, the provided runnable is executed.
+     * Checks if the certificate needs to be renewed based on the configured threshold. If renewal is needed, the provided runnable is
+     * executed.
      */
     @SuppressFBWarnings("WMI_WRONG_MAP_ITERATOR")
     private void schedule() {
@@ -99,7 +95,8 @@ public class CertificateRenewManager {
                     LOG.info("Certificate for alias {} needs to be renewed, renewing now ...", alias);
 
                     // Now we call the user defined function to renew the certificate
-                    CertificateData newCertificateData = function.apply(provisioner, certificateFromKeyStore, KeyStoreUtil.getKeyPair(alias, keyStore));
+                    CertificateData newCertificateData =
+                            function.apply(provisioner, certificateFromKeyStore, KeyStoreUtil.getKeyPair(alias, keyStore));
 
                     if (newCertificateData.certificateChain() == null || newCertificateData.keyPair() == null) {
                         LOG.warn("Certificate for alias {} hasn't saved, because returned certificate chain or keypair is null", alias);
@@ -107,7 +104,7 @@ public class CertificateRenewManager {
                     }
 
                     LOG.info("Saving certificate and key for alias {} in keystore", alias);
-                    //Save the new certificate in keystore
+                    // Save the new certificate in keystore
                     keyStore.deleteEntry(alias);
                     keyStore.setKeyEntry(
                             alias,
@@ -117,21 +114,18 @@ public class CertificateRenewManager {
                     );
                     cryptoStoreManager.saveKeystore();
 
-                    if(renewEntry.triggerAfterRegeneration != null){
+                    if (renewEntry.triggerAfterRegeneration != null) {
                         LOG.info("Running post configuration runnable");
                         renewEntry.triggerAfterRegeneration.run();
                     }
-
-                }else{
-                    LOG.info("Certificate for alias {} doesn't need to be renewed -> NotAfter date {} is more than {} days in the future", alias, certificateFromKeyStore.getNotAfter(), RENEWAL_THRESHOLD_DAYS);
+                } else {
+                    LOG.info("Certificate for alias {} doesn't need to be renewed -> NotAfter date {} is more than {} days in the future",
+                            alias, certificateFromKeyStore.getNotAfter(), RENEWAL_THRESHOLD_DAYS);
                 }
             } catch (Exception ex) {
                 LOG.error("Error renewing certificate", ex);
             }
-
         }
-
-
     }
 
     /**
@@ -144,7 +138,7 @@ public class CertificateRenewManager {
     }
 
     private record RenewEntry(Provisioner provisioner,
-                              TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> renewFunction, Runnable triggerAfterRegeneration) {
+            TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> renewFunction, Runnable triggerAfterRegeneration) {
     }
 
     @SuppressFBWarnings("EI_EXPOSE_REP")

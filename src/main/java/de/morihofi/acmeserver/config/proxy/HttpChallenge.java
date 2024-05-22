@@ -21,6 +21,7 @@ public class HttpChallenge implements Serializable {
 
     /**
      * Get the port for the HTTP challenge.
+     *
      * @return The port.
      */
     public Integer getPort() {
@@ -29,6 +30,7 @@ public class HttpChallenge implements Serializable {
 
     /**
      * Set the port for the HTTP challenge.
+     *
      * @param port The port to set.
      */
     public void setPort(Integer port) {
@@ -37,6 +39,7 @@ public class HttpChallenge implements Serializable {
 
     /**
      * Get the host for the HTTP challenge.
+     *
      * @return The host.
      */
     public String getHost() {
@@ -45,6 +48,7 @@ public class HttpChallenge implements Serializable {
 
     /**
      * Set the host for the HTTP challenge.
+     *
      * @param host The host to set.
      */
     public void setHost(String host) {
@@ -53,6 +57,7 @@ public class HttpChallenge implements Serializable {
 
     /**
      * Get the type of the HTTP challenge.
+     *
      * @return The type.
      */
     public String getType() {
@@ -61,6 +66,7 @@ public class HttpChallenge implements Serializable {
 
     /**
      * Set the type of the HTTP challenge.
+     *
      * @param type The type to set.
      */
     public void setType(String type) {
@@ -69,6 +75,7 @@ public class HttpChallenge implements Serializable {
 
     /**
      * Check if the HTTP challenge is enabled.
+     *
      * @return True if enabled, false otherwise.
      */
     public Boolean getEnabled() {
@@ -77,6 +84,7 @@ public class HttpChallenge implements Serializable {
 
     /**
      * Set the enabled status of the HTTP challenge.
+     *
      * @param enabled The enabled status to set.
      */
     public void setEnabled(Boolean enabled) {
@@ -85,6 +93,7 @@ public class HttpChallenge implements Serializable {
 
     /**
      * Get the authentication information for the HTTP challenge.
+     *
      * @return The authentication information.
      */
     public Authentication getAuthentication() {
@@ -93,6 +102,7 @@ public class HttpChallenge implements Serializable {
 
     /**
      * Set the authentication information for the HTTP challenge.
+     *
      * @param authentication The authentication information to set.
      */
     public void setAuthentication(Authentication authentication) {
@@ -109,6 +119,7 @@ public class HttpChallenge implements Serializable {
 
         /**
          * Get the password for authentication.
+         *
          * @return The password.
          */
         public String getPassword() {
@@ -117,6 +128,7 @@ public class HttpChallenge implements Serializable {
 
         /**
          * Set the password for authentication.
+         *
          * @param password The password to set.
          */
         public void setPassword(String password) {
@@ -125,6 +137,7 @@ public class HttpChallenge implements Serializable {
 
         /**
          * Check if authentication is enabled.
+         *
          * @return True if enabled, false otherwise.
          */
         public boolean isEnabled() {
@@ -133,6 +146,7 @@ public class HttpChallenge implements Serializable {
 
         /**
          * Set the enabled status for authentication.
+         *
          * @param enabled The enabled status to set.
          */
         public void setEnabled(boolean enabled) {
@@ -141,6 +155,7 @@ public class HttpChallenge implements Serializable {
 
         /**
          * Set the enabled status for authentication.
+         *
          * @param enabled The enabled status to set.
          */
         public void setEnabled(Boolean enabled) {
@@ -149,6 +164,7 @@ public class HttpChallenge implements Serializable {
 
         /**
          * Get the username for authentication.
+         *
          * @return The username.
          */
         public String getUsername() {
@@ -157,6 +173,7 @@ public class HttpChallenge implements Serializable {
 
         /**
          * Set the username for authentication.
+         *
          * @param username The username to set.
          */
         public void setUsername(String username) {

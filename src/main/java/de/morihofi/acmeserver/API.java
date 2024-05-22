@@ -18,7 +18,6 @@ public class API {
         app.get("/ca.der", new DownloadCaDerEndpoint(cryptoStoreManager));
         app.get("/ca.cab", new DownloadCaCabEndpoint(cryptoStoreManager));
 
-
         app.get("/api/stats/provisioners/certificates-issued", new ApiStatsProvisionerCertificatesIssued());
     }
 }

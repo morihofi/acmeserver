@@ -47,6 +47,4 @@ public class CertMisc {
         }
         return signatureAlgorithm;
     }
-
-
 }

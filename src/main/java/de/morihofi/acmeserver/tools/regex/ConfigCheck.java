@@ -1,12 +1,10 @@
 package de.morihofi.acmeserver.tools.regex;
 
 /**
- * Utility class for configuration-related checks and validations.
- * This class provides methods to perform various checks on configuration parameters.
+ * Utility class for configuration-related checks and validations. This class provides methods to perform various checks on configuration
+ * parameters.
  */
 public class ConfigCheck {
-
-    private ConfigCheck(){}
 
     /**
      * Validates a provisioner name to ensure it meets certain criteria.
@@ -21,5 +19,5 @@ public class ConfigCheck {
         return provisionerName.matches("^[a-z0-9_-]+$") && provisionerName.length() <= 255;
     }
 
-
+    private ConfigCheck() {}
 }

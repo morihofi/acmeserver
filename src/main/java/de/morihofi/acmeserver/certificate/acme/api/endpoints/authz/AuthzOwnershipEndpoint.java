@@ -1,13 +1,13 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.authz;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.AuthzResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects.ChallengeResponse;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.challenges.AcmeChallengeType;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
@@ -34,6 +34,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+
     /**
      * @param provisioner Provisioner instance
      */
@@ -60,14 +61,11 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         // Check signature and nonce
         performSignatureAndNonceCheck(ctx, identifier.getOrder().getAccount(), acmeRequestBody);
 
-
         boolean isWildcardDomain = identifier.getDataValue().startsWith("*.");
         String nonWildcardDomain = identifier.getDataValue();
         if (isWildcardDomain) {
             nonWildcardDomain = nonWildcardDomain.substring(2); // Remove wildcard part for validation
         }
-
-
 
         Identifier idObj = new Identifier();
         idObj.setType(identifier.getType());
@@ -75,61 +73,57 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
         List<ACMEOrderIdentifierChallenge> acmeChallenges = new ArrayList<>();
 
+        if (!identifier.isHasChallengesGenerated()) {
+            // Challenges were not generated, so let's do that
 
-       if(!identifier.isHasChallengesGenerated()){
-           //Challenges were not generated, so let's do that
+            if (idObj.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.DNS) {
+                // HTTP-01 Challenge only for non-wildcard domains
+                if (!isWildcardDomain) {
+                    acmeChallenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier));
 
-           if (idObj.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.DNS) {
-               // HTTP-01 Challenge only for non-wildcard domains
-               if (!isWildcardDomain) {
-                   acmeChallenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier));
+                    // This is just a placeholder for the currently unsupported TLS-ALPN Challenge
+                    // challenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
 
-                   //This is just a placeholder for the currently unsupported TLS-ALPN Challenge
-                   //challenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
+                }
 
-               }
+                // DNS-01 Challenge
+                acmeChallenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.DNS_01, identifier));
+            } else if (idObj.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.IP) {
+                // HTTP-01 Challenge is the only allowed for IP addresses
+                acmeChallenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier));
 
-               // DNS-01 Challenge
-               acmeChallenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.DNS_01, identifier));
-           } else if (idObj.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.IP) {
-               // HTTP-01 Challenge is the only allowed for IP addresses
-               acmeChallenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier));
+                // This is just a placeholder for the currently unsupported TLS-ALPN Challenge
+                // challenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
+            }
 
-               //This is just a placeholder for the currently unsupported TLS-ALPN Challenge
-               //challenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
-           }
+            // Save in database
+            try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+                Transaction transaction = session.beginTransaction();
 
+                for (ACMEOrderIdentifierChallenge challenge : acmeChallenges) {
+                    session.persist(challenge);
+                }
 
-           //Save in database
-           try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-               Transaction transaction = session.beginTransaction();
+                identifier.setHasChallengesGenerated(true); // to prevent infinite challenge generation
+                session.merge(identifier);
 
-               for (ACMEOrderIdentifierChallenge challenge : acmeChallenges){
-                   session.persist(challenge);
-               }
-
-               identifier.setHasChallengesGenerated(true); //to prevent infinite challenge generation
-               session.merge(identifier);
-
-               transaction.commit();
-           } catch (Exception e) {
-               LOG.error("Unable to persist ACME Identifier Challenges for authorization id {} (for account {})", authorizationId, identifier.getOrder().getAccount().getAccountId(), e);
-               throw new ACMEServerInternalException("Unable to create new ACME Order");
-           }
-
-       }else {
-           //Challenges were already generated, so load these instead to generate response
-           acmeChallenges.addAll(identifier.getChallenges());
-       }
-
+                transaction.commit();
+            } catch (Exception e) {
+                LOG.error("Unable to persist ACME Identifier Challenges for authorization id {} (for account {})", authorizationId,
+                        identifier.getOrder().getAccount().getAccountId(), e);
+                throw new ACMEServerInternalException("Unable to create new ACME Order");
+            }
+        } else {
+            // Challenges were already generated, so load these instead to generate response
+            acmeChallenges.addAll(identifier.getChallenges());
+        }
 
         List<ChallengeResponse> challengeResponses = new ArrayList<>();
 
-        for (ACMEOrderIdentifierChallenge acmeChallenge : acmeChallenges){
-            //Add to response
+        for (ACMEOrderIdentifierChallenge acmeChallenge : acmeChallenges) {
+            // Add to response
             challengeResponses.add(createChallengeResponse(acmeChallenge.getChallengeType(), acmeChallenge));
         }
-
 
         AuthzResponse response = new AuthzResponse();
         response.setStatus(identifier.getChallengeStatus().getRfcName());
@@ -140,27 +134,25 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         ctx.json(response);
     }
 
-
     /**
      * Creates a challenge object of the specified type for the given ACME identifier.
      *
-     * @param type       The type of challenge to create.
+     * @param type                The type of challenge to create.
      * @param identifierChallenge The ACME identifier for which the challenge is created.
      * @return A challenge object with the specified type, URL, token, and status if verified.
      */
     private ChallengeResponse createChallengeResponse(AcmeChallengeType type, ACMEOrderIdentifierChallenge identifierChallenge) {
         ChallengeResponse challengeResponse = new ChallengeResponse();
         challengeResponse.setType(type.getName());
-        challengeResponse.setUrl(getProvisioner().getApiURL() + "/acme/chall/" + identifierChallenge.getChallengeId() + "/" + type.getName());
+        challengeResponse.setUrl(
+                getProvisioner().getApiURL() + "/acme/chall/" + identifierChallenge.getChallengeId() + "/" + type.getName());
         challengeResponse.setToken(identifierChallenge.getAuthorizationToken());
         if (identifierChallenge.getStatus() == AcmeStatus.VALID) {
             challengeResponse.setStatus(AcmeStatus.VALID.getRfcName());
             challengeResponse.setValidated(DateTools.formatDateForACME(identifierChallenge.getVerifiedTime()));
-        }else {
+        } else {
             challengeResponse.setStatus(identifierChallenge.getStatus().getRfcName());
         }
         return challengeResponse;
     }
-
-
 }

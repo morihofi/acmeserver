@@ -3,9 +3,8 @@ package de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig;
 import java.nio.file.Path;
 
 /**
- * Represents a configuration for a PKCS#11 keystore, which is a hardware security module (HSM)
- * based keystore. This configuration includes information such as the library path, slot, and PIN
- * required to access the HSM.
+ * Represents a configuration for a PKCS#11 keystore, which is a hardware security module (HSM) based keystore. This configuration includes
+ * information such as the library path, slot, and PIN required to access the HSM.
  */
 public class PKCS11KeyStoreConfig implements IKeyStoreConfig {
 

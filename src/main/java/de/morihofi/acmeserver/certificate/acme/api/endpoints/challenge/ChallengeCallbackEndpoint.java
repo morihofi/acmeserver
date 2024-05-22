@@ -1,13 +1,13 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.challenge.objects.ACMEChallengeResponse;
 import de.morihofi.acmeserver.certificate.acme.challenges.ChallengeResult;
 import de.morihofi.acmeserver.certificate.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.certificate.acme.challenges.HTTPChallenge;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
 import de.morihofi.acmeserver.exception.exceptions.ACMEConnectionErrorException;
@@ -30,7 +30,6 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
-
     /**
      * Constructs a NewNonce handler with the specified ACME provisioner.
      *
@@ -43,7 +42,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String challengeId = ctx.pathParam("challengeId");
-        String challengeType = ctx.pathParam("challengeType"); //dns-01 or http-01
+        String challengeType = ctx.pathParam("challengeType"); // dns-01 or http-01
 
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", Crypto.createNonce());
@@ -69,9 +68,10 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
 
         ChallengeResult result = switch (challengeType) {
             case "http-01" ->
-                    HTTPChallenge.check(identifierChallenge.getAuthorizationToken(), identifierChallenge.getIdentifier().getDataValue(), identifierChallenge.getIdentifier().getOrder().getAccount());
-            case "dns-01" ->
-                    DNSChallenge.check(identifierChallenge.getAuthorizationToken(), nonWildcardDomain, identifierChallenge.getIdentifier().getOrder().getAccount());
+                    HTTPChallenge.check(identifierChallenge.getAuthorizationToken(), identifierChallenge.getIdentifier().getDataValue(),
+                            identifierChallenge.getIdentifier().getOrder().getAccount());
+            case "dns-01" -> DNSChallenge.check(identifierChallenge.getAuthorizationToken(), nonWildcardDomain,
+                    identifierChallenge.getIdentifier().getOrder().getAccount());
             default -> {
                 LOG.error("Unsupported challenge type: " + challengeType);
                 throw new ACMEConnectionErrorException("Unsupported challenge type: " + challengeType);
@@ -86,7 +86,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
             LOG.error("Throwing API error: Host verification failed with method {}", challengeType);
             throw new ACMEConnectionErrorException(result.getErrorReason());
             // TODO: Fail challenge in database
-            //Database.failChallenge(challengeId);
+            // Database.failChallenge(challengeId);
         }
 
         // Reload identifier, e.g., host has validated
@@ -105,7 +105,8 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         response.setToken(identifierChallenge.getAuthorizationToken());
 
         // "Up"-Link header is required for certbot
-        ctx.header("Link", "<" + provisioner.getApiURL() + "/acme/authz/" + identifierChallenge.getIdentifier().getAuthorizationId() + ">;rel=\"up\"");
+        ctx.header("Link",
+                "<" + provisioner.getApiURL() + "/acme/authz/" + identifierChallenge.getIdentifier().getAuthorizationId() + ">;rel=\"up\"");
         ctx.json(response);
     }
 }

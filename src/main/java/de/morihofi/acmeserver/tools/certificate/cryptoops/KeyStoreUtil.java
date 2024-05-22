@@ -9,13 +9,20 @@ import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.*;
+import java.security.Key;
+import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 
 /**
- * A class handling KeyStore operations.
- * Original source <a href="https://github.com/gerritjvv/engsectools/blob/master/pkcs11/src/main/java/engsec/KeyStoreUtil.java">GitHub gerritjvv/engsectools</a> and modified some methods.
+ * A class handling KeyStore operations. Original source <a
+ * href="https://github.com/gerritjvv/engsectools/blob/master/pkcs11/src/main/java/engsec/KeyStoreUtil.java">GitHub
+ * gerritjvv/engsectools</a> and modified some methods.
  */
 public class KeyStoreUtil {
 
@@ -31,15 +38,16 @@ public class KeyStoreUtil {
      * @param path The path where the KeyStore will be saved.
      * @param pwd  The password for the KeyStore.
      */
-    public static void saveKeyStore(KeyStore ks, String path, char[] pwd) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+    public static void saveKeyStore(KeyStore ks, String path, char[] pwd) throws CertificateException, KeyStoreException, IOException,
+            NoSuchAlgorithmException {
 
-            if (ks.getType().equals("PKCS11")) {
-                ks.store(null, pwd);
-            } else {
-                try (OutputStream out = Files.newOutputStream(Paths.get(path))) {
-                    ks.store(out, pwd);
-                }
+        if (ks.getType().equals("PKCS11")) {
+            ks.store(null, pwd);
+        } else {
+            try (OutputStream out = Files.newOutputStream(Paths.get(path))) {
+                ks.store(out, pwd);
             }
+        }
     }
 
     /**
@@ -49,20 +57,20 @@ public class KeyStoreUtil {
      * @param pwd  The password for the KeyStore.
      * @return The loaded KeyStore.
      */
-    public static KeyStore loadKeyStore(String path, char[] pwd) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
+    public static KeyStore loadKeyStore(String path, char[] pwd) throws KeyStoreException, IOException, CertificateException,
+            NoSuchAlgorithmException {
 
-            KeyStore keyStore = KeyStore.getInstance(path == null ? "PKCS11" : inferTypeFromFile(path));
+        KeyStore keyStore = KeyStore.getInstance(path == null ? "PKCS11" : inferTypeFromFile(path));
 
-            if (path == null) {
-                keyStore.load(null, pwd);
-            } else {
-                try (InputStream in = Files.newInputStream(Paths.get(path))) {
-                    keyStore.load(in, pwd);
-                }
+        if (path == null) {
+            keyStore.load(null, pwd);
+        } else {
+            try (InputStream in = Files.newInputStream(Paths.get(path))) {
+                keyStore.load(in, pwd);
             }
+        }
 
-            return keyStore;
-
+        return keyStore;
     }
 
     /**
@@ -80,7 +88,6 @@ public class KeyStoreUtil {
             throw new RuntimeException("Alias " + srcAlias + " does not exist in src");
 
         dest.setCertificateEntry(destAlias, crt);
-
     }
 
     /**
@@ -92,12 +99,12 @@ public class KeyStoreUtil {
      * @param destAlias The alias for the key in the destination KeyStore.
      * @param pwd       The password for the key in the source KeyStore.
      */
-    public static void transferKey(KeyStore src, String srcAlias, KeyStore dest, String destAlias, char[] pwd) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+    public static void transferKey(KeyStore src, String srcAlias, KeyStore dest, String destAlias, char[] pwd) throws
+            UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         Key key;
 
         if ((key = src.getKey(srcAlias, pwd)) == null)
             throw new RuntimeException("Alias " + srcAlias + " does not exist in src");
-
 
         dest.setKeyEntry(destAlias, key, pwd, src.getCertificateChain(srcAlias));
     }
@@ -112,7 +119,8 @@ public class KeyStoreUtil {
      * @throws UnrecoverableKeyException If the key is unrecoverable.
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
-    public static KeyPair getKeyPair(String alias, KeyStore keyStore) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+    public static KeyPair getKeyPair(String alias, KeyStore keyStore) throws KeyStoreException, UnrecoverableKeyException,
+            NoSuchAlgorithmException {
         if (!keyStore.containsAlias(alias)) {
             throw new IllegalArgumentException("Alias " + alias + " does not exist in KeyStore");
         }
@@ -137,7 +145,6 @@ public class KeyStoreUtil {
         else
             throw new IllegalArgumentException("Cannot infer keystore type from file name, please used either .p12, .jks, or .keystore");
     }
-
 
     /**
      * A functional interface for a supplier that may throw a checked exception.

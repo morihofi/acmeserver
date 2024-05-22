@@ -25,44 +25,43 @@ public class HTTPAccessLogger {
 
     private final BlockingQueue<String> logQueue = new LinkedBlockingQueue<>();
     private final Thread logWriterThread;
-    private volatile boolean running = true;
     private final Path logFileDirectory;
-
     private final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private volatile boolean running = true;
 
     public HTTPAccessLogger(Config appConfig) throws IOException {
 
         String loggingDirectory = appConfig.getServer().getLoggingDirectory();
 
-       if(loggingDirectory != null){
-           // Configure paths
-           logFileDirectory = Paths.get(loggingDirectory);
+        if (loggingDirectory != null) {
+            // Configure paths
+            logFileDirectory = Paths.get(loggingDirectory);
 
-           if(!Files.exists(logFileDirectory) && !Files.isDirectory(logFileDirectory)){
-               LOG.info("HTTP Access Log directory does not exist, creating it for you");
-               Files.createDirectories(logFileDirectory);
-           }
+            if (!Files.exists(logFileDirectory) && !Files.isDirectory(logFileDirectory)) {
+                LOG.info("HTTP Access Log directory does not exist, creating it for you");
+                Files.createDirectories(logFileDirectory);
+            }
 
-           logWriterThread = new Thread(this::writeLogs);
-           logWriterThread.setName("HTTP Access Background Logger");
-           logWriterThread.start();
+            logWriterThread = new Thread(this::writeLogs);
+            logWriterThread.setName("HTTP Access Background Logger");
+            logWriterThread.start();
 
-           // Add shutdown hook
-           Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-               LOG.info("Shutting down HTTP Access Logger ...");
-               this.stop();
-           }));
-       }else {
-           LOG.info("HTTP Access Logger deactivated, because no logging directory was set");
-           logFileDirectory = null;
-           logWriterThread = new Thread(() -> {
-               throw new IllegalArgumentException("HTTP Log writing is deactivated");
-           });
-
-       }
+            // Add shutdown hook
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                LOG.info("Shutting down HTTP Access Logger ...");
+                this.stop();
+            }));
+        } else {
+            LOG.info("HTTP Access Logger deactivated, because no logging directory was set");
+            logFileDirectory = null;
+            logWriterThread = new Thread(() -> {
+                throw new IllegalArgumentException("HTTP Log writing is deactivated");
+            });
+        }
     }
 
-    public void log(String remoteAddr, String remoteUser, String request, int status, int bodyBytesSent, String httpReferer, String httpUserAgent) {
+    public void log(String remoteAddr, String remoteUser, String request, int status, int bodyBytesSent, String httpReferer,
+            String httpUserAgent) {
         String timeLocal = DATE_FORMAT.format(new Date());
         String logEntry = String.format(
                 LOG_FORMAT,
@@ -127,7 +126,8 @@ public class HTTPAccessLogger {
         String httpReferer = ctx.header("Referer") != null ? ctx.header("Referer") : "-";
         String httpUserAgent = ctx.userAgent() != null ? ctx.userAgent() : "-";
 
-        String logEntry = String.format(LOG_FORMAT, remoteAddr, remoteUser, timeLocal, request, status, bodyBytesSent, httpReferer, httpUserAgent);
+        String logEntry =
+                String.format(LOG_FORMAT, remoteAddr, remoteUser, timeLocal, request, status, bodyBytesSent, httpReferer, httpUserAgent);
         logQueue.offer(logEntry);
     }
 }

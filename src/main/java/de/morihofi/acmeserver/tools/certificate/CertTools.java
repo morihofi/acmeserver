@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.*;
+import java.security.KeyPair;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
@@ -21,8 +21,6 @@ public class CertTools {
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-
-    private CertTools(){}
 
     /**
      * Reads a certificate file in PEM format, converts it to X.509 format, and returns the certificate bytes.
@@ -54,16 +52,13 @@ public class CertTools {
         }
     }
 
-
     /**
-     * Checks the validity of a given X.509 certificate as of the current date and time.
-     * This method uses the {@code checkValidity} method of {@link X509Certificate} to determine
-     * whether the certificate is currently valid. The validity check is based on the certificate's
+     * Checks the validity of a given X.509 certificate as of the current date and time. This method uses the {@code checkValidity} method
+     * of {@link X509Certificate} to determine whether the certificate is currently valid. The validity check is based on the certificate's
      * notBefore and notAfter dates.
      *
      * @param certificate the X.509 certificate to be checked for validity.
-     * @return {@code true} if the certificate is currently valid; {@code false} if it is expired
-     * or not yet valid as of the current date.
+     * @return {@code true} if the certificate is currently valid; {@code false} if it is expired or not yet valid as of the current date.
      */
     public static boolean isCertificateValid(X509Certificate certificate) {
         try {
@@ -73,5 +68,6 @@ public class CertTools {
             return false;
         }
     }
-}
 
+    private CertTools() {}
+}

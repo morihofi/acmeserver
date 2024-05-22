@@ -11,16 +11,15 @@ import org.jetbrains.annotations.NotNull;
 public class ApiStatsProvisionerCertificatesIssued implements Handler {
 
     private final static Gson gson = new Gson();
+
     @Override
     public void handle(@NotNull Context context) {
         context.contentType("application/json");
 
         String provisionerName = context.queryParam("provisioner");
 
-        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             context.result(gson.toJson(ProvisionerStatistics.getCertificatesIssuedPerDay(session, provisionerName)));
         }
-
     }
-
 }

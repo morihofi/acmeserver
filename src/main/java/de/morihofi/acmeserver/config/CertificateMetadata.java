@@ -13,6 +13,7 @@ public class CertificateMetadata implements Serializable {
 
     /**
      * Get the common name for the certificate metadata.
+     *
      * @return The common name.
      */
     public String getCommonName() {
@@ -21,6 +22,7 @@ public class CertificateMetadata implements Serializable {
 
     /**
      * Set the common name for the certificate metadata.
+     *
      * @param commonName The common name to set.
      */
     public void setCommonName(String commonName) {
@@ -29,6 +31,7 @@ public class CertificateMetadata implements Serializable {
 
     /**
      * Get the organization for the certificate metadata.
+     *
      * @return The organization.
      */
     public String getOrganisation() {
@@ -37,6 +40,7 @@ public class CertificateMetadata implements Serializable {
 
     /**
      * Set the organization for the certificate metadata.
+     *
      * @param organisation The organization to set.
      */
     public void setOrganisation(String organisation) {
@@ -45,6 +49,7 @@ public class CertificateMetadata implements Serializable {
 
     /**
      * Get the organizational unit for the certificate metadata.
+     *
      * @return The organizational unit.
      */
     public String getOrganisationalUnit() {
@@ -53,6 +58,7 @@ public class CertificateMetadata implements Serializable {
 
     /**
      * Set the organizational unit for the certificate metadata.
+     *
      * @param organisationalUnit The organizational unit to set.
      */
     public void setOrganisationalUnit(String organisationalUnit) {
@@ -61,6 +67,7 @@ public class CertificateMetadata implements Serializable {
 
     /**
      * Get the country code for the certificate metadata.
+     *
      * @return The country code.
      */
     public String getCountryCode() {
@@ -69,6 +76,7 @@ public class CertificateMetadata implements Serializable {
 
     /**
      * Set the country code for the certificate metadata.
+     *
      * @param countryCode The country code to set.
      */
     public void setCountryCode(String countryCode) {

@@ -6,12 +6,10 @@ import java.net.URISyntaxException;
 import java.nio.file.Paths;
 
 /**
- * Helper class for retrieving application directory and JAR file path.
- * This class provides methods to obtain the application's directory and JAR file path.
+ * Helper class for retrieving application directory and JAR file path. This class provides methods to obtain the application's directory
+ * and JAR file path.
  */
 public class AppDirectoryHelper {
-
-    private AppDirectoryHelper(){}
 
     /**
      * Gets the application directory where the application is located.
@@ -39,4 +37,6 @@ public class AppDirectoryHelper {
             return null;
         }
     }
+
+    private AppDirectoryHelper() {}
 }

@@ -18,7 +18,6 @@ import java.util.Objects;
 
 public class NonceManager {
 
-
     /**
      * Logger
      */
@@ -37,7 +36,6 @@ public class NonceManager {
         if (isNonceUsed(nonce)) {
             throw new ACMEBadNonceException("Nonce already used");
         }
-
     }
 
     /**
@@ -48,8 +46,8 @@ public class NonceManager {
      */
     public static boolean isNonceUsed(String nonce) {
 
-        if(Main.debug){
-            //Nonce protection is disabled when DEBUG environment variable is set to TRUE
+        if (Main.debug) {
+            // Nonce protection is disabled when DEBUG environment variable is set to TRUE
             return false;
         }
 
@@ -78,5 +76,4 @@ public class NonceManager {
             return false;
         }
     }
-
 }

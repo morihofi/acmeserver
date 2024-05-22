@@ -11,6 +11,7 @@ public class Ports implements Serializable {
 
     /**
      * Get the HTTP port number.
+     *
      * @return The HTTP port number.
      */
     public int getHttp() {
@@ -19,6 +20,7 @@ public class Ports implements Serializable {
 
     /**
      * Set the HTTP port number.
+     *
      * @param http The HTTP port number to set.
      */
     public void setHttp(int http) {
@@ -27,6 +29,7 @@ public class Ports implements Serializable {
 
     /**
      * Get the HTTPS port number.
+     *
      * @return The HTTPS port number.
      */
     public int getHttps() {
@@ -35,6 +38,7 @@ public class Ports implements Serializable {
 
     /**
      * Set the HTTPS port number.
+     *
      * @param https The HTTPS port number to set.
      */
     public void setHttps(int https) {

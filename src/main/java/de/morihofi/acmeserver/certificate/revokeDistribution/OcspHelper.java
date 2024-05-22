@@ -8,7 +8,14 @@ import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
-import org.bouncycastle.cert.ocsp.*;
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.BasicOCSPRespBuilder;
+import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.cert.ocsp.OCSPRespBuilder;
+import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
@@ -19,36 +26,39 @@ import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.*;
+import java.security.cert.CRLException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509CRL;
+import java.security.cert.X509CRLEntry;
+import java.security.cert.X509Certificate;
 import java.util.Date;
 
 public class OcspHelper {
 
     private static final Logger LOG = LogManager.getLogger(OcspHelper.class);
 
-
     /**
-     * Processes an OCSP (Online Certificate Status Protocol) request for a given certificate serial number.
-     * This method checks the status of the certificate using the current Certificate Revocation List (CRL)
-     * and generates an OCSP response accordingly.
+     * Processes an OCSP (Online Certificate Status Protocol) request for a given certificate serial number. This method checks the status
+     * of the certificate using the current Certificate Revocation List (CRL) and generates an OCSP response accordingly.
      *
      * @param serialNumber The serial number of the certificate for which the OCSP response is requested.
      * @param crlGenerator CRL Generator Instance
-     * @param provisioner Provisioner Instance
+     * @param provisioner  Provisioner Instance
      * @return An OCSPResp object representing the OCSP response for the given certificate.
-     * @throws OCSPException if there is an issue with OCSP processing.
-     * @throws CRLException if there is an issue with CRL processing.
+     * @throws OCSPException                if there is an issue with OCSP processing.
+     * @throws CRLException                 if there is an issue with CRL processing.
      * @throws CertificateEncodingException if there is an issue with encoding certificates.
-     * @throws OperatorCreationException if there is an issue with operator creation.
+     * @throws OperatorCreationException    if there is an issue with operator creation.
      */
-    public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRLGenerator crlGenerator, Provisioner provisioner) throws OCSPException, CRLException, CertificateEncodingException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+    public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRLGenerator crlGenerator, Provisioner provisioner) throws
+            OCSPException, CRLException, CertificateEncodingException, OperatorCreationException, KeyStoreException,
+            UnrecoverableKeyException, NoSuchAlgorithmException {
         CertificateStatus certStatus = getCertificateStatus(serialNumber, crlGenerator);
 
         LOG.info("Status for serial number {} is: {}", serialNumber, (certStatus != null ? "revoked" : "valid"));
 
         X509Certificate caCert = provisioner.getIntermediateCaCertificate();
         KeyPair caKeyPair = provisioner.getIntermediateCaKeyPair();
-
 
         // Creating the OCSP response
         SubjectPublicKeyInfo caPublicKeyInfo = SubjectPublicKeyInfo.getInstance(caCert.getPublicKey().getEncoded());
@@ -59,7 +69,9 @@ public class OcspHelper {
                 new JcaX509CertificateHolder(caCert), serialNumber), certStatus);
 
         // Creating and signing the OCSP response
-        BasicOCSPResp basicResp = respBuilder.build(new JcaContentSignerBuilder(CertMisc.getSignatureAlgorithmBasedOnKeyType(caKeyPair.getPrivate())).build(caKeyPair.getPrivate()),
+        BasicOCSPResp basicResp = respBuilder.build(
+                new JcaContentSignerBuilder(CertMisc.getSignatureAlgorithmBasedOnKeyType(caKeyPair.getPrivate())).build(
+                        caKeyPair.getPrivate()),
                 new X509CertificateHolder[]{new JcaX509CertificateHolder(caCert)},
                 new Date());
 
@@ -67,20 +79,20 @@ public class OcspHelper {
     }
 
     /**
-     * Determines the status of a certificate by its serial number, using a provided Certificate Revocation List (CRL).
-     * This method checks if the specified certificate has been revoked according to the current CRL provided by the
-     * {@code crlGenerator}. If the certificate is found in the CRL, it is considered revoked, and the method returns a
-     * {@link RevokedStatus} instance containing the revocation date and reason. If the certificate is not found in the CRL,
-     * it is considered valid, and the method returns {@link CertificateStatus#GOOD}.
+     * Determines the status of a certificate by its serial number, using a provided Certificate Revocation List (CRL). This method checks
+     * if the specified certificate has been revoked according to the current CRL provided by the {@code crlGenerator}. If the certificate
+     * is found in the CRL, it is considered revoked, and the method returns a {@link RevokedStatus} instance containing the revocation date
+     * and reason. If the certificate is not found in the CRL, it is considered valid, and the method returns
+     * {@link CertificateStatus#GOOD}.
      * <p>
-     * The method uses the {@code serialNumber} to look up the certificate in the CRL. The revocation reason is determined
-     * by checking if the revoked certificate entry has extensions; if so, it uses the ordinal of the {@link CRLReason} enum
-     * value. If there are no extensions, the reason defaults to {@code CRLReason.unspecified}.
+     * The method uses the {@code serialNumber} to look up the certificate in the CRL. The revocation reason is determined by checking if
+     * the revoked certificate entry has extensions; if so, it uses the ordinal of the {@link CRLReason} enum value. If there are no
+     * extensions, the reason defaults to {@code CRLReason.unspecified}.
      *
      * @param serialNumber The serial number of the certificate to check the status for.
      * @param crlGenerator The CRL generator instance used to obtain the current CRL.
-     * @return A {@link CertificateStatus} indicating whether the certificate is valid or revoked. If revoked, additional
-     *         details such as the revocation date and reason are provided.
+     * @return A {@link CertificateStatus} indicating whether the certificate is valid or revoked. If revoked, additional details such as
+     * the revocation date and reason are provided.
      * @throws CRLException If there is an issue obtaining the current CRL from the {@code crlGenerator}.
      */
     private static CertificateStatus getCertificateStatus(BigInteger serialNumber, CRLGenerator crlGenerator) throws CRLException {
@@ -92,7 +104,8 @@ public class OcspHelper {
         if (revokedCertificate != null) {
             // Certificate has been revoked
             Date revocationDate = revokedCertificate.getRevocationDate();
-            int revocationReason = revokedCertificate.hasExtensions() ? revokedCertificate.getRevocationReason().ordinal() : CRLReason.unspecified;
+            int revocationReason =
+                    revokedCertificate.hasExtensions() ? revokedCertificate.getRevocationReason().ordinal() : CRLReason.unspecified;
             certStatus = new RevokedStatus(revocationDate, revocationReason);
         } else {
             // Certificate is valid

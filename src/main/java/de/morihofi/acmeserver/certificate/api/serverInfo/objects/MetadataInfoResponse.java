@@ -4,9 +4,8 @@ import com.google.gson.annotations.SerializedName;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
- * Represents the metadata information response structure.
- * This class encapsulates details such as version, build time, Git commit identifier,
- * Java version, and operating system information.
+ * Represents the metadata information response structure. This class encapsulates details such as version, build time, Git commit
+ * identifier, Java version, and operating system information.
  */
 @SuppressFBWarnings("EI_EXPOSE_REP")
 public class MetadataInfoResponse {
@@ -39,10 +38,6 @@ public class MetadataInfoResponse {
     @SerializedName("update")
     private UpdateResponse update;
 
-    public void setJvmUptime(long jvmUptime) {
-        this.jvmUptime = jvmUptime;
-    }
-
     public long getStartupTime() {
         return startupTime;
     }
@@ -53,6 +48,10 @@ public class MetadataInfoResponse {
 
     public long getJvmUptime() {
         return jvmUptime;
+    }
+
+    public void setJvmUptime(long jvmUptime) {
+        this.jvmUptime = jvmUptime;
     }
 
     public long getJvmStartTime() {
@@ -75,17 +74,16 @@ public class MetadataInfoResponse {
         return httpsPort;
     }
 
+    public void setHttpsPort(int httpsPort) {
+        this.httpsPort = httpsPort;
+    }
+
     public UpdateResponse getUpdate() {
         return update;
     }
 
-
     public void setUpdate(UpdateResponse update) {
         this.update = update;
-    }
-
-    public void setHttpsPort(int httpsPort) {
-        this.httpsPort = httpsPort;
     }
 
     /**
@@ -125,8 +123,8 @@ public class MetadataInfoResponse {
     }
 
     /**
-     * Retrieves the Git commit identifier of the build.
-     * This identifier represents the specific commit in the Git repository that the build is based on.
+     * Retrieves the Git commit identifier of the build. This identifier represents the specific commit in the Git repository that the build
+     * is based on.
      *
      * @return The Git commit identifier as a {@code String}.
      */
@@ -135,8 +133,8 @@ public class MetadataInfoResponse {
     }
 
     /**
-     * Sets the Git commit identifier of the build.
-     * This method allows specifying the Git commit identifier that the build should represent.
+     * Sets the Git commit identifier of the build. This method allows specifying the Git commit identifier that the build should
+     * represent.
      *
      * @param gitCommit The Git commit identifier as a {@code String}.
      */
@@ -145,8 +143,8 @@ public class MetadataInfoResponse {
     }
 
     /**
-     * Retrieves the Java version used in the build.
-     * This version indicates the Java runtime environment version that the application is built upon.
+     * Retrieves the Java version used in the build. This version indicates the Java runtime environment version that the application is
+     * built upon.
      *
      * @return The Java version as a {@code String}.
      */
@@ -155,8 +153,8 @@ public class MetadataInfoResponse {
     }
 
     /**
-     * Sets the Java version used in the build.
-     * This method allows specifying the Java version that the application should be associated with.
+     * Sets the Java version used in the build. This method allows specifying the Java version that the application should be associated
+     * with.
      *
      * @param javaVersion The Java version as a {@code String}.
      */
@@ -165,8 +163,8 @@ public class MetadataInfoResponse {
     }
 
     /**
-     * Retrieves the operating system information on which the build is running.
-     * This information includes the name and version of the operating system.
+     * Retrieves the operating system information on which the build is running. This information includes the name and version of the
+     * operating system.
      *
      * @return The operating system information as a {@code String}.
      */
@@ -175,14 +173,12 @@ public class MetadataInfoResponse {
     }
 
     /**
-     * Sets the operating system information for the build.
-     * This method allows specifying the operating system on which the build is intended to run.
+     * Sets the operating system information for the build. This method allows specifying the operating system on which the build is
+     * intended to run.
      *
      * @param operatingSystem The operating system information as a {@code String}.
      */
     public void setOperatingSystem(String operatingSystem) {
         this.operatingSystem = operatingSystem;
     }
-
 }
-

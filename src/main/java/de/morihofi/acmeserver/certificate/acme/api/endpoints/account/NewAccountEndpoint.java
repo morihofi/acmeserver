@@ -3,13 +3,13 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.account;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.AccountResponse;
-import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
+import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
+import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
@@ -38,7 +38,6 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-
 
     public NewAccountEndpoint(Provisioner provisioner) {
         super(provisioner);
@@ -78,7 +77,6 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         // Extract the "jwk" JsonObject as a string
         String jwkString = decodedProtectedJsonObject.getAsJsonObject("jwk").toString();
 
-
         PublicJsonWebKey publicJsonWebKey;
         try {
             publicJsonWebKey = (PublicJsonWebKey) JsonWebKey.Factory.newJwk(jwkString);
@@ -105,7 +103,6 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEServerInternalException(e.getMessage());
         }
 
-
         // Construct response
         String nonce = Crypto.createNonce();
         ctx.header("Content-Type", "application/json");
@@ -120,6 +117,4 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
         ctx.json(response);
     }
-
-
 }

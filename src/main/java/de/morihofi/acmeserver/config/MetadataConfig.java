@@ -11,6 +11,7 @@ public class MetadataConfig implements Serializable {
 
     /**
      * Get the URL of the system's website.
+     *
      * @return The website URL.
      */
     public String getWebsite() {
@@ -19,6 +20,7 @@ public class MetadataConfig implements Serializable {
 
     /**
      * Set the URL of the system's website.
+     *
      * @param website The website URL to set.
      */
     public void setWebsite(String website) {
@@ -27,6 +29,7 @@ public class MetadataConfig implements Serializable {
 
     /**
      * Get the terms of service (TOS) information for the system.
+     *
      * @return The TOS information.
      */
     public String getTos() {
@@ -35,6 +38,7 @@ public class MetadataConfig implements Serializable {
 
     /**
      * Set the terms of service (TOS) information for the system.
+     *
      * @param tos The TOS information to set.
      */
     public void setTos(String tos) {

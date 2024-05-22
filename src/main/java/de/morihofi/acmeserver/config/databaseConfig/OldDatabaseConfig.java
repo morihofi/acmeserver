@@ -10,6 +10,7 @@ public class OldDatabaseConfig extends DatabaseConfig {
 
     /**
      * Get the database engine type.
+     *
      * @return The database engine.
      */
     public String getEngine() {
@@ -18,6 +19,7 @@ public class OldDatabaseConfig extends DatabaseConfig {
 
     /**
      * Set the database engine type.
+     *
      * @param engine The database engine to set.
      */
     public void setEngine(String engine) {
@@ -26,6 +28,7 @@ public class OldDatabaseConfig extends DatabaseConfig {
 
     /**
      * Get the host address of the database server.
+     *
      * @return The database host address.
      */
     public String getHost() {
@@ -34,6 +37,7 @@ public class OldDatabaseConfig extends DatabaseConfig {
 
     /**
      * Set the host address of the database server.
+     *
      * @param host The database host address to set.
      */
     public void setHost(String host) {
@@ -42,6 +46,7 @@ public class OldDatabaseConfig extends DatabaseConfig {
 
     /**
      * Get the name of the database.
+     *
      * @return The database name.
      */
     public String getName() {
@@ -50,6 +55,7 @@ public class OldDatabaseConfig extends DatabaseConfig {
 
     /**
      * Set the name of the database.
+     *
      * @param name The database name to set.
      */
     public void setName(String name) {

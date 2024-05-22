@@ -37,20 +37,6 @@ import java.util.regex.Pattern;
 // @formatter:on
 public class JavaVersion implements Comparable<Object> {
 
-
-    private final String javaVersion;
-
-    private final int major;
-    private final int minor;
-    private final int security;
-
-    private static final String VERSION_NUMBER_REGEXP = "([0-9]+(?:\\.[0-9]*)*)";
-    private static final String REST_REGEXP = "(?:[_\\-\\.\\+a-zA-Z0-9]*)";
-    private static final String VERSION_FORMAT = "^" + VERSION_NUMBER_REGEXP + REST_REGEXP + "$";
-    private static final Pattern VERSION_STRING_PATTERN = Pattern.compile(VERSION_FORMAT);
-
-    private static JavaVersion jreVersion;
-
     public static final JavaVersion JRE_VERSION_130 = new JavaVersion("1.3.0");
     public static final JavaVersion JRE_VERSION_140 = new JavaVersion("1.4.0");
     public static final JavaVersion JRE_VERSION_150 = new JavaVersion("1.5.0");
@@ -72,6 +58,31 @@ public class JavaVersion implements Comparable<Object> {
     public static final JavaVersion JRE_VERSION_21 = new JavaVersion("21");
     public static final JavaVersion JRE_VERSION_22 = new JavaVersion("22");
     public static final JavaVersion JRE_VERSION_23 = new JavaVersion("23");
+    private static final String VERSION_NUMBER_REGEXP = "([0-9]+(?:\\.[0-9]*)*)";
+    private static final String REST_REGEXP = "(?:[_\\-\\.\\+a-zA-Z0-9]*)";
+    private static final String VERSION_FORMAT = "^" + VERSION_NUMBER_REGEXP + REST_REGEXP + "$";
+    private static final Pattern VERSION_STRING_PATTERN = Pattern.compile(VERSION_FORMAT);
+    private static JavaVersion jreVersion;
+
+    /**
+     * Get the current JRE version.
+     *
+     * @return The JRE version.
+     * @throws VersionException If JRE's version is not parseable
+     */
+    public static JavaVersion getJreVersion() {
+        if (jreVersion == null) {
+            String jreVersionProp = System.getProperty("java.version");
+
+            jreVersion = new JavaVersion(jreVersionProp);
+        }
+
+        return jreVersion;
+    }
+    private final String javaVersion;
+    private final int major;
+    private final int minor;
+    private final int security;
 
     /**
      * Construct a JavaVersion object for the current Java environment.
@@ -133,22 +144,6 @@ public class JavaVersion implements Comparable<Object> {
     }
 
     /**
-     * Get the current JRE version.
-     *
-     * @return The JRE version.
-     * @throws VersionException If JRE's version is not parseable
-     */
-    public static JavaVersion getJreVersion() {
-        if (jreVersion == null) {
-            String jreVersionProp = System.getProperty("java.version");
-
-            jreVersion = new JavaVersion(jreVersionProp);
-        }
-
-        return jreVersion;
-    }
-
-    /**
      * Compares version of the current JRE with the passed version.
      *
      * @param javaVersion Java version to compare to.
@@ -204,7 +199,6 @@ public class JavaVersion implements Comparable<Object> {
         }
 
         return compareTo(object) == 0;
-
     }
 
     @Override

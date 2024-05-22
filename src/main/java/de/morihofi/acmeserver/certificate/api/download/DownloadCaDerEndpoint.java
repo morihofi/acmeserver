@@ -10,12 +10,12 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.invoke.MethodHandles;
 
 public class DownloadCaDerEndpoint implements Handler {
-    private final CryptoStoreManager cryptoStoreManager;
-
     /**
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private final CryptoStoreManager cryptoStoreManager;
+
     public DownloadCaDerEndpoint(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
     }

@@ -7,8 +7,8 @@ import org.apache.logging.log4j.Logger;
 import java.lang.invoke.MethodHandles;
 
 /**
- * Represents a command-line argument that may have a prefix, a parameter name, and an optional value.
- * For example, in the argument "-port=8080", the prefix is "-", the parameter name is "port", and the value is "8080".
+ * Represents a command-line argument that may have a prefix, a parameter name, and an optional value. For example, in the argument
+ * "-port=8080", the prefix is "-", the parameter name is "port", and the value is "8080".
  */
 public class CLIArgument {
 
@@ -52,8 +52,6 @@ public class CLIArgument {
             parameterName = argument.substring(prefix.length());
             value = null;
         }
-
-
     }
 
     /**
@@ -76,6 +74,7 @@ public class CLIArgument {
 
     /**
      * Get the prefix
+     *
      * @return command prefix
      */
     public String getPrefix() {

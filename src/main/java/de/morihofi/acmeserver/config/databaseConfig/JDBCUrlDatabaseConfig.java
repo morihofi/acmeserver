@@ -4,7 +4,8 @@ import de.morihofi.acmeserver.config.DatabaseConfig;
 
 public class JDBCUrlDatabaseConfig extends DatabaseConfig {
     private String jdbcUrl;
-        public String getJdbcUrl() {
+
+    public String getJdbcUrl() {
         return jdbcUrl;
     }
 

@@ -3,7 +3,22 @@ package de.morihofi.acmeserver.postsetup;
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.BasicWindow;
+import com.googlecode.lanterna.gui2.Borders;
+import com.googlecode.lanterna.gui2.Button;
+import com.googlecode.lanterna.gui2.ComboBox;
+import com.googlecode.lanterna.gui2.Component;
+import com.googlecode.lanterna.gui2.ComponentRenderer;
+import com.googlecode.lanterna.gui2.Direction;
+import com.googlecode.lanterna.gui2.EmptySpace;
+import com.googlecode.lanterna.gui2.GridLayout;
+import com.googlecode.lanterna.gui2.Label;
+import com.googlecode.lanterna.gui2.LinearLayout;
+import com.googlecode.lanterna.gui2.Panel;
+import com.googlecode.lanterna.gui2.TextBox;
+import com.googlecode.lanterna.gui2.TextGUIGraphics;
+import com.googlecode.lanterna.gui2.Window;
+import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.config.Config;
@@ -25,15 +40,11 @@ import java.util.EnumSet;
 import java.util.List;
 
 /**
- * The PostSetup class represents the post-setup configuration assistant for the ACME server.
- * It allows users to configure server settings.
+ * The PostSetup class represents the post-setup configuration assistant for the ACME server. It allows users to configure server settings.
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2"})
 public class PostSetup extends WindowBase {
 
-    private final CryptoStoreManager cryptoStoreManager;
-    private final Config appConfig;
-    private final Path filesDir;
     private static final Logger LOG = LogManager.getLogger(PostSetup.class);
 
     /**
@@ -43,13 +54,22 @@ public class PostSetup extends WindowBase {
      * @param appConfig          The application configuration.
      * @param filesDir           The directory where configuration files are stored.
      * @param args               The command-line arguments passed to the application.
-     * @throws IOException        If an I/O error occurs.
+     * @throws IOException          If an I/O error occurs.
      * @throws InterruptedException If the operation is interrupted.
      */
-    public static void run(CryptoStoreManager cryptoStoreManager, Config appConfig, Path filesDir, String[] args) throws IOException, InterruptedException {
+    public static void run(CryptoStoreManager cryptoStoreManager, Config appConfig, Path filesDir, String[] args) throws IOException,
+            InterruptedException {
         new PostSetup(cryptoStoreManager, appConfig, filesDir).run(args);
     }
-
+    private final CryptoStoreManager cryptoStoreManager;
+    private final Config appConfig;
+    private final Path filesDir;
+    private final TextBox fqdnTextBox = new TextBox();
+    private final TextBox httpPortTextBox = new TextBox();
+    private final TextBox httpsPortTextBox = new TextBox();
+    private String fqdn = "";
+    private int portHttp;
+    private int portHttps;
 
     /**
      * Creates a new instance of the PostSetup class.
@@ -64,20 +84,14 @@ public class PostSetup extends WindowBase {
         this.filesDir = filesDir;
     }
 
-
-    private String fqdn = "";
-    private int portHttp;
-    private int portHttps;
-
     /**
-     * Initializes the PostSetup configuration assistant and sets up the initial values for FQDN, HTTP port,
-     * HTTPS port, and background appearance.
+     * Initializes the PostSetup configuration assistant and sets up the initial values for FQDN, HTTP port, HTTPS port, and background
+     * appearance.
      *
      * @param textGUI The WindowBasedTextGUI for displaying the user interface.
      */
     @Override
     public void init(WindowBasedTextGUI textGUI) {
-
 
         try {
             fqdn = NetworkHelper.getLocalFqdn();
@@ -89,14 +103,12 @@ public class PostSetup extends WindowBase {
         portHttp = appConfig.getServer().getPorts().getHttp();
         portHttps = appConfig.getServer().getPorts().getHttps();
 
-        //Set background
+        // Set background
         prepareBackground(textGUI);
-
     }
 
     /**
-     * Creates and returns a panel for configuring HTTP and HTTPS ports, including input fields for
-     * HTTP and HTTPS port numbers.
+     * Creates and returns a panel for configuring HTTP and HTTPS ports, including input fields for HTTP and HTTPS port numbers.
      *
      * @return A panel containing input fields for HTTP and HTTPS port configuration.
      */
@@ -135,16 +147,14 @@ public class PostSetup extends WindowBase {
                 .withBorder(Borders.singleLine())
         );
 
-
         keyStorePanel.addComponent(topPanel);
 
         return keyStorePanel.withBorder(Borders.doubleLine("KeyStore"));
     }
 
-
     /**
-     * Creates and returns a panel for entering the Fully Qualified Domain Name (FQDN) or DNS name of the server.
-     * This is essential for certificate generation.
+     * Creates and returns a panel for entering the Fully Qualified Domain Name (FQDN) or DNS name of the server. This is essential for
+     * certificate generation.
      *
      * @return A panel with an input field for setting the server's FQDN or DNS name.
      */
@@ -155,28 +165,26 @@ public class PostSetup extends WindowBase {
         Panel topPanel = new Panel();
         topPanel.setLayoutManager(new LinearLayout(Direction.VERTICAL)); // Setzt das Layout für topPanel
 
-        Label label = new Label("Enter the FQDN or DNS Name of this server.\nThis is important, as this is written into certificates. \nFor example \"acme.example.com\" or \"acmeserver\"");
+        Label label = new Label(
+                "Enter the FQDN or DNS Name of this server.\nThis is important, as this is written into certificates. \nFor example "
+                        + "\"acme.example.com\" or \"acmeserver\"");
         topPanel.addComponent(label);
 
         // Erstellen eines TextBox-Elements, das die gesamte verfügbare Breite einnimmt
-        fqdnTextBox.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill)); // Setzt die TextBox so, dass sie den verfügbaren Platz ausfüllt
+        fqdnTextBox.setLayoutData(LinearLayout.createLayoutData(
+                LinearLayout.Alignment.Fill)); // Setzt die TextBox so, dass sie den verfügbaren Platz ausfüllt
         topPanel.addComponent(fqdnTextBox);
 
         fqdnBoxPanel.addComponent(topPanel);
         return fqdnBoxPanel.withBorder(Borders.doubleLine("FQDN/DNS Name Setup"));
     }
 
-    private final TextBox fqdnTextBox = new TextBox();
-    private final TextBox httpPortTextBox = new TextBox();
-    private final TextBox httpsPortTextBox = new TextBox();
-
-
     /**
      * Overrides the method from the parent class to handle the GUI setup after the GUI thread has started.
      *
      * @param textGUI The WindowBasedTextGUI instance used for GUI interactions.
      * @throws InterruptedException If the thread is interrupted while waiting.
-     * @throws IOException        If an I/O error occurs.
+     * @throws IOException          If an I/O error occurs.
      */
     @Override
     public void afterGUIThreadStarted(WindowBasedTextGUI textGUI) throws InterruptedException, IOException {
@@ -185,7 +193,6 @@ public class PostSetup extends WindowBase {
         fqdnTextBox.setText(fqdn);
         httpPortTextBox.setText(String.valueOf(portHttp));
         httpsPortTextBox.setText(String.valueOf(portHttps));
-
 
         final BasicWindow dialogWindow = new BasicWindow();
         dialogWindow.setHints(List.of(Window.Hint.CENTERED));
@@ -212,26 +219,27 @@ public class PostSetup extends WindowBase {
             InputChecker portChecker = new PortInputChecker();
 
             if (!fqdnChecker.isValid(fqdnTextBox.getText())) {
-                //Input is invalid
+                // Input is invalid
                 MessageDialog.showMessageDialog(textGUI, "[ ! ] Invalid FQDN", "The FQDN you have entered is invalid.");
                 return;
             }
             if (!portChecker.isValid(httpPortTextBox.getText())) {
-                //Input is invalid
+                // Input is invalid
                 MessageDialog.showMessageDialog(textGUI, "[ ! ] Invalid HTTP Port", "The insecure HTTP port you have entered is invalid.");
                 return;
             }
             if (!portChecker.isValid(httpsPortTextBox.getText())) {
-                //Input is invalid
+                // Input is invalid
                 MessageDialog.showMessageDialog(textGUI, "[ ! ] Invalid HTTPS Port", "The secure HTTPS port you have entered is invalid.");
                 return;
             }
 
-            MessageDialog.showMessageDialog(textGUI, "[ i ] Configuration complete", "Basic configuration completed successfully.\nIf you want (recommended) you can edit \"settings.json\" in the \"serverdata\" folder");
+            MessageDialog.showMessageDialog(textGUI, "[ i ] Configuration complete",
+                    "Basic configuration completed successfully.\nIf you want (recommended) you can edit \"settings.json\" in the "
+                            + "\"serverdata\" folder");
 
             dialogWindow.close();
         }));
-
 
         buttonPanel.setLayoutData(GridLayout.createLayoutData(
                 GridLayout.Alignment.END, GridLayout.Alignment.CENTER, false, false));
@@ -240,16 +248,16 @@ public class PostSetup extends WindowBase {
         dialogWindow.setComponent(dialogMain);
         textGUI.addWindowAndWait(dialogWindow);
 
-        //User has set/changed configuration, now applying variables
+        // User has set/changed configuration, now applying variables
 
-        //FQDN
+        // FQDN
         appConfig.getServer().setDnsName(fqdnTextBox.getText());
 
-        //Network Ports
+        // Network Ports
         appConfig.getServer().getPorts().setHttp(Integer.parseInt(httpPortTextBox.getText()));
         appConfig.getServer().getPorts().setHttps(Integer.parseInt(httpsPortTextBox.getText()));
 
-        //KeyStore, use PKCS12 with random password as default. But only if user hasn't changed default
+        // KeyStore, use PKCS12 with random password as default. But only if user hasn't changed default
         if (appConfig.getKeyStore().getPassword().equals("test") && appConfig.getKeyStore() instanceof PKCS12KeyStoreParams) {
             PKCS12KeyStoreParams keyStoreParams = new PKCS12KeyStoreParams();
             keyStoreParams.setLocation(filesDir.resolve("keystore.p12").toAbsolutePath().toString());
@@ -257,7 +265,7 @@ public class PostSetup extends WindowBase {
             appConfig.setKeyStore(keyStoreParams);
         }
 
-        //Set database, use H2 as default. But only if using default config
+        // Set database, use H2 as default. But only if using default config
 
         JDBCUrlDatabaseConfig jdbcUrlDatabaseConfig = new JDBCUrlDatabaseConfig();
         jdbcUrlDatabaseConfig.setUser("acmeuser");
@@ -267,7 +275,6 @@ public class PostSetup extends WindowBase {
 
         textGUI.getScreen().close();
         Main.saveServerConfiguration();
-
     }
 
     /**

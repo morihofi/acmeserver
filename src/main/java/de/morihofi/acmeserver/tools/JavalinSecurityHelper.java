@@ -17,7 +17,13 @@ import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Security;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
@@ -30,64 +36,66 @@ public class JavalinSecurityHelper {
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
-     * Initializes secure API settings for a Javalin application, configuring SSL/TLS using a custom
-     * mechanism rather than Javalin's official SSL plugin. This method involves setting up the Jetty server
-     * underlying Javalin to use SSL certificates managed by a provided {@link CryptoStoreManager}, and
-     * establishing a mechanism to automatically renew the ACME API certificate.
+     * Initializes secure API settings for a Javalin application, configuring SSL/TLS using a custom mechanism rather than Javalin's
+     * official SSL plugin. This method involves setting up the Jetty server underlying Javalin to use SSL certificates managed by a
+     * provided {@link CryptoStoreManager}, and establishing a mechanism to automatically renew the ACME API certificate.
      *
      * <p>The method first generates an ACME API client certificate using the {@link CryptoStoreManager} and
-     * the application configuration. It then logs the update to Javalin's TLS configuration and retrieves
-     * the HTTP and HTTPS ports from the application configuration. Instead of using the official SSL plugin
-     * (which depends on Google's Conscrypt provider and is platform-dependent), this method utilizes Java's
-     * built-in security libraries and Bouncy Castle for platform independence.</p>
+     * the application configuration. It then logs the update to Javalin's TLS configuration and retrieves the HTTP and HTTPS ports from the
+     * application configuration. Instead of using the official SSL plugin (which depends on Google's Conscrypt provider and is
+     * platform-dependent), this method utilizes Java's built-in security libraries and Bouncy Castle for platform independence.</p>
      *
      * <p>It updates the SSL configuration of the Jetty server to use the newly generated certificate and
-     * sets up a watcher to monitor certificate expiration. This watcher is configured
-     * to renew the certificate automatically before it expires and reload the certificate in the Jetty server
-     * without requiring a restart of the application.</p>
+     * sets up a watcher to monitor certificate expiration. This watcher is configured to renew the certificate automatically before it
+     * expires and reload the certificate in the Jetty server without requiring a restart of the application.</p>
      *
      * @param app                the Javalin application instance to be configured.
      * @param cryptoStoreManager the manager responsible for cryptographic operations and storage.
      * @param appConfig          the configuration object containing application settings, including server port information.
-     * @throws Exception if there is an error in generating the ACME API client certificate, updating the Jetty
-     *                   server SSL configuration, or during automatic certificate renewal.
+     * @throws Exception if there is an error in generating the ACME API client certificate, updating the Jetty server SSL configuration, or
+     *                   during automatic certificate renewal.
      */
-    public static void initSecureApi(Javalin app, CryptoStoreManager cryptoStoreManager, Config appConfig, CertificateRenewManager certificateRenewManager) throws Exception {
+    public static void initSecureApi(Javalin app, CryptoStoreManager cryptoStoreManager, Config appConfig,
+            CertificateRenewManager certificateRenewManager) throws Exception {
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
-
         MozillaSslConfigHelper.BasicConfiguration mozillaSSlConfig;
-        if(appConfig.getServer().getMozillaSslConfig().isEnabled()){
+        if (appConfig.getServer().getMozillaSslConfig().isEnabled()) {
             // This is needed to be able to turn on TLS 1.0, TLS 1.1 and TLS 1.2
             Security.setProperty("jdk.tls.disabledAlgorithms", "");
             Security.setProperty("jdk.certpath.disabledAlgorithms", "");
 
-            System.setProperty("jdk.tls.allowLegacyResumption", String.valueOf(appConfig.getServer().getSslServerConfig().isAllowLegacyResumption()));
+            System.setProperty("jdk.tls.allowLegacyResumption",
+                    String.valueOf(appConfig.getServer().getSslServerConfig().isAllowLegacyResumption()));
 
-
-            MozillaSslConfigHelper.CONFIGURATION configuration = switch (appConfig.getServer().getMozillaSslConfig().getConfiguration()){
-               case "modern" -> MozillaSslConfigHelper.CONFIGURATION.MODERN;
-               case "intermediate" -> MozillaSslConfigHelper.CONFIGURATION.INTERMEDIATE;
-               case "old" -> MozillaSslConfigHelper.CONFIGURATION.OLD;
-                default ->
-                        throw new IllegalStateException("Unexpected value: " + appConfig.getServer().getMozillaSslConfig().getConfiguration() + " must be one of modern, intermediate or old");
+            MozillaSslConfigHelper.CONFIGURATION configuration = switch (appConfig.getServer().getMozillaSslConfig().getConfiguration()) {
+                case "modern" -> MozillaSslConfigHelper.CONFIGURATION.MODERN;
+                case "intermediate" -> MozillaSslConfigHelper.CONFIGURATION.INTERMEDIATE;
+                case "old" -> MozillaSslConfigHelper.CONFIGURATION.OLD;
+                default -> throw new IllegalStateException(
+                        "Unexpected value: " + appConfig.getServer().getMozillaSslConfig().getConfiguration()
+                                + " must be one of modern, intermediate or old");
             };
 
-            mozillaSSlConfig = MozillaSslConfigHelper.getConfigurationGuidelinesForVersion(appConfig.getServer().getMozillaSslConfig().getVersion(),MozillaSslConfigHelper.CONFIGURATION.OLD);
+            mozillaSSlConfig =
+                    MozillaSslConfigHelper.getConfigurationGuidelinesForVersion(appConfig.getServer().getMozillaSslConfig().getVersion(),
+                            MozillaSslConfigHelper.CONFIGURATION.OLD);
 
-            LOG.info("Using Mozilla's SSL Configuration guidelines configuration {} version {} at {} with the following oldest clients supporting it {}", configuration, mozillaSSlConfig.version(), mozillaSSlConfig.href(), mozillaSSlConfig.oldestClients());
+            LOG.info(
+                    "Using Mozilla's SSL Configuration guidelines configuration {} version {} at {} with the following oldest clients "
+                            + "supporting it {}",
+                    configuration, mozillaSSlConfig.version(), mozillaSSlConfig.href(), mozillaSSlConfig.oldestClients());
         } else {
             mozillaSSlConfig = null;
         }
-
 
         {
             String alias = CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI;
             CertificateRenewManager.CertificateData certData = generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
 
-            if(certData.keyPair() != null && certData.certificateChain() != null){
+            if (certData.keyPair() != null && certData.certificateChain() != null) {
                 LOG.info("Saving certificate and key for alias {} in keystore", alias);
-                //Save the new certificate in keystore
+                // Save the new certificate in keystore
                 keyStore.deleteEntry(alias);
                 keyStore.setKeyEntry(
                         alias,
@@ -97,7 +105,6 @@ public class JavalinSecurityHelper {
                 );
                 cryptoStoreManager.saveKeystore();
             }
-
         }
 
         LOG.info("Updating Javalin's TLS configuration");
@@ -113,22 +120,24 @@ public class JavalinSecurityHelper {
          * libraries and Bouncy Castle, which is platform independent.
          */
 
-        JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(), enableSniCheck, mozillaSSlConfig);
+        JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(),
+                enableSniCheck, mozillaSSlConfig);
 
         LOG.info("Registering ACME API certificate expiration watcher");
 
-        certificateRenewManager.registerNewCertificateRenewWatcher(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, null, (provisioner, x509Certificate, keyPair) -> {
-            //Generate new certificate in place
-            return generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
-        }, () -> {
-            try {
-                LOG.info("Certificate renewed successfully, now reloading ACME API certificate");
-                JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(), enableSniCheck, mozillaSSlConfig);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-
+        certificateRenewManager.registerNewCertificateRenewWatcher(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, null,
+                (provisioner, x509Certificate, keyPair) -> {
+                    // Generate new certificate in place
+                    return generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
+                }, () -> {
+                    try {
+                        LOG.info("Certificate renewed successfully, now reloading ACME API certificate");
+                        JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI,
+                                app.jettyServer(), enableSniCheck, mozillaSSlConfig);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
     /**
@@ -144,7 +153,9 @@ public class JavalinSecurityHelper {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws UnrecoverableKeyException If a keystore key cannot be recovered.
      */
-    private static CertificateRenewManager.CertificateData generateAcmeApiClientCertificate(CryptoStoreManager cryptoStoreManager, Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
+    private static CertificateRenewManager.CertificateData generateAcmeApiClientCertificate(CryptoStoreManager cryptoStoreManager,
+            Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
+            OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
         String rootCaAlias = CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA;
 
         KeyPair rootCaKeyPair = cryptoStoreManager.getCerificateAuthorityKeyPair();
@@ -152,18 +163,19 @@ public class JavalinSecurityHelper {
         KeyPair acmeAPIKeyPair;
         if (!cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) ||
                 (cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) &&
-                        !CertTools.isCertificateValid(((X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI))))
+                        !CertTools.isCertificateValid(((X509Certificate) cryptoStoreManager.getKeyStore()
+                                .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI))))
         ) {
 
             // *****************************************
             // Create Certificate for our ACME Web Server API (Client Certificate)
 
-
             LOG.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
             acmeAPIKeyPair = KeyPairGenerator.generateRSAKeyPair(4096, cryptoStoreManager.getKeyStore().getProvider().getName());
 
             LOG.info("Using root CA for generation");
-            X509Certificate rootCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
+            X509Certificate rootCertificate =
+                    (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
             X509Certificate intermediateCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(rootCaAlias);
 
             LOG.info("Creating Server Certificate");
@@ -196,9 +208,8 @@ public class JavalinSecurityHelper {
             };
 
             return new CertificateRenewManager.CertificateData(chain, acmeAPIKeyPair);
-        }else {
-            return new CertificateRenewManager.CertificateData(null ,null);
+        } else {
+            return new CertificateRenewManager.CertificateData(null, null);
         }
     }
-
 }

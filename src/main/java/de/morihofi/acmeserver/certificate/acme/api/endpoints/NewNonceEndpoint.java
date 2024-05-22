@@ -9,10 +9,8 @@ import io.javalin.http.HandlerType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A class representing a handler for handling new ACME nonces.
- * This handler is responsible for responding to GET and HEAD requests
- * by providing appropriate HTTP statuses and headers, including a new
- * "Replay-Nonce" header generated using the provided ACMEProvisioner.
+ * A class representing a handler for handling new ACME nonces. This handler is responsible for responding to GET and HEAD requests by
+ * providing appropriate HTTP statuses and headers, including a new "Replay-Nonce" header generated using the provided ACMEProvisioner.
  */
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class NewNonceEndpoint implements Handler {
@@ -56,7 +54,5 @@ public class NewNonceEndpoint implements Handler {
 
         // Generate a new Replay-Nonce using the ACMEProvisioner and set it in the header
         ctx.header("Replay-Nonce", Crypto.createNonce());
-
     }
 }
-

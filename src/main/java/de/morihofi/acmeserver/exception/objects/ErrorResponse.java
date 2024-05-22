@@ -1,8 +1,8 @@
 package de.morihofi.acmeserver.exception.objects;
 
 /**
- * A class representing an error response in an API or web service.
- * It typically contains information about the error type and additional details.
+ * A class representing an error response in an API or web service. It typically contains information about the error type and additional
+ * details.
  */
 public class ErrorResponse {
     private String type;

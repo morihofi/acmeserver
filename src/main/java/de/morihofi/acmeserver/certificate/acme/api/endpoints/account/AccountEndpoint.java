@@ -2,10 +2,10 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.account;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
@@ -49,7 +49,8 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = ctx.pathParam("id");
 
-        ACMEAccountRequestPayload acmeAccountRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);
+        ACMEAccountRequestPayload acmeAccountRequestPayload =
+                gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);
 
         performSignatureAndNonceCheck(ctx, accountId, acmeRequestBody);
 
@@ -59,10 +60,8 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEAccountNotFoundException("Account with ID " + accountId + " not found!");
         }
 
-
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
-
 
             // Update Account Settings, e.g., Email change
             LOG.info("Update account settings for account {}", account.getAccountId());
@@ -84,7 +83,6 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
                 account.getEmails().addAll(emails);
                 session.merge(account);
                 LOG.info("ACME account {} updated emails to {}", account.getAccountId(), String.join(",", emails));
-
             }
 
             String status = acmeAccountRequestPayload.getStatus();
@@ -96,13 +94,12 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
                 }
             }
 
-
             transaction.commit();
         }
 
         ctx.header("Content-Type", "application/json");
         ctx.status(200);
-        if(account.isDeactivated()){
+        if (account.isDeactivated()) {
             // Create a new JsonObject
             JsonObject responseObj = new JsonObject();
             // Add the "status" property with the value from AcmeStatus.DEACTIVATED.getRfcName()
@@ -113,10 +110,8 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
             String jsonResponse = gson.toJson(responseObj);
 
             ctx.result(jsonResponse);
-        }else {
+        } else {
             ctx.result("{}"); // Empty JSON response
         }
     }
-
-
 }

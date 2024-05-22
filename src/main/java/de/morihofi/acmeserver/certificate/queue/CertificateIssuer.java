@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.certificate.queue;
 
-import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.HibernateUtil;
@@ -44,7 +44,8 @@ public class CertificateIssuer {
         LOG.info("Starting certificate issuing thread...");
         if (certificateQueueIssueThread == null) {
             certificateQueueIssueThread = new Thread(new CertificateIssuingTask(cryptoStoreManager), "Certificate Issuing Thread");
-            certificateQueueIssueThread.setDaemon(false); // Continue running until explicitly stopped, so only exit when all certificates are issued
+            certificateQueueIssueThread.setDaemon(
+                    false); // Continue running until explicitly stopped, so only exit when all certificates are issued
             certificateQueueIssueThread.start();
         } else {
             LOG.info("Certificate issuing thread is already running.");
@@ -63,7 +64,9 @@ public class CertificateIssuer {
         }
     }
 
-    public static void generateCertificateForOrder(ACMEOrder order, CryptoStoreManager cryptoStoreManager, Session session) throws IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException, OperatorCreationException {
+    public static void generateCertificateForOrder(ACMEOrder order, CryptoStoreManager cryptoStoreManager, Session session) throws
+            IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException,
+            OperatorCreationException {
         String csr = order.getCertificateCSR();
         // Decode the CSR from the Request
         byte[] csrBytes = Base64Tools.decodeBase64URLAsBytes(csr);
@@ -74,7 +77,8 @@ public class CertificateIssuer {
         Provisioner provisioner = ProvisionerManager.getProvisionerForName(order.getAccount().getProvisioner());
 
                         /*
-                            We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using the Basic Constrain etc.
+                            We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using
+                            the Basic Constrain etc.
                          */
 
         LOG.info("Creating Certificate for order \"{}\" with DNS Names {}", order.getOrderId(),
@@ -100,74 +104,58 @@ public class CertificateIssuer {
         Timestamp expiresAt = new Timestamp(acmeGeneratedCertificate.getNotAfter().getTime());
         Timestamp issuedAt = new Timestamp(acmeGeneratedCertificate.getNotBefore().getTime());
 
-
         Transaction transaction = session.beginTransaction();
 
-
-        //Set certificate details
+        // Set certificate details
         order.setCertificateSerialNumber(serialNumber);
         order.setCertificatePem(pemCertificate);
         order.setExpires(expiresAt);
         order.setCertificateIssued(issuedAt);
 
-        order.setOrderState(AcmeOrderState.IDLE); //Set it back to idle
+        order.setOrderState(AcmeOrderState.IDLE); // Set it back to idle
         session.merge(order);
-
 
         transaction.commit();
 
         LOG.info("Stored certificate successful");
-
-
     }
-
 
     private record CertificateIssuingTask(CryptoStoreManager cryptoStoreManager) implements Runnable {
 
         @SuppressFBWarnings("REC_CATCH_EXCEPTION")
-            @Override
-            public void run() {
-                LOG.info("Certificate issuing thread started!");
+        @Override
+        public void run() {
+            LOG.info("Certificate issuing thread started!");
 
-                while (!Thread.currentThread().isInterrupted()) {
-                    LOG.trace("Looking for certificates to be issued in the database");
+            while (!Thread.currentThread().isInterrupted()) {
+                LOG.trace("Looking for certificates to be issued in the database");
 
+                List<ACMEOrder> waitingOrders = ACMEOrder.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE);
 
-                    List<ACMEOrder> waitingOrders = ACMEOrder.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE);
+                if (!waitingOrders.isEmpty()) {
 
-                    if (!waitingOrders.isEmpty()) {
+                    try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
 
-                        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+                        // CryptoStoreManager csm = CryptoStoreManager;
 
-                            //CryptoStoreManager csm = CryptoStoreManager;
-
-                            ACMEOrder order = waitingOrders.get(0);
-                            generateCertificateForOrder(order, cryptoStoreManager, session);
-
-                        } catch (Exception ex) {
-                            LOG.error("Error generating and/or store certificate", ex);
-                        }
-
-                    } else {
-
-                        //Waiting for new CSRs and try in a few seconds again
-                        try {
-
-                            Thread.sleep(20 * 1000); //Sleep 20 seconds
-
-                        } catch (InterruptedException e) {
-                            LOG.warn("Thread sleep is interrupted");
-                            Thread.currentThread().interrupt();
-                        }
-
+                        ACMEOrder order = waitingOrders.get(0);
+                        generateCertificateForOrder(order, cryptoStoreManager, session);
+                    } catch (Exception ex) {
+                        LOG.error("Error generating and/or store certificate", ex);
                     }
+                } else {
 
+                    // Waiting for new CSRs and try in a few seconds again
+                    try {
 
+                        Thread.sleep(20 * 1000); // Sleep 20 seconds
+                    } catch (InterruptedException e) {
+                        LOG.warn("Thread sleep is interrupted");
+                        Thread.currentThread().interrupt();
+                    }
                 }
-                LOG.info("Certificate issuing thread is stopping gracefully.");
             }
-
-
+            LOG.info("Certificate issuing thread is stopping gracefully.");
         }
-
+    }
 }

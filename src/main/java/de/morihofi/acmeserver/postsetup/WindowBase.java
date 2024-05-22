@@ -10,9 +10,8 @@ import com.googlecode.lanterna.screen.Screen;
 import java.io.IOException;
 
 /**
- * An abstract class representing a basic window-based application framework using Lanterna library.
- * Subclasses should extend this class and implement the {@link #init(WindowBasedTextGUI)} method to define
- * the main functionality of the application.
+ * An abstract class representing a basic window-based application framework using Lanterna library. Subclasses should extend this class and
+ * implement the {@link #init(WindowBasedTextGUI)} method to define the main functionality of the application.
  *
  * @see MultiWindowTextGUI
  * @see Screen
@@ -23,7 +22,7 @@ public abstract class WindowBase {
      * Runs the Lanterna-based application.
      *
      * @param args Command-line arguments passed to the application.
-     * @throws IOException If an I/O error occurs.
+     * @throws IOException          If an I/O error occurs.
      * @throws InterruptedException If the application is interrupted.
      */
     void run(String[] args) throws IOException, InterruptedException {
@@ -31,22 +30,21 @@ public abstract class WindowBase {
         screen.startScreen();
         MultiWindowTextGUI textGUI = createTextGUI(screen);
         String theme = extractTheme(args);
-        if(theme != null) {
+        if (theme != null) {
             textGUI.setTheme(LanternaThemes.getRegisteredTheme(theme));
         }
         textGUI.setBlockingIO(false);
         textGUI.setEOFWhenNoWindows(true);
-        //noinspection ResultOfMethodCallIgnored
-        textGUI.isEOFWhenNoWindows();   //No meaning, just to silence IntelliJ:s "is never used" alert
+        // noinspection ResultOfMethodCallIgnored
+        textGUI.isEOFWhenNoWindows();   // No meaning, just to silence IntelliJ:s "is never used" alert
 
         try {
             init(textGUI);
-            AsynchronousTextGUIThread guiThread = (AsynchronousTextGUIThread)textGUI.getGUIThread();
+            AsynchronousTextGUIThread guiThread = (AsynchronousTextGUIThread) textGUI.getGUIThread();
             guiThread.start();
             afterGUIThreadStarted(textGUI);
             guiThread.waitForStop();
-        }
-        finally {
+        } finally {
             screen.stopScreen();
         }
     }
@@ -58,9 +56,9 @@ public abstract class WindowBase {
      * @return The extracted theme name or null if not found.
      */
     private String extractTheme(String[] args) {
-        for(int i = 0; i < args.length; i++) {
-            if(args[i].equals("--theme") && i + 1 < args.length) {
-                return args[i+1];
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("--theme") && i + 1 < args.length) {
+                return args[i + 1];
             }
         }
         return null;
@@ -84,12 +82,12 @@ public abstract class WindowBase {
     public abstract void init(WindowBasedTextGUI textGUI);
 
     /**
-     * Called after the GUI thread has started. Subclasses can override this method to perform additional setup
-     * after the GUI thread is running.
+     * Called after the GUI thread has started. Subclasses can override this method to perform additional setup after the GUI thread is
+     * running.
      *
      * @param textGUI The WindowBasedTextGUI instance.
      * @throws InterruptedException If the application is interrupted.
-     * @throws IOException If an I/O error occurs.
+     * @throws IOException          If an I/O error occurs.
      */
     public void afterGUIThreadStarted(WindowBasedTextGUI textGUI) throws InterruptedException, IOException {
         // By default, do nothing

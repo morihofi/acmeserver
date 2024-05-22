@@ -7,18 +7,23 @@ import de.morihofi.acmeserver.tools.crypto.AcmeTokenCryptography;
 import de.morihofi.acmeserver.tools.crypto.Hashing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.xbill.DNS.*;
+import org.xbill.DNS.Lookup;
 import org.xbill.DNS.Record;
+import org.xbill.DNS.SimpleResolver;
+import org.xbill.DNS.TXTRecord;
+import org.xbill.DNS.TextParseException;
+import org.xbill.DNS.Type;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.UnknownHostException;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.PublicKey;
 
 /**
- * Provides functionality for handling DNS challenges in the ACME (Automated Certificate Management Environment) protocol.
- * This class includes methods for validating DNS challenges by querying DNS TXT records and comparing them to expected values.
- * It is designed to validate domain control by ensuring that DNS records contain specific tokens.
+ * Provides functionality for handling DNS challenges in the ACME (Automated Certificate Management Environment) protocol. This class
+ * includes methods for validating DNS challenges by querying DNS TXT records and comparing them to expected values. It is designed to
+ * validate domain control by ensuring that DNS records contain specific tokens.
  */
 public class DNSChallenge {
 
@@ -27,13 +32,9 @@ public class DNSChallenge {
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
-    private DNSChallenge() {
-    }
-
     /**
-     * Validates a DNS challenge by querying DNS TXT records for the specified domain.
-     * The method checks if the TXT records contain a token value that matches the expected value derived from the public key
-     * of an ACME account.
+     * Validates a DNS challenge by querying DNS TXT records for the specified domain. The method checks if the TXT records contain a token
+     * value that matches the expected value derived from the public key of an ACME account.
      *
      * @param token       The token value associated with the ACME challenge.
      * @param domain      The domain for which the ACME challenge is being validated.
@@ -69,11 +70,10 @@ public class DNSChallenge {
                     }
                 }
                 LOG.error("DNS Challenge validation failed for challenge domain {}. TXT record not found", ("_acme-challenge." + domain));
-
             } else {
-                LOG.error("DNS Challenge validation failed for challenge domain {}. Lookup wasn't successful.", ("_acme-challenge." + domain));
+                LOG.error("DNS Challenge validation failed for challenge domain {}. Lookup wasn't successful.",
+                        ("_acme-challenge." + domain));
             }
-
         } catch (TextParseException e) {
             LOG.error("Error parsing domain name {}", domain, e);
             lastError = "Error parsing domain name";
@@ -85,10 +85,8 @@ public class DNSChallenge {
         return new ChallengeResult(false, lastError);
     }
 
-
     /**
-     * Returns the digest string to be set in the domain's {@code _acme-challenge} TXT
-     * record.
+     * Returns the digest string to be set in the domain's {@code _acme-challenge} TXT record.
      */
     public static String getDigest(String token, PublicKey pk) {
         return Base64Tools.base64UrlEncode(Hashing.sha256hash(AcmeTokenCryptography.keyAuthorizationFor(token, pk)));
@@ -116,4 +114,6 @@ public class DNSChallenge {
         Lookup.setDefaultResolver(null);
     }
 
+    private DNSChallenge() {
+    }
 }

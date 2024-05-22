@@ -17,7 +17,9 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -25,12 +27,19 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 
 public class DownloadCaCabEndpoint implements Handler {
-    private CryptoStoreManager cryptoStoreManager;
-
     /**
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+
+    private static String toHex(byte[] data) {
+        StringBuilder sb = new StringBuilder(data.length * 2);
+        for (byte b : data) {
+            sb.append(String.format("%02x", b & 0xff));
+        }
+        return sb.toString();
+    }
+    private final CryptoStoreManager cryptoStoreManager;
 
     public DownloadCaCabEndpoint(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
@@ -40,10 +49,9 @@ public class DownloadCaCabEndpoint implements Handler {
     public void handle(@NotNull Context ctx) throws Exception {
         ctx.header("Content-Type", "application/vnd.ms-cab-compressed");
 
-
         String xml = createXmlWithCertificate(
                 (X509Certificate) cryptoStoreManager.getKeyStore()
-                .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
+                        .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
         );
 
         byte[] generatedCab = new CabFile.Builder()
@@ -64,14 +72,6 @@ public class DownloadCaCabEndpoint implements Handler {
         Base64.Encoder encoder = Base64.getMimeEncoder(64, "\r\n".getBytes());
         byte[] derCert = certificate.getEncoded();
         return encoder.encodeToString(derCert);
-    }
-
-    private static String toHex(byte[] data) {
-        StringBuilder sb = new StringBuilder(data.length * 2);
-        for (byte b : data) {
-            sb.append(String.format("%02x", b & 0xff));
-        }
-        return sb.toString();
     }
 
     public String createXmlWithCertificate(X509Certificate certificate) throws Exception {
@@ -117,9 +117,6 @@ public class DownloadCaCabEndpoint implements Handler {
             transformer.transform(source, result);
         }
 
-        return sw.toString().replace("&#10;","\r\n").replace("&#13;","");
+        return sw.toString().replace("&#10;", "\r\n").replace("&#13;", "");
     }
-
-
-
 }

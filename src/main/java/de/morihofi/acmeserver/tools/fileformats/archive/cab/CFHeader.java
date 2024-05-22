@@ -1,24 +1,19 @@
 /**
  * The MIT License (MIT)
- * 
+ * <p>
  * Copyright (c) 2013 Graham Rivers-Brown
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * <p>
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
+ * THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package de.morihofi.acmeserver.tools.fileformats.archive.cab;
 
@@ -37,19 +32,19 @@ public class CFHeader {
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-    private int[] signature;       /* cabinet file signature */
-    private int reserved1;         /* reserved */
+    private final int flags;             /* cabinet file option indicators */
+    private final int[] signature;       /* cabinet file signature */
+    private final int reserved1;         /* reserved */
     private int cbCabinet;         /* size of this cabinet file in bytes */
-    private int reserved2;         /* reserved */
+    private final int reserved2;         /* reserved */
     private int coffFiles;         /* offset of the first CFFILE entry */
-    private int reserved3;         /* reserved */
-    private int versionMinor;      /* cabinet file format version, minor */
-    private int versionMajor;      /* cabinet file format version, major */
+    private final int reserved3;         /* reserved */
+    private final int versionMinor;      /* cabinet file format version, minor */
+    private final int versionMajor;      /* cabinet file format version, major */
     private int cFolders;          /* number of CFFOLDER entries in this cabinet */
     private int cFiles;            /* number of CFFILE entries in this cabinet */
-    private int flags;             /* cabinet file option indicators */
-    private int setID;             /* must be the same for all cabinets in a set */
-    private int iCabinet;          /* number of this cabinet file in a set */
+    private final int setID;             /* must be the same for all cabinets in a set */
+    private final int iCabinet;          /* number of this cabinet file in a set */
     /*private int cbCFHeader;        /* (optional) size of per-cabinet reserved area */
     /*private int cbCFFolder;        /* (optional) size of per-folder reserved area */
     /*private int cbCFData;          /* (optional) size of per-datablock reserved area */
@@ -59,11 +54,8 @@ public class CFHeader {
     /*private int[] szCabinetNext;   /* (optional) name of next cabinet file */
     /*private int[] szDiskNext;      /* (optional) name of next disk */
 
-    
-    
-    public CFHeader()
-    {
-        //fill in known values
+    public CFHeader() {
+        // fill in known values
         signature = new int[4];
         signature[0] = 'M';
         signature[1] = 'S';
@@ -78,31 +70,26 @@ public class CFHeader {
         setID = 0;
         iCabinet = 0;
     }
-    
-    public void setCbCabinet(int cbCabinet)
-    {
+
+    public void setCbCabinet(int cbCabinet) {
         this.cbCabinet = cbCabinet;
     }
-    
-    public void setCoffFiles(int coffFiles)
-    {
+
+    public void setCoffFiles(int coffFiles) {
         this.coffFiles = coffFiles;
     }
-    
-    public void setCFolders(int cFolders)
-    {
+
+    public void setCFolders(int cFolders) {
         this.cFolders = cFolders;
     }
-    
-    public void setCFiles(int cFiles)
-    {
+
+    public void setCFiles(int cFiles) {
         this.cFiles = cFiles;
     }
-    
-    public Vector<Byte> makeByteArray()
-    {
+
+    public Vector<Byte> makeByteArray() {
         Vector<Byte> b = new Vector<>();
-        
+
         b.addAll(convertToByte(signature[0], 1));
         b.addAll(convertToByte(signature[1], 1));
         b.addAll(convertToByte(signature[2], 1));
@@ -119,33 +106,26 @@ public class CFHeader {
         b.addAll(convertToByte(flags, 2));
         b.addAll(convertToByte(setID, 2));
         b.addAll(convertToByte(iCabinet, 2));
-        
-        
+
         return b;
     }
-    
-    private Vector<Byte> convertToByte(int val, int numBytes)
-    {
+
+    private Vector<Byte> convertToByte(int val, int numBytes) {
         Vector<Byte> b = new Vector<>();
         Integer tempInt;
         Byte byteToAdd;
-        if (numBytes == 1)
-        {
+        if (numBytes == 1) {
             tempInt = val;
             byteToAdd = tempInt.byteValue();
             b.add(byteToAdd);
-        }
-        else if (numBytes == 2)
-        {
+        } else if (numBytes == 2) {
             tempInt = 0xFF & val;
             byteToAdd = tempInt.byteValue();
             b.add(byteToAdd);
             tempInt = (0xFF00 & val) >>> 8;
             byteToAdd = tempInt.byteValue();
             b.add(byteToAdd);
-        }
-        else if (numBytes == 3)
-        {
+        } else if (numBytes == 3) {
             tempInt = 0xFF & val;
             byteToAdd = tempInt.byteValue();
             b.add(byteToAdd);
@@ -155,9 +135,7 @@ public class CFHeader {
             tempInt = (0xFF0000 & val) >>> 16;
             byteToAdd = tempInt.byteValue();
             b.add(byteToAdd);
-        }
-        else if (numBytes == 4)
-        {
+        } else if (numBytes == 4) {
             tempInt = 0xFF & val;
             byteToAdd = tempInt.byteValue();
             b.add(byteToAdd);
@@ -170,12 +148,10 @@ public class CFHeader {
             tempInt = (0xFF000000 & val) >>> 24;
             byteToAdd = tempInt.byteValue();
             b.add(byteToAdd);
-        }
-        else
-        {
+        } else {
             b.add(Byte.valueOf("255"));
         }
-        
+
         return b;
     }
 }

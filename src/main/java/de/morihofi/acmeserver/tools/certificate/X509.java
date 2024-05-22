@@ -19,8 +19,6 @@ public class X509 {
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
-    private X509() {}
-
     /**
      * Extracts the X.500 Distinguished Name (DN) from an X.509 certificate.
      *
@@ -43,4 +41,6 @@ public class X509 {
         CertificateFactory cf = CertificateFactory.getInstance("X509");
         return (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certificateBytes));
     }
+
+    private X509() {}
 }

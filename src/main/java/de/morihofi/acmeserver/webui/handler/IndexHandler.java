@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class IndexHandler implements Handler {
-    private CryptoStoreManager cryptoStoreManager;
+    private final CryptoStoreManager cryptoStoreManager;
 
     public IndexHandler(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
@@ -19,7 +19,6 @@ public class IndexHandler implements Handler {
     @Override
     public void handle(@NotNull Context context) throws Exception {
         Map<String, Object> params = new HashMap<>(WebUI.getDefaultFrontendMap(cryptoStoreManager, context));
-
 
         context.render((WebUI.isLegacyBrowser(context) ? "legacy" : "html5") + "/pages/index.jte", params);
     }

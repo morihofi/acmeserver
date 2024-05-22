@@ -1,15 +1,19 @@
 package de.morihofi.acmeserver.tools.safety;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
  * A generic class for creating deep copies of serializable objects.
  *
  * <p>
- * The `DeepCopyWrapper` class allows you to create a deep copy of a serializable object.
- * Deep copying is useful when you want to duplicate an object and its entire object graph.
- * This class performs deep copying by serializing and deserializing the input object,
- * effectively creating a new independent copy.
+ * The `DeepCopyWrapper` class allows you to create a deep copy of a serializable object. Deep copying is useful when you want to duplicate
+ * an object and its entire object graph. This class performs deep copying by serializing and deserializing the input object, effectively
+ * creating a new independent copy.
  * </p>
  *
  * @param <T> The type of the object to be deep-copied, which must implement the `Serializable` interface.

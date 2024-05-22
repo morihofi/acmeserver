@@ -12,6 +12,7 @@ public class CertificateExpiration implements Serializable {
 
     /**
      * Get the number of months until expiration.
+     *
      * @return The number of months.
      */
     public Integer getMonths() {
@@ -20,6 +21,7 @@ public class CertificateExpiration implements Serializable {
 
     /**
      * Set the number of months until expiration.
+     *
      * @param months The number of months to set.
      */
     public void setMonths(Integer months) {
@@ -28,6 +30,7 @@ public class CertificateExpiration implements Serializable {
 
     /**
      * Get the number of days until expiration.
+     *
      * @return The number of days.
      */
     public Integer getDays() {
@@ -36,6 +39,7 @@ public class CertificateExpiration implements Serializable {
 
     /**
      * Set the number of days until expiration.
+     *
      * @param days The number of days to set.
      */
     public void setDays(Integer days) {
@@ -44,6 +48,7 @@ public class CertificateExpiration implements Serializable {
 
     /**
      * Get the number of years until expiration.
+     *
      * @return The number of years.
      */
     public Integer getYears() {
@@ -52,6 +57,7 @@ public class CertificateExpiration implements Serializable {
 
     /**
      * Set the number of years until expiration.
+     *
      * @param years The number of years to set.
      */
     public void setYears(Integer years) {
