@@ -199,9 +199,9 @@ public class JavalinSecurityHelper {
             Date endDate = DateTools.makeDateForOutliveIntermediateCertificate(
                     intermediateCertificate.getNotAfter(),
                     DateTools.addToDate(startDate,
-                            0,
-                            1,
-                            0
+                            0, // Years
+                            1, // Months
+                            0 // Days
                     )
             );
 
