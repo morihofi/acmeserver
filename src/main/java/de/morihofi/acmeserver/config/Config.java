@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver.config;
 
+import com.google.gson.annotations.SerializedName;
 import de.morihofi.acmeserver.config.keyStoreHelpers.KeyStoreParams;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -11,13 +12,16 @@ import java.util.List;
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class Config implements Serializable {
-  private List<ProvisionerConfig> provisioner;
-  private KeyStoreParams keyStore;
+  @SerializedName("$schema")
+  private String jsonSchema;
   private ServerConfig server;
+  private KeyStoreParams keyStore;
   private DatabaseConfig database;
-  private CertificateConfig rootCA;
   private EmailConfig emailSmtp;
+  private CertificateConfig rootCA;
+  private List<ProvisionerConfig> provisioner;
   private ProxyConfig proxy;
+
 
   /**
    * Get the list of provisioner configurations.
