@@ -13,9 +13,9 @@
  ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
  THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.morihofi.acmeserver.api;
+package de.morihofi.acmeserver.api.provisioner;
 
-import de.morihofi.acmeserver.api.responses.ProvisionerListEntryResponse;
+import de.morihofi.acmeserver.api.provisioner.statistics.responses.ProvisionerListEntryResponse;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;

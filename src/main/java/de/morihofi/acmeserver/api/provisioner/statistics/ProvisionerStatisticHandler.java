@@ -13,9 +13,9 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.morihofi.acmeserver.api;
+package de.morihofi.acmeserver.api.provisioner.statistics;
 
-import de.morihofi.acmeserver.api.responses.ProvisionerStatisticResponse;
+import de.morihofi.acmeserver.api.provisioner.statistics.responses.ProvisionerStatisticResponse;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerStatistics;
@@ -26,29 +26,37 @@ import io.javalin.http.Handler;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
-public class ProvisionerGlobalStatisticHandler implements Handler {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ProvisionerStatisticHandler implements Handler {
 
     private final CryptoStoreManager cryptoStoreManager;
 
-    public ProvisionerGlobalStatisticHandler(CryptoStoreManager cryptoStoreManager) {
+    public ProvisionerStatisticHandler(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
     }
 
     @Override
     public void handle(@NotNull Context context) throws Exception {
-        ProvisionerStatisticResponse globalStats = new ProvisionerStatisticResponse();
-        globalStats.setName(null);
+        List<ProvisionerStatisticResponse> statisticItemsOfProvisioner = new ArrayList<>();
 
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            for (Provisioner provisioner : ProvisionerManager.getProvisioners()) {
+                String provisionerName = provisioner.getProvisionerName();
 
+                ProvisionerStatisticResponse item = new ProvisionerStatisticResponse();
+                item.setName(provisionerName);
+                item.setAcmeAccounts(ProvisionerStatistics.countACMEAccountsByProvisioner(session, provisionerName));
+                item.setCertificatesIssued(ProvisionerStatistics.countIssuedCertificatesByProvisioner(session, provisionerName));
+                item.setCertificatesRevoked(ProvisionerStatistics.countRevokedCertificatesByProvisioner(session, provisionerName));
+                item.setCertificatesIssueWaiting(
+                        ProvisionerStatistics.countCertificatesWaitingForIssueByProvisioner(session, provisionerName));
 
-            globalStats.setAcmeAccounts(ProvisionerStatistics.countGlobalActiveACMEAccounts(session));
-            globalStats.setCertificatesIssued(ProvisionerStatistics.countGlobalIssuedCertificates(session));
-            globalStats.setCertificatesRevoked(ProvisionerStatistics.countGlobalRevokedCertificates(session));
-            globalStats.setCertificatesIssueWaiting(ProvisionerStatistics.countGlobalCertificatesWaiting(session));
-
+                statisticItemsOfProvisioner.add(item);
+            }
         }
 
-        context.json(globalStats);
+        context.json(statisticItemsOfProvisioner);
     }
 }

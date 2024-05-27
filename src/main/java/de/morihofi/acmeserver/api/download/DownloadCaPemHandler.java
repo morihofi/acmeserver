@@ -14,7 +14,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.certificate.api.download;
+package de.morihofi.acmeserver.api.download;
 
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandles;
 
-public class DownloadCaPemEndpoint implements Handler {
+public class DownloadCaPemHandler implements Handler {
 
     /**
      * Logger
@@ -43,7 +43,7 @@ public class DownloadCaPemEndpoint implements Handler {
      *
      * @param cryptoStoreManager Instance of {@link CryptoStoreManager} for accessing KeyStores
      */
-    public DownloadCaPemEndpoint(CryptoStoreManager cryptoStoreManager) {
+    public DownloadCaPemHandler(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
     }
 

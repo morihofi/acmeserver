@@ -14,7 +14,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.certificate.api.download;
+package de.morihofi.acmeserver.api.download;
 
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.fileformats.archive.cab.CabFile;
@@ -42,7 +42,7 @@ import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 
-public class DownloadCaCabEndpoint implements Handler {
+public class DownloadCaCabHandler implements Handler {
     /**
      * Logger
      */
@@ -57,7 +57,7 @@ public class DownloadCaCabEndpoint implements Handler {
     }
     private final CryptoStoreManager cryptoStoreManager;
 
-    public DownloadCaCabEndpoint(CryptoStoreManager cryptoStoreManager) {
+    public DownloadCaCabHandler(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
     }
 

@@ -14,28 +14,34 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.certificate.api.statistics;
+package de.morihofi.acmeserver.api.download;
 
-import com.google.gson.Gson;
-import de.morihofi.acmeserver.certificate.provisioners.ProvisionerStatistics;
-import de.morihofi.acmeserver.database.HibernateUtil;
+import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import org.hibernate.Session;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
-public class ApiStatsProvisionerCertificatesIssued implements Handler {
+import java.lang.invoke.MethodHandles;
 
-    private final static Gson gson = new Gson();
+public class DownloadCaDerHandler implements Handler {
+    /**
+     * Logger
+     */
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private final CryptoStoreManager cryptoStoreManager;
+
+    public DownloadCaDerHandler(CryptoStoreManager cryptoStoreManager) {
+        this.cryptoStoreManager = cryptoStoreManager;
+    }
 
     @Override
-    public void handle(@NotNull Context context) {
-        context.contentType("application/json");
+    public void handle(@NotNull Context ctx) throws Exception {
+        byte[] der = cryptoStoreManager.getKeyStore()
+                .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
+                .getEncoded();
 
-        String provisionerName = context.queryParam("provisioner");
-
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            context.result(gson.toJson(ProvisionerStatistics.getCertificatesIssuedPerDay(session, provisionerName)));
-        }
+        ctx.result(der);
     }
 }

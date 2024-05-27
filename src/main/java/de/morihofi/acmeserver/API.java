@@ -16,14 +16,14 @@
 
 package de.morihofi.acmeserver;
 
-import de.morihofi.acmeserver.api.ProvisionerGlobalStatisticHandler;
-import de.morihofi.acmeserver.api.ProvisionerListHandler;
-import de.morihofi.acmeserver.api.ProvisionerStatisticHandler;
-import de.morihofi.acmeserver.certificate.api.download.DownloadCaCabEndpoint;
-import de.morihofi.acmeserver.certificate.api.download.DownloadCaDerEndpoint;
-import de.morihofi.acmeserver.certificate.api.download.DownloadCaPemEndpoint;
-import de.morihofi.acmeserver.certificate.api.serverInfo.ApiServerInfoEndpoint;
-import de.morihofi.acmeserver.certificate.api.statistics.ApiStatsProvisionerCertificatesIssued;
+import de.morihofi.acmeserver.api.provisioner.statistics.ProvisionerGlobalStatisticHandler;
+import de.morihofi.acmeserver.api.provisioner.ProvisionerListHandler;
+import de.morihofi.acmeserver.api.provisioner.statistics.ProvisionerStatisticHandler;
+import de.morihofi.acmeserver.api.download.DownloadCaCabHandler;
+import de.morihofi.acmeserver.api.download.DownloadCaDerHandler;
+import de.morihofi.acmeserver.api.download.DownloadCaPemHandler;
+import de.morihofi.acmeserver.api.serverInfo.ApiServerInfoEndpoint;
+import de.morihofi.acmeserver.api.provisioner.statistics.ApiStatsProvisionerCertificatesIssued;
 import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.Javalin;
@@ -31,12 +31,14 @@ import io.javalin.Javalin;
 public class API {
 
     public static void init(Javalin app, Config appConfig, CryptoStoreManager cryptoStoreManager) {
-        app.get("/api/serverinfo", new ApiServerInfoEndpoint(appConfig.getProvisioner()));
-        app.get("/ca.crt", new DownloadCaPemEndpoint(cryptoStoreManager));
-        app.get("/ca.pem", new DownloadCaPemEndpoint(cryptoStoreManager));
-        app.get("/ca.der", new DownloadCaDerEndpoint(cryptoStoreManager));
-        app.get("/ca.cab", new DownloadCaCabEndpoint(cryptoStoreManager));
+        // CA Downloads
+        app.get("/ca.crt", new DownloadCaPemHandler(cryptoStoreManager));
+        app.get("/ca.pem", new DownloadCaPemHandler(cryptoStoreManager));
+        app.get("/ca.der", new DownloadCaDerHandler(cryptoStoreManager));
+        app.get("/ca.cab", new DownloadCaCabHandler(cryptoStoreManager));
 
+        // API Endpoints
+        app.get("/api/serverinfo", new ApiServerInfoEndpoint(appConfig.getProvisioner()));
         app.get("/api/stats/provisioners/certificates-issued", new ApiStatsProvisionerCertificatesIssued());
         app.get("/api/provisioner/list", new ProvisionerListHandler(cryptoStoreManager));
         app.get("/api/provisioner/stats", new ProvisionerStatisticHandler(cryptoStoreManager));

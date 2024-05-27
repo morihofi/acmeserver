@@ -13,34 +13,52 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package de.morihofi.acmeserver.api.provisioner.statistics.responses;
 
-package de.morihofi.acmeserver.certificate.api.serverInfo.objects;
-
-/**
- * Represents the response structure for a provisioner. This class encapsulates details about a provisioner, primarily its name.
- */
-public class ProvisionerResponse {
-
-    /**
-     * Provisioner name
-     */
+public class ProvisionerStatisticListResponse {
     private String name;
+    private long acmeAccounts;
+    private long certificatesIssued;
+    private long certificatesRevoked;
+    private long certificatesIssueWaiting;
 
-    /**
-     * Retrieves the name of the provisioner. This name identifies the provisioner within the system.
-     *
-     * @return The name of the provisioner as a {@code String}.
-     */
     public String getName() {
         return name;
     }
 
-    /**
-     * Sets the name of the provisioner. This method allows assigning or changing the name of the provisioner.
-     *
-     * @param name The new name for the provisioner as a {@code String}.
-     */
     public void setName(String name) {
         this.name = name;
+    }
+
+    public long getAcmeAccounts() {
+        return acmeAccounts;
+    }
+
+    public void setAcmeAccounts(long acmeAccounts) {
+        this.acmeAccounts = acmeAccounts;
+    }
+
+    public long getCertificatesIssued() {
+        return certificatesIssued;
+    }
+
+    public void setCertificatesIssued(long certificatesIssued) {
+        this.certificatesIssued = certificatesIssued;
+    }
+
+    public long getCertificatesRevoked() {
+        return certificatesRevoked;
+    }
+
+    public void setCertificatesRevoked(long certificatesRevoked) {
+        this.certificatesRevoked = certificatesRevoked;
+    }
+
+    public long getCertificatesIssueWaiting() {
+        return certificatesIssueWaiting;
+    }
+
+    public void setCertificatesIssueWaiting(long certificatesIssueWaiting) {
+        this.certificatesIssueWaiting = certificatesIssueWaiting;
     }
 }
