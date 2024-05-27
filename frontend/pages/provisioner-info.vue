@@ -14,7 +14,7 @@
             <tbody>
                 <tr>
                     <td>
-                        Website
+                        <font-awesome-icon icon="fas fa-globe" class="icon" />&nbsp;Website
                     </td>
                     <td>
                         <a :href="provisionerByNameInfoResponse.website">
@@ -24,7 +24,7 @@
                 </tr>
                 <tr>
                     <td>
-                        Terms of Service
+                        <font-awesome-icon icon="fas fa-file-lines" class="icon" />&nbsp;Terms of Service
                     </td>
                     <td>
                         <a :href="provisionerByNameInfoResponse['terms-of-service']">
@@ -36,7 +36,7 @@
                 </tr>
                 <tr>
                     <td>
-                        CRL Endpoint
+                        <font-awesome-icon icon="fa-solid fa-shield-halved" class="icon" />&nbsp;CRL Endpoint
                     </td>
                     <td>
                         <a :href="provisionerByNameInfoResponse['crl-url']">
@@ -48,7 +48,7 @@
                 </tr>
                 <tr>
                     <td>
-                        OCSP Responder Endpoint
+                        <font-awesome-icon icon="fa-solid fa-shield-halved" class="icon" />&nbsp;OCSP Responder Endpoint
                     </td>
                     <td>
                         <a :href="provisionerByNameInfoResponse['ocsp-url']">
