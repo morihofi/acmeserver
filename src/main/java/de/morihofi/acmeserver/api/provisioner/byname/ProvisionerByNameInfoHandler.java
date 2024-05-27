@@ -62,7 +62,9 @@ public class ProvisionerByNameInfoHandler implements Handler {
         // Some booleans
         response.setIpAllowed(provisioner.isIpAllowed());
         response.setDnsWildcardAllowed(provisioner.isWildcardAllowed());
-
+        // Revokation
+        response.setCrlUrl(provisioner.getFullCrlUrl());
+        response.setOcspUrl(provisioner.getFullOcspUrl());
 
         context.json(response);
     }

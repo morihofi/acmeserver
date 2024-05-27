@@ -34,6 +34,30 @@
                         </a>
                     </td>
                 </tr>
+                <tr>
+                    <td>
+                        CRL Endpoint
+                    </td>
+                    <td>
+                        <a :href="provisionerByNameInfoResponse['crl-url']">
+                            {{
+        provisionerByNameInfoResponse['crl-url']
+    }}
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        OCSP Responder Endpoint
+                    </td>
+                    <td>
+                        <a :href="provisionerByNameInfoResponse['ocsp-url']">
+                            {{
+        provisionerByNameInfoResponse['ocsp-url']
+    }}
+                        </a>
+                    </td>
+                </tr>
             </tbody>
         </table>
 

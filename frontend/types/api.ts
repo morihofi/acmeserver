@@ -39,4 +39,6 @@ export type ApiProvisionersByNameInfoResponse = {
   "website": string;
   "allow-ip": boolean;
   "allow-dns-wildcards": boolean;
+  "crl-url": string;
+  "ocsp-url": string;
 };

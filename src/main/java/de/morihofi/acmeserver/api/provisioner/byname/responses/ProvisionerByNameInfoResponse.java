@@ -11,7 +11,27 @@ public class ProvisionerByNameInfoResponse {
     private boolean ipAllowed;
     @SerializedName("allow-dns-wildcards")
     private boolean dnsWildcardAllowed;
+    @SerializedName("crl-url")
+    private String crlUrl;
+    @SerializedName("ocsp-url")
+    private String ocspUrl;
 
+
+    public String getCrlUrl() {
+        return crlUrl;
+    }
+
+    public void setCrlUrl(String crlUrl) {
+        this.crlUrl = crlUrl;
+    }
+
+    public String getOcspUrl() {
+        return ocspUrl;
+    }
+
+    public void setOcspUrl(String ocspUrl) {
+        this.ocspUrl = ocspUrl;
+    }
 
     public boolean isDnsWildcardAllowed() {
         return dnsWildcardAllowed;
