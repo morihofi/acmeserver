@@ -16,6 +16,7 @@
 
 package de.morihofi.acmeserver;
 
+import de.morihofi.acmeserver.api.provisioner.byname.ProvisionerByNameInfoHandler;
 import de.morihofi.acmeserver.api.provisioner.statistics.ProvisionerGlobalStatisticHandler;
 import de.morihofi.acmeserver.api.provisioner.ProvisionerListHandler;
 import de.morihofi.acmeserver.api.provisioner.statistics.ProvisionerStatisticHandler;
@@ -43,6 +44,6 @@ public class API {
         app.get("/api/provisioner/list", new ProvisionerListHandler(cryptoStoreManager));
         app.get("/api/provisioner/stats", new ProvisionerStatisticHandler(cryptoStoreManager));
         app.get("/api/provisioner/stats-global", new ProvisionerGlobalStatisticHandler(cryptoStoreManager));
-
+        app.get("/api/provisioner/by-name/{provisionerName}/info", new ProvisionerByNameInfoHandler(cryptoStoreManager));
     }
 }

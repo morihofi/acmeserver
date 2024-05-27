@@ -115,6 +115,11 @@ public class ProvisionerManager {
         provisioners.add(provisioner);
     }
 
+    /**
+     * Get a Provisioner object by name, otherwise null
+     * @param provisionerName Name of the Provisioner
+     * @return Provisioner object
+     */
     public static Provisioner getProvisionerForName(String provisionerName) {
         Optional<Provisioner> provisionerOptional = provisioners.stream()
                 .filter(provisioner -> provisioner.getProvisionerName().equals(provisionerName))

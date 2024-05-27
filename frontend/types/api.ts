@@ -33,3 +33,10 @@ export type ApiServerInfoMetadataUpdateResponse = {
   updateAvailable: boolean;
   releaseUrl: string;
 };
+
+export type ApiProvisionersByNameInfoResponse = {
+  "terms-of-service": string;
+  "website": string;
+  "allow-ip": boolean;
+  "allow-dns-wildcards": boolean;
+};
