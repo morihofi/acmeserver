@@ -79,7 +79,7 @@ public class Main {
             .setPrettyPrinting()
             .create();
     @SuppressFBWarnings({"MS_PKGPROTECT"})
-    public static CryptoStoreManager cryptoStoreManager;
+    private static CryptoStoreManager cryptoStoreManager;
     // Build Metadata
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataVersion;
