@@ -13,10 +13,11 @@
         <a
           class="text-muted"
           target="_blank"
-          href="https://github.com/morihofi/acmeserver"
+          to="https://github.com/morihofi/acmeserver"
+        
         >
-          <i class="fa-brands fa-github"></i>
-        </a>
+          <font-awesome-icon icon="fa-brands fa-github" class="icon"/>
+      </a>
       </span>
     </div>
   </footer>
