@@ -37,13 +37,11 @@ import de.morihofi.acmeserver.tools.certificate.renew.IntermediateCaRenew;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewManager;
 import de.morihofi.acmeserver.tools.network.logging.HTTPAccessLogger;
 import de.morihofi.acmeserver.tools.regex.ConfigCheck;
-import de.morihofi.acmeserver.webui.WebUI;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.Javalin;
 import io.javalin.http.HandlerType;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.json.JavalinGson;
-import io.javalin.rendering.template.JavalinJte;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -53,7 +51,6 @@ import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class AcmeApiServer {
     /**
@@ -104,7 +101,6 @@ public class AcmeApiServer {
         app = Javalin.create(javalinConfig -> {
             // TODO: Make it compatible again with modules
             javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
-            javalinConfig.fileRenderer(new JavalinJte(WebUI.createTemplateEngine()));
             javalinConfig.jsonMapper(new JavalinGson());
         });
 
@@ -115,14 +111,6 @@ public class AcmeApiServer {
             ctx.header("Access-Control-Allow-Methods", "*");
             ctx.header("Access-Control-Allow-Headers", "*");
             ctx.header("Access-Control-Max-Age", "3600");
-
-            // This is for the WebUI to auto use same language as browser, if supported
-            {
-                String acceptLanguage = ctx.header("Accept-Language");
-                Locale locale = Locale.forLanguageTag(acceptLanguage != null ? acceptLanguage.split(",")[0] : "en-US");
-
-                ctx.attribute(WebUI.ATTR_LOCALE, locale);
-            }
 
             // Check for correct content type, except for directory
             if (
@@ -158,7 +146,6 @@ public class AcmeApiServer {
 
         // Global routes
         API.init(app, appConfig, cryptoStoreManager);
-        WebUI.init(app, cryptoStoreManager);
 
         for (Provisioner provisioner : getProvisioners(appConfig.getProvisioner(), cryptoStoreManager)) {
             ProvisionerManager.registerProvisioner(app, provisioner);
