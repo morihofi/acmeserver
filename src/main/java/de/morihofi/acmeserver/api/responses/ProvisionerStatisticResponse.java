@@ -15,7 +15,7 @@
  */
 package de.morihofi.acmeserver.api.responses;
 
-public class ProvisionerStatisticListResponse {
+public class ProvisionerStatisticResponse {
     private String name;
     private long acmeAccounts;
     private long certificatesIssued;

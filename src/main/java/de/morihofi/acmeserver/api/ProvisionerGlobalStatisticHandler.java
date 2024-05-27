@@ -26,37 +26,29 @@ import io.javalin.http.Handler;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class ProvisionerStatisticHandler implements Handler {
+public class ProvisionerGlobalStatisticHandler implements Handler {
 
     private final CryptoStoreManager cryptoStoreManager;
 
-    public ProvisionerStatisticHandler(CryptoStoreManager cryptoStoreManager) {
+    public ProvisionerGlobalStatisticHandler(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
     }
 
     @Override
     public void handle(@NotNull Context context) throws Exception {
-        List<ProvisionerStatisticResponse> statisticItemsOfProvisioner = new ArrayList<>();
+        ProvisionerStatisticResponse globalStats = new ProvisionerStatisticResponse();
+        globalStats.setName(null);
 
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            for (Provisioner provisioner : ProvisionerManager.getProvisioners()) {
-                String provisionerName = provisioner.getProvisionerName();
 
-                ProvisionerStatisticResponse item = new ProvisionerStatisticResponse();
-                item.setName(provisionerName);
-                item.setAcmeAccounts(ProvisionerStatistics.countACMEAccountsByProvisioner(session, provisionerName));
-                item.setCertificatesIssued(ProvisionerStatistics.countIssuedCertificatesByProvisioner(session, provisionerName));
-                item.setCertificatesRevoked(ProvisionerStatistics.countRevokedCertificatesByProvisioner(session, provisionerName));
-                item.setCertificatesIssueWaiting(
-                        ProvisionerStatistics.countCertificatesWaitingForIssueByProvisioner(session, provisionerName));
 
-                statisticItemsOfProvisioner.add(item);
-            }
+            globalStats.setAcmeAccounts(ProvisionerStatistics.countGlobalActiveACMEAccounts(session));
+            globalStats.setCertificatesIssued(ProvisionerStatistics.countGlobalIssuedCertificates(session));
+            globalStats.setCertificatesRevoked(ProvisionerStatistics.countGlobalRevokedCertificates(session));
+            globalStats.setCertificatesIssueWaiting(ProvisionerStatistics.countGlobalCertificatesWaiting(session));
+
         }
 
-        context.json(statisticItemsOfProvisioner);
+        context.json(globalStats);
     }
 }

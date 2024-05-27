@@ -112,4 +112,13 @@ public class ProvisionerStatistics {
                 .getSingleResult();
         return count != null ? count : 0;
     }
+
+    public static long countGlobalCertificatesWaiting(Session session) {
+        Long count = session.createQuery(
+                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.certificatePem IS NULL AND"
+                                + " o.certificateCSR IS NOT NULL",
+                        Long.class)
+                .getSingleResult();
+        return count != null ? count : 0;
+    }
 }

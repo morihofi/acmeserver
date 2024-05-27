@@ -4,7 +4,7 @@ export type ApiProvisionersListResponse = {
 };
 
 export type ApiProvisionersStatsResponse = {
-  name: string;
+  name?: string;
   acmeAccounts: number;
   certificatesIssued: number;
   certificatesRevoked: number;
