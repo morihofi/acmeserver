@@ -16,6 +16,7 @@
 
 package de.morihofi.acmeserver;
 
+import de.morihofi.acmeserver.api.ProvisionerGlobalStatisticHandler;
 import de.morihofi.acmeserver.api.ProvisionerListHandler;
 import de.morihofi.acmeserver.api.ProvisionerStatisticHandler;
 import de.morihofi.acmeserver.certificate.api.download.DownloadCaCabEndpoint;
@@ -39,6 +40,7 @@ public class API {
         app.get("/api/stats/provisioners/certificates-issued", new ApiStatsProvisionerCertificatesIssued());
         app.get("/api/provisioner/list", new ProvisionerListHandler(cryptoStoreManager));
         app.get("/api/provisioner/stats", new ProvisionerStatisticHandler(cryptoStoreManager));
+        app.get("/api/provisioner/stats-global", new ProvisionerGlobalStatisticHandler(cryptoStoreManager));
 
     }
 }
