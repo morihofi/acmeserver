@@ -162,9 +162,9 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             Date endDate = DateTools.makeDateForOutliveIntermediateCertificate(
                     provisioner.getIntermediateCaCertificate().getNotAfter(),
                     DateTools.addToDate(startDate,
-                            provisioner.getConfig().getIntermediate().getExpiration().getYears(),
-                            provisioner.getConfig().getIntermediate().getExpiration().getMonths(),
-                            provisioner.getConfig().getIntermediate().getExpiration().getDays()
+                            provisioner.getGeneratedCertificateExpiration().getYears(),
+                            provisioner.getGeneratedCertificateExpiration().getMonths(),
+                            provisioner.getGeneratedCertificateExpiration().getDays()
                     )
             );
 
