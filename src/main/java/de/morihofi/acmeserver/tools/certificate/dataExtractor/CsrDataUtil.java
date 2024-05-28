@@ -63,11 +63,13 @@ public class CsrDataUtil {
 
         // Extract the subject DN to get the Common Name (CN)
         X500Name subject = certRequest.getSubject();
-        RDN cnRDN = subject.getRDNs(BCStyle.CN)[0];  // Assumes there's only one CN RDN
-        if (cnRDN != null) {
+        RDN[] cnRDNs = subject.getRDNs(BCStyle.CN);  // Assumes there's only one CN RDN
+        if(cnRDNs.length != 0){
+            RDN cnRDN = cnRDNs[0];
             String commonName = cnRDN.getFirst().getValue().toString();
             domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, commonName));
         }
+
 
         // Extract the SAN extension
         Extension sanExtension = certRequest.getRequestedExtensions().getExtension(Extension.subjectAlternativeName);
