@@ -40,3 +40,11 @@
   - org.slf4j:jul-to-slf4j from 2.0.12 to 2.0.13 
   - jakarta.interceptor:jakarta.interceptor-api from 2.1.0 to 2.2.0
   - com.github.spotbugs:spotbugs-annotations from 4.8.3 to 4.8.4
+
+## 2.1
+- Frontend Updates
+  - Removed JTE (Server Side Rendering) for Web UI
+  - Removed legacy CA download page --> Download CA using direct link
+  - Use NuxtJS for WebUI 
+  - No CDN resources more needed for UI to display
+- Improved REST API
