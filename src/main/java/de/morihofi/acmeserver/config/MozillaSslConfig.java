@@ -16,11 +16,16 @@
 
 package de.morihofi.acmeserver.config;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
+
 import java.io.Serializable;
 
 public class MozillaSslConfig implements Serializable {
+    @ConfigurationField(name = "Enable Mozilla SSL-Config settings")
     private boolean enabled = false;
+    @ConfigurationField(name = "Mozilla SSL-Config Version")
     private String version = "5.7";
+    @ConfigurationField(name = "Mozilla SSL-Config Configuration name")
     private String configuration = "intermediate";
 
     public boolean isEnabled() {

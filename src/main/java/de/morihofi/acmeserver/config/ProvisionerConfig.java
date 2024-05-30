@@ -16,6 +16,7 @@
 
 package de.morihofi.acmeserver.config;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serializable;
@@ -26,12 +27,19 @@ import java.io.Serializable;
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ProvisionerConfig implements Serializable {
+    @ConfigurationField(name = "Provisioner name")
     private String name;
+    @ConfigurationField(name = "Intermediate Certificate Settings")
     private CertificateConfig intermediate;
+    @ConfigurationField(name = "Provisioner metadata")
     private MetadataConfig meta;
+    @ConfigurationField(name = "Issued certificate expiration")
     private CertificateExpiration issuedCertificateExpiration;
+    @ConfigurationField(name = "Domain Name Restriction")
     private DomainNameRestrictionConfig domainNameRestriction;
+    @ConfigurationField(name = "Allow issuing for DNS Wildcards")
     private boolean wildcardAllowed;
+    @ConfigurationField(name = "Allow issuing for IP Addresses")
     private boolean ipAllowed;
 
     /**

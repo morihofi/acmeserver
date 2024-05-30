@@ -17,11 +17,15 @@
 package de.morihofi.acmeserver.config.databaseConfig;
 
 import de.morihofi.acmeserver.config.DatabaseConfig;
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 
+@Deprecated
 public class OldDatabaseConfig extends DatabaseConfig {
+    @ConfigurationField(name = "Host")
     private String host;
+    @ConfigurationField(name = "Database Name")
     private String name;
-
+    @ConfigurationField(name = "Database Engine")
     private String engine;
 
     /**

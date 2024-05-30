@@ -17,8 +17,10 @@
 package de.morihofi.acmeserver.config.databaseConfig;
 
 import de.morihofi.acmeserver.config.DatabaseConfig;
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 
 public class JDBCUrlDatabaseConfig extends DatabaseConfig {
+    @ConfigurationField(name = "JDBC URL")
     private String jdbcUrl;
 
     public String getJdbcUrl() {

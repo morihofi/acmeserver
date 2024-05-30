@@ -16,14 +16,17 @@
 
 package de.morihofi.acmeserver.config;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
+
 import java.io.Serializable;
 
 /**
  * Represents configuration parameters for a database connection, including engine, host, user, password, and database name.
  */
 public abstract class DatabaseConfig implements Serializable {
-
+    @ConfigurationField(name = "Username")
     private String user;
+    @ConfigurationField(name = "Password")
     private String password;
 
     /**

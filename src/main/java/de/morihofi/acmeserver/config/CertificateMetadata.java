@@ -16,15 +16,21 @@
 
 package de.morihofi.acmeserver.config;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
+
 import java.io.Serializable;
 
 /**
  * Represents metadata for a certificate, including common name, organization, organizational unit, and country code.
  */
 public class CertificateMetadata implements Serializable {
+    @ConfigurationField(name = "Common Name")
     private String commonName;
+    @ConfigurationField(name = "Organisation")
     private String organisation;
+    @ConfigurationField(name = "Organisational Unit")
     private String organisationalUnit;
+    @ConfigurationField(name = "Country Code")
     private String countryCode;
 
     /**

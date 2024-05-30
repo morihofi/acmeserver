@@ -16,17 +16,25 @@
 
 package de.morihofi.acmeserver.config;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
+
 import java.io.Serializable;
 
 /**
  * Represents configuration parameters for an email server, including host, port, encryption, username, password, and enabled status.
  */
 public class EmailConfig implements Serializable {
+    @ConfigurationField(name = "SMTP Password")
     private String password;
+    @ConfigurationField(name = "SMTP Connection Encryption")
     private String encryption;
+    @ConfigurationField(name = "SMTP Port")
     private Integer port;
+    @ConfigurationField(name = "SMTP Host")
     private String host;
+    @ConfigurationField(name = "Enable E-Mail sending")
     private Boolean enabled;
+    @ConfigurationField(name = "SMTP Username")
     private String username;
 
     /**

@@ -16,6 +16,8 @@
 
 package de.morihofi.acmeserver.config.certificateAlgorithms;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
+
 import java.io.Serializable;
 
 /**
@@ -24,6 +26,7 @@ import java.io.Serializable;
  * to the particular algorithm.
  */
 public abstract class AlgorithmParams implements Serializable {
+    @ConfigurationField(name = "Parameter type (rsa or ecdsa)")
     private String type;
 
     /**

@@ -16,13 +16,17 @@
 
 package de.morihofi.acmeserver.config;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
+
 import java.io.Serializable;
 
 /**
  * Represents configuration for HTTP and HTTPS ports.
  */
 public class Ports implements Serializable {
+    @ConfigurationField(name = "HTTP Port")
     private int http = 80;
+    @ConfigurationField(name = "HTTPS Port")
     private int https = 443;
 
     /**

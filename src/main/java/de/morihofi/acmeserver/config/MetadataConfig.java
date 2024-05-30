@@ -16,13 +16,17 @@
 
 package de.morihofi.acmeserver.config;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
+
 import java.io.Serializable;
 
 /**
  * Represents metadata configuration for a system, including website URL and terms of service (TOS) information.
  */
 public class MetadataConfig implements Serializable {
+    @ConfigurationField(name = "Website")
     private String website;
+    @ConfigurationField(name = "Terms of Service")
     private String tos;
 
     /**

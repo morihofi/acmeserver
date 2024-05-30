@@ -16,14 +16,19 @@
 
 package de.morihofi.acmeserver.config;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
+
 import java.io.Serializable;
 
 /**
  * Represents expiration information for a certificate, specifying months, days, and years.
  */
 public class CertificateExpiration implements Serializable {
+    @ConfigurationField(name = "Months")
     private Integer months;
+    @ConfigurationField(name = "Days")
     private Integer days;
+    @ConfigurationField(name = "Years")
     private Integer years;
 
     /**

@@ -16,6 +16,8 @@
 
 package de.morihofi.acmeserver.config.keyStoreHelpers;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
+
 import java.io.Serializable;
 
 /**
@@ -24,7 +26,9 @@ import java.io.Serializable;
  * to the particular type of KeyStore.
  */
 public abstract class KeyStoreParams implements Serializable {
+    @ConfigurationField(name = "KeyStore Type")
     protected String type;
+    @ConfigurationField(name = "Password")
     protected String password;
 
     /**

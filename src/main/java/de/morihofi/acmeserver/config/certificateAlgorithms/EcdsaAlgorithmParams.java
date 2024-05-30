@@ -16,11 +16,14 @@
 
 package de.morihofi.acmeserver.config.certificateAlgorithms;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
+
 /**
  * Represents the parameters for the Elliptic Curve Digital Signature Algorithm (ECDSA). This class extends {@link AlgorithmParams} to
  * include parameters specific to ECDSA, particularly the name of the elliptic curve used.
  */
 public class EcdsaAlgorithmParams extends AlgorithmParams {
+    @ConfigurationField(name = "Curve Name")
     private String curveName;
 
     /**

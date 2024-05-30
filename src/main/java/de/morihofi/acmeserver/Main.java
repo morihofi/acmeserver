@@ -27,6 +27,7 @@ import de.morihofi.acmeserver.config.helper.KeyStoreParamsDeserializer;
 import de.morihofi.acmeserver.config.keyStoreHelpers.KeyStoreParams;
 import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS11KeyStoreParams;
 import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS12KeyStoreParams;
+import de.morihofi.acmeserver.configPreprocessor.ConfigPreprocessor;
 import de.morihofi.acmeserver.postsetup.PostSetup;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
@@ -131,6 +132,11 @@ public class Main {
 
         loadServerConfiguration();
         loadBuildAndGitMetadata();
+
+
+        LOG.info("Preprocessing configuration classes... May take a moment");
+        ConfigPreprocessor.preprocessConfig();
+
 
         // Parse CLI Arguments
         final String argPrefix = "--";

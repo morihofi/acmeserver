@@ -17,6 +17,7 @@
 package de.morihofi.acmeserver;
 
 import com.google.gson.Gson;
+import de.morihofi.acmeserver.api.API;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.certificate.queue.CertificateIssuer;

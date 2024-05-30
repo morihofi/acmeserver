@@ -27,7 +27,7 @@ public class ErrorResponse {
     /**
      * Get the type of the error.
      *
-     * @return The error type, which can be a short description or code for the error.
+     * @return The error type, which can be a short name or code for the error.
      */
     public String getType() {
         return type;

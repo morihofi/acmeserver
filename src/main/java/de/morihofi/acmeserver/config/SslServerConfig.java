@@ -16,7 +16,10 @@
 
 package de.morihofi.acmeserver.config;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
+
 public class SslServerConfig {
+    @ConfigurationField(name = "Allow Legacy Resumption")
     private boolean allowLegacyResumption = false;
 
     public boolean isAllowLegacyResumption() {

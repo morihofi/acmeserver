@@ -18,6 +18,7 @@ package de.morihofi.acmeserver.config;
 
 import com.google.gson.annotations.SerializedName;
 import de.morihofi.acmeserver.config.keyStoreHelpers.KeyStoreParams;
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serializable;
@@ -30,12 +31,26 @@ import java.util.List;
 public class Config implements Serializable {
     @SerializedName("$schema")
     private String jsonSchema;
+
+    @ConfigurationField(name = "Server configuration")
     private ServerConfig server;
+
+    @ConfigurationField(name = "KeyStore configuration")
     private KeyStoreParams keyStore;
+
+    @ConfigurationField(name = "Database Configuration")
     private DatabaseConfig database;
+
+    @ConfigurationField(name = "E-Mail SMTP Configuration")
     private EmailConfig emailSmtp;
+
+    @ConfigurationField(name = "Root-CA Configuration")
     private CertificateConfig rootCA;
+
+    @ConfigurationField(name = "Provisioner Configuration")
     private List<ProvisionerConfig> provisioner;
+
+    @ConfigurationField(name = "Proxy Configuration")
     private ProxyConfig proxy;
 
     /**

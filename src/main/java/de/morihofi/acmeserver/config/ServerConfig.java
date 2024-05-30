@@ -16,6 +16,7 @@
 
 package de.morihofi.acmeserver.config;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serializable;
@@ -25,12 +26,17 @@ import java.io.Serializable;
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ServerConfig implements Serializable {
+    @ConfigurationField(name = "DNS Name that resolves to this Server")
     private String dnsName = "example.com";
+    @ConfigurationField(name = "Ports")
     private Ports ports = new Ports();
+    @ConfigurationField(name = "Enable SNI Checking (HTTPS Hostname)")
     private boolean enableSniCheck = true;
+    @ConfigurationField(name = "HTTP Logging directory path")
     private String loggingDirectory = null;
-
+    @ConfigurationField(name = "Mozilla SSL-Config settings")
     private MozillaSslConfig mozillaSslConfig = new MozillaSslConfig();
+    @ConfigurationField(name = "Advanced SSL/TLS Configuration settings")
     private SslServerConfig sslServerConfig = new SslServerConfig();
 
     /**

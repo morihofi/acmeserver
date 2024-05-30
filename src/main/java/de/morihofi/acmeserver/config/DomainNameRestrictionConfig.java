@@ -16,6 +16,7 @@
 
 package de.morihofi.acmeserver.config;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serializable;
@@ -26,7 +27,9 @@ import java.util.List;
  */
 @SuppressFBWarnings("EI_EXPOSE_REP")
 public class DomainNameRestrictionConfig implements Serializable {
+    @ConfigurationField(name = "Must end with domain names")
     private List<String> mustEndWith;
+    @ConfigurationField(name = "Enable domain name restriction")
     private Boolean enabled;
 
     /**

@@ -16,6 +16,7 @@
 
 package de.morihofi.acmeserver.config.proxy;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serializable;
@@ -25,14 +26,15 @@ import java.io.Serializable;
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class HttpChallenge implements Serializable {
-    private Integer port;
-
-    private String host;
-
-    private String type;
-
+    @ConfigurationField(name = "Enable Proxy")
     private Boolean enabled;
-
+    @ConfigurationField(name = "Host")
+    private String host;
+    @ConfigurationField(name = "Port")
+    private Integer port;
+    @ConfigurationField(name = "Proxy Type")
+    private String type;
+    @ConfigurationField(name = "Authentication")
     private Authentication authentication;
 
     /**
@@ -129,9 +131,12 @@ public class HttpChallenge implements Serializable {
      * Represents authentication information for an HTTP challenge.
      */
     public static class Authentication implements Serializable {
-        private String password;
+        @ConfigurationField(name = "Enable Proxy Authentication")
         private boolean enabled;
+        @ConfigurationField(name = "Username")
         private String username;
+        @ConfigurationField(name = "Password")
+        private String password;
 
         /**
          * Get the password for authentication.
