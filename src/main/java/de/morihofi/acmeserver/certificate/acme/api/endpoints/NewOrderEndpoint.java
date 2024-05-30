@@ -27,6 +27,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.lang.invoke.MethodHandles;
+import java.security.KeyStoreException;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -140,18 +141,8 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
-
-
             Date startDate = new Date(); // Starts now
-            Date endDate = DateTools.makeDateForOutliveIntermediateCertificate(
-                    provisioner.getIntermediateCaCertificate().getNotAfter(),
-                    DateTools.addToDate(startDate,
-                        provisioner.getConfig().getIntermediate().getExpiration().getYears(),
-                        provisioner.getConfig().getIntermediate().getExpiration().getMonths(),
-                        provisioner.getConfig().getIntermediate().getExpiration().getDays()
-                    )
-            );
-
+            Date endDate = calculateEndDate(newOrderRequestPayload, provisioner, startDate);
 
             // Create order
             order = new ACMEOrder();
@@ -235,4 +226,27 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         return false; // None of the suffixes match, and restrictions are enabled
     }
 
+    /**
+     * Calculates the notAfter Property of the certificate. If the {@link NewOrderRequestPayload} provides an notAfter date and it does not exceed the notAfter of the intermediate CA certificate it is returned.
+     * Otherwise the intermediate CA certificate is returned.
+     *
+     * @return The {@link NewOrderRequestPayload#notAfter} Property, if provided and doesn't exceed the intermediate CA certificate notAfter. intermediate CA certificate notAfter otherwise.
+     * @throws KeyStoreException, if the intermediate ca certificate could not be loaded.
+     */
+    private Date calculateEndDate(NewOrderRequestPayload newOrderRequestPayload, Provisioner provisioner, Date startDate) throws KeyStoreException {
+        Date endDateByOrder = newOrderRequestPayload.getNotAfter();
+
+        Date endDateByCA = DateTools.makeDateForOutliveIntermediateCertificate(
+                provisioner.getIntermediateCaCertificate().getNotAfter(),
+                DateTools.addToDate(startDate,
+                        provisioner.getConfig().getIntermediate().getExpiration().getYears(),
+                        provisioner.getConfig().getIntermediate().getExpiration().getMonths(),
+                        provisioner.getConfig().getIntermediate().getExpiration().getDays()
+                )
+        );
+
+        return endDateByOrder == null || endDateByOrder.after(endDateByCA)
+                ? endDateByCA
+                : endDateByOrder;
+    }
 }

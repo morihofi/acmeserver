@@ -6,6 +6,7 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.objects;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.NewOrderEndpoint;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -18,6 +19,11 @@ public class NewOrderRequestPayload {
      * List of identifiers, which the clients want to get certificates for
      */
     private List<Identifier> identifiers;
+
+    /**
+     * the desired notAfter property for the certificate
+     */
+    private Date notAfter;
 
     /**
      * Retrieves the list of identifiers associated with this instance.
@@ -40,6 +46,25 @@ public class NewOrderRequestPayload {
 
     public void setIdentifiers(List<Identifier> value) {
         this.identifiers = value;
+    }
+
+    /**
+     * Retrieves the notAfter field associated with this instance.
+     *
+     * @return The notAfter field as {@link Date}.
+     */
+    public Date getNotAfter() {
+        return notAfter;
+    }
+
+    /**
+     * Sets the notAfter property for this instance.
+     * This method allows updating the notAfter.
+     *
+     * @param value The new notAfter {@link Date} object.
+     */
+    public void setNotAfter(Date value) {
+        this.notAfter = value;
     }
 
 }
