@@ -174,7 +174,7 @@ public class Main {
             case NORMAL -> {
                 initializeCoreComponents();
                 LOG.info("Starting normally");
-                AcmeApiServer.startServer(cryptoStoreManager, appConfig);
+                WebServer.startServer(cryptoStoreManager, appConfig);
             }
             case POSTSETUP -> {
                 // Do not init core components, due to changing passwords in UI

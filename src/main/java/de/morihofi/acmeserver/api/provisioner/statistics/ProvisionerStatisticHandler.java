@@ -23,11 +23,16 @@ import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import io.javalin.openapi.HttpMethod;
+import io.javalin.openapi.OpenApi;
+import io.javalin.openapi.OpenApiContent;
+import io.javalin.openapi.OpenApiResponse;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class ProvisionerStatisticHandler implements Handler {
 
@@ -38,6 +43,21 @@ public class ProvisionerStatisticHandler implements Handler {
     }
 
     @Override
+    @OpenApi(
+            summary = "List statistics of all available provisioner",
+            operationId = "getProvisionerStats",
+            path = "/api/stats/provisioner-all",
+            methods = HttpMethod.GET,
+            tags = {"Statistics"},
+            responses = {
+                    @OpenApiResponse(status = "200", content = {
+                            @OpenApiContent(
+                                    from = ProvisionerStatisticResponse[].class,
+                                    mimeType = "application/json"
+                            )
+                    })
+            }
+    )
     public void handle(@NotNull Context context) throws Exception {
         List<ProvisionerStatisticResponse> statisticItemsOfProvisioner = new ArrayList<>();
 

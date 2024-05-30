@@ -127,10 +127,10 @@ const statisticsGlobal = ref<ApiProvisionersStatsResponse>();
 
 onMounted(async () => {
   try {
-    const responseProvisioner = await fetch(getApiBase() + "/api/provisioner/stats");
+    const responseProvisioner = await fetch(getApiBase() + "/api/stats/provisioner-all");
     statisticsProvisioner.value = await responseProvisioner.json();
 
-    const responseGlobal = await fetch(getApiBase() + "/api/provisioner/stats-global");
+    const responseGlobal = await fetch(getApiBase() + "/api/stats/provisioner-global");
     statisticsGlobal.value = await responseGlobal.json();
 
   } catch (error) {

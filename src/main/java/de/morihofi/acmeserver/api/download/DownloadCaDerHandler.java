@@ -19,12 +19,31 @@ package de.morihofi.acmeserver.api.download;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import io.javalin.openapi.HttpMethod;
+import io.javalin.openapi.OpenApi;
+import io.javalin.openapi.OpenApiContent;
+import io.javalin.openapi.OpenApiResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandles;
 
+@OpenApi(
+        summary = "Get the Root certificate as Distinguished Encoding Rules certificate (binary)",
+        operationId = "getDerCertificate",
+        path = "/ca.der",
+        methods = HttpMethod.GET,
+        tags = {"Download Root Certificate"},
+        responses = {
+                @OpenApiResponse(status = "200", content = {
+                        @OpenApiContent(
+                                from = byte[].class,
+                                mimeType = "application/x-x509-ca-cert"
+                        )
+                })
+        }
+)
 public class DownloadCaDerHandler implements Handler {
     /**
      * Logger
@@ -38,6 +57,8 @@ public class DownloadCaDerHandler implements Handler {
 
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
+        ctx.header("Content-Type", "application/x-x509-ca-cert");
+
         byte[] der = cryptoStoreManager.getKeyStore()
                 .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
                 .getEncoded();

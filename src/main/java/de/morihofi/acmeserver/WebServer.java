@@ -42,6 +42,9 @@ import io.javalin.Javalin;
 import io.javalin.http.HandlerType;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.json.JavalinGson;
+import io.javalin.openapi.plugin.OpenApiPlugin;
+import io.javalin.openapi.plugin.redoc.ReDocPlugin;
+import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -52,7 +55,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AcmeApiServer {
+public class WebServer {
     /**
      * Logger
      */
@@ -80,16 +83,16 @@ public class AcmeApiServer {
     private static HTTPAccessLogger httpAccessLogger;
 
     /**
-     * Method to start the ACME API Server
+     * Method to start the Web and API Server
      *
      * @param appConfig          Configuration instance of the ACME Server
      * @param cryptoStoreManager Instance of {@link CryptoStoreManager} for accessing KeyStores
      * @throws Exception thrown when startup fails
      */
     public static void startServer(CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
-        AcmeApiServer.cryptoStoreManager = cryptoStoreManager;
-        AcmeApiServer.certificateRenewManager = new CertificateRenewManager(cryptoStoreManager);
-        AcmeApiServer.httpAccessLogger = new HTTPAccessLogger(appConfig);
+        WebServer.cryptoStoreManager = cryptoStoreManager;
+        WebServer.certificateRenewManager = new CertificateRenewManager(cryptoStoreManager);
+        WebServer.httpAccessLogger = new HTTPAccessLogger(appConfig);
 
         LOG.info("Starting in Normal Mode");
         CaInitHelper.initializeCA(cryptoStoreManager, appConfig);
@@ -98,10 +101,23 @@ public class AcmeApiServer {
         HibernateUtil.initDatabase();
 
         LOG.info("Starting ACME API WebServer");
-        app = Javalin.create(javalinConfig -> {
-            // TODO: Make it compatible again with modules
-            javalinConfig.staticFiles.add("/webstatic", Location.CLASSPATH); // Adjust the Location if necessary
-            javalinConfig.jsonMapper(new JavalinGson());
+        app = Javalin.create(config -> {
+            // Static Files
+            config.staticFiles.add("/webstatic", Location.CLASSPATH);
+            // Object Mapper
+            config.jsonMapper(new JavalinGson());
+            //
+            config.registerPlugin(new OpenApiPlugin(pluginConfig -> {
+                pluginConfig.withDefinitionConfiguration((version, definition) -> {
+                    definition.withInfo(info -> {
+                        info.setTitle("ACME Server OpenAPI");
+                        info.setDescription("This is the API documentation of morihofi's ACME Server.");
+                    });
+                });
+            }));
+            config.registerPlugin(new SwaggerPlugin());
+            config.registerPlugin(new ReDocPlugin());
+
         });
 
         JavalinSecurityHelper.initSecureApi(app, cryptoStoreManager, appConfig, certificateRenewManager);
@@ -112,7 +128,7 @@ public class AcmeApiServer {
             ctx.header("Access-Control-Allow-Headers", "*");
             ctx.header("Access-Control-Max-Age", "3600");
 
-            // Check for correct content type, except for directory
+            // Check for correct content type, except for ACME directory
             if (
                     ctx.method() == HandlerType.POST && // Only for POST Requests
                             (ctx.path().startsWith("/acme/") && !"application/jose+json".equals(ctx.contentType())) // True when ACME API
@@ -321,6 +337,6 @@ public class AcmeApiServer {
         Main.restartMain();
     }
 
-    private AcmeApiServer() {
+    private WebServer() {
     }
 }

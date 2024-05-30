@@ -21,25 +21,15 @@ import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import jakarta.xml.bind.DatatypeConverter;
-import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.ASN1Sequence;
-import org.bouncycastle.asn1.DEROctetString;
-import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
-import org.bouncycastle.asn1.x509.AuthorityInformationAccess;
-import org.bouncycastle.asn1.x509.CRLDistPoint;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.GeneralNames;
+import io.javalin.openapi.HttpMethod;
+import io.javalin.openapi.OpenApi;
+import io.javalin.openapi.OpenApiContent;
+import io.javalin.openapi.OpenApiResponse;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
 
 public class ProvisionerListHandler implements Handler {
 
@@ -50,6 +40,21 @@ public class ProvisionerListHandler implements Handler {
     }
 
     @Override
+    @OpenApi(
+            summary = "List all available provisioner",
+            operationId = "getProvisionerList",
+            path = "/api/provisioner/list",
+            methods = HttpMethod.GET,
+            tags = {"Provisioner"},
+            responses = {
+                    @OpenApiResponse(status = "200", content = {
+                            @OpenApiContent(
+                                    from = ProvisionerListEntryResponse[].class,
+                                    mimeType = "application/json"
+                            )
+                    })
+            }
+    )
     public void handle(@NotNull Context context) throws Exception {
 
         List<ProvisionerListEntryResponse> provisionerResponse = new ArrayList<>();

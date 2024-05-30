@@ -42,8 +42,8 @@ public class API {
         app.get("/api/serverinfo", new ApiServerInfoEndpoint(appConfig.getProvisioner()));
         app.get("/api/stats/provisioners/certificates-issued", new ApiStatsProvisionerCertificatesIssued());
         app.get("/api/provisioner/list", new ProvisionerListHandler(cryptoStoreManager));
-        app.get("/api/provisioner/stats", new ProvisionerStatisticHandler(cryptoStoreManager));
-        app.get("/api/provisioner/stats-global", new ProvisionerGlobalStatisticHandler(cryptoStoreManager));
+        app.get("/api/stats/provisioner-all", new ProvisionerStatisticHandler(cryptoStoreManager));
+        app.get("/api/stats/provisioner-global", new ProvisionerGlobalStatisticHandler(cryptoStoreManager));
         app.get("/api/provisioner/by-name/{provisionerName}/info", new ProvisionerByNameInfoHandler(cryptoStoreManager));
     }
 }

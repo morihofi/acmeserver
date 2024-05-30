@@ -21,8 +21,13 @@ import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import io.javalin.openapi.HttpMethod;
+import io.javalin.openapi.OpenApi;
+import io.javalin.openapi.OpenApiContent;
+import io.javalin.openapi.OpenApiResponse;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
+
 
 public class ProvisionerGlobalStatisticHandler implements Handler {
 
@@ -33,6 +38,21 @@ public class ProvisionerGlobalStatisticHandler implements Handler {
     }
 
     @Override
+    @OpenApi(
+            summary = "List global ACME Server statistics of all available provisioners.",
+            operationId = "getProvisionerStatsGlobal",
+            path = "/api/stats/provisioner-global",
+            methods = HttpMethod.GET,
+            tags = {"Statistics"},
+            responses = {
+                    @OpenApiResponse(status = "200", content = {
+                            @OpenApiContent(
+                                    from = ProvisionerStatisticResponse.class,
+                                    mimeType = "application/json"
+                            )
+                    })
+            }
+    )
     public void handle(@NotNull Context context) throws Exception {
         ProvisionerStatisticResponse globalStats = new ProvisionerStatisticResponse();
         globalStats.setName(null);
