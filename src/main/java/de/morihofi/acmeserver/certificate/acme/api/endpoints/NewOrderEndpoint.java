@@ -1,29 +1,13 @@
-/*
- * Copyright (c) 2024 Moritz Hofmann <info@morihofi.de>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
- * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
- * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import com.google.gson.Gson;
+import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderRequestPayload;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderResponse;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
@@ -43,6 +27,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.lang.invoke.MethodHandles;
+import java.security.KeyStoreException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -52,10 +37,12 @@ import java.util.UUID;
 
 public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
+
     /**
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+
 
     public NewOrderEndpoint(Provisioner provisioner) {
         super(provisioner);
@@ -94,13 +81,17 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
                     "This account doesn't have any E-Mail addresses. Please set at least one E-Mail address and try again.");
         }
 
+
         List<Identifier> respIdentifiers = new ArrayList<>();
         List<String> respAuthorizations = new ArrayList<>();
 
         List<ACMEOrderIdentifier> acmeOrderIdentifiersWithAuthorizationData = new ArrayList<>();
 
+
+
         // Unique certificate id per order
         String certificateId = Crypto.generateRandomId();
+
 
         for (ACMEOrderIdentifier identifier : acmeOrderIdentifiers) {
             // Unique value for each domain
@@ -151,22 +142,20 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             acmeOrderIdentifiersWithAuthorizationData.add(identifier);
 
             respAuthorizations.add(provisioner.getApiURL() + "/acme/authz/" + authorizationId);
+
+
         }
+
 
         ACMEOrder order;
 
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
+
+
             Date startDate = new Date(); // Starts now
-            Date endDate = DateTools.makeDateForOutliveIntermediateCertificate(
-                    provisioner.getIntermediateCaCertificate().getNotAfter(),
-                    DateTools.addToDate(startDate,
-                            provisioner.getGeneratedCertificateExpiration().getYears(),
-                            provisioner.getGeneratedCertificateExpiration().getMonths(),
-                            provisioner.getGeneratedCertificateExpiration().getDays()
-                    )
-            );
+            Date endDate = calculateEndDate(newOrderRequestPayload, provisioner, startDate);
 
             // Create order
             order = new ACMEOrder();
@@ -197,11 +186,10 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             transaction.commit();
         }
 
-        // Send E-Mail if order was created
+
+        //Send E-Mail if order was created
         try {
-            SendMail.sendMail(account.getEmails().get(0), "New ACME order created",
-                    "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeOrderIdentifiers.get(0).getDataValue()
-                            + "</i> was created.");
+            SendMail.sendMail(account.getEmails().get(0), "New ACME order created", "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeOrderIdentifiers.get(0).getDataValue() + "</i> was created.");
         } catch (Exception ex) {
             LOG.error("Unable to send email", ex);
         }
@@ -215,6 +203,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         response.setAuthorizations(respAuthorizations);
         response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
 
+
         ctx.status(201);
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
         ctx.header("Replay-Nonce", Crypto.createNonce());
@@ -224,11 +213,13 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         ctx.json(response);
     }
 
+
     /**
      * Checks if a given domain is allowed based on domain name restrictions defined in the ACME provisioner's configuration.
      *
      * @param domain The domain to be checked for permission.
-     * @return True if the domain is allowed based on the configured restrictions or if restrictions are disabled; otherwise, false.
+     * @return True if the domain is allowed based on the configured restrictions or if restrictions are disabled;
+     * otherwise, false.
      */
     private boolean checkIfDomainIsAllowed(final String domain) {
         // Check if domain name restrictions are disabled
@@ -246,5 +237,29 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         }
 
         return false; // None of the suffixes match, and restrictions are enabled
+    }
+
+    /**
+     * Calculates the notAfter Property of the certificate. If the {@link NewOrderRequestPayload} provides an notAfter date, and it does not exceed the notAfter of the intermediate CA certificate it is returned.
+     * Otherwise, the intermediate CA certificate is returned.
+     *
+     * @return The {@link NewOrderRequestPayload#notAfter} Property, if provided and doesn't exceed the intermediate CA certificate notAfter. notAfter policy of provisioner otherwise.
+     * @throws KeyStoreException, if the intermediate ca certificate could not be loaded.
+     */
+    private Date calculateEndDate(NewOrderRequestPayload newOrderRequestPayload, Provisioner provisioner, Date startDate) throws KeyStoreException, KeyStoreException {
+        Date endDateByOrder = newOrderRequestPayload.getNotAfter();
+
+        Date endDateByCA = DateTools.makeDateForOutliveIntermediateCertificate(
+                provisioner.getIntermediateCaCertificate().getNotAfter(),
+                DateTools.addToDate(startDate,
+                        provisioner.getGeneratedCertificateExpiration().getYears(),
+                        provisioner.getGeneratedCertificateExpiration().getMonths(),
+                        provisioner.getGeneratedCertificateExpiration().getDays()
+                )
+        );
+
+        return endDateByOrder == null || endDateByOrder.after(endDateByCA)
+                ? endDateByCA
+                : endDateByOrder;
     }
 }
