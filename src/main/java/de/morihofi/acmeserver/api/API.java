@@ -40,10 +40,10 @@ public class API {
 
         app.get("/api/provisioner/list", new ProvisionerListHandler(cryptoStoreManager));
         app.get("/api/provisioner/by-name/{provisionerName}/info", new ProvisionerByNameInfoHandler(cryptoStoreManager));
-
-        app.get("/api/stats/provisioner-all", new ProvisionerStatisticHandler(cryptoStoreManager));
-        app.get("/api/stats/provisioner-global", new ProvisionerGlobalStatisticHandler(cryptoStoreManager));
-
+        // Statistics
+        app.get("/api/stats/provisioner/all", new ProvisionerStatisticHandler(cryptoStoreManager));
+        app.get("/api/stats/provisioner/global", new ProvisionerGlobalStatisticHandler(cryptoStoreManager));
+        // Config
         app.get("/api/config/layout", new ConfigLayoutHandler(cryptoStoreManager));
         app.get("/api/config/current", new ConfigHandler(cryptoStoreManager));
     }
