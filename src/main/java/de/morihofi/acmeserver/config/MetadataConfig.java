@@ -24,9 +24,9 @@ import java.io.Serializable;
  * Represents metadata configuration for a system, including website URL and terms of service (TOS) information.
  */
 public class MetadataConfig implements Serializable {
-    @ConfigurationField(name = "Website")
+    @ConfigurationField(name = "Website", required = true)
     private String website;
-    @ConfigurationField(name = "Terms of Service")
+    @ConfigurationField(name = "Terms of Service", required = true)
     private String tos;
 
     /**

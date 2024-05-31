@@ -26,9 +26,9 @@ import java.io.Serializable;
  * to the particular type of KeyStore.
  */
 public abstract class KeyStoreParams implements Serializable {
-    @ConfigurationField(name = "KeyStore Type")
+    @ConfigurationField(name = "KeyStore Type", required = true, hideVisibility = true)
     protected String type;
-    @ConfigurationField(name = "Password")
+    @ConfigurationField(name = "Password", required = true)
     protected String password;
 
     /**

@@ -27,7 +27,7 @@ import java.io.Serializable;
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ProvisionerConfig implements Serializable {
-    @ConfigurationField(name = "Provisioner name")
+    @ConfigurationField(name = "Provisioner name", required = true)
     private String name;
     @ConfigurationField(name = "Intermediate Certificate Settings")
     private CertificateConfig intermediate;

@@ -16,14 +16,16 @@
 
 package de.morihofi.acmeserver.config.keyStoreHelpers;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationClassExtends;
 import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 
 /**
  * Represents the parameters for a PKCS12 KeyStore. This class extends {@link KeyStoreParams} to include parameters specific to PKCS12
  * KeyStores, such as the location of the KeyStore file.
  */
+@ConfigurationClassExtends(configName = "pkcs12")
 public class PKCS12KeyStoreParams extends KeyStoreParams {
-    @ConfigurationField(name = "Path to KeyStore file")
+    @ConfigurationField(name = "Path to KeyStore file", required = true)
     private String location;
 
     /**

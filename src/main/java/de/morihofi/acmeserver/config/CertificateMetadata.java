@@ -24,7 +24,7 @@ import java.io.Serializable;
  * Represents metadata for a certificate, including common name, organization, organizational unit, and country code.
  */
 public class CertificateMetadata implements Serializable {
-    @ConfigurationField(name = "Common Name")
+    @ConfigurationField(name = "Common Name", required = true)
     private String commonName;
     @ConfigurationField(name = "Organisation")
     private String organisation;

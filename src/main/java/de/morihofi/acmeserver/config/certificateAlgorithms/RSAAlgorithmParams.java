@@ -16,14 +16,16 @@
 
 package de.morihofi.acmeserver.config.certificateAlgorithms;
 
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationClassExtends;
 import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 
 /**
  * Represents the parameters for the RSA (Rivest–Shamir–Adleman) algorithm. This class extends {@link AlgorithmParams} to include parameters
  * specific to RSA, particularly the size of the key used in the algorithm.
  */
+@ConfigurationClassExtends(configName = "rsa")
 public class RSAAlgorithmParams extends AlgorithmParams {
-    @ConfigurationField(name = "Key Size (Bit)")
+    @ConfigurationField(name = "Key Size (Bit)", required = true)
     private int keySize;
 
     /**

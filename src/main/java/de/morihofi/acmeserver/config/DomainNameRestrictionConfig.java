@@ -29,7 +29,7 @@ import java.util.List;
 public class DomainNameRestrictionConfig implements Serializable {
     @ConfigurationField(name = "Must end with domain names")
     private List<String> mustEndWith;
-    @ConfigurationField(name = "Enable domain name restriction")
+    @ConfigurationField(name = "Enable domain name restriction", required = true)
     private Boolean enabled;
 
     /**

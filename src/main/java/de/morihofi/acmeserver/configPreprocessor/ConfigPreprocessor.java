@@ -1,23 +1,9 @@
-/*
- * Copyright (c) 2024 Moritz Hofmann <info@morihofi.de>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
- * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
- * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
 package de.morihofi.acmeserver.configPreprocessor;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationClassExtends;
 import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 import org.reflections.Reflections;
 import org.reflections.scanners.FieldAnnotationsScanner;
@@ -53,17 +39,38 @@ public class ConfigPreprocessor {
                 .setUrls(ClasspathHelper.forPackage(configClass.getPackage().getName()))
                 .setScanners(new FieldAnnotationsScanner(), new SubTypesScanner()));
 
+        // Process fields from the entire class hierarchy
+        processFields(configClass, jsonMap, reflections);
+
+        return jsonMap;
+    }
+
+    private static void processFields(Class<?> configClass, Map<String, Object> jsonMap, Reflections reflections) {
+        if (configClass == null || configClass == Object.class) {
+            return;
+        }
+
+        // Recursively process superclass fields first
+        processFields(configClass.getSuperclass(), jsonMap, reflections);
+
         for (Field field : configClass.getDeclaredFields()) {
             if (field.isAnnotationPresent(ConfigurationField.class)) {
                 ConfigurationField annotation = field.getAnnotation(ConfigurationField.class);
+
+                if(annotation.hideVisibility()) {
+                    continue;
+                }
+
                 Map<String, Object> fieldInfo = new HashMap<>();
                 fieldInfo.put("description", annotation.name());
-                fieldInfo.put("deprecated", configClass.isAnnotationPresent(Deprecated.class));
+                fieldInfo.put("deprecated", field.isAnnotationPresent(Deprecated.class));
+                fieldInfo.put("required", annotation.required());
 
                 Class<?> fieldType = field.getType();
                 if (List.class.isAssignableFrom(fieldType)) {
                     fieldInfo.put("type", getGenericType(field));
                     fieldInfo.put("isList", true);
+                    fieldInfo.put("fields", processGenericListType(field));
                 } else {
                     fieldInfo.put("type", fieldType.getSimpleName());
                     fieldInfo.put("isList", false);
@@ -79,7 +86,6 @@ public class ConfigPreprocessor {
                 jsonMap.put(field.getName(), fieldInfo);
             }
         }
-        return jsonMap;
     }
 
     private static String getGenericType(Field field) {
@@ -93,6 +99,18 @@ public class ConfigPreprocessor {
         return "Object";
     }
 
+    private static Map<String, Object> processGenericListType(Field field) {
+        Type genericType = field.getGenericType();
+        if (genericType instanceof ParameterizedType parameterizedType) {
+            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+            if (actualTypeArguments.length > 0) {
+                Class<?> listType = (Class<?>) actualTypeArguments[0];
+                return processConfigClass(listType);
+            }
+        }
+        return new HashMap<>();
+    }
+
     private static boolean isComplexType(Class<?> fieldType) {
         return !fieldType.isPrimitive() && !fieldType.getName().startsWith("java.lang");
     }
@@ -101,7 +119,14 @@ public class ConfigPreprocessor {
         Map<String, Object> subTypesInfo = new HashMap<>();
         for (Class<?> subType : subTypes) {
             if (!Modifier.isAbstract(subType.getModifiers())) {
-                subTypesInfo.put(subType.getSimpleName(), processConfigClass(subType));
+                ConfigurationClassExtends classExtendsAnnotation = subType.getAnnotation(ConfigurationClassExtends.class);
+                if (classExtendsAnnotation == null) {
+                    throw new IllegalArgumentException("Subclass " + subType.getSimpleName() + " doesn't have @ConfigurationClassExtends annotation");
+                }
+                Map<String, Object> subTypeInfo = new HashMap<>();
+                subTypeInfo.put("fields", processConfigClass(subType));
+                subTypesInfo.put(!classExtendsAnnotation.configName().isEmpty() ? classExtendsAnnotation.configName() : subType.getSimpleName(),
+                        subTypeInfo);
             }
         }
         return subTypesInfo;

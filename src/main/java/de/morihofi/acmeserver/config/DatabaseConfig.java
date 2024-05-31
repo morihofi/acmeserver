@@ -24,9 +24,9 @@ import java.io.Serializable;
  * Represents configuration parameters for a database connection, including engine, host, user, password, and database name.
  */
 public abstract class DatabaseConfig implements Serializable {
-    @ConfigurationField(name = "Username")
+    @ConfigurationField(name = "Username", required = true)
     private String user;
-    @ConfigurationField(name = "Password")
+    @ConfigurationField(name = "Password", required = true)
     private String password;
 
     /**

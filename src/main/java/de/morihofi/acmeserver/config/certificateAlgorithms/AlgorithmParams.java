@@ -26,7 +26,7 @@ import java.io.Serializable;
  * to the particular algorithm.
  */
 public abstract class AlgorithmParams implements Serializable {
-    @ConfigurationField(name = "Parameter type (rsa or ecdsa)")
+    @ConfigurationField(name = "Parameter type (rsa or ecdsa)", required = true)
     private String type;
 
     /**

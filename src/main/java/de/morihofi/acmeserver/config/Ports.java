@@ -24,9 +24,9 @@ import java.io.Serializable;
  * Represents configuration for HTTP and HTTPS ports.
  */
 public class Ports implements Serializable {
-    @ConfigurationField(name = "HTTP Port")
+    @ConfigurationField(name = "HTTP Port", required = true)
     private int http = 80;
-    @ConfigurationField(name = "HTTPS Port")
+    @ConfigurationField(name = "HTTPS Port", required = true)
     private int https = 443;
 
     /**

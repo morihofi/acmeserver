@@ -32,25 +32,25 @@ public class Config implements Serializable {
     @SerializedName("$schema")
     private String jsonSchema;
 
-    @ConfigurationField(name = "Server configuration")
+    @ConfigurationField(name = "Web and API Server")
     private ServerConfig server;
 
-    @ConfigurationField(name = "KeyStore configuration")
+    @ConfigurationField(name = "KeyStore", required = true)
     private KeyStoreParams keyStore;
 
-    @ConfigurationField(name = "Database Configuration")
+    @ConfigurationField(name = "Database")
     private DatabaseConfig database;
 
-    @ConfigurationField(name = "E-Mail SMTP Configuration")
+    @ConfigurationField(name = "E-Mail SMTP")
     private EmailConfig emailSmtp;
 
-    @ConfigurationField(name = "Root-CA Configuration")
+    @ConfigurationField(name = "Root-CA")
     private CertificateConfig rootCA;
 
-    @ConfigurationField(name = "Provisioner Configuration")
+    @ConfigurationField(name = "Provisioners")
     private List<ProvisionerConfig> provisioner;
 
-    @ConfigurationField(name = "Proxy Configuration")
+    @ConfigurationField(name = "Proxy")
     private ProxyConfig proxy;
 
     /**

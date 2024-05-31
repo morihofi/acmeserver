@@ -26,7 +26,7 @@ import java.io.Serializable;
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ServerConfig implements Serializable {
-    @ConfigurationField(name = "DNS Name that resolves to this Server")
+    @ConfigurationField(name = "DNS Name that resolves to this Server", required = true)
     private String dnsName = "example.com";
     @ConfigurationField(name = "Ports")
     private Ports ports = new Ports();

@@ -28,13 +28,13 @@ import java.io.Serializable;
 public class HttpChallenge implements Serializable {
     @ConfigurationField(name = "Enable Proxy")
     private Boolean enabled;
-    @ConfigurationField(name = "Host")
+    @ConfigurationField(name = "Proxy Host")
     private String host;
-    @ConfigurationField(name = "Port")
+    @ConfigurationField(name = "Proxy Port")
     private Integer port;
     @ConfigurationField(name = "Proxy Type")
     private String type;
-    @ConfigurationField(name = "Authentication")
+    @ConfigurationField(name = "Proxy Authentication")
     private Authentication authentication;
 
     /**
