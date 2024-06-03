@@ -52,7 +52,8 @@ public class HTTPChallenge {
      * User Agent used for checking HTTP challenges
      */
     private static final String USER_AGENT =
-            "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + " Java/" + System.getProperty("java.version");
+            "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + "+git" + Main.buildMetadataGitCommit + " Java/" + System.getProperty(
+                    "java.version");
     private static String proxyHost = "";
     private static int proxyPort = 0;
     private static String proxyUser = "";
