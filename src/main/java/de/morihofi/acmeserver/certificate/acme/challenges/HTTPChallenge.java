@@ -30,13 +30,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.Authenticator;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
-import java.net.Proxy;
-import java.net.SocketAddress;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
@@ -58,51 +53,8 @@ public class HTTPChallenge {
     private static int proxyPort = 0;
     private static String proxyUser = "";
     private static String proxyPassword = "";
-    private static final OkHttpClient httpClient = new OkHttpClient.Builder().proxy(getHTTPChallengeProxy()).build();
 
-    /**
-     * Retrieves and configures an HTTP challenge proxy based on application settings. The method configures the proxy settings and
-     * authentication details, if required.
-     *
-     * @return A Proxy object configured based on application settings.
-     */
-    public static Proxy getHTTPChallengeProxy() {
-        Proxy.Type proxyType = switch (Main.appConfig.getProxy().getHttpChallenge().getType()) {
-            case "socks" -> Proxy.Type.SOCKS;
-            case "http" -> Proxy.Type.HTTP;
-            default -> Proxy.Type.DIRECT;
-        };
-        Proxy proxy = Proxy.NO_PROXY;
 
-        try {
-            proxyPort = Main.appConfig.getProxy().getHttpChallenge().getPort();
-            proxyHost = Main.appConfig.getProxy().getHttpChallenge().getHost();
-
-            if (Main.appConfig.getProxy().getHttpChallenge().getEnabled()) {
-                SocketAddress socketAddress = new InetSocketAddress(proxyHost, proxyPort);
-                proxy = new Proxy(proxyType, socketAddress);
-            }
-
-            if (Main.appConfig.getProxy().getHttpChallenge().getAuthentication().isEnabled()) {
-                proxyUser = Main.appConfig.getProxy().getHttpChallenge().getAuthentication().getUsername();
-                proxyPassword = Main.appConfig.getProxy().getHttpChallenge().getAuthentication().getPassword();
-
-                Authenticator.setDefault(new Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        if (getRequestingHost().equalsIgnoreCase(proxyHost) && proxyPort == getRequestingPort()) {
-                            return new PasswordAuthentication(proxyUser, proxyPassword.toCharArray());
-                        }
-                        return null;
-                    }
-                });
-            }
-        } catch (Exception ex) {
-            LOG.error("Failed to initialize proxy configuration", ex);
-        }
-
-        return proxy;
-    }
 
     /**
      * Validates an HTTP challenge by sending a GET request to the specified host and verifying the response. The method checks whether the
@@ -121,6 +73,9 @@ public class HTTPChallenge {
             NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         boolean passed = false;
         String lastError = "";
+
+        OkHttpClient httpClient = Main.networkClient.getOkHttpClient();
+
 
         PublicKey acmeAccountPublicKey = PemUtil.readPublicKeyFromPem(acmeAccount.getPublicKeyPEM());
 

@@ -19,6 +19,7 @@ import de.morihofi.acmeserver.api.provisioner.statistics.ApiStatsProvisionerCert
 import de.morihofi.acmeserver.api.provisioner.statistics.ProvisionerGlobalStatisticHandler;
 import de.morihofi.acmeserver.api.provisioner.statistics.ProvisionerStatisticHandler;
 import de.morihofi.acmeserver.api.serverInfo.ApiServerInfoEndpoint;
+import de.morihofi.acmeserver.api.troubleshooting.DnsResolverHandler;
 import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.Javalin;
@@ -41,6 +42,8 @@ public class API {
         // Statistics
         app.get("/api/stats/provisioner/all", new ProvisionerStatisticHandler(cryptoStoreManager));
         app.get("/api/stats/provisioner/global", new ProvisionerGlobalStatisticHandler(cryptoStoreManager));
+        // Troubleshooting
+        app.post("/api/troubleshooting/dns-resolver", new DnsResolverHandler());
 
         // TODO: Implement config production ready
         // Config

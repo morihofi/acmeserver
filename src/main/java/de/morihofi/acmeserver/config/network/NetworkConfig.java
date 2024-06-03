@@ -13,38 +13,32 @@
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package de.morihofi.acmeserver.config.network;
 
-package de.morihofi.acmeserver.config;
-
-import de.morihofi.acmeserver.config.proxy.HttpChallenge;
 import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serializable;
 
-/**
- * Represents configuration parameters for a proxy, including HTTP challenge configuration.
- */
-@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-public class ProxyConfig implements Serializable {
-    @ConfigurationField(name = "HTTP Challenge")
-    private HttpChallenge httpChallenge;
+public class NetworkConfig implements Serializable {
+    @ConfigurationField(name = "DNS")
+    private DNSConfig dnsConfig = new DNSConfig();
 
-    /**
-     * Get the HTTP challenge configuration for the proxy.
-     *
-     * @return The HTTP challenge configuration.
-     */
-    public HttpChallenge getHttpChallenge() {
-        return this.httpChallenge;
+    @ConfigurationField(name = "Proxy")
+    private ProxyConfig proxy = new ProxyConfig();
+
+    public DNSConfig getDnsConfig() {
+        return dnsConfig;
     }
 
-    /**
-     * Set the HTTP challenge configuration for the proxy.
-     *
-     * @param httpChallenge The HTTP challenge configuration to set.
-     */
-    public void setHttpChallenge(HttpChallenge httpChallenge) {
-        this.httpChallenge = httpChallenge;
+    public void setDnsConfig(DNSConfig dnsConfig) {
+        this.dnsConfig = dnsConfig;
+    }
+
+    public ProxyConfig getProxy() {
+        return proxy;
+    }
+
+    public void setProxy(ProxyConfig proxy) {
+        this.proxy = proxy;
     }
 }

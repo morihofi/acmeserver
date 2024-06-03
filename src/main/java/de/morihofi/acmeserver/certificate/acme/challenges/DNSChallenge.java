@@ -16,18 +16,19 @@
 
 package de.morihofi.acmeserver.certificate.acme.challenges;
 
+import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.crypto.AcmeTokenCryptography;
 import de.morihofi.acmeserver.tools.crypto.Hashing;
+import de.morihofi.acmeserver.tools.network.dns.DNSLookup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.Record;
 import org.xbill.DNS.SimpleResolver;
 import org.xbill.DNS.TXTRecord;
-import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
 import java.io.IOException;
@@ -35,6 +36,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.security.PublicKey;
+import java.util.List;
 
 /**
  * Provides functionality for handling DNS challenges in the ACME (Automated Certificate Management Environment) protocol. This class
@@ -46,7 +48,7 @@ public class DNSChallenge {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Validates a DNS challenge by querying DNS TXT records for the specified domain. The method checks if the TXT records contain a token
@@ -63,17 +65,27 @@ public class DNSChallenge {
         String lastError = "";
 
         String dnsExpectedValue = getDigest(token, PemUtil.readPublicKeyFromPem(acmeAccount.getPublicKeyPEM()));
-        String lookupDomain = "_acme-challenge." + domain;
+        final String lookupDomain = "_acme-challenge." + domain;
         try {
             LOG.info("Looking up TXT value on domain {}", lookupDomain);
 
-            // Query of the TXT entry for the ACME Challenge
-            Lookup lookup = new Lookup(lookupDomain, Type.TXT);
-            lookup.run();
+            // Perform DNS lookup
+            List<Record> dnsRecords;
+            if (Main.appConfig.getNetwork().getDnsConfig().getDohEnabled()) {
+                // Using DoHClient for the DNS lookup
+                LOG.info("Using DNS over HTTPS Lookup");
+                dnsRecords = DNSLookup.performDoHLookup(lookupDomain + ".", Type.TXT, Main.networkClient.getDoHClient());
+            } else {
+                // Using standard DNS lookup
+                LOG.info("Using DNS default Lookup");
+                dnsRecords = DNSLookup.performDnsServerLookup(lookupDomain + ".", Type.TXT, Main.appConfig.getNetwork().getDnsConfig()
+                        .getDnsServers());
+            }
+
             String txtValue;
-            if (lookup.getResult() == Lookup.SUCCESSFUL) {
+            if (dnsRecords != null && !dnsRecords.isEmpty()) {
                 // Check TXT-Entries
-                for (Record dnsRecord : lookup.getAnswers()) {
+                for (Record dnsRecord : dnsRecords) {
                     TXTRecord txt = (TXTRecord) dnsRecord;
                     for (Object value : txt.getStrings()) {
                         txtValue = value.toString();
@@ -81,18 +93,14 @@ public class DNSChallenge {
                             return new ChallengeResult(true, "");
                         } else {
                             lastError = "TXT record value doesn't match";
-                            LOG.error(" TXT record value doesn't match. Expected: {} but got {}", dnsExpectedValue, txtValue);
+                            LOG.error("TXT record value doesn't match. Expected {} but got {}", dnsExpectedValue, txtValue);
                         }
                     }
                 }
-                LOG.error("DNS Challenge validation failed for challenge domain {}. TXT record not found", ("_acme-challenge." + domain));
+                LOG.error("DNS Challenge validation failed for challenge domain {}. TXT record not found", lookupDomain);
             } else {
-                LOG.error("DNS Challenge validation failed for challenge domain {}. Lookup wasn't successful.",
-                        ("_acme-challenge." + domain));
+                LOG.error("DNS Challenge validation failed for challenge domain {}. Lookup wasn't successful.", lookupDomain);
             }
-        } catch (TextParseException e) {
-            LOG.error("Error parsing domain name {}", domain, e);
-            lastError = "Error parsing domain name";
         } catch (Exception e) {
             LOG.error("DNS Challenge failed for domain {}", domain, e);
             lastError = "Unknown exception. Server logs show more information";

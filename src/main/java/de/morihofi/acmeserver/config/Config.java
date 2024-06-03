@@ -18,6 +18,7 @@ package de.morihofi.acmeserver.config;
 
 import com.google.gson.annotations.SerializedName;
 import de.morihofi.acmeserver.config.keyStoreHelpers.KeyStoreParams;
+import de.morihofi.acmeserver.config.network.NetworkConfig;
 import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -50,8 +51,8 @@ public class Config implements Serializable {
     @ConfigurationField(name = "Provisioners")
     private List<ProvisionerConfig> provisioner;
 
-    @ConfigurationField(name = "Proxy")
-    private ProxyConfig proxy;
+    @ConfigurationField(name = "Network settings")
+    private NetworkConfig network;
 
     /**
      * Get the list of provisioner configurations.
@@ -161,21 +162,13 @@ public class Config implements Serializable {
         this.emailSmtp = emailSmtp;
     }
 
-    /**
-     * Get the proxy configuration.
-     *
-     * @return The proxy configuration.
-     */
-    public ProxyConfig getProxy() {
-        return proxy;
+
+
+    public NetworkConfig getNetwork() {
+        return network;
     }
 
-    /**
-     * Set the proxy configuration.
-     *
-     * @param proxy The proxy configuration to set.
-     */
-    public void setProxy(ProxyConfig proxy) {
-        this.proxy = proxy;
+    public void setNetwork(NetworkConfig network) {
+        this.network = network;
     }
 }

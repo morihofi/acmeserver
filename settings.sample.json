@@ -130,8 +130,8 @@
       }
     }
   ],
-  "proxy": {
-    "httpChallenge": {
+  "network": {
+    "proxy": {
       "enabled": false,
       "type": "socks",
       "host": "127.0.0.1",
@@ -141,6 +141,16 @@
         "username": "username",
         "password": "password"
       }
+    },
+    "dnsConfig": {
+      "dnsServers": [
+        "8.8.8.8",
+        "8.8.4.4",
+        "2001:4860:4860::8888",
+        "2001:4860:4860::8844"
+      ],
+      "dohEnabled": false,
+      "dohEndpoint": "https://cloudflare-dns.com/dns-query"
     }
   }
 }

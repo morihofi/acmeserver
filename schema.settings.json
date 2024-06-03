@@ -5,66 +5,140 @@
     "server": {
       "type": "object",
       "properties": {
-        "dnsName": { "type": "string" },
+        "dnsName": {
+          "type": "string"
+        },
         "ports": {
           "type": "object",
           "properties": {
-            "https": { "type": "integer" },
-            "http": { "type": "integer" }
+            "https": {
+              "type": "integer"
+            },
+            "http": {
+              "type": "integer"
+            }
           },
-          "required": ["https", "http"]
+          "required": [
+            "https",
+            "http"
+          ]
         },
-        "enableSniCheck": { "type": "boolean" },
-        "loggingDirectory": { "type": "string" },
+        "enableSniCheck": {
+          "type": "boolean"
+        },
+        "loggingDirectory": {
+          "type": "string"
+        },
         "mozillaSslConfig": {
           "type": "object",
           "properties": {
-            "enabled": { "type": "boolean" },
-            "version": { "type": "string" },
-            "configuration": { "type": "string" }
+            "enabled": {
+              "type": "boolean"
+            },
+            "version": {
+              "type": "string"
+            },
+            "configuration": {
+              "type": "string"
+            }
           },
-          "required": ["enabled", "version", "configuration"]
+          "required": [
+            "enabled",
+            "version",
+            "configuration"
+          ]
         },
         "sslServerConfig": {
           "type": "object",
           "properties": {
-            "allowLegacyResumption": { "type": "boolean" }
+            "allowLegacyResumption": {
+              "type": "boolean"
+            }
           },
-          "required": ["allowLegacyResumption"]
+          "required": [
+            "allowLegacyResumption"
+          ]
         }
       },
-      "required": ["dnsName", "ports", "enableSniCheck", "loggingDirectory", "mozillaSslConfig", "sslServerConfig"]
+      "required": [
+        "dnsName",
+        "ports",
+        "enableSniCheck",
+        "loggingDirectory",
+        "mozillaSslConfig",
+        "sslServerConfig"
+      ]
     },
     "keyStore": {
       "type": "object",
       "properties": {
-        "type": { "type": "string" },
-        "password": { "type": "string" },
-        "location": { "type": "string" },
-        "libraryLocation": { "type": "string" }
+        "type": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "libraryLocation": {
+          "type": "string"
+        }
       },
-      "required": ["type", "password"]
+      "required": [
+        "type",
+        "password"
+      ]
     },
     "database": {
       "type": "object",
       "properties": {
-        "jdbcUrl": { "type": "string" },
-        "user": { "type": "string" },
-        "password": { "type": "string" }
+        "jdbcUrl": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
       },
-      "required": ["jdbcUrl", "user", "password"]
+      "required": [
+        "jdbcUrl",
+        "user",
+        "password"
+      ]
     },
     "emailSmtp": {
       "type": "object",
       "properties": {
-        "enabled": { "type": "boolean" },
-        "port": { "type": "integer" },
-        "encryption": { "type": "string" },
-        "host": { "type": "string" },
-        "username": { "type": "string" },
-        "password": { "type": "string" }
+        "enabled": {
+          "type": "boolean"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "encryption": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
       },
-      "required": ["enabled", "port", "encryption", "host", "username", "password"]
+      "required": [
+        "enabled",
+        "port",
+        "encryption",
+        "host",
+        "username",
+        "password"
+      ]
     },
     "rootCA": {
       "type": "object",
@@ -72,47 +146,97 @@
         "metadata": {
           "type": "object",
           "properties": {
-            "commonName": { "type": "string" },
-            "organisation": { "type": ["string", "null"] },
-            "organisationalUnit": { "type": ["string", "null"] },
-            "countryCode": { "type": ["string", "null"] }
+            "commonName": {
+              "type": "string"
+            },
+            "organisation": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "organisationalUnit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "countryCode": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
           },
-          "required": ["commonName"]
+          "required": [
+            "commonName"
+          ]
         },
         "expiration": {
           "type": "object",
           "properties": {
-            "days": { "type": "integer" },
-            "months": { "type": "integer" },
-            "years": { "type": "integer" }
+            "days": {
+              "type": "integer"
+            },
+            "months": {
+              "type": "integer"
+            },
+            "years": {
+              "type": "integer"
+            }
           },
-          "required": ["days", "months", "years"]
+          "required": [
+            "days",
+            "months",
+            "years"
+          ]
         },
         "algorithm": {
           "type": "object",
           "properties": {
-            "type": { "type": "string" },
-            "keySize": { "type": "integer" },
-            "curveName": { "type": "string" }
+            "type": {
+              "type": "string"
+            },
+            "keySize": {
+              "type": "integer"
+            },
+            "curveName": {
+              "type": "string"
+            }
           },
-          "required": ["type"]
+          "required": [
+            "type"
+          ]
         }
       },
-      "required": ["metadata", "expiration", "algorithm"]
+      "required": [
+        "metadata",
+        "expiration",
+        "algorithm"
+      ]
     },
     "provisioner": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
-          "name": { "type": "string" },
+          "name": {
+            "type": "string"
+          },
           "meta": {
             "type": "object",
             "properties": {
-              "website": { "type": "string" },
-              "tos": { "type": "string" }
+              "website": {
+                "type": "string"
+              },
+              "tos": {
+                "type": "string"
+              }
             },
-            "required": ["website", "tos"]
+            "required": [
+              "website",
+              "tos"
+            ]
           },
           "intermediate": {
             "type": "object",
@@ -120,85 +244,212 @@
               "metadata": {
                 "type": "object",
                 "properties": {
-                  "commonName": { "type": "string" },
-                  "organisation": { "type": ["string", "null"] },
-                  "organisationalUnit": { "type": ["string", "null"] },
-                  "countryCode": { "type": ["string", "null"] }
+                  "commonName": {
+                    "type": "string"
+                  },
+                  "organisation": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "organisationalUnit": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "countryCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
                 },
-                "required": ["commonName"]
+                "required": [
+                  "commonName"
+                ]
               },
               "expiration": {
                 "type": "object",
                 "properties": {
-                  "days": { "type": "integer" },
-                  "months": { "type": "integer" },
-                  "years": { "type": "integer" }
+                  "days": {
+                    "type": "integer"
+                  },
+                  "months": {
+                    "type": "integer"
+                  },
+                  "years": {
+                    "type": "integer"
+                  }
                 },
-                "required": ["days", "months", "years"]
+                "required": [
+                  "days",
+                  "months",
+                  "years"
+                ]
               },
               "algorithm": {
                 "type": "object",
                 "properties": {
-                  "type": { "type": "string" },
-                  "keySize": { "type": "integer" },
-                  "curveName": { "type": "string" }
+                  "type": {
+                    "type": "string"
+                  },
+                  "keySize": {
+                    "type": "integer"
+                  },
+                  "curveName": {
+                    "type": "string"
+                  }
                 },
-                "required": ["type"]
+                "required": [
+                  "type"
+                ]
               }
             },
-            "required": ["metadata", "expiration", "algorithm"]
+            "required": [
+              "metadata",
+              "expiration",
+              "algorithm"
+            ]
           },
           "issuedCertificateExpiration": {
             "type": "object",
             "properties": {
-              "days": { "type": "integer" },
-              "months": { "type": "integer" },
-              "years": { "type": "integer" }
+              "days": {
+                "type": "integer"
+              },
+              "months": {
+                "type": "integer"
+              },
+              "years": {
+                "type": "integer"
+              }
             },
-            "required": ["days", "months", "years"]
+            "required": [
+              "days",
+              "months",
+              "years"
+            ]
           },
-          "wildcardAllowed": { "type": "boolean" },
-          "ipAllowed": { "type": "boolean" },
+          "wildcardAllowed": {
+            "type": "boolean"
+          },
+          "ipAllowed": {
+            "type": "boolean"
+          },
           "domainNameRestriction": {
             "type": "object",
             "properties": {
-              "enabled": { "type": "boolean" },
+              "enabled": {
+                "type": "boolean"
+              },
               "mustEndWith": {
                 "type": "array",
-                "items": { "type": "string" }
+                "items": {
+                  "type": "string"
+                }
               }
             },
-            "required": ["enabled", "mustEndWith"]
+            "required": [
+              "enabled",
+              "mustEndWith"
+            ]
           }
         },
-        "required": ["name", "meta", "intermediate", "issuedCertificateExpiration", "wildcardAllowed", "ipAllowed", "domainNameRestriction"]
+        "required": [
+          "name",
+          "meta",
+          "intermediate",
+          "issuedCertificateExpiration",
+          "wildcardAllowed",
+          "ipAllowed",
+          "domainNameRestriction"
+        ]
       }
     },
-    "proxy": {
+    "network": {
       "type": "object",
       "properties": {
-        "httpChallenge": {
+        "proxy": {
           "type": "object",
           "properties": {
-            "enabled": { "type": "boolean" },
-            "type": { "type": "string" },
-            "host": { "type": "string" },
-            "port": { "type": "integer" },
+            "enabled": {
+              "type": "boolean"
+            },
+            "type": {
+              "type": "string"
+            },
+            "host": {
+              "type": "string"
+            },
+            "port": {
+              "type": "integer"
+            },
             "authentication": {
               "type": "object",
               "properties": {
-                "enabled": { "type": "boolean" },
-                "username": { "type": "string" },
-                "password": { "type": "string" }
+                "enabled": {
+                  "type": "boolean"
+                },
+                "username": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
               },
-              "required": ["enabled", "username", "password"]
+              "required": [
+                "enabled",
+                "username",
+                "password"
+              ]
             }
           },
-          "required": ["enabled", "type", "host", "port", "authentication"]
+          "required": [
+            "enabled",
+            "type",
+            "host",
+            "port",
+            "authentication"
+          ]
+        },
+        "dnsConfig": {
+          "type": "object",
+          "properties": {
+            "dnsServers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "dohEnabled": {
+              "type": "boolean"
+            },
+            "dohEndpoint": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "dohEnabled",
+            "dohEndpoint",
+            "dnsServers"
+          ]
         }
       },
-      "required": ["httpChallenge"]
+      "required": [
+        "proxy",
+        "dnsConfig"
+      ]
     }
   },
-  "required": ["server", "keyStore", "database", "emailSmtp", "rootCA", "provisioner", "proxy"]
+  "required": [
+    "server",
+    "keyStore",
+    "database",
+    "emailSmtp",
+    "rootCA",
+    "provisioner",
+    "network"
+  ]
 }

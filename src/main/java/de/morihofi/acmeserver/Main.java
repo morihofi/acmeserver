@@ -33,6 +33,7 @@ import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.tools.cli.CLIArgument;
+import de.morihofi.acmeserver.tools.network.NetworkClient;
 import de.morihofi.acmeserver.tools.path.AppDirectoryHelper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
@@ -100,10 +101,15 @@ public class Main {
     public static long startupTime = 0; // Set after all routes are ready
     @SuppressFBWarnings("MS_PKGPROTECT")
     public static String[] runArgs = new String[]{};
+
+    public static NetworkClient networkClient = null;
+
     private static boolean coreComponentsInitialized = false;
+
 
     public static void restartMain() throws Exception {
         coreComponentsInitialized = false;
+        networkClient = null;
         startupTime = 0;
         Main.main(runArgs);
     }
@@ -196,9 +202,12 @@ public class Main {
     }
 
     public static void loadServerConfiguration() throws IOException {
-        LOG.info("Loading configuration ...");
+        LOG.info("Loading configuration from {} ...", CONFIG_PATH);
         appConfig = CONFIG_GSON.fromJson(Files.readString(CONFIG_PATH), Config.class);
         LOG.info("Configuration loaded");
+        LOG.info("Creating NetworkClient instance");
+        networkClient = new NetworkClient(appConfig.getNetwork());
+        LOG.info("NetworkClient instance created");
     }
 
     public static void saveServerConfiguration() throws IOException {

@@ -17,8 +17,8 @@
 package de.morihofi.acmeserver.tools.network.scm.github;
 
 import com.google.gson.Gson;
+import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.tools.network.scm.github.responses.Release;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.logging.log4j.LogManager;
@@ -33,7 +33,6 @@ public class GitHubVersionChecker {
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-    private static final OkHttpClient httpClient = new OkHttpClient();
     private static final String PROJECT_NAME = "acmeserver";
     private static final String PROJECT_OWNER = "morihofi";
 
@@ -46,13 +45,14 @@ public class GitHubVersionChecker {
     }
 
     public static String getLatestReleaseTag(String owner, String repo) throws IOException {
+        LOG.info("Checking for latest release on GitHub");
         String url = "https://api.github.com/repos/" + owner + "/" + repo + "/releases/latest";
 
         Request request = new Request.Builder()
                 .url(url)
                 .build();
 
-        try (Response response = httpClient.newCall(request).execute()) {
+        try (Response response = Main.networkClient.getOkHttpClient().newCall(request).execute()) {
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
             assert response.body() != null;

@@ -1,6 +1,6 @@
 # 📖 ACME Server Documentation
 
-Welcome to the official ACME Server documentation. 
+Welcome to the official ACME Server documentation.
 This documentation applies to Version 2.0 release of morihofi's ACME Server.
 
 [TOC]
@@ -37,6 +37,7 @@ capitals, as shown here.
 > You can run `docker compose logs -f` if you want to see the logs of the server. Press `Ctrl`+`C` to quit
 
 ### ... on bare Metal
+
 First you need to build ACME Server. Checkout the Building below section, then come back to this section
 
 You'll find then the jar file, you've built in the previous step,
@@ -47,8 +48,8 @@ Then you can execute it with the following command to run it:
 ```bash
 java -jar acmeserver-VERSION.jar
 ```
-It will tell you what to do next.
 
+It will tell you what to do next.
 
 ## Command line switches
 
@@ -58,22 +59,26 @@ It will tell you what to do next.
 | `--debug`                                | Debug mode (see above)                                                                                            |
 | `--migrate-pem-to-keystore`              | If you use an old Version 1.x, that uses the PEM files in filesystem, you can use this to migrate into a Keystore |
 
-
 ## Building from scratch
+
 If you don't use a released JAR, you need to build it yourself.
 
 ### Prerequisites
+
 You'll need the following prerequisites to be able to build ACME Server
 
 - Java 17
 - Maven 3.9
 
 ### Initiating the build
-Run the following command to build ACME Server from the root directory of this repository (the directory where the `pom.xml` file is located)
+
+Run the following command to build ACME Server from the root directory of this repository (the directory where the `pom.xml` file is
+located)
 
 ```bash
 mvn clean package
 ```
+
 You'll find then the jar file, you've built in the `target/` folder.
 
 ## Configuration
@@ -237,72 +242,79 @@ ACME Server requires a Root certificate authority to be able to operate and gene
 
 ```json
 {
-   /* ... */
-   "rootCA": {
-      "metadata": {
-         "commonName": "ACMEServer Root CA",
-         "organisation": null,
-         "organisationalUnit": null,
-         "countryCode": null
-      },
-      "expiration": {
-         "days": 3,
-         "months": 6,
-         "years": 10
-      },
-      "algorithm": {
-         /* see below */
-      }
-   }
-   /* .. */
+  /* ... */
+  "rootCA": {
+    "metadata": {
+      "commonName": "ACMEServer Root CA",
+      "organisation": null,
+      "organisationalUnit": null,
+      "countryCode": null
+    },
+    "expiration": {
+      "days": 3,
+      "months": 6,
+      "years": 10
+    },
+    "algorithm": {
+      /* see below */
+    }
+  }
+  /* .. */
 }
 ```
 
 #### Metadata
+
 The `commonName` MUST be set, but SHOULD set `organisation`, `organisationalUnit` and `countryCode`.
 
-If you set a `countryCode`, it must be in a two letter format following the [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) standard.
+If you set a `countryCode`, it must be in a two letter format following
+the [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) standard.
 For example e.g. `DE` for Germany, `US` for the United States of America and so on ...
 
 #### Expiration
 
-The `days`, `months`, `years` values are the specify the validity period for generate certificate after generation. 
+The `days`, `months`, `years` values are the specify the validity period for generate certificate after generation.
 
 #### Algorithm
-Algorithms can be `rsa` and `ecdsa`, both are supported and take different parameters. 
+
+Algorithms can be `rsa` and `ecdsa`, both are supported and take different parameters.
 For backwards compatibility it is recommended to use an RSA based certificate.
 
 ##### RSA
+
 You MUST specify a key size. It SHOULD higher or equal than 2048 bit. It is highly RECOMMENDED to have 4096 bit.
+
 ```json
 {
-   /* ... */
-   "algorithm": {
-      "type": "rsa",
-      "keySize": 4096
-   }
-   /* ... */
+  /* ... */
+  "algorithm": {
+    "type": "rsa",
+    "keySize": 4096
+  }
+  /* ... */
 }
 ```
 
 ##### ECDSA
-You MUST specify a curve name. You can find a list [here](https://github.com/bcgit/bc-java/wiki/Support-for-ECDSA,-ECGOST-Curves). 
+
+You MUST specify a curve name. You can find a list [here](https://github.com/bcgit/bc-java/wiki/Support-for-ECDSA,-ECGOST-Curves).
 Please note that the selected curve must be compatible with BouncyCastle. NIST curves are RECOMMENDED.
+
 ```json
 {
-   /* ... */
-   "algorithm": {
-      "type": "ecdsa",
-      "curveName": "P-256"
-   }
-   /* ... */
+  /* ... */
+  "algorithm": {
+    "type": "ecdsa",
+    "curveName": "P-256"
+  }
+  /* ... */
 }
 ```
 
 ### Provisioners
 
 With provisioners, you can split this CA into multiple certificate generation policies.
-Each provisioner operates under its own intermediate certificate, 
+Each provisioner operates under its own intermediate certificate,
 forming a 1:1 relationship with it, like in the following diagram:
 
 ```
@@ -323,11 +335,12 @@ Root CA (installed on client devices)
 ...
 ```
 
-You can configure the intermediate certificate the provisioner uses in the `intermediate`-subobject. 
+You can configure the intermediate certificate the provisioner uses in the `intermediate`-subobject.
 For configuration see how the Root CA configuration above works, it uses the same syntax with the same fields.
 
 ```json
-   /* ... */
+{
+  /* ... */
   "provisioner": [
     {
       "name": "my_provisioner",
@@ -356,40 +369,46 @@ For configuration see how the Root CA configuration above works, it uses the sam
     ...
   ]
   /* ... */
+}
+
 ```
+
 - `name`: Name of the provisioner. Provisioner name can only contain lowercase letters a-z, numbers 0-9, "-" and "_"
 - `meta`: Metadata shown to the ACME client when creating account and ordering
-  - `website`: Website of the CA responsible for this provisioner, probably your website
-  - `tos`: Terms of Service for this provisioner, probably the CA terms of server subpage of your website
+    - `website`: Website of the CA responsible for this provisioner, probably your website
+    - `tos`: Terms of Service for this provisioner, probably the CA terms of server subpage of your website
 - `intermediate`: See Root CA above
 - `issuedCertificateExpiration`: How long should a certificate, issued by the ACME Protocol, live after its after creation.
 - `wildcardAllowed`: Should be issuing wildcards for DNS Domains allowed, e.g. `*.example.com`?
 - `ipAllowed`: Should be issuing for IP Addresses enabled for both IPv4 and IPv6?
-- `domainNameRestriction`: Restrict domain names allowed for issuing. This does not apply for the reverse DNS of an IP address, because reverse DNS isn't supported at the moment.
-  - `enabled`: Enable this policy ìf set to `true`, otherwise it is disabled
-  - `mustEndWith`: These are the names the domains must end with. Add as many as you wish.
-    - For example all domains must end with `.test.example.com`:
-     
-      | Domain                       | Would accept |
-      |------------------------------|--------------|
-      | hello.world.test.example.com | Yes          |
-      | hello.test.example.com       | Yes          |
-      | hellotest.example.com        | No           |
-      | hello.test.example.org       | No           |
+- `domainNameRestriction`: Restrict domain names allowed for issuing. This does not apply for the reverse DNS of an IP address, because
+  reverse DNS isn't supported at the moment.
+    - `enabled`: Enable this policy ìf set to `true`, otherwise it is disabled
+    - `mustEndWith`: These are the names the domains must end with. Add as many as you wish.
+        - For example all domains must end with `.test.example.com`:
 
-    - For example all domains must end with `test.example.com` (without the dot at the beginning):
-     
-      | Domain                       | Would accept |
-      |------------------------------|--------------|
-      | hello.world.test.example.com | Yes          |
-      | hello.test.example.com       | Yes          |
-      | hellotest.example.com        | Yes          |
-      | hello.test.example.org       | No           |
+          | Domain                       | Would accept |
+                                    |------------------------------|--------------|
+          | hello.world.test.example.com | Yes          |
+          | hello.test.example.com       | Yes          |
+          | hellotest.example.com        | No           |
+          | hello.test.example.org       | No           |
+
+        - For example all domains must end with `test.example.com` (without the dot at the beginning):
+
+          | Domain                       | Would accept |
+                                    |------------------------------|--------------|
+          | hello.world.test.example.com | Yes          |
+          | hello.test.example.com       | Yes          |
+          | hellotest.example.com        | Yes          |
+          | hello.test.example.org       | No           |
 
 #### E-Mail sending (alpha state)
+
 ACME Server supports sending E-Mails when an certificate has been ordered. This feature is currently in alpha state.
 
 ```json
+{
   /* ... */
   "emailSmtp": {
     "enabled": false,
@@ -400,37 +419,52 @@ ACME Server supports sending E-Mails when an certificate has been ordered. This 
     "password": "insecurepassword"
   }
   /* ... */
+}
 ```
+
 - `enabled`: Enable this feature ìf set to `true`, otherwise it is disabled
 - `host`: Host of the SMTP Service
 - `port`: Port of the SMTP Service
 - `encryption`: Encryption to use to connect to the SMTP server. Values can be one of the following:
-  - `starttls`: StartTLS Encryption
-  - `ssl` or `tls`: TLS Encryption
-  - `none`: No encryption. This is NOT RECOMMENDED.
+    - `starttls`: StartTLS Encryption
+    - `ssl` or `tls`: TLS Encryption
+    - `none`: No encryption. This is NOT RECOMMENDED.
 - `username`: Username (mostly the E-Mail) to authenticate
 - `password`: Password to authenticate
 
-# Proxy support
-ACME Server supports the use of proxies specifically for the HTTP-01 Challenge. 
+# Network configuration
+
+ACME Server has support for usage of custom network settings.
+
+Support for custom DNS Servers and DNS over HTTPS was added in Version 2.1.
+
+## Proxy
+
+ACME Server supports the use of proxies.
 This feature is essential for routing ACME challenge traffic through a specified proxy server.
 
 ```json
+{
   /* ... */
-  "proxy": {
-    "httpChallenge": {
-      "enabled": false,
-      "type": "socks",
-      "host": "127.0.0.1",
-      "port": 9050,
-      "authentication": {
+  "network": {
+    /* ... */
+    "proxy": {
+      "httpChallenge": {
         "enabled": false,
-        "username": "username",
-        "password": "password"
+        "type": "socks",
+        "host": "127.0.0.1",
+        "port": 9050,
+        "authentication": {
+          "enabled": false,
+          "username": "username",
+          "password": "password"
+        }
       }
     }
+    /* ... */
   }
   /* ... */
+}
 ```
 
 - `enabled`: Enable this feature if set to true, otherwise it remains disabled.
@@ -438,6 +472,36 @@ This feature is essential for routing ACME challenge traffic through a specified
 - `host`: Host address of the proxy server.
 - `port`: Port number on which the proxy server is listening.
 - `authentication`: Contains the authentication details required to connect to the proxy server.
-   - `enabled`: Enable authentication if set to `true`, otherwise no authentication is used.
-   - `username`: Username required for authentication.
-   - `password`: Password required for authentication.
+    - `enabled`: Enable authentication if set to `true`, otherwise no authentication is used.
+    - `username`: Username required for authentication.
+    - `password`: Password required for authentication.
+
+## Custom DNS Resolver
+
+ACME Server supports using custom DNS Servers, like internal ones or one of OpenNICs community DNS Resolvers or any other server. DNS
+over HTTPS is also supported. If the list of DNS Servers is empty, the default system resolver will be used.
+
+**Please note that ACME Server does currently (Version 2.1) only support the DNS Wireformat over HTTPS (Content Type
+`application/dns-message`), not the DNS-JSON Format (Content Type `application/dns-json`). Maybe this feature will be implemented in
+further versions. **
+
+```json
+{
+  /* ... */
+  "network": {
+    /* ... */
+    "dnsConfig": {
+      "dnsServers": [
+        "8.8.8.8",
+        "8.8.4.4",
+        "2001:4860:4860::8888",
+        "2001:4860:4860::8844"
+      ],
+      "dohEnabled": false,
+      "dohEndpoint": "https://cloudflare-dns.com/dns-query"
+    }
+    /* ... */
+  }
+  /* ... */
+}
+```
