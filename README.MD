@@ -31,7 +31,7 @@ Changelog has been moved [here](CHANGELOG.MD)
 
 ## 📒 Disclaimer
 
-This version is not fully RFC 8555 compliant, but should work with most clients. 
+This version is not fully RFC 8555 compliant, but should work with most clients.
 I'll hope to say one day that we are fully compliant.
 
 ## 📖 Documentation
@@ -95,7 +95,7 @@ Documentation is now located [here](docs/README.md). In the same directory are a
 |                                           | JDBC Driver Built-in | Test status | Notes                                                                                                 |
 |-------------------------------------------|----------------------|-------------|-------------------------------------------------------------------------------------------------------|
 | [MariaDB](https://mariadb.org)            | Yes                  | ✅           |                                                                                                       |
-| [H2](https://h2database.com)              | Yes                  | ✅           | Only embedded mode has been tested, cause this is the only supported at the moment                    |
+| [H2](https://h2database.com)              | Yes                  | ✅           | Only embedded mode has been tested, server mode should be supported                                   |
 | [PostgreSQL](https://www.postgresql.org/) | Yes                  | ✅           | Use a up-to-date database version. Tested with PostgreSQL 16.2, older version may won't work properly |
 | [MySQL](https://mysql.com/)               | No                   | ❓           | Hibernate configuration has been prepared, but not tested yet                                         |
 
