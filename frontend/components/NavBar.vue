@@ -56,6 +56,11 @@ export default {
           icon: "fa-solid fa-terminal",
           to: "/cmd-builder",
         },
+        {
+          name: "Troubleshooting",
+          icon: "fa-solid fa-wrench",
+          to: "/troubleshooting",
+        },
       ]
     };
   },

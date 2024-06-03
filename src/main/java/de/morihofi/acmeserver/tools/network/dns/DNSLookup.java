@@ -120,6 +120,10 @@ public class DNSLookup {
         try {
             LOG.info("Resolving {} of type {} using DNS over HTTPS", hostname, Type.string(type));
 
+            if(!hostname.endsWith(".")){
+                hostname = hostname + ".";
+            }
+
             // Create a DNS query message
             Message query = Message.newQuery(Record.newRecord(Name.fromString(hostname), type, DClass.IN));
 
@@ -178,6 +182,12 @@ public class DNSLookup {
      */
     public static List<Record> performDnsServerLookup(String hostname, int type, List<String> dnsServers) {
         if (dnsServers.isEmpty()) {
+
+            if(!hostname.endsWith(".")){
+                hostname = hostname + ".";
+            }
+
+
             // Use the default system resolver
             try {
                 Lookup lookup = new Lookup(hostname, type);
