@@ -6,8 +6,7 @@ import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationClassExtends;
 import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 import org.reflections.Reflections;
-import org.reflections.scanners.FieldAnnotationsScanner;
-import org.reflections.scanners.SubTypesScanner;
+import org.reflections.scanners.Scanners;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
@@ -30,14 +29,14 @@ public class ConfigPreprocessor {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         json = gson.toJson(jsonMap);
 
-        System.out.println(json);
+     //   System.out.println(json);
     }
 
     private static Map<String, Object> processConfigClass(Class<?> configClass) {
         Map<String, Object> jsonMap = new HashMap<>();
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .setUrls(ClasspathHelper.forPackage(configClass.getPackage().getName()))
-                .setScanners(new FieldAnnotationsScanner(), new SubTypesScanner()));
+                .setScanners(Scanners.FieldsAnnotated, Scanners.SubTypes));
 
         // Process fields from the entire class hierarchy
         processFields(configClass, jsonMap, reflections);
