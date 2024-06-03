@@ -10,8 +10,6 @@
 
 package de.morihofi.acmeserver.api;
 
-import de.morihofi.acmeserver.api.config.ConfigHandler;
-import de.morihofi.acmeserver.api.config.ConfigLayoutHandler;
 import de.morihofi.acmeserver.api.download.DownloadCaCabHandler;
 import de.morihofi.acmeserver.api.download.DownloadCaDerHandler;
 import de.morihofi.acmeserver.api.download.DownloadCaPemHandler;
@@ -43,8 +41,10 @@ public class API {
         // Statistics
         app.get("/api/stats/provisioner/all", new ProvisionerStatisticHandler(cryptoStoreManager));
         app.get("/api/stats/provisioner/global", new ProvisionerGlobalStatisticHandler(cryptoStoreManager));
+
+        // TODO: Implement config production ready
         // Config
-        app.get("/api/config/layout", new ConfigLayoutHandler(cryptoStoreManager));
-        app.get("/api/config/current", new ConfigHandler(cryptoStoreManager));
+        // app.get("/api/config/layout", new ConfigLayoutHandler(cryptoStoreManager));
+        // app.get("/api/config/current", new ConfigHandler(cryptoStoreManager));
     }
 }
