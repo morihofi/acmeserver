@@ -5,23 +5,16 @@
       On this page you can perform DNS lookups to check whether ACME Server can
       reach the desired domains.
     </p>
-    <form @submit.prevent="resolveDNS">
+    <form @submit.prevent="resolveDNS" v-if="!isLoading">
       <div class="row g-3">
         <div class="col-md-6">
           <label for="domain" class="form-label">Domain</label>
-          <input
-            type="text"
-            class="form-control"
-            id="domain"
-            v-model="dnsName"
-            placeholder="Enter domain"
-            required
-          />
+          <input type="text" class="form-control" id="domain" v-model="dnsName" placeholder="Enter domain" required />
         </div>
         <div class="col-md-6">
           <label for="dnsType" class="form-label">DNS Type</label>
           <select class="form-select" id="dnsType" v-model="type" required>
-            <option v-for="dnsType in dnsTypes" :key="type" :value="type">
+            <option v-for="dnsType in dnsTypes" :key="dnsType" :value="dnsType">
               {{ dnsType }}
             </option>
           </select>
@@ -29,6 +22,12 @@
       </div>
       <button type="submit" class="btn btn-primary mt-3">Resolve</button>
     </form>
+
+    <div class="d-flex justify-content-center" v-if="isLoading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Looking up...</span>
+      </div>
+    </div>
 
     <div v-if="response" class="mt-4">
       <h2>Response</h2>
@@ -98,6 +97,7 @@ export default defineComponent({
     const type = ref<string>("A");
     const response = ref<DNSResponse | null>(null);
     const error = ref<string | null>(null);
+    const isLoading = ref<boolean>(false);
 
     const dnsTypes: string[] = [
       "A",
@@ -138,6 +138,7 @@ export default defineComponent({
 
     const resolveDNS = async () => {
       error.value = null;
+      isLoading.value = true;
       try {
         const res = await fetch(
           `${getApiBase()}/api/troubleshooting/dns-resolver`,
@@ -155,16 +156,18 @@ export default defineComponent({
         }
         response.value = await res.json();
       } catch (err) {
-        error.value =
-          "There has been a problem with your fetch operation: " + err.message;
-        console.error(
-          "There has been a problem with your fetch operation:",
-          err
-        );
+        if (err instanceof Error) {
+          error.value = "There has been a problem with your fetch operation: " + err.message;
+          console.error("There has been a problem with your fetch operation:", err);
+        } else {
+          error.value = "An unknown error occurred.";
+          console.error("An unknown error occurred:", err);
+        }
       }
+      isLoading.value = false;
     };
 
-    return { dnsName, type, dnsTypes, response, error, resolveDNS };
+    return { dnsName, type, dnsTypes, response, error, resolveDNS, isLoading};
   },
 });
 </script>

@@ -108,9 +108,9 @@ public class DoHClient {
         }
 
         List<Record> records = responseMessage.getSection(Section.ANSWER);
-        if (records.isEmpty()) {
-            throw new IllegalArgumentException("Answer data is empty");
-        }
+        // if (records.isEmpty()) {
+        //     throw new IllegalArgumentException("Answer data is empty");
+        // }
 
         return records;
     }
