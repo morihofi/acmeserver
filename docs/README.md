@@ -63,7 +63,7 @@ It will tell you what to do next.
 
 If you don't use a released JAR, you need to build it yourself.
 
-### Prerequisites
+### Build Prerequisites
 
 You'll need the following prerequisites to be able to build ACME Server
 
@@ -93,7 +93,7 @@ You MUST change the `dnsName` value to a DNS name (Not an IP-Address -> won't wo
 server. It will be written into certificates, and also served in the ACME API.
 You MAY change the ports serving the API and Website. If you set the `http`-Port to `0`, HTTP will be disabled.
 
-It is RECOMMENDED to **not run** ACME Server behind a reverse proxy.
+It is RECOMMENDED to **not run** ACME Server behind a reverse proxy. If you run it behind a reverse proxy, the ports MUST match.
 
 ```json
 {
@@ -106,6 +106,7 @@ It is RECOMMENDED to **not run** ACME Server behind a reverse proxy.
       "http": 80
     },
     "enableSniCheck": true,
+    "loggingDirectory": "./serverdata/logs",
     "mozillaSslConfig": {
       "enabled": false,
       "version": "5.7",
@@ -119,6 +120,8 @@ It is RECOMMENDED to **not run** ACME Server behind a reverse proxy.
   /* ... */
 }
 ```
+
+The Path to `loggingDirectory` can be null. The log files created in this directory have an Nginx like `access.log` syntax.
 
 #### Information for standalone
 
