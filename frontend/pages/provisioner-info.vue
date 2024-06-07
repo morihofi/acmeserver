@@ -89,7 +89,7 @@
                             <div v-else>
                                 <font-awesome-icon icon="fa-solid fa-xmark" class="text-danger icon-fixed-size" />
                             </div>
-                            <p class="card-text mt-3">Allow Wildcard</p>
+                            <p class="card-text mt-3">Allow Wildcard DNS Names</p>
                         </div>
                     </div>
                 </div>
