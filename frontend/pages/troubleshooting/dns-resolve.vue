@@ -29,7 +29,7 @@
       </div>
     </div>
 
-    <div v-if="response" class="mt-4">
+    <div v-if="response && !isLoading" class="mt-4">
       <h2>Response</h2>
       <h3>Resolved by configured DNS Servers (UDP)</h3>
 
