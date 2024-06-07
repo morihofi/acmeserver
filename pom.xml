@@ -107,7 +107,6 @@
                             <version>${javalin.version}</version>
                         </annotationProcessorPath>
                     </annotationProcessorPaths>
-                    <fork>true</fork>
                 </configuration>
             </plugin>
             <plugin>
