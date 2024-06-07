@@ -70,6 +70,86 @@
         <tag>HEAD</tag>
     </scm>
 
+
+    <profiles>
+        <profile>
+            <id>development</id>
+            <build>
+                <plugins>
+                    <!-- Plugin to run npm commands -->
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <version>1.12.0</version>
+                        <executions>
+                            <execution>
+                                <id>install node and npm</id>
+                                <goals>
+                                    <goal>install-node-and-npm</goal>
+                                </goals>
+                                <configuration>
+                                    <nodeVersion>${node.version}</nodeVersion>
+                                    <npmVersion>${npm.version}</npmVersion>
+                                </configuration>
+                                <phase>generate-resources</phase>
+                            </execution>
+                            <execution>
+                                <id>npm install</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>install</arguments>
+                                    <workingDirectory>frontend</workingDirectory>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>npm run generate</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <configuration>
+                                    <environmentVariables>
+                                        <NUXT_PUBLIC_API_URL></NUXT_PUBLIC_API_URL> <!-- use empty string ("") to have an absolute path to the API without the host:port -->
+                                    </environmentVariables>
+                                    <arguments>run generate</arguments>
+                                    <workingDirectory>frontend</workingDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <installDirectory>${project.basedir}/frontend/node</installDirectory>
+                        </configuration>
+                    </plugin>
+
+                    <!-- Plugin to copy the generated files -->
+                    <plugin>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.2.0</version>
+                        <executions>
+                            <execution>
+                                <id>copy-resources</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.outputDirectory}/webstatic</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>frontend/.output/public</directory>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+
     <build>
         <finalName>acmeserver</finalName>
         <resources>
@@ -142,80 +222,6 @@
                     <commitIdGenerationMode>full</commitIdGenerationMode>
                 </configuration>
             </plugin>
-
-
-            <!-- Plugin to run npm commands -->
-            <plugin>
-                <groupId>com.github.eirslett</groupId>
-                <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.12.0</version>
-                <executions>
-                    <execution>
-                        <id>install node and npm</id>
-                        <goals>
-                            <goal>install-node-and-npm</goal>
-                        </goals>
-                        <configuration>
-                            <nodeVersion>${node.version}</nodeVersion>
-                            <npmVersion>${npm.version}</npmVersion>
-                        </configuration>
-                        <phase>generate-resources</phase>
-                    </execution>
-                    <execution>
-                        <id>npm install</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>install</arguments>
-                            <workingDirectory>frontend</workingDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>npm run generate</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <environmentVariables>
-                                <NUXT_PUBLIC_API_URL></NUXT_PUBLIC_API_URL> <!-- use empty string ("") to have an absolute path to the
-                                API without the host:port
-                                 -->
-                            </environmentVariables>
-                            <arguments>run generate</arguments>
-                            <workingDirectory>frontend</workingDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-                <configuration>
-                    <installDirectory>${project.basedir}/frontend/node</installDirectory>
-                </configuration>
-            </plugin>
-
-            <!-- Plugin to copy the generated files -->
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.outputDirectory}/webstatic</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>frontend/.output/public</directory>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-
 
 
             <plugin>
