@@ -33,7 +33,7 @@
         <jte.version>2.3.2</jte.version>
 
         <!-- Hibernate and connection pool -->
-        <hibernate.version>6.4.5.Final</hibernate.version>
+        <hibernate.version>6.5.1.Final</hibernate.version>
         <agroal.version>2.3</agroal.version>
 
         <!-- Frontend -->
