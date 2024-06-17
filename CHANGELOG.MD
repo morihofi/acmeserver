@@ -68,3 +68,10 @@
     - org.hibernate.orm:hibernate-core 6.4.5.Final to 6.5.1.Final
     - io.javalin:javalin from 6.1.3 to 6.1.6
     - com.github.spotbugs:spotbugs-annotations from 4.8.4 to 4.8.5.
+
+## 2.1.1
+- Database:
+  - **httpnonces**-Table:
+    - Change column `timestamp` to be nullable
+- Backend Updates:
+  - Nonce generation and handling should now be RFC compliant 
