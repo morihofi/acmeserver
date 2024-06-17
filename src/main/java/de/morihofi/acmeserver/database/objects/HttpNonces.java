@@ -41,24 +41,24 @@ public class HttpNonces {
     @Column(name = "nonce", nullable = false)
     private String nonce;
 
-    @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp;
+    @Column(name = "timestamp", nullable = true) // Column name "timestamp" instead of redeemTimestamp to keep compatibility
+    private LocalDateTime redeemTimestamp;
 
-    /**
-     * Default constructor required for Hibernate.
-     */
-    public HttpNonces() {
-    }
+    @Column(name = "generated", nullable = true)
+    private LocalDateTime generationTimestamp;
 
     /**
      * Constructs a new nonce with the given nonce string and timestamp.
      *
      * @param nonce     The nonce string.
-     * @param timestamp The timestamp when the nonce was generated.
      */
-    public HttpNonces(String nonce, LocalDateTime timestamp) {
+    public HttpNonces(String nonce) {
         this.nonce = nonce;
-        this.timestamp = timestamp;
+        this.redeemTimestamp = null;
+        this.generationTimestamp = LocalDateTime.now();
+    }
+
+    public HttpNonces() {
     }
 
     /**
@@ -80,20 +80,28 @@ public class HttpNonces {
     }
 
     /**
-     * Get the timestamp when the nonce was generated.
+     * Get the timestamp when the nonce was redeemed.
      *
      * @return The timestamp.
      */
-    public LocalDateTime getTimestamp() {
-        return timestamp;
+    public LocalDateTime getRedeemTimestamp() {
+        return redeemTimestamp;
     }
 
     /**
-     * Set the timestamp when the nonce was generated.
+     * Set the timestamp when the nonce was redeemed.
      *
-     * @param timestamp The timestamp to set.
+     * @param redeemTimestamp The timestamp to set.
      */
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
+    public void setRedeemTimestamp(LocalDateTime redeemTimestamp) {
+        this.redeemTimestamp = redeemTimestamp;
+    }
+
+    public LocalDateTime getGenerationTimestamp() {
+        return generationTimestamp;
+    }
+
+    public void setGenerationTimestamp(LocalDateTime generationTimestamp) {
+        this.generationTimestamp = generationTimestamp;
     }
 }

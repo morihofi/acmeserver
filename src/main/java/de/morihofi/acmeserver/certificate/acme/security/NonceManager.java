@@ -22,15 +22,15 @@ import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.HttpNonces;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadNonceException;
-import de.morihofi.acmeserver.tools.safety.TypeSafetyHelper;
-import jakarta.persistence.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class NonceManager {
 
@@ -68,28 +68,43 @@ public class NonceManager {
         }
 
         try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
-            org.hibernate.Transaction transaction = session.beginTransaction();
+            Transaction transaction = session.beginTransaction();
 
             // Check if the nonce exists in the database
-            String hql = "SELECT 1 FROM HttpNonces hn WHERE hn.nonce = :nonce";
-            Query query = session.createQuery(hql, HttpNonces.class);
+            String hql = "FROM HttpNonces hn WHERE hn.nonce = :nonce";
+            Query<HttpNonces> query = session.createQuery(hql, HttpNonces.class);
             query.setParameter("nonce", nonce);
-            List<HttpNonces> results = TypeSafetyHelper.safeCastToClassOfType(query.getResultList(), HttpNonces.class);
+            query.setMaxResults(1);
+            Optional<HttpNonces> result = query.uniqueResultOptional();
 
-            boolean nonceExists = !results.isEmpty();
 
-            if (!nonceExists) {
-                // If the nonce does not exist, add it to the database
-                HttpNonces newNonce = new HttpNonces(nonce, LocalDateTime.now());
-                session.persist(newNonce);
+            if (result.isEmpty()) {
+                // If the nonce does not exist
+                throw new ACMEBadNonceException("Nonce unknown");
             }
 
+            // Get our object
+            HttpNonces nonceObj = result.get();
+
+            if (nonceObj.getRedeemTimestamp() != null) {
+                return true; // Nonce already used
+            }
+
+            // Set timestamp when the nonce was redeemed
+            nonceObj.setRedeemTimestamp(LocalDateTime.now());
+
+            // Update nonce entity
+            session.merge(nonceObj);
+
+            // Apply
             transaction.commit();
-            // Return true if nonce exists, false if it was added
-            return nonceExists;
-        } catch (Exception e) {
-            LOG.error("Error checking or adding nonce", e);
+
             return false;
+
+        } catch (
+                Exception e) {
+            LOG.error("Error checking or adding nonce", e);
+            return true;
         }
     }
 }

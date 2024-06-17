@@ -16,14 +16,17 @@
 
 package de.morihofi.acmeserver.tools.crypto;
 
+import de.morihofi.acmeserver.database.HibernateUtil;
+import de.morihofi.acmeserver.database.objects.HttpNonces;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Base64;
 
 public class Crypto {
 
@@ -40,13 +43,27 @@ public class Crypto {
      */
     public static String createNonce() {
         try {
-            SecureRandom prng = SecureRandom.getInstance("SHA1PRNG");
-            String randomNum = String.valueOf(prng.nextInt());
+            LOG.info("Generating nonce");
 
-            MessageDigest sha = MessageDigest.getInstance("SHA-256");
-            byte[] result = sha.digest(randomNum.getBytes(StandardCharsets.UTF_8));
+            // Generate a random 128-bit nonce
+            byte[] nonce = new byte[16]; // 128 bits are 16 bytes
+            SecureRandom secureRandom = new SecureRandom();
+            secureRandom.nextBytes(nonce);
 
-            return Hashing.hexEncode(result);
+            // Encode the nonce to Base64 for easy handling
+            String base64Nonce = Base64.getUrlEncoder().withoutPadding().encodeToString(nonce);
+
+
+            try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+                Transaction tx = session.beginTransaction();
+
+                session.persist(new HttpNonces(base64Nonce)); // Store nonce
+                LOG.info("Nonce {} stored", base64Nonce);
+
+                tx.commit();
+            }
+
+            return base64Nonce;
         } catch (Exception e) {
             throw new IllegalArgumentException("Unable to create nonce", e);
         }
@@ -65,5 +82,6 @@ public class Crypto {
         return new BigInteger(130, secureRandom).toString(32); // 32 for hexadecimal representation
     }
 
-    private Crypto() {}
+    private Crypto() {
+    }
 }
