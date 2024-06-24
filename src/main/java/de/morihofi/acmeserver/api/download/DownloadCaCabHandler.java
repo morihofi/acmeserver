@@ -16,6 +16,7 @@
 
 package de.morihofi.acmeserver.api.download;
 
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.fileformats.archive.cab.CabFile;
 import io.javalin.http.Context;
@@ -75,10 +76,10 @@ public class DownloadCaCabHandler implements Handler {
         return sb.toString();
     }
 
-    private final CryptoStoreManager cryptoStoreManager;
+    private final ServerInstance serverInstance;
 
-    public DownloadCaCabHandler(CryptoStoreManager cryptoStoreManager) {
-        this.cryptoStoreManager = cryptoStoreManager;
+    public DownloadCaCabHandler(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
     }
 
     @Override
@@ -86,7 +87,7 @@ public class DownloadCaCabHandler implements Handler {
         ctx.header("Content-Type", "application/vnd.ms-cab-compressed");
 
         String xml = createXmlWithCertificate(
-                (X509Certificate) cryptoStoreManager.getKeyStore()
+                (X509Certificate) serverInstance.getCryptoStoreManager().getKeyStore()
                         .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
         );
 

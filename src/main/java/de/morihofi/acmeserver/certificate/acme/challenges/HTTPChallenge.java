@@ -18,6 +18,7 @@ package de.morihofi.acmeserver.certificate.acme.challenges;
 
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.crypto.AcmeTokenCryptography;
 import de.morihofi.acmeserver.tools.crypto.AcmeUtils;
@@ -63,18 +64,19 @@ public class HTTPChallenge {
      * @param authToken   The expected authentication token value for the challenge.
      * @param host        The target host for the HTTP GET request.
      * @param acmeAccount The ACME account used in the challenge.
+     * @param serverInstance Server instance
      * @return {@code true} if the challenge validation is successful, otherwise {@code false}.
      * @throws IOException              If an I/O error occurs during the HTTP request.
      * @throws NoSuchAlgorithmException If a requested cryptographic algorithm is not available.
      * @throws InvalidKeySpecException  If an invalid key specification is encountered.
      * @throws NoSuchProviderException  If a requested security provider is not available.
      */
-    public static ChallengeResult check(String authToken, String host, ACMEAccount acmeAccount) throws IOException,
+    public static ChallengeResult check(String authToken, String host, ACMEAccount acmeAccount, ServerInstance serverInstance) throws IOException,
             NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         boolean passed = false;
         String lastError = "";
 
-        OkHttpClient httpClient = Main.networkClient.getOkHttpClient();
+        OkHttpClient httpClient = serverInstance.getNetworkClient().getOkHttpClient();
 
 
         PublicKey acmeAccountPublicKey = PemUtil.readPublicKeyFromPem(acmeAccount.getPublicKeyPEM());

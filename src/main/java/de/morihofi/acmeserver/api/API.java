@@ -21,29 +21,30 @@ import de.morihofi.acmeserver.api.provisioner.statistics.ProvisionerStatisticHan
 import de.morihofi.acmeserver.api.serverInfo.ApiServerInfoEndpoint;
 import de.morihofi.acmeserver.api.troubleshooting.DnsResolverHandler;
 import de.morihofi.acmeserver.config.Config;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.Javalin;
 
 public class API {
 
-    public static void init(Javalin app, Config appConfig, CryptoStoreManager cryptoStoreManager) {
+    public static void init(Javalin app, ServerInstance serverInstance) {
         // CA Downloads
-        app.get("/ca.crt", new DownloadCaPemHandler(cryptoStoreManager));
-        app.get("/ca.pem", new DownloadCaPemHandler(cryptoStoreManager));
-        app.get("/ca.der", new DownloadCaDerHandler(cryptoStoreManager));
-        app.get("/ca.cab", new DownloadCaCabHandler(cryptoStoreManager));
+        app.get("/ca.crt", new DownloadCaPemHandler(serverInstance));
+        app.get("/ca.pem", new DownloadCaPemHandler(serverInstance));
+        app.get("/ca.der", new DownloadCaDerHandler(serverInstance));
+        app.get("/ca.cab", new DownloadCaCabHandler(serverInstance));
 
         // API Endpoints
-        app.get("/api/serverinfo", new ApiServerInfoEndpoint(appConfig.getProvisioner()));
-        app.get("/api/stats/provisioners/certificates-issued", new ApiStatsProvisionerCertificatesIssued());
+        app.get("/api/serverinfo", new ApiServerInfoEndpoint(serverInstance));
+        app.get("/api/stats/provisioners/certificates-issued", new ApiStatsProvisionerCertificatesIssued(serverInstance));
 
-        app.get("/api/provisioner/list", new ProvisionerListHandler(cryptoStoreManager));
-        app.get("/api/provisioner/by-name/{provisionerName}/info", new ProvisionerByNameInfoHandler(cryptoStoreManager));
+        app.get("/api/provisioner/list", new ProvisionerListHandler(serverInstance));
+        app.get("/api/provisioner/by-name/{provisionerName}/info", new ProvisionerByNameInfoHandler(serverInstance));
         // Statistics
-        app.get("/api/stats/provisioner/all", new ProvisionerStatisticHandler(cryptoStoreManager));
-        app.get("/api/stats/provisioner/global", new ProvisionerGlobalStatisticHandler(cryptoStoreManager));
+        app.get("/api/stats/provisioner/all", new ProvisionerStatisticHandler(serverInstance));
+        app.get("/api/stats/provisioner/global", new ProvisionerGlobalStatisticHandler(serverInstance));
         // Troubleshooting
-        app.post("/api/troubleshooting/dns-resolver", new DnsResolverHandler());
+        app.post("/api/troubleshooting/dns-resolver", new DnsResolverHandler(serverInstance));
 
         // TODO: Implement config production ready
         // Config

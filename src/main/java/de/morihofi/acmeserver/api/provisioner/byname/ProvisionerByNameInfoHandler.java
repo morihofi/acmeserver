@@ -16,11 +16,10 @@
 
 package de.morihofi.acmeserver.api.provisioner.byname;
 
-import de.morihofi.acmeserver.api.provisioner.ProvisionerListHandler;
 import de.morihofi.acmeserver.api.provisioner.byname.responses.ProvisionerByNameInfoResponse;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
-import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import jakarta.xml.bind.DatatypeConverter;
@@ -40,9 +39,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ProvisionerByNameInfoHandler implements Handler {
-    private final CryptoStoreManager cryptoStoreManager;
-    public ProvisionerByNameInfoHandler(CryptoStoreManager cryptoStoreManager) {
-        this.cryptoStoreManager = cryptoStoreManager;
+    private final ServerInstance serverInstance;
+
+    public ProvisionerByNameInfoHandler(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class ProvisionerByNameInfoHandler implements Handler {
 
         Provisioner provisioner = ProvisionerManager.getProvisionerForName(provisionerName);
 
-        if(provisioner == null){
+        if (provisioner == null) {
             return;
         }
 
@@ -126,10 +126,10 @@ public class ProvisionerByNameInfoHandler implements Handler {
      *
      *                     <p>Usage example:</p>
      *                     <pre>
-     *                                         byte[] asn1Data = ...; // ASN.1 encoded data
-     *                                         ASN1Primitive asn1Object = toAsn1Object(asn1Data);
-     *                                         // Proceed with processing the ASN1Primitive as needed
-     *                                         </pre>
+     *                                                             byte[] asn1Data = ...; // ASN.1 encoded data
+     *                                                             ASN1Primitive asn1Object = toAsn1Object(asn1Data);
+     *                                                             // Proceed with processing the ASN1Primitive as needed
+     *                                                             </pre>
      *
      *                     <p>This method leverages Bouncy Castle's ASN1 parsing capabilities. Ensure that
      *                     the Bouncy Castle library is included in your project's dependencies to use this method.</p>
@@ -204,9 +204,6 @@ public class ProvisionerByNameInfoHandler implements Handler {
         }
         return ocspUrls;
     }
-
-
-
 
 
 }

@@ -27,6 +27,7 @@ import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.regex.EmailValidation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
@@ -56,10 +57,10 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
      *
      * @param provisioner Provisioner instance
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public AccountEndpoint(Provisioner provisioner) {
-        super(provisioner);
+    public AccountEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
+        super(provisioner, serverInstance);
     }
+
 
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
@@ -71,12 +72,12 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
         performSignatureAndNonceCheck(ctx, accountId, acmeRequestBody);
 
         // Check if account exists
-        ACMEAccount account = ACMEAccount.getAccount(accountId);
+        ACMEAccount account = ACMEAccount.getAccount(accountId, getServerInstance());
         if (account == null) {
             throw new ACMEAccountNotFoundException("Account with ID " + accountId + " not found!");
         }
 
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(getServerInstance().getHibernateUtil().getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
             // Update Account Settings, e.g., Email change

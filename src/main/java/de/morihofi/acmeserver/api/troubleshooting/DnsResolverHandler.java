@@ -18,6 +18,7 @@ package de.morihofi.acmeserver.api.troubleshooting;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.api.troubleshooting.objects.DnsResolverRequest;
 import de.morihofi.acmeserver.api.troubleshooting.objects.DnsResolverResponse;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.network.dns.DNSLookup;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -130,7 +131,8 @@ public class DnsResolverHandler implements Handler {
                         DNSLookup.performDoHLookup(
                                 request.getDnsName(),
                                 dnsType,
-                                Main.networkClient.getDoHClient()
+                                serverInstance.getNetworkClient()
+                                        .getDoHClient()
                         )
                 )
         );
@@ -139,11 +141,20 @@ public class DnsResolverHandler implements Handler {
                 DNSLookup.performDnsServerLookup(
                         request.getDnsName(),
                         dnsType,
-                        Main.appConfig.getNetwork().getDnsConfig().getDnsServers()
+                        serverInstance.getAppConfig()
+                                .getNetwork()
+                                .getDnsConfig()
+                                .getDnsServers()
                 )
         ));
 
         context.json(response);
+    }
+
+    private final ServerInstance serverInstance;
+
+    public DnsResolverHandler(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
     }
 
     private List<DnsResolverResponse.Item> convertToItems(List<Record> records) {

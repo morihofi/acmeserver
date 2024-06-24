@@ -22,6 +22,7 @@ import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
@@ -57,10 +58,10 @@ public class CertificateIssuer {
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
     private static Thread certificateQueueIssueThread = null;
 
-    public static synchronized void startThread(CryptoStoreManager cryptoStoreManager) {
+    public static synchronized void startThread(ServerInstance serverInstance) {
         LOG.info("Starting certificate issuing thread...");
         if (certificateQueueIssueThread == null) {
-            certificateQueueIssueThread = new Thread(new CertificateIssuingTask(cryptoStoreManager), "Certificate Issuing Thread");
+            certificateQueueIssueThread = new Thread(new CertificateIssuingTask(serverInstance), "Certificate Issuing Thread");
             certificateQueueIssueThread.setDaemon(
                     false); // Continue running until explicitly stopped, so only exit when all certificates are issued
             certificateQueueIssueThread.start();
@@ -137,7 +138,7 @@ public class CertificateIssuer {
         LOG.info("Stored certificate successful");
     }
 
-    private record CertificateIssuingTask(CryptoStoreManager cryptoStoreManager) implements Runnable {
+    private record CertificateIssuingTask(ServerInstance serverInstance) implements Runnable {
 
         @SuppressFBWarnings("REC_CATCH_EXCEPTION")
         @Override
@@ -147,16 +148,16 @@ public class CertificateIssuer {
             while (!Thread.currentThread().isInterrupted()) {
                 LOG.trace("Looking for certificates to be issued in the database");
 
-                List<ACMEOrder> waitingOrders = ACMEOrder.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE);
+                List<ACMEOrder> waitingOrders = ACMEOrder.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE, serverInstance);
 
                 if (!waitingOrders.isEmpty()) {
 
-                    try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+                    try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
 
                         // CryptoStoreManager csm = CryptoStoreManager;
 
                         ACMEOrder order = waitingOrders.get(0);
-                        generateCertificateForOrder(order, cryptoStoreManager, session);
+                        generateCertificateForOrder(order, serverInstance.getCryptoStoreManager(), session);
                     } catch (Exception ex) {
                         LOG.error("Error generating and/or store certificate", ex);
                     }

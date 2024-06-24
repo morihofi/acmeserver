@@ -23,6 +23,7 @@ import de.morihofi.acmeserver.api.serverInfo.objects.ProvisionerResponse;
 import de.morihofi.acmeserver.api.serverInfo.objects.ServerInfoResponse;
 import de.morihofi.acmeserver.api.serverInfo.objects.UpdateResponse;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.network.scm.github.GitHubVersionChecker;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
@@ -44,13 +45,13 @@ public class ApiServerInfoEndpoint implements Handler {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(ApiServerInfoEndpoint.class);
-    private static final Duration CACHE_DURATION = Duration.ofHours(3); // Cache for 3 hours
-    private static String cachedLatestReleaseTag = null;
-    private static String cachedLatestReleaseUrl = null;
-    private static Instant cacheTimestamp = Instant.MIN;
+    private final Logger LOG = LogManager.getLogger(ApiServerInfoEndpoint.class);
+    private final Duration CACHE_DURATION = Duration.ofHours(3); // Cache for 3 hours
+    private String cachedLatestReleaseTag = null;
+    private String cachedLatestReleaseUrl = null;
+    private Instant cacheTimestamp = Instant.MIN;
 
-    public static ServerInfoResponse getServerInfoResponse(List<ProvisionerConfig> provisionerConfigList) {
+    public ServerInfoResponse getServerInfoResponse(List<ProvisionerConfig> provisionerConfigList) {
         MetadataInfoResponse metadataInfo = new MetadataInfoResponse();
         metadataInfo.setVersion(Main.buildMetadataVersion);
         metadataInfo.setBuildTime(Main.buildMetadataBuildTime);
@@ -60,8 +61,8 @@ public class ApiServerInfoEndpoint implements Handler {
         metadataInfo.setJvmUptime(ManagementFactory.getRuntimeMXBean().getUptime() / 1000L);
         metadataInfo.setJvmStartTime(ManagementFactory.getRuntimeMXBean().getStartTime() / 1000L);
         metadataInfo.setStartupTime(Main.startupTime); // already in seconds
-        metadataInfo.setHost(Main.appConfig.getServer().getDnsName());
-        metadataInfo.setHttpsPort(Main.appConfig.getServer().getPorts().getHttps());
+        metadataInfo.setHost(serverInstance.getAppConfig().getServer().getDnsName());
+        metadataInfo.setHttpsPort(serverInstance.getAppConfig().getServer().getPorts().getHttps());
 
         {
             String latestReleaseUrl = null;
@@ -71,7 +72,7 @@ public class ApiServerInfoEndpoint implements Handler {
             if (Duration.between(cacheTimestamp, Instant.now()).compareTo(CACHE_DURATION) > 0) {
                 // Cache has expired, so retrieve data again
                 try {
-                    cachedLatestReleaseTag = GitHubVersionChecker.getLatestReleaseTag();
+                    cachedLatestReleaseTag = GitHubVersionChecker.getLatestReleaseTag(serverInstance);
                     cachedLatestReleaseUrl = GitHubVersionChecker.getLatestReleaseURL();
                     cacheTimestamp = Instant.now();
                 } catch (IOException ex) {
@@ -102,17 +103,19 @@ public class ApiServerInfoEndpoint implements Handler {
 
         return responseData;
     }
+
     /**
      * List of provisioners, specified in config
      */
-    private final List<ProvisionerConfig> provisionerConfigList;
+    private final ServerInstance serverInstance;
+
     /**
      * Endpoint for getting server information
      *
-     * @param provisionerConfigList List of provisioners, specified in config
+     * @param serverInstance Instance of the Server
      */
-    public ApiServerInfoEndpoint(List<ProvisionerConfig> provisionerConfigList) {
-        this.provisionerConfigList = provisionerConfigList;
+    public ApiServerInfoEndpoint(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
     }
 
     /**
@@ -124,7 +127,7 @@ public class ApiServerInfoEndpoint implements Handler {
     public void handle(@NotNull Context ctx) {
         ctx.header("Content-Type", "application/json");
 
-        ServerInfoResponse responseData = getServerInfoResponse(provisionerConfigList);
+        ServerInfoResponse responseData = getServerInfoResponse(serverInstance.getAppConfig().getProvisioner());
 
         Gson gson = new Gson();
         String jsonResponse = gson.toJson(responseData);

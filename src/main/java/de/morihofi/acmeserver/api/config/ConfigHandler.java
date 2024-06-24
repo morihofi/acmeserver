@@ -16,20 +16,21 @@
 package de.morihofi.acmeserver.api.config;
 
 import de.morihofi.acmeserver.Main;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
 
 public class ConfigHandler implements Handler {
-    private final CryptoStoreManager cryptoStoreManager;
+    private final ServerInstance serverInstance;
 
-    public ConfigHandler(CryptoStoreManager cryptoStoreManager) {
-        this.cryptoStoreManager = cryptoStoreManager;
+    public ConfigHandler(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
     }
 
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
-        ctx.json(Main.appConfig);
+        ctx.json(serverInstance.getAppConfig());
     }
 }

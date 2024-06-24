@@ -18,6 +18,7 @@ package de.morihofi.acmeserver.database.objects;
 
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.HibernateUtil;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -54,9 +55,9 @@ public class ACMEOrderIdentifier implements Serializable {
      * @param authorizationId The unique identifier of the authorization associated with the ACME identifier.
      * @return The ACME identifier matching the provided authorization ID, or null if not found.
      */
-    public static ACMEOrderIdentifier getACMEIdentifierByAuthorizationId(String authorizationId) {
+    public static ACMEOrderIdentifier getACMEIdentifierByAuthorizationId(String authorizationId, ServerInstance serverInstance) {
         ACMEOrderIdentifier identifier = null;
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
             identifier = session.createQuery("FROM ACMEOrderIdentifier WHERE authorizationId = :authorizationId", ACMEOrderIdentifier.class)
                     .setParameter("authorizationId", authorizationId)

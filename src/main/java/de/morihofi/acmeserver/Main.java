@@ -18,6 +18,7 @@ package de.morihofi.acmeserver;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.config.DatabaseConfig;
 import de.morihofi.acmeserver.config.certificateAlgorithms.AlgorithmParams;
@@ -27,8 +28,9 @@ import de.morihofi.acmeserver.config.helper.KeyStoreParamsDeserializer;
 import de.morihofi.acmeserver.config.keyStoreHelpers.KeyStoreParams;
 import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS11KeyStoreParams;
 import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS12KeyStoreParams;
-import de.morihofi.acmeserver.configPreprocessor.ConfigPreprocessor;
+import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.postsetup.PostSetup;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
@@ -54,11 +56,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Security;
 import java.security.cert.CertificateException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class Main {
@@ -80,8 +78,7 @@ public class Main {
             .registerTypeAdapter(DatabaseConfig.class, new DatabaseConfigDeserializer())
             .setPrettyPrinting()
             .create();
-    @SuppressFBWarnings({"MS_PKGPROTECT"})
-    private static CryptoStoreManager cryptoStoreManager;
+
     // Build Metadata
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataVersion;
@@ -91,10 +88,7 @@ public class Main {
     public static String buildMetadataGitCommit;
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataGitClosestTagName;
-    @SuppressFBWarnings({"MS_PKGPROTECT", "MS_CANNOT_BE_FINAL"})
-    public static Config appConfig;
-    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
-    public static boolean debug = false;
+
     @SuppressFBWarnings("MS_PKGPROTECT")
     public static MODE selectedMode = MODE.NORMAL;
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
@@ -102,14 +96,10 @@ public class Main {
     @SuppressFBWarnings("MS_PKGPROTECT")
     public static String[] runArgs = new String[]{};
 
-    public static NetworkClient networkClient = null;
-
-    private static boolean coreComponentsInitialized = false;
+    private static ServerInstance serverInstance;
 
 
     public static void restartMain() throws Exception {
-        coreComponentsInitialized = false;
-        networkClient = null;
         startupTime = 0;
         Main.main(runArgs);
     }
@@ -136,17 +126,14 @@ public class Main {
         LOG.info("Initializing directories");
         ensureFilesDirectoryExists();
 
-        loadServerConfiguration();
         loadBuildAndGitMetadata();
-
-
-        LOG.info("Preprocessing configuration classes... May take a moment");
-        ConfigPreprocessor.preprocessConfig();
 
 
         // Parse CLI Arguments
         final String argPrefix = "--";
         final char splitCharacter = '=';
+
+        boolean debug = false; // Debug mode by default deactivated
 
         for (String arg : args) {
             CLIArgument cliArgument = new CLIArgument(argPrefix, splitCharacter, arg);
@@ -182,39 +169,49 @@ public class Main {
             LOG.warn("!!! RUNNING IN DEBUG MODE - BEHAVIOR CAN BE DIFFERENT. DO NOT USE IN PRODUCTION !!!");
         }
 
+        LOG.info("Initializing core components ...");
+        Config config = loadServerConfiguration();
+        HibernateUtil hibernateUtil = new HibernateUtil(config, debug);
+
+        serverInstance = new ServerInstance(
+                config,
+                CONFIG_PATH,
+                debug,
+                initializeCryptoStoreManagerCoreComponents(config),
+                new NetworkClient(config.getNetwork()),
+                hibernateUtil,
+                new NonceManager(hibernateUtil, debug)
+        );
+
+
+        // LOG.info("Preprocessing configuration classes... May take a moment");
+        // ConfigPreprocessor.preprocessConfig(serverInstance);
+
         switch (selectedMode) {
             case NORMAL -> {
-                initializeCoreComponents();
+
                 LOG.info("Starting normally");
-                WebServer.startServer(cryptoStoreManager, appConfig);
+                WebServer webServer = new WebServer(serverInstance);
+                webServer.startServer();
             }
             case POSTSETUP -> {
                 // Do not init core components, due to changing passwords in UI
                 LOG.info("Starting Post Setup");
-                PostSetup.run(cryptoStoreManager, appConfig, FILES_DIR, args);
+                PostSetup.run(serverInstance, FILES_DIR, args);
             }
             case KEYSTORE_MIGRATION_PEM2KS -> {
-                initializeCoreComponents();
+                initializeCryptoStoreManagerCoreComponents(serverInstance.getAppConfig());
                 LOG.info("Starting in KeyStore migration Mode (PEM to KeyStore)");
-                KSMigrationTool.run(args, cryptoStoreManager, appConfig, FILES_DIR);
+                KSMigrationTool.run(args, serverInstance.getCryptoStoreManager(), serverInstance.getAppConfig(), FILES_DIR);
             }
         }
     }
 
-    public static void loadServerConfiguration() throws IOException {
+    public static Config loadServerConfiguration() throws IOException {
         LOG.info("Loading configuration from {} ...", CONFIG_PATH);
-        appConfig = CONFIG_GSON.fromJson(Files.readString(CONFIG_PATH), Config.class);
-        LOG.info("Configuration loaded");
-        LOG.info("Creating NetworkClient instance");
-        networkClient = new NetworkClient(appConfig.getNetwork());
-        LOG.info("NetworkClient instance created");
+        return CONFIG_GSON.fromJson(Files.readString(CONFIG_PATH), Config.class);
     }
 
-    public static void saveServerConfiguration() throws IOException {
-        LOG.info("Saving configuration ...");
-        Files.writeString(CONFIG_PATH, CONFIG_GSON.toJson(appConfig));
-        LOG.info("Configuration saved");
-    }
 
     /**
      * Prints a banner with a stylized text art representation.
@@ -258,42 +255,40 @@ public class Main {
      * @throws IllegalAccessException    if there is illegal access to a class or field.
      * @throws NoSuchMethodException     if a method required for initialization is not found.
      */
-    private static void initializeCoreComponents() throws ClassNotFoundException, CertificateException, IOException,
+    private static CryptoStoreManager initializeCryptoStoreManagerCoreComponents(Config appConfig) throws ClassNotFoundException, CertificateException, IOException,
             NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, InvocationTargetException, InstantiationException,
             IllegalAccessException, NoSuchMethodException {
-        if (coreComponentsInitialized) {
-            return;
+        LOG.info("Initializing Keystore ...");
+
+        CryptoStoreManager cryptoStoreManager = null;
+
+
+        // Initialize KeyStore
+
+        if (appConfig.getKeyStore() instanceof PKCS11KeyStoreParams pkcs11KeyStoreParams) {
+
+            cryptoStoreManager = new CryptoStoreManager(
+                    new PKCS11KeyStoreConfig(
+                            Paths.get(pkcs11KeyStoreParams.getLibraryLocation()),
+                            pkcs11KeyStoreParams.getSlot(),
+                            pkcs11KeyStoreParams.getPassword()
+                    )
+            );
         }
-        LOG.info("Initializing core components...");
+        if (appConfig.getKeyStore() instanceof PKCS12KeyStoreParams pkcs12KeyStoreParams) {
 
-        {
-            // Initialize KeyStore
-
-            if (appConfig.getKeyStore() instanceof PKCS11KeyStoreParams pkcs11KeyStoreParams) {
-
-                cryptoStoreManager = new CryptoStoreManager(
-                        new PKCS11KeyStoreConfig(
-                                Paths.get(pkcs11KeyStoreParams.getLibraryLocation()),
-                                pkcs11KeyStoreParams.getSlot(),
-                                pkcs11KeyStoreParams.getPassword()
-                        )
-                );
-            }
-            if (appConfig.getKeyStore() instanceof PKCS12KeyStoreParams pkcs12KeyStoreParams) {
-
-                cryptoStoreManager = new CryptoStoreManager(
-                        new PKCS12KeyStoreConfig(
-                                Paths.get(pkcs12KeyStoreParams.getLocation()),
-                                pkcs12KeyStoreParams.getPassword()
-                        )
-                );
-            }
-            if (cryptoStoreManager == null) {
-                throw new IllegalArgumentException("Could not create CryptoStoreManager, due to unsupported KeyStore configuration");
-            }
-
-            coreComponentsInitialized = true;
+            cryptoStoreManager = new CryptoStoreManager(
+                    new PKCS12KeyStoreConfig(
+                            Paths.get(pkcs12KeyStoreParams.getLocation()),
+                            pkcs12KeyStoreParams.getPassword()
+                    )
+            );
         }
+        if (cryptoStoreManager == null) {
+            throw new IllegalArgumentException("Could not create CryptoStoreManager, due to unsupported KeyStore configuration");
+        }
+
+        return cryptoStoreManager;
     }
 
     /**

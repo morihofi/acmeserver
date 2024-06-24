@@ -32,6 +32,7 @@ import de.morihofi.acmeserver.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLScheduler;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointGet;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointPost;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import io.javalin.Javalin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,13 +56,13 @@ public class ProvisionerManager {
         return "/acme/" + provisionerName;
     }
 
-    public static void registerProvisioner(Javalin app, Provisioner provisioner) {
+    public static void registerProvisioner(Javalin app, Provisioner provisioner, ServerInstance serverInstance) {
         if (provisioners.contains(provisioner)) {
             throw new IllegalArgumentException("Provisioner already registered");
         }
 
         // CRL generator
-        CRLScheduler.addProvisionerToScheduler(provisioner);
+        CRLScheduler.addProvisionerToScheduler(provisioner, serverInstance);
 
         String prefix = getProvisionerApiPrefix(provisioner.getProvisionerName());
 
@@ -76,39 +77,39 @@ public class ProvisionerManager {
         app.get(prefix + "/directory", new DirectoryEndpoint(provisioner));
 
         // New account
-        app.post(prefix + "/acme/new-acct", new NewAccountEndpoint(provisioner));
+        app.post(prefix + "/acme/new-acct", new NewAccountEndpoint(provisioner, serverInstance));
 
         // TODO: Key Change Endpoint (Account key rollover)
         app.post(prefix + "/acme/key-change", new NotImplementedEndpoint());
         app.get(prefix + "/acme/key-change", new NotImplementedEndpoint());
 
         // New Nonce
-        app.head(prefix + "/acme/new-nonce", new NewNonceEndpoint(provisioner));
-        app.get(prefix + "/acme/new-nonce", new NewNonceEndpoint(provisioner));
+        app.head(prefix + "/acme/new-nonce", new NewNonceEndpoint(provisioner, serverInstance));
+        app.get(prefix + "/acme/new-nonce", new NewNonceEndpoint(provisioner, serverInstance));
 
         // Account Update
-        app.post(prefix + "/acme/acct/{id}", new AccountEndpoint(provisioner));
+        app.post(prefix + "/acme/acct/{id}", new AccountEndpoint(provisioner, serverInstance));
 
         // Create new Order
-        app.post(prefix + "/acme/new-order", new NewOrderEndpoint(provisioner));
+        app.post(prefix + "/acme/new-order", new NewOrderEndpoint(provisioner, serverInstance));
 
         // Challenge / Ownership verification
-        app.post(prefix + "/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(provisioner));
+        app.post(prefix + "/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(provisioner, serverInstance));
 
         // Challenge Callback
-        app.post(prefix + "/acme/chall/{challengeId}/{challengeType}", new ChallengeCallbackEndpoint(provisioner));
+        app.post(prefix + "/acme/chall/{challengeId}/{challengeType}", new ChallengeCallbackEndpoint(provisioner, serverInstance));
 
         // Finalize endpoint
-        app.post(prefix + "/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(provisioner));
+        app.post(prefix + "/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(provisioner, serverInstance));
 
         // Order info Endpoint
-        app.post(prefix + "/acme/order/{orderId}", new OrderInfoEndpoint(provisioner));
+        app.post(prefix + "/acme/order/{orderId}", new OrderInfoEndpoint(provisioner, serverInstance));
 
         // Get Order Certificate
-        app.post(prefix + "/acme/order/{orderId}/cert", new OrderCertEndpoint(provisioner));
+        app.post(prefix + "/acme/order/{orderId}/cert", new OrderCertEndpoint(provisioner, serverInstance));
 
         // Revoke certificate
-        app.post(prefix + "/acme/revoke-cert", new RevokeCertEndpoint(provisioner));
+        app.post(prefix + "/acme/revoke-cert", new RevokeCertEndpoint(provisioner, serverInstance));
 
         log.info("Provisioner {} registered", provisioner.getProvisionerName());
 

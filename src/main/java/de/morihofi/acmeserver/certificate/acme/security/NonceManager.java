@@ -18,7 +18,6 @@ package de.morihofi.acmeserver.certificate.acme.security;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.HttpNonces;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadNonceException;
@@ -39,13 +38,22 @@ public class NonceManager {
      */
     private static final Logger LOG = LogManager.getLogger(NonceManager.class);
 
+
+    private final HibernateUtil hibernateUtil;
+    private final boolean debug;
+
+    public NonceManager(HibernateUtil hibernateUtil, boolean debug) {
+        this.hibernateUtil = hibernateUtil;
+        this.debug = debug;
+    }
+
     /**
      * Checks if a nonce from a decoded protected request body has already been used.
      *
      * @param decodedProtected The decoded protected request body as a JSON string.
      * @throws ACMEBadNonceException If the nonce has already been used.
      */
-    public static void checkNonceFromDecodedProtected(String decodedProtected) {
+    public void checkNonceFromDecodedProtected(String decodedProtected) {
         JsonObject reqBodyProtectedObj = JsonParser.parseString(decodedProtected).getAsJsonObject();
         String nonce = reqBodyProtectedObj.get("nonce").getAsString();
 
@@ -60,14 +68,14 @@ public class NonceManager {
      * @param nonce The nonce to be checked
      * @return true if the nonce already exists, false if it was added
      */
-    public static boolean isNonceUsed(String nonce) {
+    public boolean isNonceUsed(String nonce) {
 
-        if (Main.debug) {
+        if (debug) {
             // Nonce protection is disabled when DEBUG environment variable is set to TRUE
             return false;
         }
 
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(hibernateUtil.getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
             // Check if the nonce exists in the database
@@ -107,4 +115,5 @@ public class NonceManager {
             return true;
         }
     }
+
 }

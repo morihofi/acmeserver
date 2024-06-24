@@ -23,15 +23,11 @@ import de.morihofi.acmeserver.config.CertificateExpiration;
 import de.morihofi.acmeserver.config.DomainNameRestrictionConfig;
 import de.morihofi.acmeserver.config.MetadataConfig;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-import java.security.KeyPair;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.security.cert.X509Certificate;
 
 /**
@@ -76,6 +72,7 @@ public class Provisioner {
      */
     private boolean wildcardAllowed;
     private boolean ipAllowed;
+    private ServerInstance serverInstance;
 
     /**
      * Constructs a new Provisioner object. This constructor initializes the Provisioner with the specified settings and configurations. It
@@ -92,8 +89,8 @@ public class Provisioner {
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public Provisioner(String provisionerName, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration,
-            DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager,
-            ProvisionerConfig config, boolean ipAllowed) {
+                       DomainNameRestrictionConfig domainNameRestriction, boolean wildcardAllowed, CryptoStoreManager cryptoStoreManager,
+                       ProvisionerConfig config, boolean ipAllowed, ServerInstance serverInstance) {
         this.provisionerName = provisionerName;
         this.acmeMetadataConfig = acmeMetadataConfig;
         this.generatedCertificateExpiration = generatedCertificateExpiration;
@@ -102,6 +99,7 @@ public class Provisioner {
         this.cryptoStoreManager = cryptoStoreManager;
         this.config = config;
         this.ipAllowed = ipAllowed;
+        this.serverInstance = serverInstance;
     }
 
     /**
@@ -110,8 +108,8 @@ public class Provisioner {
      * @return Full url (including HTTPS prefix) and port to this server
      */
     public String getApiURL() {
-        return "https://" + Main.appConfig.getServer().getDnsName() + (Main.appConfig.getServer().getPorts().getHttps() != 443 ? ":"
-                + Main.appConfig.getServer().getPorts().getHttps() : "") + "/acme/" + provisionerName;
+        return "https://" + serverInstance.getAppConfig().getServer().getDnsName() + (serverInstance.getAppConfig().getServer().getPorts().getHttps() != 443 ? ":"
+                + serverInstance.getAppConfig().getServer().getPorts().getHttps() : "") + "/acme/" + provisionerName;
     }
 
     /**
@@ -121,8 +119,8 @@ public class Provisioner {
      * @return a String representing the full HTTPS URL of the server
      */
     public String getServerURL() {
-        return "https://" + Main.appConfig.getServer().getDnsName() + (Main.appConfig.getServer().getPorts().getHttps() != 443 ? ":"
-                + Main.appConfig.getServer().getPorts().getHttps() : "");
+        return "https://" + serverInstance.getAppConfig().getServer().getDnsName() + (serverInstance.getAppConfig().getServer().getPorts().getHttps() != 443 ? ":"
+                + serverInstance.getAppConfig().getServer().getPorts().getHttps() : "");
     }
 
     /**

@@ -21,6 +21,7 @@ import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEnd
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
@@ -35,8 +36,8 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
-    public OrderCertEndpoint(Provisioner provisioner) {
-        super(provisioner);
+    public OrderCertEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
+        super(provisioner, serverInstance);
     }
 
     @Override
@@ -44,15 +45,16 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
         String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/pem-certificate-chain");
-        ctx.header("Replay-Nonce", Crypto.createNonce());
+        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
 
-        ACMEOrder order = ACMEOrder.getACMEOrder(orderId);
+        ACMEOrder order = ACMEOrder.getACMEOrder(orderId, getServerInstance());
         StringBuilder responseCertificateChainBuilder = new StringBuilder();
 
         String individualCertificateChain = ACMEOrder.getCertificateChainPEMofACMEbyCertificateId(
                 order.getCertificateId(),
-                provisioner
+                provisioner,
+                getServerInstance()
         );
         if (individualCertificateChain != null) {
             responseCertificateChainBuilder.append(individualCertificateChain);

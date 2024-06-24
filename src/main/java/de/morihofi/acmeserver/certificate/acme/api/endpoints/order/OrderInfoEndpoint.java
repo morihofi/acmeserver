@@ -27,6 +27,7 @@ import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import io.javalin.http.Context;
@@ -45,8 +46,8 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
-    public OrderInfoEndpoint(Provisioner provisioner) {
-        super(provisioner);
+    public OrderInfoEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
+        super(provisioner, serverInstance);
     }
 
     @Override
@@ -54,17 +55,17 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", Crypto.createNonce());
+        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
 
-        ACMEOrder order = ACMEOrder.getACMEOrder(orderId);
+        ACMEOrder order = ACMEOrder.getACMEOrder(orderId,getServerInstance());
         List<ACMEOrderIdentifier> identifiers = order.getOrderIdentifiers();
         if (identifiers.isEmpty()) {
             throw new IllegalArgumentException("Identifiers empty, FIXME");
         }
 
         // Check signature and nonce
-        SignatureCheck.checkSignature(ctx, identifiers.get(0).getOrder().getAccount(), gson);
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        SignatureCheck.checkSignature(ctx, identifiers.get(0).getOrder().getAccount(), gson, getServerInstance());
+        getServerInstance().getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
         boolean allVerified = true;
         List<Identifier> identifierList = new ArrayList<>();

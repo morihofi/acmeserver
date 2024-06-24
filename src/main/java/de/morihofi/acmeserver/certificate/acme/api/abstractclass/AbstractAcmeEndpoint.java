@@ -22,6 +22,7 @@ import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -40,9 +41,12 @@ public abstract class AbstractAcmeEndpoint implements Handler {
      */
     private final Gson gson;
 
-    public AbstractAcmeEndpoint(Provisioner provisioner) {
+    private final ServerInstance serverInstance;
+
+    public AbstractAcmeEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
         this.provisioner = provisioner;
         this.gson = new Gson();
+        this.serverInstance = serverInstance;
     }
 
     public Provisioner getProvisioner() {
@@ -60,11 +64,15 @@ public abstract class AbstractAcmeEndpoint implements Handler {
 
     public void performSignatureAndNonceCheck(Context ctx, String accountId, ACMERequestBody acmeRequestBody) {
         // Check signature and nonce
-        SignatureCheck.checkSignature(ctx, accountId, gson);
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        SignatureCheck.checkSignature(ctx, accountId, gson, getServerInstance());
+        serverInstance.getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
     }
 
     public void performSignatureAndNonceCheck(Context ctx, ACMEAccount account, ACMERequestBody acmeRequestBody) {
         performSignatureAndNonceCheck(ctx, account.getAccountId(), acmeRequestBody);
+    }
+
+    public ServerInstance getServerInstance() {
+        return serverInstance;
     }
 }

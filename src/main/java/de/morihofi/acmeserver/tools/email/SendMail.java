@@ -16,15 +16,9 @@
 
 package de.morihofi.acmeserver.tools.email;
 
-import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.config.EmailConfig;
-import jakarta.mail.Authenticator;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Multipart;
-import jakarta.mail.PasswordAuthentication;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
+import de.morihofi.acmeserver.tools.ServerInstance;
+import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
@@ -50,8 +44,8 @@ public class SendMail {
      * @param content The content of the email.
      * @throws MessagingException If there is an issue with the email sending process.
      */
-    public static void sendMail(String toEmail, String subject, String content) throws MessagingException {
-        EmailConfig emailConfig = Main.appConfig.getEmailSmtp();
+    public static void sendMail(String toEmail, String subject, String content, ServerInstance serverInstance) throws MessagingException {
+        EmailConfig emailConfig = serverInstance.getAppConfig().getEmailSmtp();
 
         if (!emailConfig.getEnabled()) {
             LOG.info("Not sending email, because email sending is disabled in the config");

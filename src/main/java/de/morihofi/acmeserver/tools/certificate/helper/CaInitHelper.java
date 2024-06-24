@@ -16,9 +16,9 @@
 
 package de.morihofi.acmeserver.tools.certificate.helper;
 
-import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.config.certificateAlgorithms.EcdsaAlgorithmParams;
 import de.morihofi.acmeserver.config.certificateAlgorithms.RSAAlgorithmParams;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
 import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
@@ -28,12 +28,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyPair;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -54,23 +49,22 @@ public class CaInitHelper {
      * @throws NoSuchProviderException            If the specified security provider is not available.
      * @throws InvalidAlgorithmParameterException If there's an issue with algorithm parameters during key pair generation.
      */
-    public static void initializeCA(CryptoStoreManager cryptoStoreManager, Config
-            appConfig) throws NoSuchAlgorithmException, CertificateException, IOException, OperatorCreationException,
+    public static void initializeCA(ServerInstance instance) throws NoSuchAlgorithmException, CertificateException, IOException, OperatorCreationException,
             NoSuchProviderException, InvalidAlgorithmParameterException, KeyStoreException {
 
-        KeyStore caKeyStore = cryptoStoreManager.getKeyStore();
+        KeyStore caKeyStore = instance.getCryptoStoreManager().getKeyStore();
         if (!caKeyStore.containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)) {
 
             // Create CA
 
             KeyPair caKeyPair = null;
-            if (appConfig.getRootCA().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
+            if (instance.getAppConfig().getRootCA().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
                 LOG.info("Using RSA algorithm");
                 LOG.info("Generating RSA {} bit Key Pair for Root CA", rsaParams.getKeySize());
                 caKeyPair = de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator.generateRSAKeyPair(rsaParams.getKeySize(),
                         caKeyStore.getProvider().getName());
             }
-            if (appConfig.getRootCA().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
+            if (instance.getAppConfig().getRootCA().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
                 LOG.info("Using ECDSA algorithm (Elliptic curves");
 
                 LOG.info("Generating ECDSA Key Pair using curve {} for Root CA", ecdsaAlgorithmParams.getCurveName());
@@ -78,12 +72,12 @@ public class CaInitHelper {
             }
             if (caKeyPair == null) {
                 throw new IllegalArgumentException(
-                        "Unknown algorithm " + appConfig.getRootCA().getAlgorithm() + " used for root certificate");
+                        "Unknown algorithm " + instance.getAppConfig().getRootCA().getAlgorithm() + " used for root certificate");
             }
 
             LOG.info("Creating CA");
             X509Certificate caCertificate =
-                    CertificateAuthorityGenerator.generateCertificateAuthorityCertificate(appConfig.getRootCA(), caKeyPair);
+                    CertificateAuthorityGenerator.generateCertificateAuthorityCertificate(instance.getAppConfig().getRootCA(), caKeyPair);
 
             // Dumping CA Certificate to HDD, so other clients can install it
             LOG.info("Writing CA to keystore");
@@ -91,7 +85,7 @@ public class CaInitHelper {
                     new X509Certificate[]{caCertificate});
             // Save CA in Keystore
             LOG.info("Saving keystore");
-            cryptoStoreManager.saveKeystore();
+            instance.getCryptoStoreManager().saveKeystore();
         }
     }
 }

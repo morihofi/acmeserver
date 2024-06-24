@@ -17,6 +17,7 @@
 package de.morihofi.acmeserver.certificate.revokeDistribution;
 
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -64,9 +65,9 @@ public class CRLScheduler {
         LOG.info("CRL Generation Scheduler finished execution");
     }
 
-    public static void addProvisionerToScheduler(Provisioner provisioner) {
+    public static void addProvisionerToScheduler(Provisioner provisioner, ServerInstance serverInstance) {
         LOG.info("{} provisioner has been added for CRL generation scheduling", provisioner.getProvisionerName());
-        crlMap.put(provisioner.getProvisionerName(), new CRLGenerator(provisioner));
+        crlMap.put(provisioner.getProvisionerName(), new CRLGenerator(provisioner, serverInstance));
     }
 
     /**

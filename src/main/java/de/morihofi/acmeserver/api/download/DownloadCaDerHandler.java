@@ -16,6 +16,7 @@
 
 package de.morihofi.acmeserver.api.download;
 
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -49,17 +50,17 @@ public class DownloadCaDerHandler implements Handler {
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-    private final CryptoStoreManager cryptoStoreManager;
+    private final ServerInstance serverInstance;
 
-    public DownloadCaDerHandler(CryptoStoreManager cryptoStoreManager) {
-        this.cryptoStoreManager = cryptoStoreManager;
+    public DownloadCaDerHandler(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
     }
 
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         ctx.header("Content-Type", "application/x-x509-ca-cert");
 
-        byte[] der = cryptoStoreManager.getKeyStore()
+        byte[] der = serverInstance.getCryptoStoreManager().getKeyStore()
                 .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
                 .getEncoded();
 

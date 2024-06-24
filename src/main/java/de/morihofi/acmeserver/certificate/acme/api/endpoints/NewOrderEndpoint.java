@@ -32,6 +32,7 @@ import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMERejectedIdentifierException;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import de.morihofi.acmeserver.tools.email.SendMail;
@@ -59,15 +60,15 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
-
-    public NewOrderEndpoint(Provisioner provisioner) {
-        super(provisioner);
+    public NewOrderEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
+        super(provisioner, serverInstance);
     }
+
 
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
-        ACMEAccount account = ACMEAccount.getAccount(accountId);
+        ACMEAccount account = ACMEAccount.getAccount(accountId, getServerInstance());
         // Check if account exists
         if (account == null) {
             LOG.error("Throwing API error: Account {} not found", accountId);
@@ -165,7 +166,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         ACMEOrder order;
 
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(getServerInstance().getHibernateUtil().getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
 
@@ -205,7 +206,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         //Send E-Mail if order was created
         try {
-            SendMail.sendMail(account.getEmails().get(0), "New ACME order created", "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeOrderIdentifiers.get(0).getDataValue() + "</i> was created.");
+            SendMail.sendMail(account.getEmails().get(0), "New ACME order created", "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeOrderIdentifiers.get(0).getDataValue() + "</i> was created.", getServerInstance());
         } catch (Exception ex) {
             LOG.error("Unable to send email", ex);
         }
@@ -222,7 +223,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         ctx.status(201);
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
-        ctx.header("Replay-Nonce", Crypto.createNonce());
+        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
         ctx.header("Content-Type", "application/json");
         ctx.header("Location", provisioner.getApiURL() + "/acme/order/" + orderId);
 

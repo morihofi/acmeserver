@@ -32,6 +32,7 @@ import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadCsrException;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
 import de.morihofi.acmeserver.tools.certificate.dataExtractor.CsrDataUtil;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
@@ -61,9 +62,9 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
      *
      * @param provisioner Provisioner instance
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public FinalizeOrderEndpoint(Provisioner provisioner) {
-        super(provisioner);
+
+    public FinalizeOrderEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
+        super(provisioner, serverInstance);
     }
 
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")
@@ -71,7 +72,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
-        ACMEOrder order = ACMEOrder.getACMEOrder(orderId);
+        ACMEOrder order = ACMEOrder.getACMEOrder(orderId, getServerInstance());
         ACMEAccount account = order.getAccount();
 
         // Check signature and nonce
@@ -84,7 +85,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         String csr = reqBodyPayloadObj.getCsr();
 
         // Get our ACME identifiers
-        List<ACMEOrderIdentifier> identifiers = ACMEOrder.getACMEOrder(orderId).getOrderIdentifiers();
+        List<ACMEOrderIdentifier> identifiers = ACMEOrder.getACMEOrder(orderId, getServerInstance()).getOrderIdentifiers();
 
         // We just use the verification, that throws exceptions, here not the resulting identifiers
         CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
@@ -119,7 +120,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
         if (order.getCertificatePem() == null && order.getCertificateCSR() == null) {
 
-            try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            try (Session session = Objects.requireNonNull(getServerInstance().getHibernateUtil().getSessionFactory()).openSession()) {
 
                 // Save CSR in Database (and mark it that it needs a certificate)
                 Transaction transaction = session.beginTransaction();
@@ -157,7 +158,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         }
 
         ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", Crypto.createNonce());
+        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
         ctx.header("Location", provisioner.getApiURL() + "/acme/order/" + orderId);
 
         response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");

@@ -171,4 +171,8 @@ public class Config implements Serializable {
     public void setNetwork(NetworkConfig network) {
         this.network = network;
     }
+
+    public void saveConfig() {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 }

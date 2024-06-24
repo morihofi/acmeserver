@@ -19,22 +19,7 @@ package de.morihofi.acmeserver.postsetup;
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.gui2.BasicWindow;
-import com.googlecode.lanterna.gui2.Borders;
-import com.googlecode.lanterna.gui2.Button;
-import com.googlecode.lanterna.gui2.ComboBox;
-import com.googlecode.lanterna.gui2.Component;
-import com.googlecode.lanterna.gui2.ComponentRenderer;
-import com.googlecode.lanterna.gui2.Direction;
-import com.googlecode.lanterna.gui2.EmptySpace;
-import com.googlecode.lanterna.gui2.GridLayout;
-import com.googlecode.lanterna.gui2.Label;
-import com.googlecode.lanterna.gui2.LinearLayout;
-import com.googlecode.lanterna.gui2.Panel;
-import com.googlecode.lanterna.gui2.TextBox;
-import com.googlecode.lanterna.gui2.TextGUIGraphics;
-import com.googlecode.lanterna.gui2.Window;
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
+import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.config.Config;
@@ -43,7 +28,7 @@ import de.morihofi.acmeserver.config.keyStoreHelpers.PKCS12KeyStoreParams;
 import de.morihofi.acmeserver.postsetup.inputcheck.FQDNInputChecker;
 import de.morihofi.acmeserver.postsetup.inputcheck.InputChecker;
 import de.morihofi.acmeserver.postsetup.inputcheck.PortInputChecker;
-import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.password.SecurePasswordGenerator;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
@@ -66,19 +51,18 @@ public class PostSetup extends WindowBase {
     /**
      * Runs the PostSetup configuration assistant with the specified parameters.
      *
-     * @param cryptoStoreManager The CryptoStoreManager used for certificate and key management.
-     * @param appConfig          The application configuration.
-     * @param filesDir           The directory where configuration files are stored.
-     * @param args               The command-line arguments passed to the application.
+     * @param serverInstance The ServerInstance.
+     * @param filesDir       The directory where configuration files are stored.
+     * @param args           The command-line arguments passed to the application.
      * @throws IOException          If an I/O error occurs.
      * @throws InterruptedException If the operation is interrupted.
      */
-    public static void run(CryptoStoreManager cryptoStoreManager, Config appConfig, Path filesDir, String[] args) throws IOException,
+    public static void run(ServerInstance serverInstance, Path filesDir, String[] args) throws IOException,
             InterruptedException {
-        new PostSetup(cryptoStoreManager, appConfig, filesDir).run(args);
+        new PostSetup(serverInstance, filesDir).run(args);
     }
-    private final CryptoStoreManager cryptoStoreManager;
-    private final Config appConfig;
+
+    private final ServerInstance serverInstance;
     private final Path filesDir;
     private final TextBox fqdnTextBox = new TextBox();
     private final TextBox httpPortTextBox = new TextBox();
@@ -90,13 +74,11 @@ public class PostSetup extends WindowBase {
     /**
      * Creates a new instance of the PostSetup class.
      *
-     * @param cryptoStoreManager The CryptoStoreManager used for certificate and key management.
-     * @param appConfig          The application configuration.
-     * @param filesDir           The directory where configuration files are stored.
+     * @param serverInstance The ServerInstance
+     * @param filesDir       The directory where configuration files are stored.
      */
-    public PostSetup(CryptoStoreManager cryptoStoreManager, Config appConfig, Path filesDir) {
-        this.cryptoStoreManager = cryptoStoreManager;
-        this.appConfig = appConfig;
+    public PostSetup(ServerInstance serverInstance, Path filesDir) {
+        this.serverInstance = serverInstance;
         this.filesDir = filesDir;
     }
 
@@ -112,12 +94,12 @@ public class PostSetup extends WindowBase {
         try {
             fqdn = NetworkHelper.getLocalFqdn();
             if (fqdn == null) {
-                fqdn = appConfig.getServer().getDnsName();
+                fqdn = serverInstance.getAppConfig().getServer().getDnsName();
             }
         } catch (SocketException ignored) {
         }
-        portHttp = appConfig.getServer().getPorts().getHttp();
-        portHttps = appConfig.getServer().getPorts().getHttps();
+        portHttp = serverInstance.getAppConfig().getServer().getPorts().getHttp();
+        portHttps = serverInstance.getAppConfig().getServer().getPorts().getHttps();
 
         // Set background
         prepareBackground(textGUI);
@@ -267,18 +249,18 @@ public class PostSetup extends WindowBase {
         // User has set/changed configuration, now applying variables
 
         // FQDN
-        appConfig.getServer().setDnsName(fqdnTextBox.getText());
+        serverInstance.getAppConfig().getServer().setDnsName(fqdnTextBox.getText());
 
         // Network Ports
-        appConfig.getServer().getPorts().setHttp(Integer.parseInt(httpPortTextBox.getText()));
-        appConfig.getServer().getPorts().setHttps(Integer.parseInt(httpsPortTextBox.getText()));
+        serverInstance.getAppConfig().getServer().getPorts().setHttp(Integer.parseInt(httpPortTextBox.getText()));
+        serverInstance.getAppConfig().getServer().getPorts().setHttps(Integer.parseInt(httpsPortTextBox.getText()));
 
         // KeyStore, use PKCS12 with random password as default. But only if user hasn't changed default
-        if (appConfig.getKeyStore().getPassword().equals("test") && appConfig.getKeyStore() instanceof PKCS12KeyStoreParams) {
+        if (serverInstance.getAppConfig().getKeyStore().getPassword().equals("test") && serverInstance.getAppConfig().getKeyStore() instanceof PKCS12KeyStoreParams) {
             PKCS12KeyStoreParams keyStoreParams = new PKCS12KeyStoreParams();
             keyStoreParams.setLocation(filesDir.resolve("keystore.p12").toAbsolutePath().toString());
             keyStoreParams.setPassword(SecurePasswordGenerator.generateSecurePassword());
-            appConfig.setKeyStore(keyStoreParams);
+            serverInstance.getAppConfig().setKeyStore(keyStoreParams);
         }
 
         // Set database, use H2 as default. But only if using default config
@@ -287,10 +269,10 @@ public class PostSetup extends WindowBase {
         jdbcUrlDatabaseConfig.setUser("acmeuser");
         jdbcUrlDatabaseConfig.setPassword(SecurePasswordGenerator.generateSecurePassword());
         jdbcUrlDatabaseConfig.setJdbcUrl("jdbc:h2:" + filesDir.resolve("acmedatabase").toAbsolutePath() + ";DB_CLOSE_DELAY=-1");
-        appConfig.setDatabase(jdbcUrlDatabaseConfig);
+        serverInstance.getAppConfig().setDatabase(jdbcUrlDatabaseConfig);
 
         textGUI.getScreen().close();
-        Main.saveServerConfiguration();
+        serverInstance.saveServerConfiguration();
     }
 
     /**

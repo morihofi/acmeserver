@@ -18,6 +18,7 @@ package de.morihofi.acmeserver.api.provisioner.statistics;
 import de.morihofi.acmeserver.api.provisioner.statistics.responses.ProvisionerStatisticResponse;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerStatistics;
 import de.morihofi.acmeserver.database.HibernateUtil;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -31,10 +32,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class ProvisionerGlobalStatisticHandler implements Handler {
 
-    private final CryptoStoreManager cryptoStoreManager;
+    private final ServerInstance serverInstance;
 
-    public ProvisionerGlobalStatisticHandler(CryptoStoreManager cryptoStoreManager) {
-        this.cryptoStoreManager = cryptoStoreManager;
+    public ProvisionerGlobalStatisticHandler(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
     }
 
     @Override
@@ -57,7 +58,7 @@ public class ProvisionerGlobalStatisticHandler implements Handler {
         ProvisionerStatisticResponse globalStats = new ProvisionerStatisticResponse();
         globalStats.setName(null);
 
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = serverInstance.getHibernateUtil().getSessionFactory().openSession()) {
 
 
             globalStats.setAcmeAccounts(ProvisionerStatistics.countGlobalActiveACMEAccounts(session));

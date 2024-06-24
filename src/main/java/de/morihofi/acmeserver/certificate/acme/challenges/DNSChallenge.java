@@ -18,6 +18,7 @@ package de.morihofi.acmeserver.certificate.acme.challenges;
 
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.base64.Base64Tools;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.crypto.AcmeTokenCryptography;
@@ -61,7 +62,7 @@ public class DNSChallenge {
      * @throws IOException              If an I/O error occurs during DNS query.
      * @throws GeneralSecurityException If a security-related error occurs.
      */
-    public static ChallengeResult check(String token, String domain, ACMEAccount acmeAccount) throws IOException, GeneralSecurityException {
+    public static ChallengeResult check(String token, String domain, ACMEAccount acmeAccount, ServerInstance serverInstance) throws IOException, GeneralSecurityException {
         String lastError = "";
 
         String dnsExpectedValue = getDigest(token, PemUtil.readPublicKeyFromPem(acmeAccount.getPublicKeyPEM()));
@@ -71,14 +72,14 @@ public class DNSChallenge {
 
             // Perform DNS lookup
             List<Record> dnsRecords;
-            if (Main.appConfig.getNetwork().getDnsConfig().getDohEnabled()) {
+            if (serverInstance.getAppConfig().getNetwork().getDnsConfig().getDohEnabled()) {
                 // Using DoHClient for the DNS lookup
                 LOG.info("Using DNS over HTTPS Lookup");
-                dnsRecords = DNSLookup.performDoHLookup(lookupDomain + ".", Type.TXT, Main.networkClient.getDoHClient());
+                dnsRecords = DNSLookup.performDoHLookup(lookupDomain + ".", Type.TXT, serverInstance.getNetworkClient().getDoHClient());
             } else {
                 // Using standard DNS lookup
                 LOG.info("Using DNS default Lookup");
-                dnsRecords = DNSLookup.performDnsServerLookup(lookupDomain + ".", Type.TXT, Main.appConfig.getNetwork().getDnsConfig()
+                dnsRecords = DNSLookup.performDnsServerLookup(lookupDomain + ".", Type.TXT, serverInstance.getAppConfig().getNetwork().getDnsConfig()
                         .getDnsServers());
             }
 

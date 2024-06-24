@@ -30,6 +30,7 @@ import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import io.javalin.http.Context;
@@ -54,19 +55,21 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
     /**
      * @param provisioner Provisioner instance
      */
-    public AuthzOwnershipEndpoint(Provisioner provisioner) {
-        super(provisioner);
+    public AuthzOwnershipEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
+        super(provisioner, serverInstance);
     }
+
+
 
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String authorizationId = ctx.pathParam("authorizationId");
 
         ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", Crypto.createNonce());
+        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
         ctx.status(200);
 
-        ACMEOrderIdentifier identifier = ACMEOrderIdentifier.getACMEIdentifierByAuthorizationId(authorizationId);
+        ACMEOrderIdentifier identifier = ACMEOrderIdentifier.getACMEIdentifierByAuthorizationId(authorizationId, getServerInstance());
 
         // Not found handling
         if (identifier == null) {
@@ -113,7 +116,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
             }
 
             // Save in database
-            try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+            try (Session session = Objects.requireNonNull(getServerInstance().getHibernateUtil().getSessionFactory()).openSession()) {
                 Transaction transaction = session.beginTransaction();
 
                 for (ACMEOrderIdentifierChallenge challenge : acmeChallenges) {

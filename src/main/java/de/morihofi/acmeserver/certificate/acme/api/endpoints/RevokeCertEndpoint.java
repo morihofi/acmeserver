@@ -25,13 +25,9 @@ import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
-import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
-import de.morihofi.acmeserver.exception.exceptions.ACMEAlreadyRevokedException;
-import de.morihofi.acmeserver.exception.exceptions.ACMEBadRevocationReasonException;
-import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
-import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
+import de.morihofi.acmeserver.exception.exceptions.*;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -60,10 +56,10 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
      *
      * @param provisioner The {@link Provisioner} instance used for managing certificate operations.
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public RevokeCertEndpoint(Provisioner provisioner) {
-        super(provisioner);
+    public RevokeCertEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
+        super(provisioner, serverInstance);
     }
+
 
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
@@ -86,7 +82,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         }
 
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
-        ACMEAccount account = ACMEAccount.getAccount(accountId);
+        ACMEAccount account = ACMEAccount.getAccount(accountId, getServerInstance());
         // Check if account exists
         if (account == null) {
             LOG.error("Throwing API error: Account {} not found", accountId);
@@ -142,7 +138,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         BigInteger serialNumber = certificate.getSerialNumber();
 
         // Get the identifier, where the certificate belongs to
-        ACMEOrder order = ACMEOrder.getACMEOrderCertificateSerialNumber(serialNumber);
+        ACMEOrder order = ACMEOrder.getACMEOrderCertificateSerialNumber(serialNumber, getServerInstance());
 
         if (!order.getAccount().getAccountId().equals(accountId)) {
             throw new ACMEServerInternalException("Rejected: You cannot revoke a certificate, that belongs to another account.");
@@ -175,11 +171,11 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         LOG.info("Revoking certificate for reason {}", reason);
 
         // Revoke it
-        ACMEOrder.revokeCertificate(order, reason);
+        ACMEOrder.revokeCertificate(order, reason, getServerInstance());
 
         ctx.status(200);
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
-        ctx.header("Replay-Nonce", Crypto.createNonce());
+        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
         ctx.header("Content-Length", "0");
 
         ctx.result();

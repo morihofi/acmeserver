@@ -17,6 +17,7 @@
 package de.morihofi.acmeserver.database.objects;
 
 import de.morihofi.acmeserver.database.HibernateUtil;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.safety.TypeSafetyHelper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.CollectionTable;
@@ -57,10 +58,10 @@ public class ACMEAccount implements Serializable {
      * @param accountId The unique identifier of the ACME account to be retrieved.
      * @return The ACME account matching the provided account ID, or null if not found.
      */
-    public static ACMEAccount getAccount(String accountId) {
+    public static ACMEAccount getAccount(String accountId, ServerInstance serverInstance) {
         ACMEAccount acmeAccount = null;
 
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
             Query query = session.createQuery("SELECT a FROM ACMEAccount a WHERE a.accountId = :accountId", ACMEAccount.class);
@@ -79,10 +80,10 @@ public class ACMEAccount implements Serializable {
         return acmeAccount;
     }
 
-    public static List<ACMEAccount> getAllAccounts() {
+    public static List<ACMEAccount> getAllAccounts(ServerInstance serverInstance) {
         List<ACMEAccount> acmeAccounts = null;
 
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
             Query query = session.createQuery("FROM ACMEAccount", ACMEAccount.class);
@@ -102,8 +103,8 @@ public class ACMEAccount implements Serializable {
      * @param orderId The unique identifier of the ACME order for which the associated account is to be retrieved.
      * @return The ACME account associated with the provided order ID, or null if not found.
      */
-    public static ACMEAccount getAccountByOrderId(String orderId) {
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+    public static ACMEAccount getAccountByOrderId(String orderId, ServerInstance serverInstance) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
             Query query = session.createQuery("SELECT o.account FROM ACMEOrder o WHERE o.orderId = :orderId", ACMEAccount.class);
@@ -128,8 +129,8 @@ public class ACMEAccount implements Serializable {
      * @param email email to get accounts from
      * @return list of ACME Accounts
      */
-    public static List<ACMEAccount> getAllACMEAccountsForEmail(String email) {
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+    public static List<ACMEAccount> getAllACMEAccountsForEmail(String email, ServerInstance serverInstance) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             TypedQuery<ACMEAccount> query = session.createQuery(
                     "SELECT a FROM ACMEAccount a JOIN a.emails e WHERE e = :email", ACMEAccount.class);
             query.setParameter("email", email);

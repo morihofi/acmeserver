@@ -19,6 +19,7 @@ package de.morihofi.acmeserver.database.objects;
 import de.morihofi.acmeserver.certificate.acme.challenges.AcmeChallengeType;
 import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.HibernateUtil;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.Column;
@@ -61,9 +62,9 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
      * @param challengeId The unique identifier of the challenge associated with the ACME identifier.
      * @return The ACME identifier matching the provided challenge ID, or null if not found.
      */
-    public static ACMEOrderIdentifierChallenge getACMEIdentifierChallenge(String challengeId) {
+    public static ACMEOrderIdentifierChallenge getACMEIdentifierChallenge(String challengeId, ServerInstance serverInstance) {
         ACMEOrderIdentifierChallenge challenge = null;
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
             challenge = session.createQuery("FROM ACMEOrderIdentifierChallenge WHERE challengeId = :challengeId",
                             ACMEOrderIdentifierChallenge.class)
@@ -94,9 +95,9 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
      * @param challengeId id of the Challenge, provided in URL
      */
     @Transactional
-    public static void passChallenge(String challengeId) {
+    public static void passChallenge(String challengeId, ServerInstance serverInstance) {
         Transaction transaction = null;
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
 
             ACMEOrderIdentifierChallenge orderIdentifierChallenge = session.get(ACMEOrderIdentifierChallenge.class, challengeId);

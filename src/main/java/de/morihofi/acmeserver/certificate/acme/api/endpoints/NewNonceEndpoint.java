@@ -17,6 +17,7 @@
 package de.morihofi.acmeserver.certificate.acme.api.endpoints;
 
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
@@ -34,14 +35,16 @@ public class NewNonceEndpoint implements Handler {
      * Instance for accessing the current provisioner
      */
     private final Provisioner provisioner;
+    private final ServerInstance serverInstance;
 
     /**
      * Constructs a NewNonce handler with the specified ACME provisioner.
      *
      * @param provisioner The ACME provisioner to use for generating nonces.
      */
-    public NewNonceEndpoint(Provisioner provisioner) {
+    public NewNonceEndpoint(Provisioner provisioner,ServerInstance serverInstance) {
         this.provisioner = provisioner;
+        this.serverInstance = serverInstance;
     }
 
     /**
@@ -69,6 +72,6 @@ public class NewNonceEndpoint implements Handler {
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
 
         // Generate a new Replay-Nonce using the ACMEProvisioner and set it in the header
-        ctx.header("Replay-Nonce", Crypto.createNonce());
+        ctx.header("Replay-Nonce", Crypto.createNonce(serverInstance));
     }
 }

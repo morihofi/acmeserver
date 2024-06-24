@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationClassExtends;
 import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ClasspathHelper;
@@ -23,8 +24,8 @@ public class ConfigPreprocessor {
 
     public static String json = null;
 
-    public static void preprocessConfig() {
-        Map<String, Object> jsonMap = processConfigClass(Main.appConfig.getClass());
+    public static void preprocessConfig(ServerInstance serverInstance) {
+        Map<String, Object> jsonMap = processConfigClass(serverInstance.getAppConfig().getClass());
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         json = gson.toJson(jsonMap);

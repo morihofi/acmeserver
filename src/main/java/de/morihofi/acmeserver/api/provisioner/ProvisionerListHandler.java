@@ -18,6 +18,7 @@ package de.morihofi.acmeserver.api.provisioner;
 import de.morihofi.acmeserver.api.provisioner.statistics.responses.ProvisionerListEntryResponse;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -25,6 +26,7 @@ import io.javalin.openapi.HttpMethod;
 import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiResponse;
+import org.eclipse.jetty.server.Server;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -33,10 +35,10 @@ import java.util.List;
 
 public class ProvisionerListHandler implements Handler {
 
-    private final CryptoStoreManager cryptoStoreManager;
+    private final ServerInstance serverInstance;
 
-    public ProvisionerListHandler(CryptoStoreManager cryptoStoreManager) {
-        this.cryptoStoreManager = cryptoStoreManager;
+    public ProvisionerListHandler(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
     }
 
     @Override

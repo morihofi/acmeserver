@@ -19,6 +19,7 @@ package de.morihofi.acmeserver.certificate.revokeDistribution;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateRevokationListGenerator;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.LogManager;
@@ -54,6 +55,7 @@ public class CRLGenerator {
         // Return the CRL as a byte array
         return crl.getEncoded();
     }
+
     /**
      * Instance for accessing the current provisioner
      */
@@ -61,6 +63,7 @@ public class CRLGenerator {
     private volatile byte[] currentCrlBytes = null;
     private volatile X509CRL currentCrl = null;
     private volatile LocalTime lastUpdate = null;
+    private final ServerInstance serverInstance;
 
     /**
      * Constructor for the CRL (Certificate Revocation List) class. Initializes a new CRL instance with a given Provisioner. It logs the
@@ -68,8 +71,9 @@ public class CRLGenerator {
      *
      * @param provisioner the Provisioner instance to be used for CRL operations
      */
-    protected CRLGenerator(Provisioner provisioner) {
+    protected CRLGenerator(Provisioner provisioner, ServerInstance serverInstance) {
         this.provisioner = provisioner;
+        this.serverInstance = serverInstance;
     }
 
     /**
@@ -80,7 +84,7 @@ public class CRLGenerator {
     public void updateCachedCRL(int updateMinutes) {
         try {
             // Get the list of revoked certificates from the database
-            List<RevokedCertificate> revokedCertificates = ACMEOrder.getRevokedCertificates(provisioner.getProvisionerName());
+            List<RevokedCertificate> revokedCertificates = ACMEOrder.getRevokedCertificates(provisioner.getProvisionerName(), serverInstance);
             // Generate a new CRL
             X509CRL crl = CertificateRevokationListGenerator.generateCRL(revokedCertificates, provisioner.getIntermediateCaCertificate(),
                     provisioner.getIntermediateCaKeyPair().getPrivate(), updateMinutes);

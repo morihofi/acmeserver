@@ -25,6 +25,7 @@ import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEBadSignatureAlgorithmException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEUnauthorizedException;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
@@ -55,8 +56,8 @@ public class SignatureCheck {
      * @param gson    The Gson instance for JSON parsing.
      * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
      */
-    public static void checkSignature(Context ctx, ACMEAccount account, Gson gson) {
-        checkSignature(ctx, account.getAccountId(), gson);
+    public static void checkSignature(Context ctx, ACMEAccount account, Gson gson, ServerInstance serverInstance) {
+        checkSignature(ctx, account.getAccountId(), gson, serverInstance);
     }
 
     /**
@@ -68,7 +69,7 @@ public class SignatureCheck {
      * @param gson      The Gson instance for JSON parsing.
      * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
      */
-    public static void checkSignature(Context ctx, String accountId, Gson gson) {
+    public static void checkSignature(Context ctx, String accountId, Gson gson, ServerInstance serverInstance) {
         try {
 
             ACMERequestBody requestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
@@ -81,7 +82,7 @@ public class SignatureCheck {
             String serializedJws = protectedHeader + "." + payload + "." + signature;
 
             // Obtain the client's public key
-            ACMEAccount account = ACMEAccount.getAccount(accountId);
+            ACMEAccount account = ACMEAccount.getAccount(accountId, serverInstance);
 
             if (account.isDeactivated()) {
                 throw new ACMEUnauthorizedException("Account is deactivated");

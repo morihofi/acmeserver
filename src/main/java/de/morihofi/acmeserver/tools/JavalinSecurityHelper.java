@@ -33,13 +33,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.security.KeyPair;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.Security;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
@@ -65,14 +59,18 @@ public class JavalinSecurityHelper {
      * sets up a watcher to monitor certificate expiration. This watcher is configured to renew the certificate automatically before it
      * expires and reload the certificate in the Jetty server without requiring a restart of the application.</p>
      *
-     * @param app                the Javalin application instance to be configured.
-     * @param cryptoStoreManager the manager responsible for cryptographic operations and storage.
-     * @param appConfig          the configuration object containing application settings, including server port information.
+     * @param app      the Javalin application instance to be configured.
+     * @param instance server instance
      * @throws Exception if there is an error in generating the ACME API client certificate, updating the Jetty server SSL configuration, or
      *                   during automatic certificate renewal.
      */
-    public static void initSecureApi(Javalin app, CryptoStoreManager cryptoStoreManager, Config appConfig,
-            CertificateRenewManager certificateRenewManager) throws Exception {
+    public static void initSecureApi(Javalin app, ServerInstance instance,
+                                     CertificateRenewManager certificateRenewManager) throws Exception {
+
+        CryptoStoreManager cryptoStoreManager = instance.getCryptoStoreManager();
+        Config appConfig = instance.getAppConfig();
+
+
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
         MozillaSslConfigHelper.BasicConfiguration mozillaSSlConfig;
@@ -170,7 +168,7 @@ public class JavalinSecurityHelper {
      * @throws UnrecoverableKeyException If a keystore key cannot be recovered.
      */
     private static CertificateRenewManager.CertificateData generateAcmeApiClientCertificate(CryptoStoreManager cryptoStoreManager,
-            Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
+                                                                                            Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
             OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
         String rootCaAlias = CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA;
 

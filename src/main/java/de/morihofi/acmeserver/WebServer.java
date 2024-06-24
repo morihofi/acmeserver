@@ -22,14 +22,13 @@ import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLScheduler;
-import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.config.ProvisionerConfig;
 import de.morihofi.acmeserver.config.certificateAlgorithms.EcdsaAlgorithmParams;
 import de.morihofi.acmeserver.config.certificateAlgorithms.RSAAlgorithmParams;
-import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.exception.ACMEException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.tools.JavalinSecurityHelper;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.certificate.generator.CertificateAuthorityGenerator;
 import de.morihofi.acmeserver.tools.certificate.generator.KeyPairGenerator;
@@ -38,7 +37,6 @@ import de.morihofi.acmeserver.tools.certificate.renew.IntermediateCaRenew;
 import de.morihofi.acmeserver.tools.certificate.renew.watcher.CertificateRenewManager;
 import de.morihofi.acmeserver.tools.network.logging.HTTPAccessLogger;
 import de.morihofi.acmeserver.tools.regex.ConfigCheck;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.Javalin;
 import io.javalin.http.HandlerType;
 import io.javalin.http.staticfiles.Location;
@@ -49,6 +47,7 @@ import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.management.ManagementFactory;
 import java.security.KeyPair;
@@ -57,19 +56,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WebServer {
-    /**
-     * Logger
-     */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-    @SuppressFBWarnings({"MS_PKGPROTECT", "MS_CANNOT_BE_FINAL"})
-    public static CertificateRenewManager certificateRenewManager;
-    /**
-     * Holds a static reference to the {@link CryptoStoreManager} instance used throughout the application for managing cryptographic
-     * operations, including key and certificate storage, generation, and renewal. This manager is essential for handling the security
-     * aspects of the application, particularly those related to SSL/TLS and encryption. The {@code cryptoStoreManager} is initialized as
-     * part of the application's startup process and is used by various components to access and manage cryptographic materials.
-     */
-    private static CryptoStoreManager cryptoStoreManager = null;
+    private final HTTPAccessLogger httpAccessLogger;
+    private final CertificateRenewManager certificateRenewManager;
+    private final ServerInstance serverInstance;
 
     /**
      * Holds a static reference to the {@link Javalin} web server instance. This server is responsible for handling all HTTP requests to the
@@ -77,29 +67,26 @@ public class WebServer {
      * application's startup sequence and is used to configure routes, middleware, and other server settings. It is essential for the
      * operation of the web-based components of the application.
      */
-    private static Javalin app = null;
-    /**
-     * Instance to log access of the WebAPI
-     */
-    private static HTTPAccessLogger httpAccessLogger;
+    private Javalin app = null;
+
+
+    public WebServer(ServerInstance serverInstance) throws IOException {
+        this.serverInstance = serverInstance;
+        this.httpAccessLogger = new HTTPAccessLogger(serverInstance.getAppConfig());
+        this.certificateRenewManager = new CertificateRenewManager(serverInstance.getCryptoStoreManager());
+    }
 
     /**
      * Method to start the Web and API Server
      *
-     * @param appConfig          Configuration instance of the ACME Server
-     * @param cryptoStoreManager Instance of {@link CryptoStoreManager} for accessing KeyStores
      * @throws Exception thrown when startup fails
      */
-    public static void startServer(CryptoStoreManager cryptoStoreManager, Config appConfig) throws Exception {
-        WebServer.cryptoStoreManager = cryptoStoreManager;
-        WebServer.certificateRenewManager = new CertificateRenewManager(cryptoStoreManager);
-        WebServer.httpAccessLogger = new HTTPAccessLogger(appConfig);
-
+    public void startServer() throws Exception {
         LOG.info("Starting in Normal Mode");
-        CaInitHelper.initializeCA(cryptoStoreManager, appConfig);
+        CaInitHelper.initializeCA(serverInstance);
 
         LOG.info("Initializing database");
-        HibernateUtil.initDatabase();
+        serverInstance.getHibernateUtil().initDatabase();
 
         LOG.info("Starting ACME API WebServer");
         app = Javalin.create(config -> {
@@ -121,7 +108,7 @@ public class WebServer {
 
         });
 
-        JavalinSecurityHelper.initSecureApi(app, cryptoStoreManager, appConfig, certificateRenewManager);
+        JavalinSecurityHelper.initSecureApi(app, serverInstance, certificateRenewManager);
 
         app.before(ctx -> {
             ctx.header("Access-Control-Allow-Origin", "*");
@@ -162,10 +149,10 @@ public class WebServer {
         });
 
         // Global routes
-        API.init(app, appConfig, cryptoStoreManager);
+        API.init(app, serverInstance);
 
-        for (Provisioner provisioner : getProvisioners(appConfig.getProvisioner(), cryptoStoreManager)) {
-            ProvisionerManager.registerProvisioner(app, provisioner);
+        for (Provisioner provisioner : getProvisioners(serverInstance.getAppConfig().getProvisioner(), serverInstance.getCryptoStoreManager())) {
+            ProvisionerManager.registerProvisioner(app, provisioner, serverInstance);
         }
 
         LOG.info("Starting the CRL generation Scheduler");
@@ -175,7 +162,7 @@ public class WebServer {
 
         if (Main.getServerOptions().contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
             LOG.info("Starting Certificate Issuer");
-            CertificateIssuer.startThread(cryptoStoreManager);
+            CertificateIssuer.startThread(serverInstance);
         }
 
         app.start();
@@ -192,8 +179,8 @@ public class WebServer {
      * @return A list of provisioners.
      * @throws Exception If an error occurs during provisioning or certificate generation.
      */
-    private static List<Provisioner> getProvisioners(List<ProvisionerConfig> provisionerConfigList,
-            CryptoStoreManager cryptoStoreManager) throws Exception {
+    private List<Provisioner> getProvisioners(List<ProvisionerConfig> provisionerConfigList,
+                                              CryptoStoreManager cryptoStoreManager) throws Exception {
 
         List<Provisioner> provisioners = new ArrayList<>();
 
@@ -207,8 +194,17 @@ public class WebServer {
 
             KeyPair intermediateKeyPair = null;
             X509Certificate intermediateCertificate;
-            final Provisioner provisioner = new Provisioner(provisionerName, config.getMeta(), config.getIssuedCertificateExpiration(),
-                    config.getDomainNameRestriction(), config.isWildcardAllowed(), cryptoStoreManager, config, config.isIpAllowed());
+            final Provisioner provisioner = new Provisioner(
+                    provisionerName,
+                    config.getMeta(),
+                    config.getIssuedCertificateExpiration(),
+                    config.getDomainNameRestriction(),
+                    config.isWildcardAllowed(),
+                    cryptoStoreManager,
+                    config,
+                    config.isIpAllowed(),
+                    serverInstance
+            );
 
             // Check if root ca does exist
             assert cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
@@ -265,12 +261,12 @@ public class WebServer {
         return provisioners;
     }
 
-    /**
+    /*    *//**
      * see {@link #reloadConfiguration(Runnable)}
-     */
+     *//*
     public static void reloadConfiguration() throws Exception {
         reloadConfiguration(null);
-    }
+    }*/
 
     /**
      * Reloads the application's configuration, effectively restarting the service. This method is designed to shut down all components of
@@ -299,6 +295,7 @@ public class WebServer {
      *                                    operations.
      * @throws Exception if any error occurs during the shutdown or restart process.
      */
+/*
 
     public static void reloadConfiguration(Runnable runWhenEverythingIsShutDown) throws Exception {
         LOG.info("Reloading configuration was triggered. Service will be disrupted for a moment, please wait ...");
@@ -337,7 +334,5 @@ public class WebServer {
         // Reload config and turn everything back on by relaunching the main()
         Main.restartMain();
     }
-
-    private WebServer() {
-    }
+*/
 }

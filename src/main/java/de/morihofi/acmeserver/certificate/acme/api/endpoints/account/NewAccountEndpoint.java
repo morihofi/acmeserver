@@ -31,6 +31,7 @@ import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.regex.EmailValidation;
@@ -55,14 +56,14 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
-    public NewAccountEndpoint(Provisioner provisioner) {
-        super(provisioner);
+    public NewAccountEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
+        super(provisioner, serverInstance);
     }
 
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         // Check nonce
-        NonceManager.checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        getServerInstance().getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
         // Deserialize payload and protected objects
         ACMEAccountRequestPayload payload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);
@@ -103,7 +104,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
         String publicKeyPEM = PemUtil.convertToPem(publicJsonWebKey.getPublicKey());
 
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(getServerInstance().getHibernateUtil().getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
             ACMEAccount account = new ACMEAccount();
             account.setAccountId(accountId);
@@ -120,7 +121,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         }
 
         // Construct response
-        String nonce = Crypto.createNonce();
+        String nonce = Crypto.createNonce(getServerInstance());
         ctx.header("Content-Type", "application/json");
         ctx.header("Location", provisioner.getApiURL() + "/acme/acct/" + accountId);
         ctx.header("Replay-Nonce", nonce);

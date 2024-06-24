@@ -20,6 +20,7 @@ import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.certificate.provisioners.ProvisionerStatistics;
 import de.morihofi.acmeserver.database.HibernateUtil;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -36,10 +37,10 @@ import java.util.List;
 
 public class ProvisionerStatisticHandler implements Handler {
 
-    private final CryptoStoreManager cryptoStoreManager;
+    private final ServerInstance serverInstance;
 
-    public ProvisionerStatisticHandler(CryptoStoreManager cryptoStoreManager) {
-        this.cryptoStoreManager = cryptoStoreManager;
+    public ProvisionerStatisticHandler(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
     }
 
     @Override
@@ -61,7 +62,7 @@ public class ProvisionerStatisticHandler implements Handler {
     public void handle(@NotNull Context context) throws Exception {
         List<ProvisionerStatisticResponse> statisticItemsOfProvisioner = new ArrayList<>();
 
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = serverInstance.getHibernateUtil().getSessionFactory().openSession()) {
             for (Provisioner provisioner : ProvisionerManager.getProvisioners()) {
                 String provisionerName = provisioner.getProvisionerName();
 

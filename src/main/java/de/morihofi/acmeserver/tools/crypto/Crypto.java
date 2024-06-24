@@ -18,6 +18,7 @@ package de.morihofi.acmeserver.tools.crypto;
 
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.HttpNonces;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -41,7 +42,7 @@ public class Crypto {
      * @return A randomly generated nonce as a hexadecimal string.
      * @throws IllegalArgumentException If there is an issue creating the nonce.
      */
-    public static String createNonce() {
+    public static String createNonce(ServerInstance serverInstance) {
         try {
             LOG.info("Generating nonce");
 
@@ -54,7 +55,7 @@ public class Crypto {
             String base64Nonce = Base64.getUrlEncoder().withoutPadding().encodeToString(nonce);
 
 
-            try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            try (Session session = serverInstance.getHibernateUtil().getSessionFactory().openSession()) {
                 Transaction tx = session.beginTransaction();
 
                 session.persist(new HttpNonces(base64Nonce)); // Store nonce

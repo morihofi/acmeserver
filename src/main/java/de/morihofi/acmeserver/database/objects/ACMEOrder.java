@@ -21,6 +21,7 @@ import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCert
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.safety.TypeSafetyHelper;
@@ -74,9 +75,9 @@ public class ACMEOrder implements Serializable {
      * @param serialNumber The serial number of the certificate associated with the ACME identifier.
      * @return The ACME identifier matching the provided certificate serial number, or null if not found.
      */
-    public static ACMEOrder getACMEOrderCertificateSerialNumber(BigInteger serialNumber) {
+    public static ACMEOrder getACMEOrderCertificateSerialNumber(BigInteger serialNumber, ServerInstance serverInstance) {
         ACMEOrder order = null;
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
             order = session.createQuery("FROM ACMEOrder WHERE certificateSerialNumber = :certificateSerialNumber", ACMEOrder.class)
                     .setParameter("certificateSerialNumber", serialNumber)
@@ -99,9 +100,9 @@ public class ACMEOrder implements Serializable {
      * @param orderId The unique identifier of the ACME order for which identifiers are to be retrieved.
      * @return A list of ACME identifiers associated with the provided order ID.
      */
-    public static ACMEOrder getACMEOrder(String orderId) {
+    public static ACMEOrder getACMEOrder(String orderId, ServerInstance serverInstance) {
         ACMEOrder order;
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             order = session.createQuery("FROM ACMEOrder a WHERE a.orderId = :orderId", ACMEOrder.class)
                     .setParameter("orderId", orderId)
                     .getSingleResult();
@@ -109,9 +110,9 @@ public class ACMEOrder implements Serializable {
         return order;
     }
 
-    public static List<ACMEOrder> getAllACMEOrdersWithState(AcmeOrderState orderState) {
+    public static List<ACMEOrder> getAllACMEOrdersWithState(AcmeOrderState orderState, ServerInstance serverInstance) {
         List<ACMEOrder> orders;
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             orders = session.createQuery("FROM ACMEOrder a WHERE a.orderState = :orderState", ACMEOrder.class)
                     .setParameter("orderState", orderState)
                     .getResultList();
@@ -131,12 +132,12 @@ public class ACMEOrder implements Serializable {
      * @throws IOException                  if an I/O error occurs during certificate processing.
      * @throws KeyStoreException            if an error occurs while accessing the keystore.
      */
-    public static String getCertificateChainPEMofACMEbyCertificateId(String certificateId, Provisioner provisioner) throws
+    public static String getCertificateChainPEMofACMEbyCertificateId(String certificateId, Provisioner provisioner, ServerInstance serverInstance) throws
             CertificateEncodingException, IOException, KeyStoreException {
         StringBuilder pemBuilder = new StringBuilder();
 
         // Get Issued certificate
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
             Query query = session.createQuery("SELECT a FROM ACMEOrder a WHERE a.certificateId = :certificateId", ACMEOrder.class);
@@ -195,10 +196,10 @@ public class ACMEOrder implements Serializable {
      * @param provisionerName Provisioner to get revoked certificates for
      * @return A list of {@link RevokedCertificate} objects representing the revoked certificates.
      */
-    public static List<RevokedCertificate> getRevokedCertificates(String provisionerName) {
+    public static List<RevokedCertificate> getRevokedCertificates(String provisionerName, ServerInstance serverInstance) {
         List<RevokedCertificate> certificates = new ArrayList<>();
 
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
 
             // Certificates are revoked when they have a statusCode and a timestamp
@@ -234,12 +235,12 @@ public class ACMEOrder implements Serializable {
      * @param reason The reason code for revoking the certificate.
      * @throws ACMEServerInternalException If an error occurs while revoking the certificate.
      */
-    public static void revokeCertificate(ACMEOrder order, int reason) {
+    public static void revokeCertificate(ACMEOrder order, int reason, ServerInstance serverInstance) {
         order.setRevokeTimestamp(Timestamp.from(Instant.now()));
         order.setRevokeStatusCode(reason);
 
         Transaction transaction;
-        try (Session session = Objects.requireNonNull(HibernateUtil.getSessionFactory()).openSession()) {
+        try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
             transaction = session.beginTransaction();
 
             session.merge(order);

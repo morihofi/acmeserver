@@ -28,6 +28,7 @@ import de.morihofi.acmeserver.database.AcmeStatus;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
 import de.morihofi.acmeserver.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
+import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
 import io.javalin.http.Context;
@@ -51,9 +52,10 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
      *
      * @param provisioner The ACME provisioner to use for generating nonces.
      */
-    public ChallengeCallbackEndpoint(Provisioner provisioner) {
-        super(provisioner);
+    public ChallengeCallbackEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
+        super(provisioner, serverInstance);
     }
+
 
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
@@ -61,10 +63,10 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         String challengeType = ctx.pathParam("challengeType"); // dns-01 or http-01
 
         ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", Crypto.createNonce());
+        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
 
         // Check if challenge is valid
-        ACMEOrderIdentifierChallenge identifierChallenge = ACMEOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId);
+        ACMEOrderIdentifierChallenge identifierChallenge = ACMEOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getServerInstance());
 
         assert identifierChallenge != null;
 
@@ -83,13 +85,20 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         }
 
         ChallengeResult result = switch (challengeType) {
-            case "http-01" ->
-                    HTTPChallenge.check(identifierChallenge.getAuthorizationToken(), identifierChallenge.getIdentifier().getDataValue(),
-                            identifierChallenge.getIdentifier().getOrder().getAccount());
-            case "dns-01" -> DNSChallenge.check(identifierChallenge.getAuthorizationToken(), nonWildcardDomain,
-                    identifierChallenge.getIdentifier().getOrder().getAccount());
+            case "http-01" -> HTTPChallenge.check(
+                    identifierChallenge.getAuthorizationToken(),
+                    identifierChallenge.getIdentifier().getDataValue(),
+                    identifierChallenge.getIdentifier().getOrder().getAccount(),
+                    getServerInstance()
+            );
+            case "dns-01" -> DNSChallenge.check(
+                    identifierChallenge.getAuthorizationToken(),
+                    nonWildcardDomain,
+                    identifierChallenge.getIdentifier().getOrder().getAccount(),
+                    getServerInstance()
+            );
             default -> {
-                LOG.error("Unsupported challenge type: " + challengeType);
+                LOG.error("Unsupported challenge type: {}", challengeType);
                 throw new ACMEConnectionErrorException("Unsupported challenge type: " + challengeType);
             }
         };
@@ -97,7 +106,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         LOG.info("Validating ownership of host {}", nonWildcardDomain);
         if (result.isSuccessful()) {
             // Mark challenge as passed
-            ACMEOrderIdentifierChallenge.passChallenge(challengeId);
+            ACMEOrderIdentifierChallenge.passChallenge(challengeId, getServerInstance());
         } else {
             LOG.error("Throwing API error: Host verification failed with method {}", challengeType);
             throw new ACMEConnectionErrorException(result.getErrorReason());
@@ -106,7 +115,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         }
 
         // Reload identifier, e.g., host has validated
-        identifierChallenge = ACMEOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId);
+        identifierChallenge = ACMEOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getServerInstance());
 
         // Creating response object
         ACMEChallengeResponse response = new ACMEChallengeResponse();
