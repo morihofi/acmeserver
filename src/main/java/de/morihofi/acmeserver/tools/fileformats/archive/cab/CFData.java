@@ -23,51 +23,70 @@ import org.apache.logging.log4j.Logger;
 import java.lang.invoke.MethodHandles;
 import java.util.Vector;
 
+/**
+ * Represents a CFData block in a CAB file, which contains compressed data.
+ */
 public class CFData {
     /**
-     * Logger
+     * Logger for logging information and debugging.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-    private final int csum;           /* checksum of this CFDATA entry */
-    private final int cbData;         /* number of compressed bytes in this block */
-    private final int cbUncomp;    /* number of uncompressed bytes in this block */
-    /*private int[] abReserve;	/* (optional) per-datablock reserved area */
-    private final Vector<Byte> ab;    /* compressed data bytes */
 
+    /**
+     * Checksum of this CFDATA entry.
+     */
+    private final int csum;
+
+    /**
+     * Number of compressed bytes in this block.
+     */
+    private final int cbData;
+
+    /**
+     * Number of uncompressed bytes in this block.
+     */
+    private final int cbUncomp;
+
+    /**
+     * Compressed data bytes.
+     */
+    private final Vector<Byte> ab;
+
+    /**
+     * Constructs a CFData block with the given data.
+     *
+     * @param data The data to be stored in the CFData block.
+     */
     public CFData(Vector<Byte> data) {
-        /*int length = 0;
-        for (byte[] b : data)
-        {
-            length = length + b.length;
-        }
-        ab = new byte[length];
-        int j = 0;
-        for (byte[] b : data)
-        {
-            for (int i = 0; i < b.length; i++)
-            {
-                ab[j] = b[i];
-                j++;
-            }
-        }*/
         ab = data;
         cbData = ab.size();
         cbUncomp = ab.size();
-        csum = 0; // no checksum for now
+        csum = 0; // No checksum for now
     }
 
+    /**
+     * Converts the CFData block into a byte array.
+     *
+     * @return A Vector of Byte representing the CFData block.
+     */
     public Vector<Byte> makeByteArray() {
         Vector<Byte> b = new Vector<>();
 
         b.addAll(convertToByte(csum, 4));
         b.addAll(convertToByte(cbData, 2));
         b.addAll(convertToByte(cbUncomp, 2));
-
         b.addAll(ab);
 
         return b;
     }
 
+    /**
+     * Converts an integer value to a Vector of Byte.
+     *
+     * @param val The integer value to convert.
+     * @param numBytes The number of bytes to use for the conversion.
+     * @return A Vector of Byte representing the integer value.
+     */
     private Vector<Byte> convertToByte(int val, int numBytes) {
         Vector<Byte> b = new Vector<>();
         Integer tempInt;

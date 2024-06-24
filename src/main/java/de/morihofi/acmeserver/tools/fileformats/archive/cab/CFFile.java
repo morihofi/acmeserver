@@ -25,22 +25,58 @@ import java.util.Calendar;
 import java.util.Vector;
 
 /**
- *
+ * Represents a file entry in a CAB (Cabinet) archive
  * @author Graham Rivers-Brown
  */
 public class CFFile {
     /**
-     * Logger
+     * Logger for logging information and debugging.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-    private final int cbFile;             /* uncompressed size of this file in bytes */
-    private final int uoffFolderStart;    /* uncompressed offset of this file in the folder */
-    private final int iFolder;            /* index into the CFFOLDER area */
-    private final int date;               /* date stamp for this file */
-    private final int time;               /* time stamp for this file */
-    private final int attribs;            /* attribute flags for this file */
-    private int[] szName;           /* name of this file */
 
+    /**
+     * Uncompressed size of this file in bytes.
+     */
+    private final int cbFile;
+
+    /**
+     * Uncompressed offset of this file in the folder.
+     */
+    private final int uoffFolderStart;
+
+    /**
+     * Index into the CFFOLDER area.
+     */
+    private final int iFolder;
+
+    /**
+     * Date stamp for this file.
+     */
+    private final int date;
+
+    /**
+     * Time stamp for this file.
+     */
+    private final int time;
+
+    /**
+     * Attribute flags for this file.
+     */
+    private final int attribs;
+
+    /**
+     * Name of this file.
+     */
+    private int[] szName;
+
+    /**
+     * Constructs a new CFFile instance with the specified parameters.
+     *
+     * @param filename     The name of the file.
+     * @param size         The uncompressed size of the file in bytes.
+     * @param offset       The uncompressed offset of the file in the folder.
+     * @param folderNumber The index into the CFFOLDER area.
+     */
     public CFFile(String filename, int size, int offset, int folderNumber) {
         Calendar c = Calendar.getInstance();
 
@@ -61,7 +97,11 @@ public class CFFile {
         uoffFolderStart = offset;
         iFolder = folderNumber;
     }
-
+    /**
+     * Sets the filename for this CFFile instance.
+     *
+     * @param filename The name of the file.
+     */
     private void setFilename(String filename) {
         szName = new int[filename.length() + 1];
         for (int i = 0; i < filename.length(); i++) {
@@ -70,6 +110,11 @@ public class CFFile {
         szName[filename.length()] = 0x00;
     }
 
+    /**
+     * Converts the CFFile instance to a byte array representation.
+     *
+     * @return A {@code Vector<Byte>} containing the byte array representation of this CFFile.
+     */
     public Vector<Byte> makeByteArray() {
         Vector<Byte> b = new Vector<>();
 
@@ -86,6 +131,13 @@ public class CFFile {
         return b;
     }
 
+    /**
+     * Converts an integer value to a byte array representation with the specified number of bytes.
+     *
+     * @param val      The integer value to convert.
+     * @param numBytes The number of bytes to use for the conversion.
+     * @return A {@code Vector<Byte>} containing the byte array representation of the integer value.
+     */
     private Vector<Byte> convertToByte(int val, int numBytes) {
         Vector<Byte> b = new Vector<>();
         int tempInt;

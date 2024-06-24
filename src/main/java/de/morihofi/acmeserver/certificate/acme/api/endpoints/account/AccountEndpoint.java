@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -23,13 +23,11 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACM
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.regex.EmailValidation;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,33 +39,44 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * New Order Endpoint
+ * Account Endpoint
  * <p>
- * URL: /acme/new-order
+ * URL: /acme/account/{id}
+ * <p>
+ * This endpoint handles the ACME account requests such as updating account information and deactivating accounts.
  */
 public class AccountEndpoint extends AbstractAcmeEndpoint {
 
     /**
-     * Logger
+     * Logger instance for logging account endpoint activities.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
-     * Endpoint for managing ACME Account settings. Change E-Mail etc.
+     * Constructs an AccountEndpoint with the given provisioner and server instance.
      *
-     * @param provisioner Provisioner instance
+     * @param provisioner    The provisioner instance.
+     * @param serverInstance The server instance.
      */
     public AccountEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
         super(provisioner, serverInstance);
     }
 
-
+    /**
+     * Handles the ACME account request.
+     * This method processes the request to update account settings such as email addresses and account status.
+     *
+     * @param ctx             The context of the HTTP request.
+     * @param provisioner     The provisioner instance.
+     * @param gson            The Gson instance for JSON processing.
+     * @param acmeRequestBody The parsed ACME request body.
+     * @throws Exception If an error occurs while handling the request.
+     */
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = ctx.pathParam("id");
 
-        ACMEAccountRequestPayload acmeAccountRequestPayload =
-                gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);
+        ACMEAccountRequestPayload acmeAccountRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);
 
         performSignatureAndNonceCheck(ctx, accountId, acmeRequestBody);
 
@@ -121,11 +130,9 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
             JsonObject responseObj = new JsonObject();
             // Add the "status" property with the value from AcmeStatus.DEACTIVATED.getRfcName()
             responseObj.addProperty("status", AcmeStatus.DEACTIVATED.getRfcName());
-            // Create a Gson instance
-
             // Convert the JsonObject to a JSON string
             String jsonResponse = gson.toJson(responseObj);
-
+            // Set the response
             ctx.result(jsonResponse);
         } else {
             ctx.result("{}"); // Empty JSON response

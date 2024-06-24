@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -55,10 +55,28 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Web Server for the Website, API and ACME Service
+ */
 public class WebServer {
+    /**
+     * Logger instance for logging information and errors.
+     */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+
+    /**
+     * Instance of HTTPAccessLogger for logging HTTP access.
+     */
     private final HTTPAccessLogger httpAccessLogger;
+
+    /**
+     * Instance of CertificateRenewManager for managing certificate renewals.
+     */
     private final CertificateRenewManager certificateRenewManager;
+
+    /**
+     * Instance of ServerInstance providing access to server-related configurations and utilities.
+     */
     private final ServerInstance serverInstance;
 
     /**
@@ -69,7 +87,12 @@ public class WebServer {
      */
     private Javalin app = null;
 
-
+    /**
+     * Constructor for WebServer.
+     *
+     * @param serverInstance The instance of ServerInstance providing access to server-related configurations and utilities.
+     * @throws IOException if an I/O error occurs during initialization.
+     */
     public WebServer(ServerInstance serverInstance) throws IOException {
         this.serverInstance = serverInstance;
         this.httpAccessLogger = new HTTPAccessLogger(serverInstance.getAppConfig());

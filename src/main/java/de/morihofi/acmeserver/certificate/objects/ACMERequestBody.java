@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -24,10 +24,21 @@ import de.morihofi.acmeserver.tools.base64.Base64Tools;
  * request, including the protected header, payload, and signature. Each component is stored in Base64-encoded format.
  */
 public class ACMERequestBody {
+    /**
+     * The protected header of the ACME request, encoded in Base64.
+     */
     @SerializedName("protected")
     private String protectedHeader;
+
+    /**
+     * The payload of the ACME request, encoded in Base64.
+     */
     @SerializedName("payload")
     private String payload;
+
+    /**
+     * The signature of the ACME request, encoded in Base64.
+     */
     @SerializedName("signature")
     private String signature;
 

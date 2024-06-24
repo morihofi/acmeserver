@@ -1,17 +1,11 @@
 /*
  * Copyright (c) 2024 Moritz Hofmann <info@morihofi.de>
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
- * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
- * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package de.morihofi.acmeserver.postsetup;
@@ -46,7 +40,50 @@ import java.util.List;
 @SuppressFBWarnings({"EI_EXPOSE_REP2"})
 public class PostSetup extends WindowBase {
 
+    /**
+     * Logger for the PostSetup class.
+     */
     private static final Logger LOG = LogManager.getLogger(PostSetup.class);
+
+    /**
+     * The instance of the server managing the server-specific configurations and operations.
+     */
+    private final ServerInstance serverInstance;
+
+    /**
+     * The directory where configuration files are stored.
+     */
+    private final Path filesDir;
+
+    /**
+     * TextBox for entering the Fully Qualified Domain Name (FQDN) or DNS name of the server.
+     */
+    private final TextBox fqdnTextBox = new TextBox();
+
+    /**
+     * TextBox for entering the HTTP port number.
+     */
+    private final TextBox httpPortTextBox = new TextBox();
+
+    /**
+     * TextBox for entering the HTTPS port number.
+     */
+    private final TextBox httpsPortTextBox = new TextBox();
+
+    /**
+     * Fully Qualified Domain Name (FQDN) or DNS name of the server.
+     */
+    private String fqdn = "";
+
+    /**
+     * Port number for HTTP.
+     */
+    private int portHttp;
+
+    /**
+     * Port number for HTTPS.
+     */
+    private int portHttps;
 
     /**
      * Runs the PostSetup configuration assistant with the specified parameters.
@@ -61,15 +98,6 @@ public class PostSetup extends WindowBase {
             InterruptedException {
         new PostSetup(serverInstance, filesDir).run(args);
     }
-
-    private final ServerInstance serverInstance;
-    private final Path filesDir;
-    private final TextBox fqdnTextBox = new TextBox();
-    private final TextBox httpPortTextBox = new TextBox();
-    private final TextBox httpsPortTextBox = new TextBox();
-    private String fqdn = "";
-    private int portHttp;
-    private int portHttps;
 
     /**
      * Creates a new instance of the PostSetup class.
@@ -161,16 +189,15 @@ public class PostSetup extends WindowBase {
         fqdnBoxPanel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
 
         Panel topPanel = new Panel();
-        topPanel.setLayoutManager(new LinearLayout(Direction.VERTICAL)); // Setzt das Layout für topPanel
+        topPanel.setLayoutManager(new LinearLayout(Direction.VERTICAL));
 
         Label label = new Label(
                 "Enter the FQDN or DNS Name of this server.\nThis is important, as this is written into certificates. \nFor example "
                         + "\"acme.example.com\" or \"acmeserver\"");
         topPanel.addComponent(label);
 
-        // Erstellen eines TextBox-Elements, das die gesamte verfügbare Breite einnimmt
         fqdnTextBox.setLayoutData(LinearLayout.createLayoutData(
-                LinearLayout.Alignment.Fill)); // Setzt die TextBox so, dass sie den verfügbaren Platz ausfüllt
+                LinearLayout.Alignment.Fill));
         topPanel.addComponent(fqdnTextBox);
 
         fqdnBoxPanel.addComponent(topPanel);

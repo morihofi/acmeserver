@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -32,22 +32,27 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+/**
+ * Helper class for initializing the Certificate Authority (CA).
+ */
 public class CaInitHelper {
 
     /**
-     * Logger
+     * Logger for logging information and errors.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Initializes the Certificate Authority (CA) by generating or loading the CA certificate and key pair.
      *
+     * @param instance The server instance containing the configuration and crypto store manager.
      * @throws NoSuchAlgorithmException           If the specified algorithm is not available.
      * @throws CertificateException               If an issue occurs during certificate generation or loading.
      * @throws IOException                        If an I/O error occurs while creating directories or writing files.
      * @throws OperatorCreationException          If there's an issue with operator creation during certificate generation.
      * @throws NoSuchProviderException            If the specified security provider is not available.
      * @throws InvalidAlgorithmParameterException If there's an issue with algorithm parameters during key pair generation.
+     * @throws KeyStoreException                  If there's an issue with the key store.
      */
     public static void initializeCA(ServerInstance instance) throws NoSuchAlgorithmException, CertificateException, IOException, OperatorCreationException,
             NoSuchProviderException, InvalidAlgorithmParameterException, KeyStoreException {
@@ -65,7 +70,7 @@ public class CaInitHelper {
                         caKeyStore.getProvider().getName());
             }
             if (instance.getAppConfig().getRootCA().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
-                LOG.info("Using ECDSA algorithm (Elliptic curves");
+                LOG.info("Using ECDSA algorithm (Elliptic curves)");
 
                 LOG.info("Generating ECDSA Key Pair using curve {} for Root CA", ecdsaAlgorithmParams.getCurveName());
                 caKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName(), caKeyStore.getProvider().getName());

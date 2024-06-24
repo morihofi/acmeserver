@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -21,7 +21,18 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This class represents an endpoint that is not yet implemented.
+ * It responds to any requests by throwing an ACMEServerInternalException.
+ */
 public class NotImplementedEndpoint implements Handler {
+
+    /**
+     * Handles incoming requests by throwing an ACMEServerInternalException
+     * indicating that the endpoint is not supported.
+     *
+     * @param ctx The context of the request.
+     */
     @Override
     public void handle(@NotNull Context ctx) {
         throw new ACMEServerInternalException("Account key rollover is currently not supported.");

@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -52,6 +52,9 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
 
+/**
+ * Class for generating the certificate for the Webserver
+ */
 public class ServerCertificateGenerator {
 
     /**
@@ -72,13 +75,17 @@ public class ServerCertificateGenerator {
      * @param intermediateCertificate The byte array intermediate certificate.
      * @param serverPublicKeyBytes    The byte array representing the server's public key.
      * @param identifiers             An array of Identifiers to be associated with the server certificate.
+     * @param startDate               The start date for the server certificate's validity period.
+     * @param endDate                 The end date for the server certificate's validity period.
+     * @param provisioner             The provisioner for obtaining CRL and OCSP URLs.
      * @return An X509Certificate which represents the server certificate.
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
      * @throws CertificateException      If there's an error in processing the certificate data.
      * @throws CertIOException           If there's an IO error during certificate generation.
      */
     public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate,
-            byte[] serverPublicKeyBytes, Identifier[] identifiers, Date startDate, Date endDate, Provisioner provisioner) throws
+                                                          byte[] serverPublicKeyBytes, Identifier[] identifiers, Date startDate,
+                                                          Date endDate, Provisioner provisioner) throws
             OperatorCreationException, CertificateException, CertIOException {
 
         // Create our virtual "CSR"
@@ -139,6 +146,9 @@ public class ServerCertificateGenerator {
         return converter.getCertificate(holder);
     }
 
+    /**
+     * Private constructor to prevent object instantiation
+     */
     private ServerCertificateGenerator() {
     }
 }

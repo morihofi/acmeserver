@@ -1,17 +1,11 @@
 /*
  * Copyright (c) 2024 Moritz Hofmann <info@morihofi.de>
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
- * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
- * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package de.morihofi.acmeserver.certificate.provisioners;
@@ -45,33 +39,47 @@ public class Provisioner {
      * The name of the provisioner. Immutable after initial assignment.
      */
     private final String provisionerName;
+
     /**
      * Manager for cryptographic store operations. Provides functionality for managing cryptographic elements such as keys and
      * certificates.
      */
     private final CryptoStoreManager cryptoStoreManager;
+
     /**
      * Configuration for domain name restrictions. Defines the constraints and rules for domain names in the context of this provisioner.
      */
     private final DomainNameRestrictionConfig domainNameRestriction;
+
     /**
      * Provisioner Config from config file
      */
     private final ProvisionerConfig config;
+
     /**
      * Configuration for ACME (Automated Certificate Management Environment) metadata. This configuration can be changed during the
      * lifecycle of the object.
      */
     private MetadataConfig acmeMetadataConfig;
+
     /**
      * Configuration for the expiration of generated certificates. This configuration can be adjusted as needed.
      */
     private CertificateExpiration generatedCertificateExpiration;
+
     /**
      * Flag indicating whether wildcards are allowed in certificate requests. Can be toggled to enable or disable wildcard support.
      */
     private boolean wildcardAllowed;
+
+    /**
+     * Flag indicating whether IP issuance is allowed in certificate requests. Can be toggled to enable or disable IP issuance support.
+     */
     private boolean ipAllowed;
+
+    /**
+     * Instance of the ServerInstance managing server-specific configurations and operations.
+     */
     private ServerInstance serverInstance;
 
     /**
@@ -85,7 +93,9 @@ public class Provisioner {
      * @param domainNameRestriction          The configuration for domain name restrictions.
      * @param wildcardAllowed                A boolean value indicating whether wildcards are allowed.
      * @param cryptoStoreManager             The manager for cryptographic store operations.
-     * @param config                         configuration of the provisioner
+     * @param config                         The configuration of the provisioner.
+     * @param ipAllowed                      A boolean value indicating whether IP issuance is allowed.
+     * @param serverInstance                 The instance managing server-specific configurations and operations.
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public Provisioner(String provisionerName, MetadataConfig acmeMetadataConfig, CertificateExpiration generatedCertificateExpiration,
@@ -240,10 +250,20 @@ public class Provisioner {
         );
     }
 
+    /**
+     * Gets the ACME metadata configuration.
+     *
+     * @return The {@link MetadataConfig} object representing the ACME metadata configuration.
+     */
     public MetadataConfig getAcmeMetadataConfig() {
         return acmeMetadataConfig;
     }
 
+    /**
+     * Sets the ACME metadata configuration.
+     *
+     * @param acmeMetadataConfig The {@link MetadataConfig} object to set.
+     */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public void setAcmeMetadataConfig(MetadataConfig acmeMetadataConfig) {
         this.acmeMetadataConfig = acmeMetadataConfig;
@@ -279,18 +299,38 @@ public class Provisioner {
         return cryptoStoreManager;
     }
 
+    /**
+     * Retrieves the configuration object for the provisioner.
+     *
+     * @return The {@link ProvisionerConfig} object representing the provisioner's configuration.
+     */
     public ProvisionerConfig getConfig() {
         return config;
     }
 
+    /**
+     * Retrieves the CRLGenerator associated with the provisioner.
+     *
+     * @return The {@link CRLGenerator} object for the provisioner.
+     */
     public CRLGenerator getCrlGenerator() {
         return CRLScheduler.getCrlGeneratorForProvisioner(provisionerName);
     }
 
+    /**
+     * Checks if IP issuance is allowed in the configuration. This method returns a boolean indicating whether IP issuance is permitted.
+     *
+     * @return {@code true} if IP issuance is allowed, otherwise {@code false}.
+     */
     public boolean isIpAllowed() {
         return ipAllowed;
     }
 
+    /**
+     * Sets the IP issuance allowance status. This method allows enabling or disabling the usage of IP addresses in certificate requests.
+     *
+     * @param ipAllowed A boolean value to set the IP issuance allowance status.
+     */
     public void setIpAllowed(boolean ipAllowed) {
         this.ipAllowed = ipAllowed;
     }

@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -38,13 +38,33 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Handler for fetching provisioner information by name.
+ * This handler processes requests to retrieve detailed information about a specific provisioner,
+ * including terms of service, website, IP allowance, DNS wildcard allowance, and revocation URLs.
+ */
 public class ProvisionerByNameInfoHandler implements Handler {
+
+    /**
+     * The instance of the server managing the server-specific configurations and operations.
+     */
     private final ServerInstance serverInstance;
 
+    /**
+     * Constructs a new handler for fetching provisioner information by name.
+     *
+     * @param serverInstance The instance of the server managing the server-specific configurations and operations.
+     */
     public ProvisionerByNameInfoHandler(ServerInstance serverInstance) {
         this.serverInstance = serverInstance;
     }
 
+    /**
+     * Handles the request to fetch provisioner information by name.
+     *
+     * @param context The context of the request containing the path parameter for provisioner name.
+     * @throws Exception If an error occurs while processing the request.
+     */
     @Override
     public void handle(@NotNull Context context) throws Exception {
         String provisionerName = context.pathParam("provisionerName");

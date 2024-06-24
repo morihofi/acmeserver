@@ -1,26 +1,16 @@
 /*
  * Copyright (c) 2024 Moritz Hofmann <info@morihofi.de>
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
- * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
- * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package de.morihofi.acmeserver.certificate.provisioners;
 
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.DirectoryEndpoint;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.NewNonceEndpoint;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.NewOrderEndpoint;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.NotImplementedEndpoint;
-import de.morihofi.acmeserver.certificate.acme.api.endpoints.RevokeCertEndpoint;
+import de.morihofi.acmeserver.certificate.acme.api.endpoints.*;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.AccountEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.NewAccountEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.AuthzOwnershipEndpoint;
@@ -43,19 +33,44 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Manages the registration and retrieval of ACME provisioners.
+ *
+ * <p>This class handles the registration of provisioners, setting up their respective endpoints for ACME operations, CRL distribution,
+ * and OCSP handling. It also provides methods to retrieve registered provisioners by name.</p>
+ */
 public class ProvisionerManager {
 
     /**
-     * Logger
+     * Logger for logging events and errors.
      */
     private static final Logger log = LogManager.getLogger(MethodHandles.lookup().getClass());
 
-    private final static Set<Provisioner> provisioners = new HashSet<>();
+    /**
+     * A set of registered provisioners.
+     */
+    private static final Set<Provisioner> provisioners = new HashSet<>();
 
+    /**
+     * Constructs the API prefix for a given provisioner name.
+     *
+     * @param provisionerName The name of the provisioner.
+     * @return The API prefix for the provisioner.
+     */
     private static String getProvisionerApiPrefix(String provisionerName) {
         return "/acme/" + provisionerName;
     }
 
+    /**
+     * Registers a provisioner with the specified Javalin application instance and server instance.
+     *
+     * <p>This method sets up the necessary endpoints for the provisioner and adds the provisioner to the CRL scheduler.</p>
+     *
+     * @param app            The Javalin application instance.
+     * @param provisioner    The provisioner to register.
+     * @param serverInstance The server instance.
+     * @throws IllegalArgumentException If the provisioner is already registered.
+     */
     public static void registerProvisioner(Javalin app, Provisioner provisioner, ServerInstance serverInstance) {
         if (provisioners.contains(provisioner)) {
             throw new IllegalArgumentException("Provisioner already registered");
@@ -117,9 +132,10 @@ public class ProvisionerManager {
     }
 
     /**
-     * Get a Provisioner object by name, otherwise null
-     * @param provisionerName Name of the Provisioner
-     * @return Provisioner object
+     * Retrieves a provisioner by name.
+     *
+     * @param provisionerName The name of the provisioner.
+     * @return The provisioner with the specified name, or null if not found.
      */
     public static Provisioner getProvisionerForName(String provisionerName) {
         Optional<Provisioner> provisionerOptional = provisioners.stream()
@@ -129,6 +145,11 @@ public class ProvisionerManager {
         return provisionerOptional.orElse(null);
     }
 
+    /**
+     * Returns an unmodifiable set of registered provisioners.
+     *
+     * @return An unmodifiable set of provisioners.
+     */
     public static Set<Provisioner> getProvisioners() {
         return Collections.unmodifiableSet(provisioners);
     }

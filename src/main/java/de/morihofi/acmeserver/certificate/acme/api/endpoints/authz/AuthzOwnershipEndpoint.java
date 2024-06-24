@@ -1,17 +1,11 @@
 /*
  * Copyright (c) 2024 Moritz Hofmann <info@morihofi.de>
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
- * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
- * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package de.morihofi.acmeserver.certificate.acme.api.endpoints.authz;
@@ -25,7 +19,6 @@ import de.morihofi.acmeserver.certificate.acme.challenges.AcmeChallengeType;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifierChallenge;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
@@ -45,22 +38,35 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Endpoint for handling authorization ownership challenges in the ACME protocol.
+ */
 public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
     /**
-     * Logger
+     * Logger instance for logging ACME authorization ownership activities.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
-     * @param provisioner Provisioner instance
+     * Constructs a new endpoint for handling authorization ownership challenges.
+     *
+     * @param provisioner    The provisioner instance.
+     * @param serverInstance The server instance.
      */
     public AuthzOwnershipEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
         super(provisioner, serverInstance);
     }
 
-
-
+    /**
+     * Handles the request for authorization ownership challenges.
+     *
+     * @param ctx             The Javalin context.
+     * @param provisioner     The provisioner instance.
+     * @param gson            The Gson instance for JSON processing.
+     * @param acmeRequestBody The ACME request body.
+     * @throws Exception If an error occurs while handling the request.
+     */
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String authorizationId = ctx.pathParam("authorizationId");
@@ -154,11 +160,11 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
     }
 
     /**
-     * Creates a challenge object of the specified type for the given ACME identifier.
+     * Creates a challenge response object of the specified type for the given ACME identifier challenge.
      *
      * @param type                The type of challenge to create.
-     * @param identifierChallenge The ACME identifier for which the challenge is created.
-     * @return A challenge object with the specified type, URL, token, and status if verified.
+     * @param identifierChallenge The ACME identifier challenge for which the response is created.
+     * @return A challenge response object with the specified type, URL, token, and status.
      */
     private ChallengeResponse createChallengeResponse(AcmeChallengeType type, ACMEOrderIdentifierChallenge identifierChallenge) {
         ChallengeResponse challengeResponse = new ChallengeResponse();

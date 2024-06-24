@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -19,24 +19,13 @@ package de.morihofi.acmeserver.database.objects;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.database.AcmeOrderState;
-import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.safety.TypeSafetyHelper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Query;
+import jakarta.persistence.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -51,11 +40,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents an ACME order entity used for managing certificate orders.
@@ -65,14 +50,15 @@ import java.util.Objects;
 public class ACMEOrder implements Serializable {
 
     /**
-     * Logger
+     * Logger instance for logging ACME order activities.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated certificate serial number.
      *
-     * @param serialNumber The serial number of the certificate associated with the ACME identifier.
+     * @param serialNumber   The serial number of the certificate associated with the ACME identifier.
+     * @param serverInstance The server instance for database connection.
      * @return The ACME identifier matching the provided certificate serial number, or null if not found.
      */
     public static ACMEOrder getACMEOrderCertificateSerialNumber(BigInteger serialNumber, ServerInstance serverInstance) {
@@ -95,10 +81,11 @@ public class ACMEOrder implements Serializable {
     }
 
     /**
-     * Retrieves a ACME Order (Automated Certificate Management Environment) with a specific order ID.
+     * Retrieves an ACME order by its unique order ID.
      *
-     * @param orderId The unique identifier of the ACME order for which identifiers are to be retrieved.
-     * @return A list of ACME identifiers associated with the provided order ID.
+     * @param orderId        The unique identifier of the ACME order.
+     * @param serverInstance The server instance for database connection.
+     * @return The ACME order matching the provided order ID, or null if not found.
      */
     public static ACMEOrder getACMEOrder(String orderId, ServerInstance serverInstance) {
         ACMEOrder order;
@@ -110,6 +97,13 @@ public class ACMEOrder implements Serializable {
         return order;
     }
 
+    /**
+     * Retrieves all ACME orders with a specific state.
+     *
+     * @param orderState     The state of the ACME orders to retrieve.
+     * @param serverInstance The server instance for database connection.
+     * @return A list of ACME orders with the specified state.
+     */
     public static List<ACMEOrder> getAllACMEOrdersWithState(AcmeOrderState orderState, ServerInstance serverInstance) {
         List<ACMEOrder> orders;
         try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
@@ -125,15 +119,16 @@ public class ACMEOrder implements Serializable {
      * a database using Hibernate, appends the intermediate certificate, and then appends each certificate in the CA certificate chain. If
      * the issued certificate is not found, it throws an IllegalArgumentException.
      *
-     * @param certificateId The authorization ID associated with the ACME entity.
-     * @param provisioner   The provisioner instance used for cryptographic operations.
+     * @param certificateId  The authorization ID associated with the ACME entity.
+     * @param provisioner    The provisioner instance used for cryptographic operations.
+     * @param serverInstance The server instance for database connection.
      * @return A string representation of the certificate chain in PEM format.
      * @throws CertificateEncodingException if an error occurs during the encoding of certificates.
      * @throws IOException                  if an I/O error occurs during certificate processing.
      * @throws KeyStoreException            if an error occurs while accessing the keystore.
      */
-    public static String getCertificateChainPEMofACMEbyCertificateId(String certificateId, Provisioner provisioner, ServerInstance serverInstance) throws
-            CertificateEncodingException, IOException, KeyStoreException {
+    public static String getCertificateChainPEMofACMEbyCertificateId(String certificateId, Provisioner provisioner, ServerInstance serverInstance)
+            throws CertificateEncodingException, IOException, KeyStoreException {
         StringBuilder pemBuilder = new StringBuilder();
 
         // Get Issued certificate
@@ -193,7 +188,8 @@ public class ACMEOrder implements Serializable {
      * Retrieves a list of revoked certificates from the database. Revoked certificates are identified by having both a revoke status code
      * and a revoke timestamp in their associated ACME identifiers.
      *
-     * @param provisionerName Provisioner to get revoked certificates for
+     * @param provisionerName Provisioner to get revoked certificates for.
+     * @param serverInstance  The server instance for database connection.
      * @return A list of {@link RevokedCertificate} objects representing the revoked certificates.
      */
     public static List<RevokedCertificate> getRevokedCertificates(String provisionerName, ServerInstance serverInstance) {
@@ -231,8 +227,9 @@ public class ACMEOrder implements Serializable {
     /**
      * Revokes an ACME (Automated Certificate Management Environment) certificate associated with an ACME identifier.
      *
-     * @param order  The ACME order for which the certificate is to be revoked.
-     * @param reason The reason code for revoking the certificate.
+     * @param order          The ACME order for which the certificate is to be revoked.
+     * @param reason         The reason code for revoking the certificate.
+     * @param serverInstance The server instance for database connection.
      * @throws ACMEServerInternalException If an error occurs while revoking the certificate.
      */
     public static void revokeCertificate(ACMEOrder order, int reason, ServerInstance serverInstance) {
@@ -254,41 +251,100 @@ public class ACMEOrder implements Serializable {
             throw new ACMEServerInternalException("Unable to revoke certificate");
         }
     }
+
+    /**
+     * Internal ID
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /**
+     * ACME Order ID
+     */
     @Column(name = "orderId", unique = true)
     private String orderId;
+
+    /**
+     * ACME Account ID where the order belongs to
+     */
     @ManyToOne
     @JoinColumn(name = "accountId", referencedColumnName = "accountId")
     private ACMEAccount account;
+
+    /**
+     * Creation of the order
+     */
     @Column(name = "created")
     private Timestamp created;
+
+    /**
+     * Expiring of the order
+     */
     @Column(name = "expires")
     private Timestamp expires;
+
+    /**
+     * Not before for the generated certificate
+     */
     @Column(name = "notBefore")
     private Timestamp notBefore;
+    /**
+     * Not after for the generated certificate
+     */
     @Column(name = "notAfter")
     private Timestamp notAfter;
+    /**
+     * Order Identifiers (Domains, IPs) of this Order
+     */
     @OneToMany(mappedBy = "order")
     private List<ACMEOrderIdentifier> orderIdentifiers;
+
+    /**
+     * Order state, used for background certificate generation
+     */
     @Column(name = "orderState", nullable = false)
     @Enumerated(EnumType.STRING)
     private AcmeOrderState orderState = AcmeOrderState.IDLE;
-    @Column(name = "certificateId", columnDefinition = "TEXT")
+
+    /**
+     * Certificate Id for downloading the certificate after generation
+     */
+    @Column(name = "certificateId", columnDefinition = "TEXT", unique = true)
     private String certificateId;
+    /**
+     * Certificate signing request containing the public key for signing and domains/ips
+     */
     @Column(name = "certificateCSR", columnDefinition = "TEXT")
     private String certificateCSR;
+    /**
+     * Timestamp when the certificate was issued
+     */
     @Column(name = "certificateIssued")
     private Timestamp certificateIssued;
+    /**
+     * Time when the certificate will expire
+     */
     @Column(name = "certificateExpires")
     private Timestamp certificateExpires;
+    /**
+     * The certificate without the full chain
+     */
     @Column(name = "certificatePem", columnDefinition = "TEXT")
     private String certificatePem;
+    /**
+     * Serial number of the certificate
+     */
     @Column(name = "certificateSerialNumber", precision = 50, scale = 0)
     private BigInteger certificateSerialNumber;
+    /**
+     * Revokation status of the certificate. Defaults to null if not revoked
+     */
     @Column(name = "revokeStatusCode", nullable = true)
     private Integer revokeStatusCode;
+    /**
+     * Revokation timestamp of the certificate. Defaults to null if not revoked
+     */
     @Column(name = "revokeTimestamp", nullable = true)
     private Timestamp revokeTimestamp;
 
@@ -344,6 +400,60 @@ public class ACMEOrder implements Serializable {
      */
     public void setCreated(Timestamp created) {
         this.created = created;
+    }
+
+    /**
+     * Get the timestamp when the ACME order expires.
+     *
+     * @return The expiration timestamp.
+     */
+    public Timestamp getExpires() {
+        return expires;
+    }
+
+    /**
+     * Set the timestamp when the ACME order expires.
+     *
+     * @param expires The expiration timestamp to set.
+     */
+    public void setExpires(Timestamp expires) {
+        this.expires = expires;
+    }
+
+    /**
+     * Get the timestamp before which the ACME order is not valid.
+     *
+     * @return The not-before timestamp.
+     */
+    public Timestamp getNotBefore() {
+        return notBefore;
+    }
+
+    /**
+     * Set the timestamp before which the ACME order is not valid.
+     *
+     * @param notBefore The not-before timestamp to set.
+     */
+    public void setNotBefore(Timestamp notBefore) {
+        this.notBefore = notBefore;
+    }
+
+    /**
+     * Get the timestamp after which the ACME order is not valid.
+     *
+     * @return The not-after timestamp.
+     */
+    public Timestamp getNotAfter() {
+        return notAfter;
+    }
+
+    /**
+     * Set the timestamp after which the ACME order is not valid.
+     *
+     * @param notAfter The not-after timestamp to set.
+     */
+    public void setNotAfter(Timestamp notAfter) {
+        this.notAfter = notAfter;
     }
 
     /**
@@ -490,50 +600,38 @@ public class ACMEOrder implements Serializable {
         this.revokeTimestamp = revokeTimestamp;
     }
 
-    public Timestamp getNotBefore() {
-        return notBefore;
-    }
-
-    public void setNotBefore(Timestamp notBefore) {
-        this.notBefore = notBefore;
-    }
-
-    public Timestamp getNotAfter() {
-        return notAfter;
-    }
-
-    public void setNotAfter(Timestamp notAfter) {
-        this.notAfter = notAfter;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Timestamp getExpires() {
-        return expires;
-    }
-
-    public void setExpires(Timestamp expires) {
-        this.expires = expires;
-    }
-
+    /**
+     * Get the list of ACME order identifiers associated with this order.
+     *
+     * @return The list of ACME order identifiers.
+     */
     public List<ACMEOrderIdentifier> getOrderIdentifiers() {
         return orderIdentifiers;
     }
 
+    /**
+     * Set the list of ACME order identifiers associated with this order.
+     *
+     * @param orderIdentifiers The list of ACME order identifiers to set.
+     */
     public void setOrderIdentifiers(List<ACMEOrderIdentifier> orderIdentifiers) {
         this.orderIdentifiers = orderIdentifiers;
     }
 
+    /**
+     * Get the state of the ACME order.
+     *
+     * @return The state of the ACME order.
+     */
     public AcmeOrderState getOrderState() {
         return orderState;
     }
 
+    /**
+     * Set the state of the ACME order.
+     *
+     * @param orderState The state to set.
+     */
     public void setOrderState(AcmeOrderState orderState) {
         this.orderState = orderState;
     }

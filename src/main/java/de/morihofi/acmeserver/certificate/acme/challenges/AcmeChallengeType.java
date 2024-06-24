@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -33,12 +33,23 @@ public enum AcmeChallengeType {
      */
     TLS_ALPN_01("tls-alpn-01");
 
+    /**
+     * ACME RFC 8555 friendly name of the challenge
+     */
     private final String name;
 
+    /**
+     * Constructor for a Challenge Type
+     * @param name RFC friendly name
+     */
     AcmeChallengeType(String name) {
         this.name = name;
     }
 
+    /**
+     * Gets the ACME RFC friendly name of the challenge
+     * @return RFC friendly name
+     */
     public String getName() {
         return name;
     }

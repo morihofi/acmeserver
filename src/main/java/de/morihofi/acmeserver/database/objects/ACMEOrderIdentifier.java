@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -45,7 +45,7 @@ import java.util.Objects;
 public class ACMEOrderIdentifier implements Serializable {
 
     /**
-     * Logger
+     * Logger instance for logging ACME identifier activities.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
@@ -53,6 +53,7 @@ public class ACMEOrderIdentifier implements Serializable {
      * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated authorization ID.
      *
      * @param authorizationId The unique identifier of the authorization associated with the ACME identifier.
+     * @param serverInstance  The server instance for database connection.
      * @return The ACME identifier matching the provided authorization ID, or null if not found.
      */
     public static ACMEOrderIdentifier getACMEIdentifierByAuthorizationId(String authorizationId, ServerInstance serverInstance) {
@@ -73,29 +74,57 @@ public class ACMEOrderIdentifier implements Serializable {
             }
             transaction.commit();
         } catch (Exception e) {
-            LOG.error("Unable get ACME identifiers for authorization id {}", authorizationId, e);
+            LOG.error("Unable to get ACME identifiers for authorization id {}", authorizationId, e);
         }
         return identifier;
     }
+
+    /**
+     * Unique identifier for the ACME order identifier.
+     */
     @Id
     @Column(name = "identifierId", nullable = false)
     private String identifierId;
+
+    /**
+     * The type of the ACME order identifier (e.g., "dns", "ip").
+     */
     @Column(name = "type")
     private String type;
+
+    /**
+     * The data value of the ACME order identifier (e.g., the domain name or IP address).
+     */
     @Column(name = "dataValue")
     private String dataValue;
+
+    /**
+     * The ACME order associated with this identifier.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "orderId", referencedColumnName = "orderId")
     private ACMEOrder order;
+
+    /**
+     * Indicates whether challenges have been generated for this identifier.
+     */
     @Column(name = "hasChallengesGenerated", nullable = false)
     private boolean hasChallengesGenerated = false;
+
+    /**
+     * The list of challenges associated with this identifier.
+     */
     @OneToMany(mappedBy = "identifier")
     private List<ACMEOrderIdentifierChallenge> challenges;
+
+    /**
+     * The unique authorization ID for this identifier.
+     */
     @Column(name = "authorizationId", nullable = false)
     private String authorizationId;
 
     /**
-     * Create an instance of ACME identifier with a specified type and data value.
+     * Creates an instance of ACME identifier with a specified type and data value.
      *
      * @param type      The type of the identifier.
      * @param dataValue The data value of the identifier.
@@ -111,12 +140,17 @@ public class ACMEOrderIdentifier implements Serializable {
     public ACMEOrderIdentifier() {
     }
 
+    /**
+     * Retrieves the challenges associated with this identifier.
+     *
+     * @return The list of challenges.
+     */
     public List<ACMEOrderIdentifierChallenge> getChallenges() {
         return challenges;
     }
 
     /**
-     * Get the associated order for this ACME identifier.
+     * Gets the associated order for this ACME identifier.
      *
      * @return The ACME order.
      */
@@ -125,7 +159,7 @@ public class ACMEOrderIdentifier implements Serializable {
     }
 
     /**
-     * Set the associated order for this ACME identifier.
+     * Sets the associated order for this ACME identifier.
      *
      * @param order The ACME order to set.
      */
@@ -134,7 +168,7 @@ public class ACMEOrderIdentifier implements Serializable {
     }
 
     /**
-     * Get the type of this ACME identifier.
+     * Gets the type of this ACME identifier.
      *
      * @return The type of the identifier.
      */
@@ -143,7 +177,7 @@ public class ACMEOrderIdentifier implements Serializable {
     }
 
     /**
-     * Set the type of this ACME identifier.
+     * Sets the type of this ACME identifier.
      *
      * @param type The type of the identifier to set.
      */
@@ -152,7 +186,7 @@ public class ACMEOrderIdentifier implements Serializable {
     }
 
     /**
-     * Get the data value of this ACME identifier.
+     * Gets the data value of this ACME identifier.
      *
      * @return The data value of the identifier.
      */
@@ -161,7 +195,7 @@ public class ACMEOrderIdentifier implements Serializable {
     }
 
     /**
-     * Set the data value of this ACME identifier.
+     * Sets the data value of this ACME identifier.
      *
      * @param dataValue The data value of the identifier to set.
      */
@@ -169,22 +203,47 @@ public class ACMEOrderIdentifier implements Serializable {
         this.dataValue = dataValue;
     }
 
+    /**
+     * Gets the unique identifier for the ACME order identifier.
+     *
+     * @return The identifier ID.
+     */
     public String getIdentifierId() {
         return identifierId;
     }
 
+    /**
+     * Sets the unique identifier for the ACME order identifier.
+     *
+     * @param identifierId The identifier ID to set.
+     */
     public void setIdentifierId(String identifierId) {
         this.identifierId = identifierId;
     }
 
+    /**
+     * Gets the unique authorization ID for this identifier.
+     *
+     * @return The authorization ID.
+     */
     public String getAuthorizationId() {
         return authorizationId;
     }
 
+    /**
+     * Sets the unique authorization ID for this identifier.
+     *
+     * @param authorizationId The authorization ID to set.
+     */
     public void setAuthorizationId(String authorizationId) {
         this.authorizationId = authorizationId;
     }
 
+    /**
+     * Gets the challenge status for this identifier.
+     *
+     * @return The challenge status, VALID if at least one challenge is valid, otherwise PENDING.
+     */
     public AcmeStatus getChallengeStatus() {
         // Checks whether there is at least one challenge with the status VALID
         for (ACMEOrderIdentifierChallenge challenge : challenges) {
@@ -196,10 +255,20 @@ public class ACMEOrderIdentifier implements Serializable {
         return AcmeStatus.PENDING;
     }
 
+    /**
+     * Checks if challenges have been generated for this identifier.
+     *
+     * @return True if challenges have been generated, otherwise false.
+     */
     public boolean isHasChallengesGenerated() {
         return hasChallengesGenerated;
     }
 
+    /**
+     * Sets the status of challenge generation for this identifier.
+     *
+     * @param hasChallengesGenerated The status to set.
+     */
     public void setHasChallengesGenerated(boolean hasChallengesGenerated) {
         this.hasChallengesGenerated = hasChallengesGenerated;
     }

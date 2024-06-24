@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -39,30 +39,53 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Helper class for retrieving and parsing Mozilla SSL configuration guidelines.
+ * This class provides methods to fetch the latest or specific version of SSL configuration guidelines.
+ */
 public class MozillaSslConfigHelper {
     /**
-     * Logger
+     * Logger for logging purposes.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-    private static final OkHttpClient okHttpClient = new OkHttpClient();
+    /**
+     * OkHttpClient instance for making HTTP requests.
+     */
+    private static final OkHttpClient okHttpClient = new OkHttpClient(); //TODO: Mirgrate to network client class
+    /**
+     * Gson instance for JSON parsing.
+     */
     private static final Gson mozillaSslGson = new Gson();
 
+    /**
+     * Retrieves the latest configuration guidelines for a given configuration type.
+     *
+     * @param configuration the type of configuration (MODERN, INTERMEDIATE, OLD).
+     * @return a BasicConfiguration object containing the guidelines.
+     * @throws IOException if an I/O error occurs.
+     */
     public static BasicConfiguration getLatestConfigurationGuidelines(CONFIGURATION configuration) throws IOException {
         return getConfigurationGuidelinesForVersion("latest", configuration);
     }
 
+    /**
+     * Retrieves the configuration guidelines for a specific version and configuration type.
+     *
+     * @param version       the version of the guidelines to retrieve.
+     * @param configuration the type of configuration (MODERN, INTERMEDIATE, OLD).
+     * @return a BasicConfiguration object containing the guidelines.
+     * @throws IOException if an I/O error occurs.
+     */
     public static BasicConfiguration getConfigurationGuidelinesForVersion(String version, CONFIGURATION configuration) throws IOException {
 
         String guideLineJson = null;
 
         // Look in resources, if not found then ask online
         {
-
             InputStream is = null;
             switch (version) {
                 case "4.0" -> is = MozillaSslConfigHelper.class.getResourceAsStream("/mozillaSslConfig/4.0.json");
                 case "5.0" -> is = MozillaSslConfigHelper.class.getResourceAsStream("/mozillaSslConfig/5.0.json");
-
                 case "5.1" -> is = MozillaSslConfigHelper.class.getResourceAsStream("/mozillaSslConfig/5.1.json");
                 case "5.2" -> is = MozillaSslConfigHelper.class.getResourceAsStream("/mozillaSslConfig/5.2.json");
                 case "5.3" -> is = MozillaSslConfigHelper.class.getResourceAsStream("/mozillaSslConfig/5.3.json");
@@ -75,7 +98,7 @@ public class MozillaSslConfigHelper {
             if (is != null) {
                 StringBuilder textBuilder = new StringBuilder();
                 try (Reader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                    int c = 0;
+                    int c;
                     while ((c = reader.read()) != -1) {
                         textBuilder.append((char) c);
                     }
@@ -91,8 +114,7 @@ public class MozillaSslConfigHelper {
 
             Call call = okHttpClient.newCall(request);
 
-            try (
-                    Response response = call.execute()) {
+            try (Response response = call.execute()) {
 
                 if (!response.isSuccessful()) {
                     throw new IOException("Response was no successful: Code " + response.code());
@@ -150,11 +172,35 @@ public class MozillaSslConfigHelper {
         }
     }
 
+    /**
+     * Enum representing the different configuration types available.
+     */
     public enum CONFIGURATION {
-        MODERN, INTERMEDIATE, OLD
+        /**
+         * Modern
+         */
+        MODERN,
+        /**
+         * Intermediate
+         */
+        INTERMEDIATE,
+        /**
+         * Old
+         */
+        OLD
     }
 
+    /**
+     * Record representing the basic configuration details.
+     *
+     * @param version       the version of the configuration.
+     * @param href          the URL of the configuration guidelines.
+     * @param ciphers       the set of cipher suites.
+     * @param protocols     the set of protocols.
+     * @param hstsMinAge    the minimum age for HSTS.
+     * @param oldestClients the list of oldest supported clients.
+     */
     public record BasicConfiguration(double version, String href, Set<String> ciphers, Set<String> protocols, long hstsMinAge,
-            List<String> oldestClients) {
+                                     List<String> oldestClients) {
     }
 }

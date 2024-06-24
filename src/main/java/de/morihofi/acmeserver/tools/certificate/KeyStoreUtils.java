@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -36,11 +36,17 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
 /**
- * Class for doing KeyStore related stuff
+ * Utility class for performing operations related to KeyStore such as saving and loading KeyPairs and certificates.
  */
 public class KeyStoreUtils {
 
+    /**
+     * Logger
+     */
     private static final Logger LOG = LogManager.getLogger(KeyStoreUtils.class);
+    /**
+     * PKCS#12 type constant
+     */
     private static final String PKCS12_INSTANCE_NAME = "PKCS12";
 
     /**
@@ -96,11 +102,11 @@ public class KeyStoreUtils {
      * @throws NoSuchAlgorithmException If the algorithm required for the keystore is not available.
      */
     public static void saveAsPKCS12KeyChain(KeyPair keyPair, String password, String alias, byte[][] certificates,
-            Path targetLocation) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
+                                            Path targetLocation) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
 
         char[] keystorePassword = password.toCharArray();
 
-        ArrayList<X509Certificate> chain = new ArrayList<>(); // die Zertifikatskette, die gespeichert werden soll
+        ArrayList<X509Certificate> chain = new ArrayList<>(); // The certificate chain to be saved
         for (byte[] certificate : certificates) {
             chain.add(X509.convertToX509Cert(certificate));
         }
@@ -108,7 +114,7 @@ public class KeyStoreUtils {
         try (OutputStream os = Files.newOutputStream(targetLocation)) {
             X509Certificate[] certificateChain = chain.toArray(new X509Certificate[0]);
             KeyStore keyStore = KeyStore.getInstance(PKCS12_INSTANCE_NAME);
-            keyStore.load(null, keystorePassword); // Neuen, leeren KeyStore erstellen
+            keyStore.load(null, keystorePassword); // Create a new, empty KeyStore
             keyStore.setKeyEntry(alias, keyPair.getPrivate(), keystorePassword, certificateChain);
             keyStore.store(os, keystorePassword);
         }
@@ -119,6 +125,7 @@ public class KeyStoreUtils {
      *
      * @param keyStorePath     The path to the PKCS12 keystore file.
      * @param keyStorePassword The password for the keystore.
+     * @param keyAlias         The alias of the key pair to load.
      * @return A KeyStoreFileContent object containing the KeyPair and X.509 certificate.
      * @throws IOException               If there is an issue reading the keystore file.
      * @throws KeyStoreException         If there is a problem with the keystore.
@@ -129,7 +136,7 @@ public class KeyStoreUtils {
     public static KeyStoreFileContent loadFromPKCS12(Path keyStorePath, String keyStorePassword, String keyAlias) throws IOException,
             KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         try (InputStream is = Files.newInputStream(keyStorePath)) {
-            // Laden des KeyPairs und des Zertifikats aus einem PKCS12-Keystore
+            // Load the KeyPair and certificate from a PKCS12 keystore
             char[] keyStorePasswordCharArr = keyStorePassword.toCharArray();
             KeyStore keyStore = KeyStore.getInstance(PKCS12_INSTANCE_NAME);
             keyStore.load(is, keyStorePasswordCharArr);
@@ -141,5 +148,8 @@ public class KeyStoreUtils {
         }
     }
 
+    /**
+     * Private constructor to prevent instantiation.
+     */
     private KeyStoreUtils() {}
 }

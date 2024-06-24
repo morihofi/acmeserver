@@ -26,19 +26,31 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * This class provides an example of how to create a CAB file using the {@link CabFile} class.
+ */
 public class CabinetMakerExample {
     /**
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
+    /**
+     * Main method demonstrating the creation of a CAB file.
+     *
+     * @param args Command line arguments
+     * @throws Exception if an error occurs during the file operations
+     */
     public static void main(String[] args) throws Exception {
         CabFile cabFile = new CabFile.Builder()
                 .addFile("pom.xml", Files.readAllBytes(Path.of("pom.xml")))
                 .build();
 
-        FileOutputStream fs = new FileOutputStream(new File("out.cab"));
-        fs.write(cabFile.getCabFile());
-        fs.close();
+        try (FileOutputStream fs = new FileOutputStream(new File("out.cab"))) {
+            fs.write(cabFile.getCabFile());
+        } catch (Exception e) {
+            LOG.error("Error creating CAB file", e);
+            throw e;
+        }
     }
 }

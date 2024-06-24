@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -20,7 +20,6 @@ import com.google.gson.Gson;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
-import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
@@ -39,17 +38,36 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Endpoint for retrieving information about an ACME order.
+ * This class handles the request to fetch detailed information about a specific ACME order by its ID.
+ */
 public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
 
     /**
-     * Logger
+     * Logger for logging events.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
+    /**
+     * Constructs a new OrderInfoEndpoint instance with the specified provisioner and server instance.
+     *
+     * @param provisioner    The provisioner responsible for handling ACME requests.
+     * @param serverInstance The server instance for managing server configurations and operations.
+     */
     public OrderInfoEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
         super(provisioner, serverInstance);
     }
 
+    /**
+     * Handles the request to retrieve information about a specific ACME order.
+     * This method sets the appropriate headers and response body with the details of the ACME order.
+     *
+     * @param ctx             The context of the HTTP request.
+     * @param provisioner     The provisioner handling the ACME request.
+     * @param gson            The Gson instance for JSON processing.
+     * @param acmeRequestBody The body of the ACME request.
+     */
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) {
         String orderId = ctx.pathParam("orderId");
@@ -57,7 +75,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
 
-        ACMEOrder order = ACMEOrder.getACMEOrder(orderId,getServerInstance());
+        ACMEOrder order = ACMEOrder.getACMEOrder(orderId, getServerInstance());
         List<ACMEOrderIdentifier> identifiers = order.getOrderIdentifiers();
         if (identifiers.isEmpty()) {
             throw new IllegalArgumentException("Identifiers empty, FIXME");

@@ -53,32 +53,65 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public final class AcmeUtils {
 
     /**
-     * Logger
+     * Logger instance for logging ACME utility activities.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
+    /**
+     * Hexadecimal characters for encoding.
+     */
     private static final char[] HEX = "0123456789abcdef".toCharArray();
+
+    /**
+     * Prefix for ACME error URNs.
+     */
     private static final String ACME_ERROR_PREFIX = "urn:ietf:params:acme:error:";
 
+    /**
+     * Pattern for matching RFC 3339 date strings.
+     */
     private static final Pattern DATE_PATTERN = Pattern.compile(
             "^(\\d{4})-(\\d{2})-(\\d{2})T"
                     + "(\\d{2}):(\\d{2}):(\\d{2})"
                     + "(?:\\.(\\d{1,3})\\d*)?"
                     + "(Z|[+-]\\d{2}:?\\d{2})$", Pattern.CASE_INSENSITIVE);
 
+    /**
+     * Pattern for matching timezone offsets in RFC 3339 date strings.
+     */
     private static final Pattern TZ_PATTERN = Pattern.compile(
             "([+-])(\\d{2}):?(\\d{2})$");
 
+    /**
+     * Pattern for matching Content-Type headers.
+     */
     private static final Pattern CONTENT_TYPE_PATTERN = Pattern.compile(
             "([^;]+)(?:;.*?charset=(\"?)([a-z0-9_-]+)(\\2))?.*", Pattern.CASE_INSENSITIVE);
 
+    /**
+     * Pattern for matching email addresses in contact URIs.
+     */
     private static final Pattern MAIL_PATTERN = Pattern.compile("\\?|@.*,");
 
+    /**
+     * Pattern for matching Base64 URL encoded strings.
+     */
     private static final Pattern BASE64URL_PATTERN = Pattern.compile("[0-9A-Za-z_-]*");
 
+    /**
+     * Base64 encoder for PEM format.
+     */
     private static final Base64.Encoder PEM_ENCODER = Base64.getMimeEncoder(64,
             "\n".getBytes(StandardCharsets.US_ASCII));
+
+    /**
+     * Base64 URL encoder.
+     */
     private static final Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
+
+    /**
+     * Base64 URL decoder.
+     */
     private static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
 
     /**
@@ -89,7 +122,7 @@ public final class AcmeUtils {
      */
     public static byte[] sha256hash(String z) {
         try {
-            var md = MessageDigest.getInstance("SHA-256");
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(z.getBytes(UTF_8));
             return md.digest();
         } catch (NoSuchAlgorithmException ex) {
@@ -244,20 +277,6 @@ public final class AcmeUtils {
     }
 
     /**
-     * Writes an encoded key or certificate to a file in PEM format.
-     *
-     * @param encoded Encoded data to write
-     * @param label   {@link PemLabel} to be used
-     * @param out     {@link Writer} to write to. It will not be closed after use!
-     */
-    public static void writeToPem(byte[] encoded, PemLabel label, Writer out)
-            throws IOException {
-        out.append("-----BEGIN ").append(label.toString()).append("-----\n");
-        out.append(new String(PEM_ENCODER.encode(encoded), StandardCharsets.US_ASCII));
-        out.append("\n-----END ").append(label.toString()).append("-----\n");
-    }
-
-    /**
      * Extracts the content type of a Content-Type header.
      *
      * @param header Content-Type header
@@ -342,28 +361,11 @@ public final class AcmeUtils {
         }
     }
 
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
     private AcmeUtils() {
         // Utility class without constructor
     }
 
-    /**
-     * Enumeration of PEM labels.
-     */
-    public enum PemLabel {
-        CERTIFICATE("CERTIFICATE"),
-        CERTIFICATE_REQUEST("CERTIFICATE REQUEST"),
-        PRIVATE_KEY("PRIVATE KEY"),
-        PUBLIC_KEY("PUBLIC KEY");
-
-        private final String label;
-
-        PemLabel(String label) {
-            this.label = label;
-        }
-
-        @Override
-        public String toString() {
-            return label;
-        }
-    }
 }

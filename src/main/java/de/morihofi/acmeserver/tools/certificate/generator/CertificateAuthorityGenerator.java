@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -27,16 +27,7 @@ import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.AccessDescription;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.CRLDistPoint;
-import org.bouncycastle.asn1.x509.DistributionPoint;
-import org.bouncycastle.asn1.x509.DistributionPointName;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -50,12 +41,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
@@ -82,39 +68,21 @@ public class CertificateAuthorityGenerator {
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
      * @throws CertificateException      If there's an error in processing the certificate data.
      */
-    public static X509Certificate generateCertificateAuthorityCertificate(CertificateConfig certificateConfig, KeyPair keyPair) throws
-            IOException, OperatorCreationException, CertificateException {
+    public static X509Certificate generateCertificateAuthorityCertificate(CertificateConfig certificateConfig, KeyPair keyPair) throws IOException, OperatorCreationException, CertificateException {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.YEAR, certificateConfig.getExpiration().getYears());
         calendar.add(Calendar.MONTH, certificateConfig.getExpiration().getMonths());
         calendar.add(Calendar.DATE, certificateConfig.getExpiration().getDays());
 
-        X500Name issuerName =
-                getX500Name(certificateConfig.getMetadata(), "A common name is required in root CA. Please change it in your settings.");
+        X500Name issuerName = getX500Name(certificateConfig.getMetadata(), "A common name is required in root CA. Please change it in your settings.");
         BigInteger serialNumber = CertMisc.generateSerialNumber();
 
-        X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(
-                issuerName,
-                serialNumber,
-                new Date(),
-                calendar.getTime(),
-                issuerName,
-                keyPair.getPublic()
-        );
+        X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(issuerName, serialNumber, new Date(), calendar.getTime(), issuerName, keyPair.getPublic());
 
         certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
-        certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(
-                KeyUsage.digitalSignature |
-                        KeyUsage.nonRepudiation |
-                        KeyUsage.keyEncipherment |
-                        KeyUsage.dataEncipherment |
-                        KeyUsage.keyAgreement |
-                        KeyUsage.keyCertSign |
-                        KeyUsage.cRLSign
-        ));
+        certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
 
-        ContentSigner signer =
-                new JcaContentSignerBuilder(CertMisc.getSignatureAlgorithmBasedOnKeyType(keyPair.getPrivate())).build(keyPair.getPrivate());
+        ContentSigner signer = new JcaContentSignerBuilder(CertMisc.getSignatureAlgorithmBasedOnKeyType(keyPair.getPrivate())).build(keyPair.getPrivate());
         X509CertificateHolder certHolder = certBuilder.build(signer);
 
         return new JcaX509CertificateConverter().getCertificate(certHolder);
@@ -178,11 +146,10 @@ public class CertificateAuthorityGenerator {
      * @throws CertificateException      If there's an error in processing the certificate data.
      * @throws OperatorCreationException If there's an error during the creation of cryptographic operators.
      * @throws CertIOException           If there's an IO error during certificate generation.
+     * @throws KeyStoreException         If there's an error accessing the keystore or modify data
+     * @throws UnrecoverableKeyException If there's an error recovering the key
      */
-    public static X509Certificate createIntermediateCaCertificate(CryptoStoreManager cryptoStoreManager, KeyPair intermediateKeyPair,
-            CertificateMetadata certificateMetadata, CertificateExpiration expiration, String crlDistributionUrl,
-            String ocspServiceEndpoint) throws CertificateException, OperatorCreationException, CertIOException, KeyStoreException,
-            UnrecoverableKeyException, NoSuchAlgorithmException {
+    public static X509Certificate createIntermediateCaCertificate(CryptoStoreManager cryptoStoreManager, KeyPair intermediateKeyPair, CertificateMetadata certificateMetadata, CertificateExpiration expiration, String crlDistributionUrl, String ocspServiceEndpoint) throws CertificateException, OperatorCreationException, CertIOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
 
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
@@ -199,20 +166,14 @@ public class CertificateAuthorityGenerator {
         calendar.add(Calendar.DATE, expiration.getDays());
         Date endDate = calendar.getTime();
 
-        X500Name subjectName =
-                getX500Name(certificateMetadata, "A common name is required in intermediate CA. Please change it in your settings.");
-        X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(
-                issuerName, serialNumber, startDate, endDate, subjectName,
-                SubjectPublicKeyInfo.getInstance(intermediateKeyPair.getPublic().getEncoded())
-        );
+        X500Name subjectName = getX500Name(certificateMetadata, "A common name is required in intermediate CA. Please change it in your settings.");
+        X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(issuerName, serialNumber, startDate, endDate, subjectName, SubjectPublicKeyInfo.getInstance(intermediateKeyPair.getPublic().getEncoded()));
 
         // Basic Constraints
         certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(0));
 
         // Key Usage
-        certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(
-                KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment
-                        | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
+        certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
 
         // CRL Distribution Points
         GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, crlDistributionUrl);
@@ -221,8 +182,7 @@ public class CertificateAuthorityGenerator {
         certBuilder.addExtension(Extension.cRLDistributionPoints, false, new CRLDistPoint(new DistributionPoint[]{distp}));
 
         // Authority Information Access (OCSP Endpoint)
-        AccessDescription accessDescription = new AccessDescription(AccessDescription.id_ad_ocsp,
-                new GeneralName(GeneralName.uniformResourceIdentifier, ocspServiceEndpoint));
+        AccessDescription accessDescription = new AccessDescription(AccessDescription.id_ad_ocsp, new GeneralName(GeneralName.uniformResourceIdentifier, ocspServiceEndpoint));
         ASN1EncodableVector authorityInformationAccessVector = new ASN1EncodableVector();
         authorityInformationAccessVector.add(accessDescription);
         certBuilder.addExtension(Extension.authorityInfoAccess, false, new DERSequence(authorityInformationAccessVector));

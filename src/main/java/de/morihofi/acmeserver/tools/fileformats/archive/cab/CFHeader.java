@@ -24,35 +24,85 @@ import java.lang.invoke.MethodHandles;
 import java.util.Vector;
 
 /**
- *
- * @author Graham Rivers-Brown
+ * Represents the header of a CAB (Cabinet) archive. This class provides the necessary structure and methods to handle CAB header entries,
+ * including their metadata such as signature, reserved fields, file offsets, version, and more.
+ * <p>
+ * This class is used in conjunction with other CAB file structures to create or manipulate CAB archives.
+ * </p>
+ * <p>
+ * This code is originally based on the work of Graham Rivers-Brown and has been adapted for use in the ACME server project.
+ * </p>
  */
 public class CFHeader {
     /**
-     * Logger
+     * Logger for logging information and debugging.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-    private final int flags;             /* cabinet file option indicators */
-    private final int[] signature;       /* cabinet file signature */
-    private final int reserved1;         /* reserved */
-    private int cbCabinet;         /* size of this cabinet file in bytes */
-    private final int reserved2;         /* reserved */
-    private int coffFiles;         /* offset of the first CFFILE entry */
-    private final int reserved3;         /* reserved */
-    private final int versionMinor;      /* cabinet file format version, minor */
-    private final int versionMajor;      /* cabinet file format version, major */
-    private int cFolders;          /* number of CFFOLDER entries in this cabinet */
-    private int cFiles;            /* number of CFFILE entries in this cabinet */
-    private final int setID;             /* must be the same for all cabinets in a set */
-    private final int iCabinet;          /* number of this cabinet file in a set */
-    /*private int cbCFHeader;        /* (optional) size of per-cabinet reserved area */
-    /*private int cbCFFolder;        /* (optional) size of per-folder reserved area */
-    /*private int cbCFData;          /* (optional) size of per-datablock reserved area */
-    /*private int[] abReserve;       /* (optional) per-cabinet reserved area */
-    /*private int[] szCabinetPrev;   /* (optional) name of previous cabinet file */
-    /*private int[] szDiskPrev;      /* (optional) name of previous disk */
-    /*private int[] szCabinetNext;   /* (optional) name of next cabinet file */
-    /*private int[] szDiskNext;      /* (optional) name of next disk */
+
+    /**
+     * Cabinet file option indicators.
+     */
+    private final int flags;
+
+    /**
+     * Cabinet file signature.
+     */
+    private final int[] signature;
+
+    /**
+     * Reserved field.
+     */
+    private final int reserved1;
+
+    /**
+     * Size of this cabinet file in bytes.
+     */
+    private int cbCabinet;
+
+    /**
+     * Reserved field.
+     */
+    private final int reserved2;
+
+    /**
+     * Offset of the first CFFILE entry.
+     */
+    private int coffFiles;
+
+    /**
+     * Reserved field.
+     */
+    private final int reserved3;
+
+    /**
+     * Cabinet file format version, minor.
+     */
+    private final int versionMinor;
+
+    /**
+     * Cabinet file format version, major.
+     */
+    private final int versionMajor;
+
+    /**
+     * Number of CFFOLDER entries in this cabinet.
+     */
+    private int cFolders;
+
+    /**
+     * Number of CFFILE entries in this cabinet.
+     */
+    private int cFiles;
+
+    /**
+     * Must be the same for all cabinets in a set.
+     */
+    private final int setID;
+
+    /**
+     * Number of this cabinet file in a set.
+     */
+    private final int iCabinet;
 
     public CFHeader() {
         // fill in known values
@@ -71,22 +121,47 @@ public class CFHeader {
         iCabinet = 0;
     }
 
+    /**
+     * Sets the size of this cabinet file in bytes.
+     *
+     * @param cbCabinet The size of the cabinet file in bytes.
+     */
     public void setCbCabinet(int cbCabinet) {
         this.cbCabinet = cbCabinet;
     }
 
+    /**
+     * Sets the offset of the first CFFILE entry.
+     *
+     * @param coffFiles The offset of the first CFFILE entry.
+     */
     public void setCoffFiles(int coffFiles) {
         this.coffFiles = coffFiles;
     }
 
+    /**
+     * Sets the number of CFFOLDER entries in this cabinet.
+     *
+     * @param cFolders The number of CFFOLDER entries.
+     */
     public void setCFolders(int cFolders) {
         this.cFolders = cFolders;
     }
 
+    /**
+     * Sets the number of CFFILE entries in this cabinet.
+     *
+     * @param cFiles The number of CFFILE entries.
+     */
     public void setCFiles(int cFiles) {
         this.cFiles = cFiles;
     }
 
+    /**
+     * Converts the CFHeader instance to a byte array representation.
+     *
+     * @return A {@code Vector<Byte>} containing the byte array representation of this CFHeader.
+     */
     public Vector<Byte> makeByteArray() {
         Vector<Byte> b = new Vector<>();
 
@@ -110,6 +185,13 @@ public class CFHeader {
         return b;
     }
 
+    /**
+     * Converts an integer value to a byte array representation with the specified number of bytes.
+     *
+     * @param val      The integer value to convert.
+     * @param numBytes The number of bytes to use for the conversion.
+     * @return A {@code Vector<Byte>} containing the byte array representation of the integer value.
+     */
     private Vector<Byte> convertToByte(int val, int numBytes) {
         Vector<Byte> b = new Vector<>();
         Integer tempInt;

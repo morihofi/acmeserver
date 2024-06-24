@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -24,14 +24,7 @@ import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
-import org.bouncycastle.cert.ocsp.BasicOCSPResp;
-import org.bouncycastle.cert.ocsp.BasicOCSPRespBuilder;
-import org.bouncycastle.cert.ocsp.CertificateID;
-import org.bouncycastle.cert.ocsp.CertificateStatus;
-import org.bouncycastle.cert.ocsp.OCSPException;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.cert.ocsp.OCSPRespBuilder;
-import org.bouncycastle.cert.ocsp.RevokedStatus;
+import org.bouncycastle.cert.ocsp.*;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
@@ -42,15 +35,17 @@ import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.CRLException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509CRL;
-import java.security.cert.X509CRLEntry;
-import java.security.cert.X509Certificate;
+import java.security.cert.*;
 import java.util.Date;
 
+/**
+ * OCSP Utility class
+ */
 public class OcspHelper {
 
+    /**
+     * Logger
+     */
     private static final Logger LOG = LogManager.getLogger(OcspHelper.class);
 
     /**
@@ -65,6 +60,9 @@ public class OcspHelper {
      * @throws CRLException                 if there is an issue with CRL processing.
      * @throws CertificateEncodingException if there is an issue with encoding certificates.
      * @throws OperatorCreationException    if there is an issue with operator creation.
+     * @throws NoSuchAlgorithmException     if there is an issue with signing algorithm.
+     * @throws UnrecoverableKeyException    if there is an issue recovering the key.
+     * @throws KeyStoreException            if there is an issue with the keystore.
      */
     public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRLGenerator crlGenerator, Provisioner provisioner) throws
             OCSPException, CRLException, CertificateEncodingException, OperatorCreationException, KeyStoreException,

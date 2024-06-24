@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -21,10 +21,29 @@ package de.morihofi.acmeserver.certificate.acme.api.endpoints.authz.objects;
  * type, URL, token, status, and validation information.
  */
 public class ChallengeResponse {
+    /**
+     * The type of the challenge, indicating the method of validation (e.g., DNS or HTTP).
+     */
     private String type;
+
+    /**
+     * The URL associated with the challenge, used for performing or verifying the challenge.
+     */
     private String url;
+
+    /**
+     * The token of the challenge, typically a unique identifier or key for the challenge.
+     */
     private String token;
+
+    /**
+     * The current status of the challenge, indicating progress or outcome (e.g., pending or valid).
+     */
     private String status;
+
+    /**
+     * The validation timestamp of the challenge, indicating when it was successfully validated.
+     */
     private String validated;
 
     /**

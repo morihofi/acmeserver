@@ -1,22 +1,15 @@
 /*
  * Copyright (c) 2024 Moritz Hofmann <info@morihofi.de>
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
- * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
- * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package de.morihofi.acmeserver.api.serverInfo;
 
-import com.google.gson.Gson;
 import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.api.serverInfo.objects.MetadataInfoResponse;
 import de.morihofi.acmeserver.api.serverInfo.objects.ProvisionerResponse;
@@ -39,18 +32,57 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Endpoint for handling server information requests.
+ */
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class ApiServerInfoEndpoint implements Handler {
 
     /**
-     * Logger
+     * Logger instance for logging server information activities.
      */
     private final Logger LOG = LogManager.getLogger(ApiServerInfoEndpoint.class);
-    private final Duration CACHE_DURATION = Duration.ofHours(3); // Cache for 3 hours
+
+    /**
+     * Cache duration for the latest release information.
+     */
+    private static final Duration CACHE_DURATION = Duration.ofHours(3); // Cache for 3 hours
+
+    /**
+     * Cached tag of the latest release.
+     */
     private String cachedLatestReleaseTag = null;
+
+    /**
+     * Cached URL of the latest release.
+     */
     private String cachedLatestReleaseUrl = null;
+
+    /**
+     * Timestamp of the last cache update.
+     */
     private Instant cacheTimestamp = Instant.MIN;
 
+    /**
+     * List of provisioners, specified in config.
+     */
+    private final ServerInstance serverInstance;
+
+    /**
+     * Constructs a new endpoint for retrieving server information.
+     *
+     * @param serverInstance Instance of the Server.
+     */
+    public ApiServerInfoEndpoint(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
+    }
+
+    /**
+     * Retrieves the server information response.
+     *
+     * @param provisionerConfigList List of provisioner configurations.
+     * @return ServerInfoResponse containing server metadata and provisioner information.
+     */
     public ServerInfoResponse getServerInfoResponse(List<ProvisionerConfig> provisionerConfigList) {
         MetadataInfoResponse metadataInfo = new MetadataInfoResponse();
         metadataInfo.setVersion(Main.buildMetadataVersion);
@@ -105,32 +137,15 @@ public class ApiServerInfoEndpoint implements Handler {
     }
 
     /**
-     * List of provisioners, specified in config
-     */
-    private final ServerInstance serverInstance;
-
-    /**
-     * Endpoint for getting server information
+     * Handles the request to retrieve server information.
      *
-     * @param serverInstance Instance of the Server
-     */
-    public ApiServerInfoEndpoint(ServerInstance serverInstance) {
-        this.serverInstance = serverInstance;
-    }
-
-    /**
-     * Method for handling the request
-     *
-     * @param ctx Javalin Context
+     * @param ctx The Javalin context.
      */
     @Override
     public void handle(@NotNull Context ctx) {
         ctx.header("Content-Type", "application/json");
 
         ServerInfoResponse responseData = getServerInfoResponse(serverInstance.getAppConfig().getProvisioner());
-
-        Gson gson = new Gson();
-        String jsonResponse = gson.toJson(responseData);
-        ctx.result(jsonResponse);
+        ctx.json(responseData);
     }
 }

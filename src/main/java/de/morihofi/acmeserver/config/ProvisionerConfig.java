@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -27,18 +27,45 @@ import java.io.Serializable;
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ProvisionerConfig implements Serializable {
+    /**
+     * The name of the provisioner.
+     */
     @ConfigurationField(name = "Provisioner name", required = true)
     private String name;
+
+    /**
+     * The intermediate certificate settings for the provisioner.
+     */
     @ConfigurationField(name = "Intermediate Certificate Settings")
     private CertificateConfig intermediate;
+
+    /**
+     * The metadata configuration for the provisioner.
+     */
     @ConfigurationField(name = "Provisioner metadata")
     private MetadataConfig meta;
+
+    /**
+     * The expiration configuration for issued certificates by the provisioner.
+     */
     @ConfigurationField(name = "Issued certificate expiration")
     private CertificateExpiration issuedCertificateExpiration;
+
+    /**
+     * The domain name restriction configuration for the provisioner.
+     */
     @ConfigurationField(name = "Domain Name Restriction")
     private DomainNameRestrictionConfig domainNameRestriction;
+
+    /**
+     * Flag indicating whether wildcard certificates are allowed for this provisioner.
+     */
     @ConfigurationField(name = "Allow issuing for DNS Wildcards")
     private boolean wildcardAllowed;
+
+    /**
+     * Flag indicating whether IP address certificates are allowed for this provisioner.
+     */
     @ConfigurationField(name = "Allow issuing for IP Addresses")
     private boolean ipAllowed;
 
@@ -150,10 +177,21 @@ public class ProvisionerConfig implements Serializable {
         this.wildcardAllowed = wildcardAllowed;
     }
 
+
+    /**
+     * Check if issuing for IP addresses is allowed for this provisioner.
+     *
+     * @return True if IP address issuing is allowed, false otherwise.
+     */
     public boolean isIpAllowed() {
         return ipAllowed;
     }
 
+    /**
+     * Set whether issuing for IP addresses is allowed for this provisioner.
+     *
+     * @param ipAllowed True if IP address issuing is allowed, false otherwise.
+     */
     public void setIpAllowed(boolean ipAllowed) {
         this.ipAllowed = ipAllowed;
     }

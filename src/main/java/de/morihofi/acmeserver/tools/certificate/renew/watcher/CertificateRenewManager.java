@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -36,6 +36,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Manages the automatic renewal of certificates. Registers certificates to be monitored and renewed if they are about to expire.
+ */
 public class CertificateRenewManager {
     private static final int PERIOD = 6;
     private static final TimeUnit TIME_UNIT = TimeUnit.HOURS;
@@ -48,17 +51,37 @@ public class CertificateRenewManager {
     private final CryptoStoreManager cryptoStoreManager;
     private final Map<String, RenewEntry> renewMap = Collections.synchronizedMap(new HashMap<>());
 
+    /**
+     * Constructor for CertificateRenewManager.
+     *
+     * @param cryptoStoreManager The CryptoStoreManager instance used for key and certificate management.
+     */
     public CertificateRenewManager(CryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
     }
 
+    /**
+     * Registers a new certificate renew watcher with the specified alias and regeneration function.
+     *
+     * @param alias                The alias of the certificate in the keystore.
+     * @param provisioner          The provisioner responsible for renewing the certificate.
+     * @param regenerationFunction The function used to regenerate the certificate.
+     */
     public void registerNewCertificateRenewWatcher(String alias, Provisioner provisioner,
-            TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction) {
+                                                   TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction) {
         registerNewCertificateRenewWatcher(alias, provisioner, regenerationFunction, null);
     }
 
+    /**
+     * Registers a new certificate renew watcher with the specified alias, regeneration function, and post-regeneration trigger.
+     *
+     * @param alias                    The alias of the certificate in the keystore.
+     * @param provisioner              The provisioner responsible for renewing the certificate.
+     * @param regenerationFunction     The function used to regenerate the certificate.
+     * @param triggerAfterRegeneration The runnable to execute after the certificate has been regenerated.
+     */
     public void registerNewCertificateRenewWatcher(String alias, Provisioner provisioner,
-            TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction, Runnable triggerAfterRegeneration) {
+                                                   TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction, Runnable triggerAfterRegeneration) {
 
         if (renewMap.containsKey(alias)) {
             throw new IllegalArgumentException("An watcher was already registered for keystore alias " + alias);
@@ -67,6 +90,9 @@ public class CertificateRenewManager {
         renewMap.put(alias, new RenewEntry(provisioner, regenerationFunction, triggerAfterRegeneration));
     }
 
+    /**
+     * Starts the scheduler that periodically checks for certificates that need to be renewed.
+     */
     public void startScheduler() {
         LOG.info("Initialized Certificate Renew Scheduler");
         // Start the scheduled task
@@ -153,10 +179,16 @@ public class CertificateRenewManager {
         renewMap.clear();
     }
 
+    /**
+     * Represents an entry in the renewal map, containing the provisioner, renewal function, and post-regeneration trigger.
+     */
     private record RenewEntry(Provisioner provisioner,
-            TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> renewFunction, Runnable triggerAfterRegeneration) {
+                              TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> renewFunction, Runnable triggerAfterRegeneration) {
     }
 
+    /**
+     * Represents the data required for certificate renewal, including the certificate chain and key pair.
+     */
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public record CertificateData(X509Certificate[] certificateChain, KeyPair keyPair) {
     }

@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -59,19 +59,36 @@ import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.function.Consumer;
 
+/**
+ * Main class for the ACME server application. This class handles the initialization and startup of the server, including configuration
+ * loading, security provider registration, and mode selection.
+ */
 public class Main {
 
     /**
-     * `serverdata` directory as an absolute path
+     * `serverdata` directory as an absolute path.
      */
     public static final Path FILES_DIR =
             Paths.get(Objects.requireNonNull(AppDirectoryHelper.getAppDirectory())).resolve("serverdata").toAbsolutePath();
-    public static final Path CONFIG_PATH = FILES_DIR.resolve("settings.json");
+
     /**
-     * Logger
+     * Path to the configuration file.
+     */
+    public static final Path CONFIG_PATH = FILES_DIR.resolve("settings.json");
+
+    /**
+     * Logger for the Main class.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+
+    /**
+     * Set of server options.
+     */
     private static final Set<SERVER_OPTION> serverOptions = new HashSet<>();
+
+    /**
+     * Gson instance for configuration deserialization.
+     */
     private static final Gson CONFIG_GSON = new GsonBuilder()
             .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
             .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())
@@ -79,35 +96,78 @@ public class Main {
             .setPrettyPrinting()
             .create();
 
-    // Build Metadata
+    /**
+     * Build metadata version.
+     */
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataVersion;
+
+    /**
+     * Build metadata build time.
+     */
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataBuildTime;
+
+    /**
+     * Build metadata Git commit.
+     */
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataGitCommit;
+
+    /**
+     * Build metadata Git closest tag name.
+     */
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static String buildMetadataGitClosestTagName;
 
+    /**
+     * Selected mode of operation.
+     */
     @SuppressFBWarnings("MS_PKGPROTECT")
     public static MODE selectedMode = MODE.NORMAL;
+
+    /**
+     * Application startup time.
+     */
     @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
     public static long startupTime = 0; // Set after all routes are ready
+
+    /**
+     * Arguments passed to the application at startup.
+     */
     @SuppressFBWarnings("MS_PKGPROTECT")
     public static String[] runArgs = new String[]{};
 
+    /**
+     * Instance of the server.
+     */
     private static ServerInstance serverInstance;
 
-
+    /**
+     * Restarts the main application.
+     *
+     * @throws Exception if an error occurs during startup.
+     */
     public static void restartMain() throws Exception {
         startupTime = 0;
         Main.main(runArgs);
     }
 
+    /**
+     * Returns the set of server options.
+     *
+     * @return an unmodifiable set of server options.
+     */
     public static Set<SERVER_OPTION> getServerOptions() {
         return Collections.unmodifiableSet(serverOptions);
     }
 
+    /**
+     * Main application startup method.
+     *
+     * @param args arguments passed to the application.
+     * @throws Exception if an error occurs during startup.
+     */
     public static void main(String[] args) throws Exception {
         // runArgs are needed to restart the whole server
         runArgs = args;
@@ -127,7 +187,6 @@ public class Main {
         ensureFilesDirectoryExists();
 
         loadBuildAndGitMetadata();
-
 
         // Parse CLI Arguments
         final String argPrefix = "--";
@@ -183,13 +242,8 @@ public class Main {
                 new NonceManager(hibernateUtil, debug)
         );
 
-
-        // LOG.info("Preprocessing configuration classes... May take a moment");
-        // ConfigPreprocessor.preprocessConfig(serverInstance);
-
         switch (selectedMode) {
             case NORMAL -> {
-
                 LOG.info("Starting normally");
                 WebServer webServer = new WebServer(serverInstance);
                 webServer.startServer();
@@ -207,11 +261,16 @@ public class Main {
         }
     }
 
+    /**
+     * Loads the server configuration from the configuration file.
+     *
+     * @return the loaded configuration.
+     * @throws IOException if an I/O error occurs while reading the configuration file.
+     */
     public static Config loadServerConfiguration() throws IOException {
         LOG.info("Loading configuration from {} ...", CONFIG_PATH);
         return CONFIG_GSON.fromJson(Files.readString(CONFIG_PATH), Config.class);
     }
-
 
     /**
      * Prints a banner with a stylized text art representation.
@@ -244,6 +303,8 @@ public class Main {
      * <p>If the key store configuration is not supported or if any required configuration parameters are missing,
      * the method will throw an {@link IllegalArgumentException}.</p>
      *
+     * @param appConfig Application configuration object
+     * @return initialized {@link CryptoStoreManager}
      * @throws ClassNotFoundException    if a database driver class cannot be found.
      * @throws CertificateException      if there is an issue with the certificates used in cryptographic operations.
      * @throws IOException               if there is an I/O issue with reading key store or configuration files.
@@ -327,6 +388,12 @@ public class Main {
         });
     }
 
+    /**
+     * Loads metadata from a specified file and processes it using a given consumer.
+     *
+     * @param fileName           the name of the file to load.
+     * @param propertiesConsumer the consumer to process the loaded properties.
+     */
     private static void loadMetadata(String fileName, Consumer<Properties> propertiesConsumer) {
         try (InputStream is = Main.class.getResourceAsStream(fileName)) {
             if (is != null) {
@@ -341,10 +408,27 @@ public class Main {
         }
     }
 
+    /**
+     * Startup mode
+     */
     public enum MODE {
-        NORMAL, POSTSETUP, KEYSTORE_MIGRATION_PEM2KS
+        /**
+         * Normal startup
+         **/
+        NORMAL,
+        /**
+         * Post setup configuration screen
+         **/
+        POSTSETUP,
+        /**
+         * PEM to Keystore migrator
+         **/
+        KEYSTORE_MIGRATION_PEM2KS
     }
 
+    /**
+     * Custom flag enum that change behaviour of the server
+     */
     public enum SERVER_OPTION {
         /**
          * Enables the async certificate issuing, that is currently a buggy in certbot.

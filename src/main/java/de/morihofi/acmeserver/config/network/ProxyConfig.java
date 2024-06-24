@@ -16,23 +16,42 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 
 /**
- * Represents configuration parameters for a proxy
+ * Represents configuration parameters for a proxy.
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ProxyConfig implements Serializable {
+    /**
+     * Indicates whether the proxy is enabled.
+     */
     @ConfigurationField(name = "Enable Proxy")
     private Boolean enabled = false;
+
+    /**
+     * The host name or IP address of the proxy.
+     */
     @ConfigurationField(name = "Proxy Host")
     private String host;
+
+    /**
+     * The port number of the proxy.
+     */
     @ConfigurationField(name = "Proxy Port")
     private Integer port;
+
+    /**
+     * The type of the proxy (e.g., HTTP, SOCKS).
+     */
     @ConfigurationField(name = "Proxy Type")
     private String type;
+
+    /**
+     * The authentication configuration for the proxy.
+     */
     @ConfigurationField(name = "Proxy Authentication")
     private Authentication authentication;
 
     /**
-     * Get the port for the HTTP challenge.
+     * Get the port for the proxy.
      *
      * @return The port.
      */
@@ -41,7 +60,7 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
-     * Set the port for the HTTP challenge.
+     * Set the port for the proxy.
      *
      * @param port The port to set.
      */
@@ -50,7 +69,7 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
-     * Get the host for the HTTP challenge.
+     * Get the host for the proxy.
      *
      * @return The host.
      */
@@ -59,7 +78,7 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
-     * Set the host for the HTTP challenge.
+     * Set the host for the proxy.
      *
      * @param host The host to set.
      */
@@ -68,7 +87,7 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
-     * Get the type of the HTTP challenge.
+     * Get the type of the proxy.
      *
      * @return The type.
      */
@@ -77,7 +96,7 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
-     * Set the type of the HTTP challenge.
+     * Set the type of the proxy.
      *
      * @param type The type to set.
      */
@@ -86,7 +105,7 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
-     * Check if the HTTP challenge is enabled.
+     * Check if the proxy is enabled.
      *
      * @return True if enabled, false otherwise.
      */
@@ -95,7 +114,7 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
-     * Set the enabled status of the HTTP challenge.
+     * Set the enabled status of the proxy.
      *
      * @param enabled The enabled status to set.
      */
@@ -104,7 +123,7 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
-     * Get the authentication information for the HTTP challenge.
+     * Get the authentication information for the proxy.
      *
      * @return The authentication information.
      */
@@ -113,7 +132,7 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
-     * Set the authentication information for the HTTP challenge.
+     * Set the authentication information for the proxy.
      *
      * @param authentication The authentication information to set.
      */
@@ -122,13 +141,24 @@ public class ProxyConfig implements Serializable {
     }
 
     /**
-     * Represents authentication information for an HTTP challenge.
+     * Represents authentication information for a proxy.
      */
     public static class Authentication implements Serializable {
+        /**
+         * Indicates whether proxy authentication is enabled.
+         */
         @ConfigurationField(name = "Enable Proxy Authentication")
         private boolean enabled;
+
+        /**
+         * The username for proxy authentication.
+         */
         @ConfigurationField(name = "Username")
         private String username;
+
+        /**
+         * The password for proxy authentication.
+         */
         @ConfigurationField(name = "Password")
         private String password;
 
@@ -165,15 +195,6 @@ public class ProxyConfig implements Serializable {
          * @param enabled The enabled status to set.
          */
         public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
-        }
-
-        /**
-         * Set the enabled status for authentication.
-         *
-         * @param enabled The enabled status to set.
-         */
-        public void setEnabled(Boolean enabled) {
             this.enabled = enabled;
         }
 

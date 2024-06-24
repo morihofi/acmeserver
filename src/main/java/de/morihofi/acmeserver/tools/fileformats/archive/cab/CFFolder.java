@@ -24,32 +24,71 @@ import java.lang.invoke.MethodHandles;
 import java.util.Vector;
 
 /**
- *
- * @author Graham Rivers-Brown
+ * Represents a folder entry in a CAB (Cabinet) archive. This class provides the necessary structure and methods to handle CAB folder entries,
+ * including their metadata such as compression type, offset, and the number of CFDATA blocks.
+ * <p>
+ * This class is used in conjunction with other CAB file structures to create or manipulate CAB archives.
+ * </p>
+ * <p>
+ * This code is originally based on the work of Graham Rivers-Brown and has been adapted for use in the ACME server project.
+ * </p>
  */
 public class CFFolder {
-    public static final int NO_COMPRESSION = 0;
     /**
-     * Logger
+     * Logger for logging information and debugging.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
-    private final int typeCompress;    /* compression type indicator */
-    private int coffCabStart;    /* offset of the first CFDATA block in this folder */
-    private int cCFData;    /* number of CFDATA blocks in this folder */
-    /*private int abReserve[];	/* (optional) per-folder reserved area */
 
+    /**
+     * No compression type indicator.
+     */
+    public static final int NO_COMPRESSION = 0;
+
+    /**
+     * Compression type indicator.
+     */
+    private final int typeCompress;
+
+    /**
+     * Offset of the first CFDATA block in this folder.
+     */
+    private int coffCabStart;
+
+    /**
+     * Number of CFDATA blocks in this folder.
+     */
+    private int cCFData;
+
+    /**
+     * Constructs a new CFFolder instance with no compression type.
+     */
     public CFFolder() {
         typeCompress = CFFolder.NO_COMPRESSION;
     }
 
+    /**
+     * Sets the offset of the first CFDATA block in this folder.
+     *
+     * @param coffCabStart The offset to set.
+     */
     public void setCoffCabStart(int coffCabStart) {
         this.coffCabStart = coffCabStart;
     }
 
+    /**
+     * Sets the number of CFDATA blocks in this folder.
+     *
+     * @param cCFData The number of CFDATA blocks to set.
+     */
     public void setCCFData(int cCFData) {
         this.cCFData = cCFData;
     }
 
+    /**
+     * Converts the CFFolder instance to a byte array representation.
+     *
+     * @return A {@code Vector<Byte>} containing the byte array representation of this CFFolder.
+     */
     public Vector<Byte> makeByteArray() {
         Vector<Byte> b = new Vector<>();
 
@@ -60,6 +99,13 @@ public class CFFolder {
         return b;
     }
 
+    /**
+     * Converts an integer value to a byte array representation with the specified number of bytes.
+     *
+     * @param val      The integer value to convert.
+     * @param numBytes The number of bytes to use for the conversion.
+     * @return A {@code Vector<Byte>} containing the byte array representation of the integer value.
+     */
     private Vector<Byte> convertToByte(int val, int numBytes) {
         Vector<Byte> b = new Vector<>();
         int tempInt;

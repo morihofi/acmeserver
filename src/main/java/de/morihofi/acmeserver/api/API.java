@@ -20,13 +20,20 @@ import de.morihofi.acmeserver.api.provisioner.statistics.ProvisionerGlobalStatis
 import de.morihofi.acmeserver.api.provisioner.statistics.ProvisionerStatisticHandler;
 import de.morihofi.acmeserver.api.serverInfo.ApiServerInfoEndpoint;
 import de.morihofi.acmeserver.api.troubleshooting.DnsResolverHandler;
-import de.morihofi.acmeserver.config.Config;
 import de.morihofi.acmeserver.tools.ServerInstance;
-import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.Javalin;
 
+/**
+ * This class initializes and configures the API endpoints for the ACME server application.
+ */
 public class API {
 
+    /**
+     * Initializes the API endpoints on the given Javalin app instance using the provided server instance.
+     *
+     * @param app           The Javalin app instance to configure.
+     * @param serverInstance The server instance providing necessary server configurations and services.
+     */
     public static void init(Javalin app, ServerInstance serverInstance) {
         // CA Downloads
         app.get("/ca.crt", new DownloadCaPemHandler(serverInstance));

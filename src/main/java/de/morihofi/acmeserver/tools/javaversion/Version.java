@@ -33,8 +33,15 @@ import java.util.StringTokenizer;
  * >= 0 integers separated by dots or something similar.
  */
 public class Version implements Comparable<Object>, Serializable {
+    /**
+     * Internal Java version of class for serialisation
+     */
     @Serial
     private static final long serialVersionUID = 775513157889646154L;
+
+    /**
+     * List of version sections parsed from the version string.
+     */
     private final List<Integer> iSections;
 
     /**
@@ -54,8 +61,7 @@ public class Version implements Comparable<Object>, Serializable {
      * @param delimiters The delimiters.
      * @throws VersionException If the version string cannot be parsed.
      */
-    public Version(String version, String delimiters) {
-
+    public Version(String version, String delimiters) throws VersionException {
         StringTokenizer strTok = new StringTokenizer(version.trim(), delimiters);
         List<Integer> versionSections = new ArrayList<>();
 
@@ -83,6 +89,11 @@ public class Version implements Comparable<Object>, Serializable {
         }
     }
 
+    /**
+     * Returns a copy of the version sections.
+     *
+     * @return A list of version sections.
+     */
     private List<Integer> getSections() {
         return new ArrayList<>(iSections);
     }

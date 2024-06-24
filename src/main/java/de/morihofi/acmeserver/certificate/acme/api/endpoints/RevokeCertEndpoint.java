@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -42,6 +42,13 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Date;
 
+/**
+ * Endpoint for handling certificate revocation requests in the ACME server.
+ * <p>
+ * This class processes incoming ACME revocation requests, verifying the request signature,
+ * validating the certificate, and revoking the certificate if all checks pass.
+ * </p>
+ */
 public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
     /**
@@ -55,6 +62,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
      * processing.
      *
      * @param provisioner The {@link Provisioner} instance used for managing certificate operations.
+     * @param serverInstance The {@link ServerInstance} to use for this endpoint
      */
     public RevokeCertEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
         super(provisioner, serverInstance);
@@ -102,9 +110,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
                 new ByteArrayInputStream(Base64.getUrlDecoder().decode(certificateBase64))
         );
 
-        // Check certificate (optional)
-        // You can perform various checks here, e.g. validity date, issuer, etc.
-        // Check issuer information
+        // Check certificate
         LOG.debug("Issuer: {}", certificate.getIssuerX500Principal());
 
         // Read in root certificate

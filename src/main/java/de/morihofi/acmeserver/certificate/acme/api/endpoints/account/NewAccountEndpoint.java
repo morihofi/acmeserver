@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -49,17 +49,35 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Endpoint for handling the creation of new ACME accounts.
+ */
 public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
     /**
-     * Logger
+     * Logger instance for logging events.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
+    /**
+     * Constructs a new instance of the NewAccountEndpoint class.
+     *
+     * @param provisioner    The provisioner managing this endpoint.
+     * @param serverInstance The server instance running this endpoint.
+     */
     public NewAccountEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
         super(provisioner, serverInstance);
     }
 
+    /**
+     * Handles the creation of a new ACME account.
+     *
+     * @param ctx             The context of the request.
+     * @param provisioner     The provisioner managing this request.
+     * @param gson            The Gson instance for JSON parsing.
+     * @param acmeRequestBody The body of the ACME request.
+     * @throws Exception If an error occurs while handling the request.
+     */
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         // Check nonce

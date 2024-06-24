@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -29,6 +29,20 @@ import java.util.List;
  */
 public class TypeSafetyHelper {
 
+    /**
+     * Safely casts elements in a list to a specified target class type.
+     *
+     * <p>
+     * This method iterates through the given list and attempts to cast each element to the specified target class. If an element cannot be
+     * cast to the target class, an IllegalArgumentException is thrown.
+     * </p>
+     *
+     * @param listToCast  The list containing elements to be cast.
+     * @param targetClass The class type to cast the elements to.
+     * @param <T>         The type of elements in the target list.
+     * @return A list containing elements of the specified target class type.
+     * @throws IllegalArgumentException If an element in the list cannot be cast to the target class type.
+     */
     @SuppressWarnings({"rawtypes"})
     public static <T> List<T> safeCastToClassOfType(List listToCast, Class<T> targetClass) {
         List<T> targetList = new ArrayList<>();
@@ -45,5 +59,8 @@ public class TypeSafetyHelper {
         return targetList;
     }
 
+    /**
+     * Private constructor to prevent instantiation of the utility class.
+     */
     private TypeSafetyHelper() {}
 }

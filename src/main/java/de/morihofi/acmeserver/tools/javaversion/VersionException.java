@@ -25,6 +25,9 @@ import java.io.Serial;
  * Represents a version exception.
  */
 public class VersionException extends RuntimeException {
+    /**
+     * Internal Java version of class for serialisation
+     */
     @Serial
     private static final long serialVersionUID = 1L;
 

@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -39,6 +39,9 @@ public class ACMEAccountRequestPayload {
      */
     private boolean termsOfServiceAgreed;
 
+    /**
+     * The status of the ACME account, e.g., active, deactivated.
+     */
     private String status;
 
     /**
@@ -68,10 +71,6 @@ public class ACMEAccountRequestPayload {
         return termsOfServiceAgreed;
     }
 
-    public boolean isTermsOfServiceAgreed() {
-        return termsOfServiceAgreed;
-    }
-
     /**
      * Sets the user's agreement status to the Terms of Service. This method updates the user's consent to the terms.
      *
@@ -81,10 +80,20 @@ public class ACMEAccountRequestPayload {
         this.termsOfServiceAgreed = termsOfServiceAgreed;
     }
 
+    /**
+     * Retrieves the status of the ACME account.
+     *
+     * @return The status of the ACME account as a {@code String}.
+     */
     public String getStatus() {
         return status;
     }
 
+    /**
+     * Sets the status of the ACME account.
+     *
+     * @param status The status to set, e.g., "active" or "deactivated".
+     */
     public void setStatus(String status) {
         this.status = status;
     }

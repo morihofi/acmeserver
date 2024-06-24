@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -18,18 +18,10 @@ package de.morihofi.acmeserver.database.objects;
 
 import de.morihofi.acmeserver.certificate.acme.challenges.AcmeChallengeType;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,14 +44,15 @@ import java.util.Objects;
 public class ACMEOrderIdentifierChallenge implements Serializable {
 
     /**
-     * Logger
+     * Logger instance for logging ACME challenge activities.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
     /**
      * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated challenge ID.
      *
-     * @param challengeId The unique identifier of the challenge associated with the ACME identifier.
+     * @param challengeId    The unique identifier of the challenge associated with the ACME identifier.
+     * @param serverInstance The server instance for database connection.
      * @return The ACME identifier matching the provided challenge ID, or null if not found.
      */
     public static ACMEOrderIdentifierChallenge getACMEIdentifierChallenge(String challengeId, ServerInstance serverInstance) {
@@ -84,15 +77,16 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
             }
             transaction.commit();
         } catch (Exception e) {
-            LOG.error("Unable get ACME identifiers for challenge id {}", challengeId, e);
+            LOG.error("Unable to get ACME identifiers for challenge id {}", challengeId, e);
         }
         return challenge;
     }
 
     /**
-     * This function marks an ACME challenge as passed
+     * This function marks an ACME challenge as passed.
      *
-     * @param challengeId id of the Challenge, provided in URL
+     * @param challengeId    The ID of the Challenge, provided in URL.
+     * @param serverInstance The server instance for database connection.
      */
     @Transactional
     public static void passChallenge(String challengeId, ServerInstance serverInstance) {
@@ -119,26 +113,59 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
             LOG.error("Unable to mark ACME challenge as passed", e);
         }
     }
+
+    /**
+     * Unique identifier for the ACME order identifier challenge.
+     */
     @Id
     @Column(name = "challengeId", nullable = false)
     private String challengeId;
+
+    /**
+     * The timestamp when the verification of this ACME order identifier occurred.
+     */
     @Column(name = "verifiedTime")
     private Timestamp verifiedTime;
+
+    /**
+     * The type of the challenge (e.g., "http-01", "dns-01").
+     */
     @Column(name = "challengeType", nullable = false)
     @Enumerated(EnumType.STRING)
     private AcmeChallengeType challengeType;
+
+    /**
+     * The ACME order identifier associated with this challenge.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "identifierId", referencedColumnName = "identifierId")
     private ACMEOrderIdentifier identifier;
+
+    /**
+     * The authorization token for this challenge.
+     */
     @Column(name = "authorizationToken", nullable = false)
     private String authorizationToken;
+
+    /**
+     * The status of this challenge (e.g., "pending", "valid").
+     */
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private AcmeStatus status;
 
+    /**
+     * Default constructor for ACME order identifier challenge.
+     */
     public ACMEOrderIdentifierChallenge() {
     }
 
+    /**
+     * Creates an instance of ACME order identifier challenge with a specified challenge type and identifier.
+     *
+     * @param challengeType The type of the challenge.
+     * @param identifier    The ACME order identifier associated with this challenge.
+     */
     public ACMEOrderIdentifierChallenge(AcmeChallengeType challengeType, ACMEOrderIdentifier identifier) {
         this.challengeType = challengeType;
         this.identifier = identifier;
@@ -152,16 +179,26 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
         this.status = AcmeStatus.PENDING;
     }
 
+    /**
+     * Retrieves the ACME order identifier associated with this challenge.
+     *
+     * @return The ACME order identifier.
+     */
     public ACMEOrderIdentifier getIdentifier() {
         return identifier;
     }
 
+    /**
+     * Sets the ACME order identifier associated with this challenge.
+     *
+     * @param identifier The ACME order identifier to set.
+     */
     public void setIdentifier(ACMEOrderIdentifier identifier) {
         this.identifier = identifier;
     }
 
     /**
-     * Get the challenge ID associated with this ACME order identifier.
+     * Retrieves the unique identifier for the ACME order identifier challenge.
      *
      * @return The challenge ID.
      */
@@ -170,7 +207,7 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
     }
 
     /**
-     * Set the challenge ID associated with this ACME order identifier.
+     * Sets the unique identifier for the ACME order identifier challenge.
      *
      * @param challengeId The challenge ID to set.
      */
@@ -179,7 +216,7 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
     }
 
     /**
-     * Get the timestamp when the verification of this ACME order identifier occurred.
+     * Retrieves the timestamp when the verification of this ACME order identifier occurred.
      *
      * @return The verification timestamp.
      */
@@ -188,7 +225,7 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
     }
 
     /**
-     * Set the timestamp when the verification of this ACME order identifier occurred.
+     * Sets the timestamp when the verification of this ACME order identifier occurred.
      *
      * @param verifiedTime The verification timestamp to set.
      */
@@ -196,26 +233,56 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
         this.verifiedTime = verifiedTime;
     }
 
+    /**
+     * Retrieves the type of the challenge.
+     *
+     * @return The challenge type.
+     */
     public AcmeChallengeType getChallengeType() {
         return challengeType;
     }
 
+    /**
+     * Sets the type of the challenge.
+     *
+     * @param challengeType The challenge type to set.
+     */
     public void setChallengeType(AcmeChallengeType challengeType) {
         this.challengeType = challengeType;
     }
 
+    /**
+     * Retrieves the authorization token for this challenge.
+     *
+     * @return The authorization token.
+     */
     public String getAuthorizationToken() {
         return authorizationToken;
     }
 
+    /**
+     * Sets the authorization token for this challenge.
+     *
+     * @param authorizationToken The authorization token to set.
+     */
     public void setAuthorizationToken(String authorizationToken) {
         this.authorizationToken = authorizationToken;
     }
 
+    /**
+     * Retrieves the status of this challenge.
+     *
+     * @return The status of this challenge.
+     */
     public AcmeStatus getStatus() {
         return status;
     }
 
+    /**
+     * Sets the status of this challenge.
+     *
+     * @param status The status to set.
+     */
     public void setStatus(AcmeStatus status) {
         this.status = status;
     }

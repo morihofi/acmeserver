@@ -7,12 +7,18 @@ import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+/**
+ * Utility class for doing Base64 stuff
+ */
 public class Base64Tools {
 
     /**
      * Logger
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    /**
+     * Base64Url encoder (without padding) instance
+     */
     private static final java.util.Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
     /**

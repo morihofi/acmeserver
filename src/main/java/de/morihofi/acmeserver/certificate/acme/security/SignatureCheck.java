@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -45,15 +45,19 @@ import java.security.spec.InvalidKeySpecException;
  */
 public class SignatureCheck {
 
+    /**
+     * Logger
+     */
     private static final Logger LOG = LogManager.getLogger(SignatureCheck.class);
 
     /**
      * Verifies the signature of an ACME request using an ACME account's public key. The method checks the signature against the public key
      * to ensure the request's authenticity and integrity.
      *
-     * @param ctx     The Javalin context containing the request data.
-     * @param account The ACME account whose public key is used for signature verification.
-     * @param gson    The Gson instance for JSON parsing.
+     * @param ctx             The Javalin context containing the request data.
+     * @param account         The ACME account whose public key is used for signature verification.
+     * @param gson            The Gson instance for JSON parsing.
+     * @param serverInstance  The server instance containing necessary configurations and services.
      * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
      */
     public static void checkSignature(Context ctx, ACMEAccount account, Gson gson, ServerInstance serverInstance) {
@@ -64,9 +68,10 @@ public class SignatureCheck {
      * Verifies the signature of an ACME request using an ACME account's public key. The method checks the signature against the public key
      * to ensure the request's authenticity and integrity.
      *
-     * @param ctx       The Javalin context containing the request data.
-     * @param accountId The ACME account id whose public key is used for signature verification.
-     * @param gson      The Gson instance for JSON parsing.
+     * @param ctx             The Javalin context containing the request data.
+     * @param accountId       The ACME account id whose public key is used for signature verification.
+     * @param gson            The Gson instance for JSON parsing.
+     * @param serverInstance  The server instance containing necessary configurations and services.
      * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
      */
     public static void checkSignature(Context ctx, String accountId, Gson gson, ServerInstance serverInstance) {
@@ -144,6 +149,9 @@ public class SignatureCheck {
         return getAccountIdFromProtectedKID(JsonParser.parseString(protectedJsonString).getAsJsonObject());
     }
 
+    /**
+     * Private constructor to prevent object instantiation
+     */
     private SignatureCheck() {
     }
 }

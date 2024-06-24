@@ -75,6 +75,8 @@
     - Change column `timestamp` to be nullable
 - Backend Updates:
   - Nonce generation and handling should now be RFC compliant 
+  - Many internal refactors
+  - CAB File generation should work now
 
 ### Known Bugs:
  - GetHttpsForFree has currently issues with nonces not sent properly.

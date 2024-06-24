@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -23,11 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
-import java.net.Authenticator;
-import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
-import java.net.Proxy;
-import java.net.SocketAddress;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,11 +32,31 @@ import java.util.List;
  * NetworkClient is responsible for configuring and managing the OkHttpClient instance, including DNS settings and proxy configuration.
  */
 public class NetworkClient {
+    /**
+     * Logger instance for logging network client events and errors.
+     */
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+    /**
+     * OkHttpClient instance for handling network requests.
+     */
     private final OkHttpClient client;
+
+    /**
+     * DoHClient instance for handling DNS over HTTPS requests.
+     */
     private final DoHClient doHClient;
+
+    /**
+     * Network configuration settings.
+     */
     private final NetworkConfig networkConfig;
+
+    /**
+     * List of DNS servers configured for the network client.
+     */
     private final List<String> dnsServer = new ArrayList<>();
+
 
     /**
      * Constructs a NetworkClient with the specified application configuration.
@@ -122,7 +138,8 @@ public class NetworkClient {
                 });
             }
         } catch (Exception ex) {
-            LOG.error("Failed to initialize proxy configuration", ex);
+            LOG.error("Failed to initialize proxy configuration, returning a no-proxy configuration", ex);
+            return Proxy.NO_PROXY;
         }
 
         return proxy;

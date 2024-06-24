@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -29,6 +29,9 @@ import org.apache.logging.log4j.Logger;
 import java.lang.invoke.MethodHandles;
 import java.util.Properties;
 
+/**
+ * Class for sending E-Mails
+ */
 public class SendMail {
 
     /**
@@ -42,6 +45,7 @@ public class SendMail {
      * @param toEmail The recipient's email address.
      * @param subject The subject of the email.
      * @param content The content of the email.
+     * @param serverInstance The server instance to use.
      * @throws MessagingException If there is an issue with the email sending process.
      */
     public static void sendMail(String toEmail, String subject, String content, ServerInstance serverInstance) throws MessagingException {
@@ -103,22 +107,21 @@ public class SendMail {
         emailProp.put("mail.smtp.port", emailConfig.getPort());
 
         switch (emailConfig.getEncryption()) {
-            case "starttls":
-                emailProp.put("mail.smtp.starttls.enable", "true");
-                break;
-            case "ssl":
-            case "tls":
+            case "starttls" -> emailProp.put("mail.smtp.starttls.enable", "true");
+            case "ssl", "tls" -> {
                 emailProp.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
                 emailProp.put("mail.smtp.ssl.checkserveridentity", "true");
-                break;
-            case "none":
-            default:
-                LOG.warn("Unencrypted email connection. Consider using SSL/TLS or STARTTLS for enhanced security.");
+            }
+            default ->
+                    LOG.warn("Unencrypted email connection. Consider using SSL/TLS or STARTTLS for enhanced security.");
         }
 
         return emailProp;
     }
 
+    /**
+     * Private constructor to prevent class instantiation
+     */
     private SendMail() {
     }
 }

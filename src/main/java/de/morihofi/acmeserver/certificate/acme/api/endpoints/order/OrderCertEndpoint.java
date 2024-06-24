@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -29,17 +29,37 @@ import org.apache.logging.log4j.Logger;
 
 import java.lang.invoke.MethodHandles;
 
+/**
+ * Endpoint for retrieving the certificate chain of an ACME order.
+ * This class handles the request to fetch the PEM-encoded certificate chain for a given order ID.
+ */
 public class OrderCertEndpoint extends AbstractAcmeEndpoint {
 
     /**
-     * Logger
+     * Logger for logging events.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
+    /**
+     * Constructs a new OrderCertEndpoint instance with the specified provisioner and server instance.
+     *
+     * @param provisioner    The provisioner responsible for handling ACME requests.
+     * @param serverInstance The server instance for managing server configurations and operations.
+     */
     public OrderCertEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
         super(provisioner, serverInstance);
     }
 
+    /**
+     * Handles the request to retrieve the certificate chain for a specific order.
+     * This method sets the appropriate headers and response body for the ACME certificate chain retrieval.
+     *
+     * @param ctx             The context of the HTTP request.
+     * @param provisioner     The provisioner handling the ACME request.
+     * @param gson            The Gson instance for JSON processing.
+     * @param acmeRequestBody The body of the ACME request.
+     * @throws Exception If an error occurs while processing the request.
+     */
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");

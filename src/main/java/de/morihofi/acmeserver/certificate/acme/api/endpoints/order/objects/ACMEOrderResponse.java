@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -26,12 +26,39 @@ import java.util.List;
  */
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ACMEOrderResponse {
+    /**
+     * The status of the ACME order.
+     */
     private String status;
+
+    /**
+     * The expiration date of the ACME order.
+     */
     private String expires;
+
+    /**
+     * The issuance date of the ACME order's certificate.
+     */
     private String issued;
+
+    /**
+     * The finalize URL for the ACME order.
+     */
     private String finalize;
+
+    /**
+     * The certificate URL for the ACME order.
+     */
     private String certificate;
+
+    /**
+     * The list of identifiers associated with the ACME order.
+     */
     private List<Identifier> identifiers;
+
+    /**
+     * The list of authorizations associated with the ACME order.
+     */
     private List<String> authorizations;
 
     /**

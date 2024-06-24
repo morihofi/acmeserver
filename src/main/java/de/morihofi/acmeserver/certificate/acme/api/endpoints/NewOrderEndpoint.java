@@ -4,7 +4,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
- *  subject to the following conditions:
+ * subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
@@ -52,19 +52,38 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Handles the creation of new ACME orders.
+ * <p>
+ * URL: /acme/new-order
+ */
 public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
-
     /**
-     * Logger
+     * Logger instance for logging NewOrderEndpoint activities.
      */
     private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
 
+    /**
+     * Constructs a NewOrderEndpoint with the given provisioner and server instance.
+     *
+     * @param provisioner    The provisioner instance.
+     * @param serverInstance The server instance.
+     */
     public NewOrderEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
         super(provisioner, serverInstance);
     }
 
-
+    /**
+     * Handles the ACME order request.
+     * This method processes the request to create a new ACME order and stores it in the database.
+     *
+     * @param ctx             The context of the HTTP request.
+     * @param provisioner     The provisioner instance.
+     * @param gson            The Gson instance for JSON processing.
+     * @param acmeRequestBody The parsed ACME request body.
+     * @throws Exception If an error occurs while handling the request.
+     */
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
@@ -98,17 +117,13 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
                     "This account doesn't have any E-Mail addresses. Please set at least one E-Mail address and try again.");
         }
 
-
         List<Identifier> respIdentifiers = new ArrayList<>();
         List<String> respAuthorizations = new ArrayList<>();
 
         List<ACMEOrderIdentifier> acmeOrderIdentifiersWithAuthorizationData = new ArrayList<>();
 
-
-
         // Unique certificate id per order
         String certificateId = Crypto.generateRandomId();
-
 
         for (ACMEOrderIdentifier identifier : acmeOrderIdentifiers) {
             // Unique value for each domain
@@ -129,7 +144,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
                             "DNS-Identifier \"" + identifier.getDataValue() + "\" is invalid. (Wildcard allowed in provisioner: "
                                     + provisioner.isWildcardAllowed() + ")" +
                                     (DomainAndIpValidation.isIpAddress(identifier.getDataValue())
-                                            ? " It looks like you put an IP Address into a DNS Identifier. Please use am "
+                                            ? " It looks like you put an IP Address into a DNS Identifier. Please use an "
                                             + "\"ip\"-identifier instead, if enabled in current provisioner."
                                             : ""));
                 }
@@ -159,17 +174,12 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             acmeOrderIdentifiersWithAuthorizationData.add(identifier);
 
             respAuthorizations.add(provisioner.getApiURL() + "/acme/authz/" + authorizationId);
-
-
         }
-
 
         ACMEOrder order;
 
         try (Session session = Objects.requireNonNull(getServerInstance().getHibernateUtil().getSessionFactory()).openSession()) {
             Transaction transaction = session.beginTransaction();
-
-
 
             Date startDate = new Date(); // Starts now
             Date endDate = calculateEndDate(newOrderRequestPayload, provisioner, startDate);
@@ -203,8 +213,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             transaction.commit();
         }
 
-
-        //Send E-Mail if order was created
+        // Send E-Mail if order was created
         try {
             SendMail.sendMail(account.getEmails().get(0), "New ACME order created", "Hey there, <br> a new ACME order (" + orderId + ") for <i>" + acmeOrderIdentifiers.get(0).getDataValue() + "</i> was created.", getServerInstance());
         } catch (Exception ex) {
@@ -220,7 +229,6 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         response.setAuthorizations(respAuthorizations);
         response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
 
-
         ctx.status(201);
         ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
         ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
@@ -229,7 +237,6 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         ctx.json(response);
     }
-
 
     /**
      * Checks if a given domain is allowed based on domain name restrictions defined in the ACME provisioner's configuration.
@@ -257,13 +264,17 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
     }
 
     /**
-     * Calculates the notAfter Property of the certificate. If the {@link NewOrderRequestPayload} provides an notAfter date, and it does not exceed the notAfter of the intermediate CA certificate it is returned.
-     * Otherwise, the intermediate CA certificate is returned.
+     * Calculates the notAfter property of the certificate. If the {@link NewOrderRequestPayload} provides a notAfter date,
+     * and it does not exceed the notAfter of the intermediate CA certificate, it is returned.
+     * Otherwise, the notAfter policy of the provisioner is returned.
      *
-     * @return The {@link NewOrderRequestPayload#notAfter} Property, if provided and doesn't exceed the intermediate CA certificate notAfter. notAfter policy of provisioner otherwise.
-     * @throws KeyStoreException, if the intermediate ca certificate could not be loaded.
+     * @param newOrderRequestPayload The payload of the new order request.
+     * @param provisioner            The provisioner instance.
+     * @param startDate              The start date of the order.
+     * @return The calculated end date for the certificate.
+     * @throws KeyStoreException if the intermediate CA certificate could not be loaded.
      */
-    private Date calculateEndDate(NewOrderRequestPayload newOrderRequestPayload, Provisioner provisioner, Date startDate) throws KeyStoreException, KeyStoreException {
+    private Date calculateEndDate(NewOrderRequestPayload newOrderRequestPayload, Provisioner provisioner, Date startDate) throws KeyStoreException {
         Date endDateByOrder = newOrderRequestPayload.getNotAfter();
 
         Date endDateByCA = DateTools.makeDateForOutliveIntermediateCertificate(
