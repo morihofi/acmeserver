@@ -110,14 +110,14 @@ public class CsrDataUtil {
         // Extract CSR Domain Names
         Set<Identifier> csrDomainNames = getDomainsAndIPsFromCSR(csr);
         if (csrDomainNames.isEmpty()) {
-            throw new ACMEBadCsrException("CSR does not contain any domain names");
+            throw new ACMEBadCsrException("CSR does not contain any identifiers");
         }
 
         // Verify all ACME Identifiers are validated
         boolean allIdentifiersValid = identifiers.stream()
                 .allMatch(acmeOrderIdentifier -> acmeOrderIdentifier.getChallengeStatus() == AcmeStatus.VALID);
         if (!allIdentifiersValid) {
-            throw new ACMEServerInternalException("Not all ACME Identifiers were validated");
+            throw new ACMEServerInternalException("Not all ACME identifiers were validated");
         }
 
         // Verify CSR domains match ACME identifiers
