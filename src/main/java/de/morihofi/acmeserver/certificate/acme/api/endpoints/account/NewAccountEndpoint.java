@@ -22,11 +22,9 @@ import com.google.gson.JsonParser;
 import de.morihofi.acmeserver.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.certificate.acme.api.endpoints.account.objects.AccountResponse;
-import de.morihofi.acmeserver.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
@@ -141,14 +139,14 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         // Construct response
         String nonce = Crypto.createNonce(getServerInstance());
         ctx.header("Content-Type", "application/json");
-        ctx.header("Location", provisioner.getApiURL() + "/acme/acct/" + accountId);
+        ctx.header("Location", provisioner.getAcmeApiURL() + "/acme/acct/" + accountId);
         ctx.header("Replay-Nonce", nonce);
         ctx.status(201); // Created
 
         AccountResponse response = new AccountResponse();
         response.setStatus(AcmeStatus.VALID.getRfcName());
         response.setContact(emails);
-        response.setOrders(provisioner.getApiURL() + "/acme/acct/" + accountId + "/orders");
+        response.setOrders(provisioner.getAcmeApiURL() + "/acme/acct/" + accountId + "/orders");
 
         ctx.json(response);
     }

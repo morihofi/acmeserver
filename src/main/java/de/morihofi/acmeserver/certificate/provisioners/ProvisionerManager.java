@@ -23,6 +23,7 @@ import de.morihofi.acmeserver.certificate.revokeDistribution.CRLScheduler;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointGet;
 import de.morihofi.acmeserver.certificate.revokeDistribution.OcspEndpointPost;
 import de.morihofi.acmeserver.tools.ServerInstance;
+import de.morihofi.acmeserver.tools.http.HttpHeaderUtil;
 import io.javalin.Javalin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -87,6 +88,18 @@ public class ProvisionerManager {
         // OCSP (Online Certificate Status Protocol) endpoints
         app.post(provisioner.getOcspPath(), new OcspEndpointPost(provisioner));
         app.get(provisioner.getOcspPath() + "/{ocspRequest}", new OcspEndpointGet(provisioner));
+
+        // Global ACME headers, inspired from Let's Encrypts Boulder
+        app.before(prefix + "/*", context -> {
+            // Disable caching for all ACME routes
+            context.header("Cache-Control", "public, max-age=0, no-cache");
+
+            if(!context.path().equals(prefix + "/directory")){
+                context.header("Link", HttpHeaderUtil.buildLinkHeaderValue(provisioner.getAcmeApiURL() + "/directory", "index"));
+            }
+
+        });
+
 
         // ACME Directory
         app.get(prefix + "/directory", new DirectoryEndpoint(provisioner));

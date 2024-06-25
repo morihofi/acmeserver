@@ -25,7 +25,6 @@ import de.morihofi.acmeserver.certificate.acme.api.endpoints.objects.NewOrderRes
 import de.morihofi.acmeserver.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
@@ -173,7 +172,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
             acmeOrderIdentifiersWithAuthorizationData.add(identifier);
 
-            respAuthorizations.add(provisioner.getApiURL() + "/acme/authz/" + authorizationId);
+            respAuthorizations.add(provisioner.getAcmeApiURL() + "/acme/authz/" + authorizationId);
         }
 
         ACMEOrder order;
@@ -227,13 +226,12 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         response.setNotAfter(DateTools.formatDateForACME(order.getNotAfter()));
         response.setIdentifiers(respIdentifiers);
         response.setAuthorizations(respAuthorizations);
-        response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
+        response.setFinalize(provisioner.getAcmeApiURL() + "/acme/order/" + orderId + "/finalize");
 
         ctx.status(201);
-        ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
         ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
         ctx.header("Content-Type", "application/json");
-        ctx.header("Location", provisioner.getApiURL() + "/acme/order/" + orderId);
+        ctx.header("Location", provisioner.getAcmeApiURL() + "/acme/order/" + orderId);
 
         ctx.json(response);
     }

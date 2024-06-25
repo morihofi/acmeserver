@@ -10,7 +10,6 @@
 
 package de.morihofi.acmeserver.certificate.provisioners;
 
-import de.morihofi.acmeserver.Main;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLGenerator;
 import de.morihofi.acmeserver.certificate.revokeDistribution.CRLScheduler;
 import de.morihofi.acmeserver.config.CertificateExpiration;
@@ -117,7 +116,7 @@ public class Provisioner {
      *
      * @return Full url (including HTTPS prefix) and port to this server
      */
-    public String getApiURL() {
+    public String getAcmeApiURL() {
         return "https://" + serverInstance.getAppConfig().getServer().getDnsName() + (serverInstance.getAppConfig().getServer().getPorts().getHttps() != 443 ? ":"
                 + serverInstance.getAppConfig().getServer().getPorts().getHttps() : "") + "/acme/" + provisionerName;
     }

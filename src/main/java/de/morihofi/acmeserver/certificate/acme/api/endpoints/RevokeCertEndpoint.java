@@ -180,7 +180,6 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         ACMEOrder.revokeCertificate(order, reason, getServerInstance());
 
         ctx.status(200);
-        ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
         ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
         ctx.header("Content-Length", "0");
 

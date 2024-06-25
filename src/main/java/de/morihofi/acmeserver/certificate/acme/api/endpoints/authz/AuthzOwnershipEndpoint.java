@@ -170,7 +170,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         ChallengeResponse challengeResponse = new ChallengeResponse();
         challengeResponse.setType(type.getName());
         challengeResponse.setUrl(
-                getProvisioner().getApiURL() + "/acme/chall/" + identifierChallenge.getChallengeId() + "/" + type.getName());
+                getProvisioner().getAcmeApiURL() + "/acme/chall/" + identifierChallenge.getChallengeId() + "/" + type.getName());
         challengeResponse.setToken(identifierChallenge.getAuthorizationToken());
         if (identifierChallenge.getStatus() == AcmeStatus.VALID) {
             challengeResponse.setStatus(AcmeStatus.VALID.getRfcName());

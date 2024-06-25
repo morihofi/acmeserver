@@ -96,7 +96,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
             }
             identifierList.add(new Identifier(identifier.getType(), identifier.getDataValue()));
 
-            authorizationsList.add(provisioner.getApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
+            authorizationsList.add(provisioner.getAcmeApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
         }
 
         ACMEOrderResponse response = new ACMEOrderResponse();
@@ -115,8 +115,8 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
             }
         }
 
-        response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
-        response.setCertificate(provisioner.getApiURL() + "/acme/order/" + orderId + "/cert");
+        response.setFinalize(provisioner.getAcmeApiURL() + "/acme/order/" + orderId + "/finalize");
+        response.setCertificate(provisioner.getAcmeApiURL() + "/acme/order/" + orderId + "/cert");
         response.setIdentifiers(identifierList);
         response.setAuthorizations(authorizationsList);
 

@@ -73,9 +73,6 @@ public class NewNonceEndpoint implements Handler {
         // Set Cache-Control header to "no-store"
         ctx.header("Cache-Control", "no-store");
 
-        // Set Link header to the ACME directory URL with "rel" attribute set to "index"
-        ctx.header("Link", "<" + provisioner.getApiURL() + "/directory" + ">;rel=\"index\"");
-
         // Generate a new Replay-Nonce using the ACMEProvisioner and set it in the header
         ctx.header("Replay-Nonce", Crypto.createNonce(serverInstance));
     }

@@ -31,6 +31,7 @@ import de.morihofi.acmeserver.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.crypto.Crypto;
 import de.morihofi.acmeserver.tools.dateAndTime.DateTools;
+import de.morihofi.acmeserver.tools.http.HttpHeaderUtil;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -126,12 +127,12 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         } else {
             response.setStatus(AcmeStatus.PENDING.getRfcName());
         }
-        response.setUrl(provisioner.getApiURL() + "/acme/chall/" + challengeId + "/" + challengeType);
+        response.setUrl(provisioner.getAcmeApiURL() + "/acme/chall/" + challengeId + "/" + challengeType);
         response.setToken(identifierChallenge.getAuthorizationToken());
 
         // "Up"-Link header is required for certbot
-        ctx.header("Link",
-                "<" + provisioner.getApiURL() + "/acme/authz/" + identifierChallenge.getIdentifier().getAuthorizationId() + ">;rel=\"up\"");
+        ctx.header("Link", HttpHeaderUtil.buildLinkHeaderValue(provisioner.getAcmeApiURL() + "/acme/authz/" + identifierChallenge.getIdentifier().getAuthorizationId(), "up"));
+
         ctx.json(response);
     }
 }

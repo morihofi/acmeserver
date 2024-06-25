@@ -165,7 +165,6 @@ public class WebServer {
 
             ctx.status(exception.getHttpStatusCode());
             ctx.header("Content-Type", "application/problem+json");
-            // ctx.header("Link", "<" + provisioner.getApiURL() + "/directory>;rel=\"index\"");
             ctx.result(gson.toJson(exception.getErrorResponse()));
             LOG.error("ACME Exception thrown {} : {} ({})", exception.getClass().getSimpleName(), exception.getErrorResponse().getDetail(),
                     exception.getErrorResponse().getType());

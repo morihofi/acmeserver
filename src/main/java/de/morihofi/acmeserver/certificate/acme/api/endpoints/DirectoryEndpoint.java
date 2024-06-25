@@ -62,11 +62,11 @@ public class DirectoryEndpoint implements Handler {
         // Create the main JSON object
         JsonObject responseJSON = new JsonObject();
         responseJSON.add("meta", metaObject);
-        responseJSON.addProperty("newAccount", provisioner.getApiURL() + "/acme/new-acct");
-        responseJSON.addProperty("newNonce", provisioner.getApiURL() + "/acme/new-nonce");
-        responseJSON.addProperty("newOrder", provisioner.getApiURL() + "/acme/new-order");
-        responseJSON.addProperty("revokeCert", provisioner.getApiURL() + "/acme/revoke-cert");
-        responseJSON.addProperty("keyChange", provisioner.getApiURL() + "/acme/key-change");
+        responseJSON.addProperty("newAccount", provisioner.getAcmeApiURL() + "/acme/new-acct");
+        responseJSON.addProperty("newNonce", provisioner.getAcmeApiURL() + "/acme/new-nonce");
+        responseJSON.addProperty("newOrder", provisioner.getAcmeApiURL() + "/acme/new-order");
+        responseJSON.addProperty("revokeCert", provisioner.getAcmeApiURL() + "/acme/revoke-cert");
+        responseJSON.addProperty("keyChange", provisioner.getAcmeApiURL() + "/acme/key-change");
 
         // Convert the JsonObject to a String
         String jsonResponse = gson.toJson(responseJSON);

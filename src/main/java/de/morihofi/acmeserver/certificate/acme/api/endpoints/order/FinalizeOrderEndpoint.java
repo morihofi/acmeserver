@@ -27,7 +27,6 @@ import de.morihofi.acmeserver.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.database.AcmeOrderState;
 import de.morihofi.acmeserver.database.AcmeStatus;
-import de.morihofi.acmeserver.database.HibernateUtil;
 import de.morihofi.acmeserver.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.database.objects.ACMEOrderIdentifier;
@@ -97,7 +96,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
         // One authorization per identifier
         List<String> authorizationsList = identifiers.stream()
-                .map(acmeOrderIdentifier -> provisioner.getApiURL() + "/acme/authz/" + acmeOrderIdentifier.getAuthorizationId())
+                .map(acmeOrderIdentifier -> provisioner.getAcmeApiURL() + "/acme/authz/" + acmeOrderIdentifier.getAuthorizationId())
                 .toList();
 
         try {
@@ -159,10 +158,10 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
-        ctx.header("Location", provisioner.getApiURL() + "/acme/order/" + orderId);
+        ctx.header("Location", provisioner.getAcmeApiURL() + "/acme/order/" + orderId);
 
-        response.setFinalize(provisioner.getApiURL() + "/acme/order/" + orderId + "/finalize");
-        response.setCertificate(provisioner.getApiURL() + "/acme/order/" + orderId + "/cert");
+        response.setFinalize(provisioner.getAcmeApiURL() + "/acme/order/" + orderId + "/finalize");
+        response.setCertificate(provisioner.getAcmeApiURL() + "/acme/order/" + orderId + "/cert");
         response.setIdentifiers(identifierList);
         response.setAuthorizations(authorizationsList);
 

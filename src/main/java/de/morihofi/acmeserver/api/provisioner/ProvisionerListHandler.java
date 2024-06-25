@@ -82,7 +82,7 @@ public class ProvisionerListHandler implements Handler {
         for (Provisioner provisioner : ProvisionerManager.getProvisioners()) {
             ProvisionerListEntryResponse provisionerEntry = new ProvisionerListEntryResponse();
             provisionerEntry.setName(provisioner.getProvisionerName());
-            provisionerEntry.setDirectoryUrl(provisioner.getApiURL() + "/directory");
+            provisionerEntry.setDirectoryUrl(provisioner.getAcmeApiURL() + "/directory");
 
             provisionerResponse.add(provisionerEntry);
         }
