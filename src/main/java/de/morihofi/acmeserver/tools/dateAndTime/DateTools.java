@@ -30,7 +30,7 @@ public class DateTools {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Formats a {@link Date} object as a string in the ACME date format.

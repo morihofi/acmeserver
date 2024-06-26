@@ -33,7 +33,7 @@ public class CabinetMakerExample {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Main method demonstrating the creation of a CAB file.

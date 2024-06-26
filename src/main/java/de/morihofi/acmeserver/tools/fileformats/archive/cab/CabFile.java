@@ -26,7 +26,7 @@ public class CabFile {
     /**
      * Logger instance for logging events related to CAB file processing.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Header information for the CAB file.

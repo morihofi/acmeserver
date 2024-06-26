@@ -39,7 +39,7 @@ public class ACMEAccount implements Serializable {
     /**
      * Logger instance for logging ACME account activities.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Retrieves an ACME (Automated Certificate Management Environment) account by its unique account ID.

@@ -36,7 +36,7 @@ public class SingletonCollector {
     /**
      * Logger for the SingletonCollector class.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Creates a collector that ensures the collection contains exactly one element.

@@ -34,7 +34,7 @@ public class CRLScheduler {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
     private static final int UPDATE_MINUTES = 5;
 
     private static final Map<String, CRLGenerator> crlMap = Collections.synchronizedMap(new HashMap<>());

@@ -51,7 +51,7 @@ public class CertificateAuthorityGenerator {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Generates an X509 certificate for a certificate authority (CA) based on the provided configuration and key pair.

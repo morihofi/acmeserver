@@ -54,7 +54,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Constructs a new RevokeCertEndpoint instance. This constructor initializes the endpoint with a specific Provisioner instance. It sets

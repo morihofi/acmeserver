@@ -62,7 +62,7 @@ public class WebServer {
     /**
      * Logger instance for logging information and errors.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Instance of HTTPAccessLogger for logging HTTP access.
@@ -243,7 +243,7 @@ public class WebServer {
                             cryptoStoreManager.getKeyStore().getProvider().getName());
                 }
                 if (config.getIntermediate().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
-                    LOG.info("Using ECDSA algorithm (Elliptic curves");
+                    LOG.info("Using ECDSA algorithm (Elliptic curves)");
 
                     LOG.info("Generating ECDSA Key Pair using curve {} for Intermediate CA", ecdsaAlgorithmParams.getCurveName());
                     intermediateKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName(),

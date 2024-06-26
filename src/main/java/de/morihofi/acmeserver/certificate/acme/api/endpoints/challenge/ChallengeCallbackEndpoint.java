@@ -46,7 +46,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger for logging information and debugging.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Constructs a NewNonce handler with the specified ACME provisioner and server instance.

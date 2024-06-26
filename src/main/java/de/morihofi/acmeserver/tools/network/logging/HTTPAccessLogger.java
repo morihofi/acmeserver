@@ -42,7 +42,7 @@ public class HTTPAccessLogger {
     private final BlockingQueue<String> logQueue = new LinkedBlockingQueue<>();
     private final Thread logWriterThread;
     private final Path logFileDirectory;
-    private final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
     private volatile boolean running = true;
 
     public HTTPAccessLogger(Config appConfig) throws IOException {

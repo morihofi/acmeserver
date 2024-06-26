@@ -41,7 +41,7 @@ public class CRLGenerator {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Converts a given X509CRL object to its byte array representation. This method is useful for encoding the CRL for storage or

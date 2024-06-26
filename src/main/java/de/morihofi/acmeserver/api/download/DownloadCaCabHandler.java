@@ -66,7 +66,7 @@ public class DownloadCaCabHandler implements Handler {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     private static String toHex(byte[] data) {
         StringBuilder sb = new StringBuilder(data.length * 2);

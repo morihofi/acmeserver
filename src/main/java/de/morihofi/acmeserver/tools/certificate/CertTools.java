@@ -36,7 +36,7 @@ public class CertTools {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Reads a certificate file in PEM format, converts it to X.509 format, and returns the certificate bytes.

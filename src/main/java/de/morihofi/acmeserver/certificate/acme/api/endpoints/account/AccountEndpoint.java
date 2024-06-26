@@ -50,7 +50,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger instance for logging account endpoint activities.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Constructs an AccountEndpoint with the given provisioner and server instance.

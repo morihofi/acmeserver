@@ -39,7 +39,7 @@ public class IntermediateCaRenew {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Renews an intermediate certificate for a provisioner and updates it in the keystore.

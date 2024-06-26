@@ -55,7 +55,7 @@ public class JettySslHelper {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Creates an SSLContext with the specified certificate chain and key pair.

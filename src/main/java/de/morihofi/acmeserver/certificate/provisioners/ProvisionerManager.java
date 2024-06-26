@@ -45,7 +45,7 @@ public class ProvisionerManager {
     /**
      * Logger for logging events and errors.
      */
-    private static final Logger log = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger log = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * A set of registered provisioners.

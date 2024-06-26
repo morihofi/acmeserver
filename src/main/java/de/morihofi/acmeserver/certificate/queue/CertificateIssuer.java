@@ -55,7 +55,7 @@ public class CertificateIssuer {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
     private static Thread certificateQueueIssueThread = null;
 
     public static synchronized void startThread(ServerInstance serverInstance) {

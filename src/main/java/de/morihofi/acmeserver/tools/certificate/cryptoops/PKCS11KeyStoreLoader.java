@@ -51,7 +51,7 @@ public class PKCS11KeyStoreLoader {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Demo for loading a PKCS#11 HSM KeyStore

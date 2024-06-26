@@ -42,7 +42,7 @@ public class CertificateRevokationListGenerator {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Generates a Certificate Revocation List (CRL) using the provided list of revoked certificates, the Certificate Authority (CA)

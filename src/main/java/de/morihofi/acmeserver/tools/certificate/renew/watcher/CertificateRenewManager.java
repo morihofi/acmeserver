@@ -46,7 +46,7 @@ public class CertificateRenewManager {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final CryptoStoreManager cryptoStoreManager;
     private final Map<String, RenewEntry> renewMap = Collections.synchronizedMap(new HashMap<>());

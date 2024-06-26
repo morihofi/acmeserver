@@ -37,7 +37,7 @@ public class CFHeader {
     /**
      * Logger for logging information and debugging.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Cabinet file option indicators.

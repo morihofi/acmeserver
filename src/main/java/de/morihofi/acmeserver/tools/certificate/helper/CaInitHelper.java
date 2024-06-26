@@ -40,7 +40,7 @@ public class CaInitHelper {
     /**
      * Logger for logging information and errors.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Initializes the Certificate Authority (CA) by generating or loading the CA certificate and key pair.

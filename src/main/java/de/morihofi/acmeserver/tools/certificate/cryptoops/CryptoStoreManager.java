@@ -61,7 +61,7 @@ public class CryptoStoreManager {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     public static String getKeyStoreAliasForProvisionerIntermediate(String provisioner) {
         return KEYSTORE_ALIASPREFIX_INTERMEDIATECA + provisioner;

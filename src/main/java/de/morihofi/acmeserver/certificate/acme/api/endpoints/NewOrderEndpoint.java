@@ -61,7 +61,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger instance for logging NewOrderEndpoint activities.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Constructs a NewOrderEndpoint with the given provisioner and server instance.

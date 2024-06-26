@@ -40,7 +40,7 @@ public class Users {
     /**
      * Logger for logging purposes.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * The unique identifier for the user.

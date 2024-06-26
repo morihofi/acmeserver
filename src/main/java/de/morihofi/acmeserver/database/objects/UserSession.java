@@ -42,7 +42,7 @@ public class UserSession {
     /**
      * Logger instance for logging purposes.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Unique identifier for the user session.

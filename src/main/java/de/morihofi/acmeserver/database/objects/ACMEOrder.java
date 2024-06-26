@@ -52,7 +52,7 @@ public class ACMEOrder implements Serializable {
     /**
      * Logger instance for logging ACME order activities.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated certificate serial number.

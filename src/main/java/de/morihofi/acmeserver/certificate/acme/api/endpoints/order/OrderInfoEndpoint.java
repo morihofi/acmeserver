@@ -47,7 +47,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger for logging events.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Constructs a new OrderInfoEndpoint instance with the specified provisioner and server instance.

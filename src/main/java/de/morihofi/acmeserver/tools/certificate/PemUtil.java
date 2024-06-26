@@ -47,7 +47,7 @@ public class PemUtil {
     /**
      * Logger for logging events.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Saves a KeyPair to PEM-encoded files.

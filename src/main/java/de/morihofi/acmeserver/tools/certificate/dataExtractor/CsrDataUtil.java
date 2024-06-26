@@ -46,7 +46,7 @@ public class CsrDataUtil {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Extracts domain names from a Certificate Signing Request (CSR) in PEM format.

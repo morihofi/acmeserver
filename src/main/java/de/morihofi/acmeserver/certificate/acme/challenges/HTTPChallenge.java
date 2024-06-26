@@ -43,11 +43,11 @@ public class HTTPChallenge {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
     /**
      * User Agent used for checking HTTP challenges
      */
-    private static final String USER_AGENT =
+    public static final String USER_AGENT =
             "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + "+git" + Main.buildMetadataGitCommit + " Java/" + System.getProperty(
                     "java.version");
     private static String proxyHost = "";

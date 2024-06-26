@@ -35,7 +35,7 @@ public class HttpNonces {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     @Id
     @Column(name = "nonce", nullable = false)

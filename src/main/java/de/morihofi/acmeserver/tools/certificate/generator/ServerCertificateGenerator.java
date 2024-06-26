@@ -60,7 +60,7 @@ public class ServerCertificateGenerator {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Generates an X509 server certificate using provided parameters and cryptographic elements.

@@ -30,7 +30,7 @@ public class CFData {
     /**
      * Logger for logging information and debugging.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Checksum of this CFDATA entry.

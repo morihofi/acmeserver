@@ -43,7 +43,7 @@ public class JavalinSecurityHelper {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Initializes secure API settings for a Javalin application, configuring SSL/TLS using a custom mechanism rather than Javalin's

@@ -32,7 +32,7 @@ public class AcmeTokenCryptography {
     /**
      * Logger instance for logging ACME token cryptography activities.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Computes a thumbprint of the given public key.

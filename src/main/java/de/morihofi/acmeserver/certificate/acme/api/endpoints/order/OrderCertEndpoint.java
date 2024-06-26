@@ -38,7 +38,7 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger for logging events.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Constructs a new OrderCertEndpoint instance with the specified provisioner and server instance.

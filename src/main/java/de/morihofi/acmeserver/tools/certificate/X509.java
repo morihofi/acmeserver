@@ -36,7 +36,7 @@ public class X509 {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Extracts the X.500 Distinguished Name (DN) from an X.509 certificate.

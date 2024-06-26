@@ -15,7 +15,7 @@ public class Base64Tools {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
     /**
      * Base64Url encoder (without padding) instance
      */

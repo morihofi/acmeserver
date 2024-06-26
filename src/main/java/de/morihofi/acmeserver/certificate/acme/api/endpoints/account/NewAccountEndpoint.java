@@ -55,7 +55,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger instance for logging events.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Constructs a new instance of the NewAccountEndpoint class.

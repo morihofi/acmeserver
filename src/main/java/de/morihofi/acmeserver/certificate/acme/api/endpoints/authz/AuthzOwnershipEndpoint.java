@@ -46,7 +46,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger instance for logging ACME authorization ownership activities.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Constructs a new endpoint for handling authorization ownership challenges.

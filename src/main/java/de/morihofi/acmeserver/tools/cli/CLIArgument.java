@@ -31,7 +31,7 @@ public class CLIArgument {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * The name of the parameter (e.g., "port" in "-port=8080")

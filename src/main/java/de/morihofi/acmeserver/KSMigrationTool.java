@@ -50,7 +50,7 @@ public class KSMigrationTool {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Runs the migration process to import certificates into the KeyStore.

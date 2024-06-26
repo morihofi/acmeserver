@@ -32,7 +32,7 @@ public class CFFile {
     /**
      * Logger for logging information and debugging.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Uncompressed size of this file in bytes.

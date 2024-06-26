@@ -32,7 +32,7 @@ public class DirectoryEndpoint implements Handler {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
     private final Provisioner provisioner;
 
     @SuppressFBWarnings("EI_EXPOSE_REP2")

@@ -37,7 +37,7 @@ public class SendMail {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Sends an email using the specified email configuration, including optional encryption settings.

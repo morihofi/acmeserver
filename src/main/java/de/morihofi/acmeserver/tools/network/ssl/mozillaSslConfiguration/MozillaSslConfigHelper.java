@@ -47,7 +47,7 @@ public class MozillaSslConfigHelper {
     /**
      * Logger for logging purposes.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
     /**
      * OkHttpClient instance for making HTTP requests.
      */

@@ -33,7 +33,7 @@ public class GitHubVersionChecker {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
     private static final String PROJECT_NAME = "acmeserver";
     private static final String PROJECT_OWNER = "morihofi";
 

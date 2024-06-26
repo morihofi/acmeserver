@@ -54,7 +54,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * ACME Endpoint for finalize an order

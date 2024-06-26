@@ -52,7 +52,7 @@ public class DownloadCaPemHandler implements Handler {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Instance for accessing the current provisioner

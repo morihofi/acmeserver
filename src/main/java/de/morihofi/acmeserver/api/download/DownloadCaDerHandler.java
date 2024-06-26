@@ -49,7 +49,7 @@ public class DownloadCaDerHandler implements Handler {
     /**
      * Logger
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
     private final ServerInstance serverInstance;
 
     public DownloadCaDerHandler(ServerInstance serverInstance) {

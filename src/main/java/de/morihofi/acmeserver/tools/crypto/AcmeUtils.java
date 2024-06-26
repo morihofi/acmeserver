@@ -55,7 +55,7 @@ public final class AcmeUtils {
     /**
      * Logger instance for logging ACME utility activities.
      */
-    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().getClass());
+    private static final Logger LOG = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Hexadecimal characters for encoding.
