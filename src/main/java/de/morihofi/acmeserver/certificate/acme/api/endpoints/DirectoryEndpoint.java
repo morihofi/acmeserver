@@ -56,9 +56,19 @@ public class DirectoryEndpoint implements Handler {
 
         // Create the meta object
         JsonObject metaObject = new JsonObject();
-        metaObject.addProperty("website", provisioner.getAcmeMetadataConfig().getWebsite().trim());
-        metaObject.addProperty("termsOfService", provisioner.getAcmeMetadataConfig().getTos().trim());
+        {
+            String website = "about:blank";
+            String tos = "about:blank";
+            if(provisioner.getAcmeMetadataConfig().getWebsite() != null){
+                website = provisioner.getAcmeMetadataConfig().getWebsite().trim();
+            }
+            if(provisioner.getAcmeMetadataConfig().getTos() != null){
+                tos = provisioner.getAcmeMetadataConfig().getTos().trim();
+            }
 
+            metaObject.addProperty("website", website);
+            metaObject.addProperty("termsOfService", tos);
+        }
         // Create the main JSON object
         JsonObject responseJSON = new JsonObject();
         responseJSON.add("meta", metaObject);

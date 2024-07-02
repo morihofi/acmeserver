@@ -37,13 +37,13 @@ public class ProvisionerConfig implements Serializable {
      * The intermediate certificate settings for the provisioner.
      */
     @ConfigurationField(name = "Intermediate Certificate Settings")
-    private CertificateConfig intermediate;
+    private CertificateConfig intermediate = new CertificateConfig();
 
     /**
      * The metadata configuration for the provisioner.
      */
     @ConfigurationField(name = "Provisioner metadata")
-    private MetadataConfig meta;
+    private MetadataConfig meta = new MetadataConfig();
 
     /**
      * The expiration configuration for issued certificates by the provisioner.
@@ -55,19 +55,19 @@ public class ProvisionerConfig implements Serializable {
      * The domain name restriction configuration for the provisioner.
      */
     @ConfigurationField(name = "Domain Name Restriction")
-    private DomainNameRestrictionConfig domainNameRestriction;
+    private DomainNameRestrictionConfig domainNameRestriction = new DomainNameRestrictionConfig();
 
     /**
      * Flag indicating whether wildcard certificates are allowed for this provisioner.
      */
     @ConfigurationField(name = "Allow issuing for DNS Wildcards")
-    private boolean wildcardAllowed;
+    private boolean wildcardAllowed = false;
 
     /**
      * Flag indicating whether IP address certificates are allowed for this provisioner.
      */
     @ConfigurationField(name = "Allow issuing for IP Addresses")
-    private boolean ipAllowed;
+    private boolean ipAllowed = false;
 
     /**
      * Get the name of the provisioner.

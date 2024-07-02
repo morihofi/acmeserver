@@ -28,7 +28,7 @@ public class CertificateMetadata implements Serializable {
      * Common name
      */
     @ConfigurationField(name = "Common Name", required = true)
-    private String commonName;
+    private String commonName = "";
     /**
      * Organisation
      */

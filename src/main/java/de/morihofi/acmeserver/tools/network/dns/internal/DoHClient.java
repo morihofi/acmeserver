@@ -75,7 +75,7 @@ public class DoHClient {
                 .build();
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                throw new IOException("Unexpected code " + response);
+                throw new IOException("Unexpected code " + response + " for query " + query.toString());
             }
             assert response.body() != null;
             byte[] responseBytes = response.body().bytes();

@@ -25,6 +25,15 @@ import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
  */
 @ConfigurationClassExtends(configName = "rsa")
 public class RSAAlgorithmParams extends AlgorithmParams {
+
+
+    public RSAAlgorithmParams() {
+    }
+
+    public RSAAlgorithmParams(int keySize) {
+        this.keySize = keySize;
+    }
+
     /**
      * RSA Key size
      */

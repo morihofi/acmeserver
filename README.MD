@@ -36,7 +36,8 @@ I'll hope to say one day that we are fully compliant.
 
 ## 📖 Documentation
 
-Documentation is now located [here](docs/README.md). In the same directory are also other tutorials related to this ACME Server.
+Documentation is now located [here](docs/README.md). In the same directory are also other tutorials related to this ACME
+Server.
 
 ## ✨ Features
 
@@ -75,12 +76,12 @@ Documentation is now located [here](docs/README.md). In the same directory are a
 
 |                                                               | HTTP-01 | DNS-01 |                                                                                                                                            |
 |---------------------------------------------------------------|---------|--------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree) | ✅       | ✅      | -> modified version is included                                                                                                            |
+| [GetHttpsForFree](https://github.com/diafygi/gethttpsforfree) | ✅       | ✅      | -> modified version is included in web frontend                                                                                            |
 | [Certbot](https://certbot.eff.org)                            | ✅       | ✅      | ℹ Note, works only correctly, if certificate issuing is not async in the server (default)                                                  |
 | [acme.sh](https://github.com/acmesh-official/acme.sh)         | 🐞      | ✅      | For HTTP-01 use Standalone mode, nginx mode won't work for no reason. Should also work for OPNsense, cause it also uses acme.sh as backend |
 | [Traefik](https://github.com/traefik/traefik)                 | ✅       | ❓      |                                                                                                                                            |
 | [win-acme](https://www.win-acme.com/)                         | ✅       | ❓      | Tested with IIS 8.5 on Win Server 2012 r2. Only use Provisioner with RSA, because IIS doesn't support Elliptical Curves                    |
-| [acme4j](https://acme4j.shredzone.org)                        | ✅       | ✅      |                                                                                                                                            |
+| [acme4j](https://acme4j.shredzone.org)                        | ✅       | ✅      | Also used for Unit Testing, currently HTTP-01 only                                                                                         |
 
 ### 💻 Tested Operating Systems
 
@@ -113,6 +114,10 @@ you have to add the driver manually to the classpath and specify the Main-Class 
 Enable debug mode by set environment variable `DEBUG` to `TRUE` or start ACME Server with `--debug`.
 Do not use this in production as it disables some security mechanisms (e.g. nonce check) and can lead to misuse of your
 CA.
+
+## 🧪 Note for Unit Testing
+
+To be able to run the Unit Test, please make sure, that port `80` (default HTTP Port) is not in use
 
 ## 💻 Development Contributions
 

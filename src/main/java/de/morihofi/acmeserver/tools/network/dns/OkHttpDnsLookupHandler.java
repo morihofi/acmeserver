@@ -21,6 +21,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -66,6 +67,10 @@ public class OkHttpDnsLookupHandler implements Dns {
     @NotNull
     @Override
     public List<InetAddress> lookup(@NotNull String hostname) throws UnknownHostException {
+        if(hostname.equals("localhost")){
+            return Collections.singletonList(InetAddress.getLocalHost());
+        }
+
         if (dnsConfig.getDohEnabled()) {
             // Use DoH
             LOG.info("Lookup for {} using DNS over HTTPS", hostname);

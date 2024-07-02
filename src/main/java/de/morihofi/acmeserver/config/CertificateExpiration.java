@@ -24,6 +24,16 @@ import java.io.Serializable;
  * Represents expiration information for a certificate, specifying months, days, and years.
  */
 public class CertificateExpiration implements Serializable {
+
+    public CertificateExpiration() {
+    }
+
+    public CertificateExpiration(int days, int months, int years) {
+        this.months = months;
+        this.days = days;
+        this.years = years;
+    }
+
     @ConfigurationField(name = "Months", required = true)
     private Integer months;
     @ConfigurationField(name = "Days", required = true)

@@ -28,7 +28,7 @@ import java.io.Serializable;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class CertificateConfig implements Serializable {
     @ConfigurationField(name = "Certificate Metadata")
-    private CertificateMetadata metadata;
+    private CertificateMetadata metadata = new CertificateMetadata();
     @ConfigurationField(name = "Algorithm")
     private AlgorithmParams algorithm;
     @ConfigurationField(name = "Certificate Expiration")

@@ -23,7 +23,7 @@ public class DNSConfig {
     private Boolean dohEnabled = false;
 
     @ConfigurationField(name = "DNS over HTTP Endpoint")
-    private String dohEndpoint = "https://dns.google/resolve";
+    private String dohEndpoint = "https://cloudflare-dns.com/dns-query";
 
     public List<String> getDnsServers() {
         return dnsServers;

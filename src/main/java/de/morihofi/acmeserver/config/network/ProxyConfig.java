@@ -30,25 +30,25 @@ public class ProxyConfig implements Serializable {
      * The host name or IP address of the proxy.
      */
     @ConfigurationField(name = "Proxy Host")
-    private String host;
+    private String host = "";
 
     /**
      * The port number of the proxy.
      */
     @ConfigurationField(name = "Proxy Port")
-    private Integer port;
+    private Integer port = 0;
 
     /**
-     * The type of the proxy (e.g., HTTP, SOCKS).
+     * The type of the proxy (http or socks). Any other value except null means direct connection.
      */
     @ConfigurationField(name = "Proxy Type")
-    private String type;
+    private String type = "";
 
     /**
      * The authentication configuration for the proxy.
      */
     @ConfigurationField(name = "Proxy Authentication")
-    private Authentication authentication;
+    private Authentication authentication = new Authentication();
 
     /**
      * Get the port for the proxy.

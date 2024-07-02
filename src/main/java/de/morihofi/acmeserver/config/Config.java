@@ -23,6 +23,7 @@ import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,13 +47,13 @@ public class Config implements Serializable {
     private EmailConfig emailSmtp;
 
     @ConfigurationField(name = "Root-CA")
-    private CertificateConfig rootCA;
+    private CertificateConfig rootCA = new CertificateConfig();
 
     @ConfigurationField(name = "Provisioners")
-    private List<ProvisionerConfig> provisioner;
+    private List<ProvisionerConfig> provisioner = new ArrayList<>();
 
     @ConfigurationField(name = "Network settings")
-    private NetworkConfig network;
+    private NetworkConfig network = new NetworkConfig();
 
     /**
      * Get the list of provisioner configurations.

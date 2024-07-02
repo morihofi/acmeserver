@@ -178,10 +178,7 @@ public class Main {
         SLF4JBridgeHandler.install();
 
         // Register Bouncy Castle Provider
-        LOG.info("Register Bouncy Castle Security Provider");
-        Security.addProvider(new BouncyCastleProvider());
-        LOG.info("Register Bouncy Castle JSSE Security Provider");
-        Security.addProvider(new BouncyCastleJsseProvider());
+        initBouncyCastle();
 
         LOG.info("Initializing directories");
         ensureFilesDirectoryExists();
@@ -219,28 +216,9 @@ public class Main {
             }
         }
 
-        if (Objects.equals(System.getenv("DEBUG"), "TRUE")) {
-            debug = true;
-            LOG.info("Debug mode activated by DEBUG environment variable set to TRUE");
-        }
 
-        if (debug) {
-            LOG.warn("!!! RUNNING IN DEBUG MODE - BEHAVIOR CAN BE DIFFERENT. DO NOT USE IN PRODUCTION !!!");
-        }
-
-        LOG.info("Initializing core components ...");
         Config config = loadServerConfiguration();
-        HibernateUtil hibernateUtil = new HibernateUtil(config, debug);
-
-        serverInstance = new ServerInstance(
-                config,
-                CONFIG_PATH,
-                debug,
-                initializeCryptoStoreManagerCoreComponents(config),
-                new NetworkClient(config.getNetwork()),
-                hibernateUtil,
-                new NonceManager(hibernateUtil, debug)
-        );
+        serverInstance = getServerInstance(config, debug, CONFIG_PATH);
 
         switch (selectedMode) {
             case NORMAL -> {
@@ -259,6 +237,38 @@ public class Main {
                 KSMigrationTool.run(args, serverInstance.getCryptoStoreManager(), serverInstance.getAppConfig(), FILES_DIR);
             }
         }
+    }
+
+    public static void initBouncyCastle() {
+        LOG.info("Register Bouncy Castle Security Provider");
+        Security.addProvider(new BouncyCastleProvider());
+        LOG.info("Register Bouncy Castle JSSE Security Provider");
+        Security.addProvider(new BouncyCastleJsseProvider());
+    }
+
+    public static ServerInstance getServerInstance(Config config, boolean debug, Path configPath) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+        if (Objects.equals(System.getenv("DEBUG"), "TRUE")) {
+            debug = true;
+            LOG.info("Debug mode activated by DEBUG environment variable set to TRUE");
+        }
+
+        if (debug) {
+            LOG.warn("!!! RUNNING IN DEBUG MODE - BEHAVIOR CAN BE DIFFERENT. DO NOT USE IN PRODUCTION !!!");
+        }
+
+        LOG.info("Initializing core components ...");
+
+        HibernateUtil hibernateUtil = new HibernateUtil(config, debug);
+
+        return new ServerInstance(
+                config,
+                configPath,
+                debug,
+                initializeCryptoStoreManagerCoreComponents(config),
+                new NetworkClient(config.getNetwork()),
+                hibernateUtil,
+                new NonceManager(hibernateUtil, debug)
+        );
     }
 
     /**
@@ -372,7 +382,7 @@ public class Main {
     /**
      * Loads build and Git metadata from resource files and populates corresponding variables.
      */
-    private static void loadBuildAndGitMetadata() {
+    public static void loadBuildAndGitMetadata() {
 
         loadMetadata("/build.properties", properties -> {
             LOG.info("Loading build metadata");

@@ -20,6 +20,7 @@ import de.morihofi.acmeserver.configPreprocessor.annotation.ConfigurationField;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,9 +29,9 @@ import java.util.List;
 @SuppressFBWarnings("EI_EXPOSE_REP")
 public class DomainNameRestrictionConfig implements Serializable {
     @ConfigurationField(name = "Must end with domain names")
-    private List<String> mustEndWith;
+    private List<String> mustEndWith = new ArrayList<>();
     @ConfigurationField(name = "Enable domain name restriction", required = true)
-    private Boolean enabled;
+    private boolean enabled = false;
 
     /**
      * Get the list of required suffixes that domain names must end with.
@@ -55,7 +56,7 @@ public class DomainNameRestrictionConfig implements Serializable {
      *
      * @return True if enabled, false otherwise.
      */
-    public Boolean getEnabled() {
+    public boolean getEnabled() {
         return this.enabled;
     }
 
@@ -64,7 +65,7 @@ public class DomainNameRestrictionConfig implements Serializable {
      *
      * @param enabled The enabled status to set.
      */
-    public void setEnabled(Boolean enabled) {
+    public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 }
