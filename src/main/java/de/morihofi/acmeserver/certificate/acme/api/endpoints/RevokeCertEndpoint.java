@@ -61,7 +61,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
      * up the necessary components for handling certificate revocation requests, including creating a new Gson instance for JSON
      * processing.
      *
-     * @param provisioner The {@link Provisioner} instance used for managing certificate operations.
+     * @param provisioner    The {@link Provisioner} instance used for managing certificate operations.
      * @param serverInstance The {@link ServerInstance} to use for this endpoint
      */
     public RevokeCertEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
@@ -74,21 +74,18 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
         // Payload is Base64 Encoded, so we get the decoded one
         JsonObject reqBodyPayloadObj = JsonParser.parseString(acmeRequestBody.getDecodedPayload()).getAsJsonObject();
-        JsonObject reqBodyProtectedObj = JsonParser.parseString(acmeRequestBody.getDecodedProtected()).getAsJsonObject();
+        // JsonObject reqBodyProtectedObj = JsonParser.parseString(acmeRequestBody.getDecodedProtected()).getAsJsonObject();
 
         // Check which method our server uses:
-        // String accountId = null;
-        if (reqBodyProtectedObj.has("kid")) {
-            // Account Key Method
-            //   accountId = getAccountIdFromProtected(reqBodyProtectedObj);
-        } else {
-            // if(reqBodyPayloadObj.has("jwk"))
+
+        if (reqBodyPayloadObj.has("jwk")) {
             // Domain Key Method
             // Currently unsupported
             // TODO: Implement JWK Method
             throw new ACMEMalformedException("Method currently unsupported. Please use Account Key Method (kid)");
         }
 
+        // Else domain key
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
         ACMEAccount account = ACMEAccount.getAccount(accountId, getServerInstance());
         // Check if account exists
@@ -122,7 +119,8 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
             PublicKey intermediateCertificatePublicKey = intermediateCertificate.getPublicKey();
             certificate.verify(intermediateCertificatePublicKey);
             LOG.debug("Certificate is valid");
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             LOG.error("Certificate is invalid or not from this CA", e);
             isValid = false;
         }
@@ -131,7 +129,8 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         try {
             certificate.checkValidity(new Date());
             LOG.debug("Certificate date is valid");
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             LOG.error("Certificate date is invalid");
             isValid = false;
         }
@@ -155,18 +154,18 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEAlreadyRevokedException("Error revoking certificate: The specified certificate is already revoked");
         }
 
-        /*
-        Reasons:
-            0: Unspecified - No specific reason given.
-            1: Key Compromise - The private key of the certificate has been compromised.
-            2: CA Compromise - The CA that issued the certificate has been compromised.
-            3: Affiliation Changed - The certificate holder has given up her affiliation with the organization that issued the certificate.
-            4: Superseded - The certificate has been replaced by another certificate.
-            5: Cessation Of Operation - The certificate holder has ceased business operations.
-            6: Certificate Hold - The certificate is temporarily withheld.
-            7: (Unspecified)
-            8: Remove From CRL - The certificate was mistakenly placed on the revocation list.
-         */
+    /*
+    Reasons:
+        0: Unspecified - No specific reason given.
+        1: Key Compromise - The private key of the certificate has been compromised.
+        2: CA Compromise - The CA that issued the certificate has been compromised.
+        3: Affiliation Changed - The certificate holder has given up her affiliation with the organization that issued the certificate.
+        4: Superseded - The certificate has been replaced by another certificate.
+        5: Cessation Of Operation - The certificate holder has ceased business operations.
+        6: Certificate Hold - The certificate is temporarily withheld.
+        7: (Unspecified)
+        8: Remove From CRL - The certificate was mistakenly placed on the revocation list.
+     */
         int reason = reqBodyPayloadObj.get("reason").getAsInt();
 
         // Check reason code
