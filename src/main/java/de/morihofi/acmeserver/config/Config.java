@@ -44,7 +44,7 @@ public class Config implements Serializable {
     private DatabaseConfig database;
 
     @ConfigurationField(name = "E-Mail SMTP")
-    private EmailConfig emailSmtp;
+    private EmailConfig emailSmtp = new EmailConfig();
 
     @ConfigurationField(name = "Root-CA")
     private CertificateConfig rootCA = new CertificateConfig();

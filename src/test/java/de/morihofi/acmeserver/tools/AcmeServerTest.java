@@ -2,8 +2,11 @@ package de.morihofi.acmeserver.tools;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import de.morihofi.acmeserver.exception.ACMEException;
+import de.morihofi.acmeserver.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.tools.network.SocketUtil;
 import io.javalin.Javalin;
+import jdk.dynalink.NamedOperation;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -14,7 +17,6 @@ import org.shredzone.acme4j.challenge.Challenge;
 import org.shredzone.acme4j.challenge.Dns01Challenge;
 import org.shredzone.acme4j.challenge.Http01Challenge;
 import org.shredzone.acme4j.exception.AcmeException;
-import org.shredzone.acme4j.provider.ChallengeType;
 import org.shredzone.acme4j.util.KeyPairUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,13 +33,16 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AcmeServerTest {
 
     private int acmeserverPort;
     private static final FileSystem fs;
     private static final Path acmeClientWorkingDir;
-    private static final String PROVISIONER_NAME = "hello";
+    private static final String PROVISIONER_NAME_NORESTRICTION = "unrestricted";
+    private static final String PROVISIONER_NAME_RESTRICTION = "domainrestricted";
     private static final String keystoreName = "keystore-unittest-" + UUID.randomUUID().toString() + ".p12";
 
     static {
@@ -69,7 +74,8 @@ public class AcmeServerTest {
 
         embeddedServer.configureKeystorePKCS12(keystoreName, "123456");
         embeddedServer.configureRsaRootCertificate(1, 0, 0, "ACME Server");
-        embeddedServer.addSimpleProvisioner(PROVISIONER_NAME, 1, 0, 0);
+        embeddedServer.addSimpleProvisioner(PROVISIONER_NAME_NORESTRICTION, 1, 0, 0, Collections.emptyList()); // Allow all
+        embeddedServer.addSimpleProvisioner(PROVISIONER_NAME_RESTRICTION, 1, 0, 0, List.of("notlocalhost")); // Restrict only to be end with notlocalhost
         embeddedServer.start();
 
         // TLS Configuration for trusting our just in time generated Root CA
@@ -108,8 +114,8 @@ public class AcmeServerTest {
     // Set the Connection URI of your CA here. For testing purposes, use a staging
     // server if possible. Example: "acme://letsencrypt.org/staging" for the Let's
     // Encrypt staging server.
-    private String getCaUri(){
-        return "https://localhost:"  + acmeserverPort  + "/acme/" + PROVISIONER_NAME + "/directory";
+    private String getCaUri(String provisioner){
+        return "https://localhost:"  + acmeserverPort  + "/acme/" + provisioner + "/directory";
     } ;
 
     // E-Mail address to be associated with the account. Optional, null if not used.
@@ -151,12 +157,12 @@ public class AcmeServerTest {
      *
      * @param domains Domains to get a common certificate for
      */
-    public void fetchCertificate(Collection<String> domains) throws IOException, AcmeException {
+    public void fetchCertificate(Collection<String> domains, String provisioner) throws IOException, AcmeException {
         // Load the user key file. If there is no key file, create a new one.
         KeyPair userKeyPair = loadOrCreateUserKeyPair();
 
         // Create a session.
-        Session session = new Session(getCaUri());
+        Session session = new Session(getCaUri(provisioner));
 
         // Get the Account.
         // If there is no account yet, create a new one.
@@ -493,7 +499,20 @@ public class AcmeServerTest {
      */
     @Test
     public void acmeServerTest() throws AcmeException, IOException {
-        fetchCertificate(Collections.singleton("localhost"));
+        fetchCertificate(Collections.singleton("localhost"), PROVISIONER_NAME_NORESTRICTION);
+    }
+
+    /**
+     * The test, that should fail
+     *
+     * @throws AcmeException
+     * @throws IOException
+     */
+    @Test
+    public void acmeServerTestInvalidDomain() {
+        assertThrows(AcmeException.class,() -> {
+            fetchCertificate(Collections.singleton("localhost"), PROVISIONER_NAME_RESTRICTION);
+        });
     }
 
     @AfterAll

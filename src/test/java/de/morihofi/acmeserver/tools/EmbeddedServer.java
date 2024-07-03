@@ -35,6 +35,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EmbeddedServer {
     private final Config config = new Config();
@@ -85,7 +87,7 @@ public class EmbeddedServer {
         config.getRootCA().getMetadata().setCommonName(cn);
     }
 
-    public void addSimpleProvisioner(String name, int days, int months, int years) {
+    public void addSimpleProvisioner(String name, int days, int months, int years, List<String> allowedDomainEndings) {
 
         ProvisionerConfig provisionerConfig = new ProvisionerConfig();
         provisionerConfig.setName(name);
@@ -93,6 +95,8 @@ public class EmbeddedServer {
         provisionerConfig.getIntermediate().setAlgorithm(new RSAAlgorithmParams(4096));
         provisionerConfig.getIntermediate().setExpiration(new CertificateExpiration(7, 0, 0));
         provisionerConfig.getIntermediate().getMetadata().setCommonName(name);
+        provisionerConfig.getDomainNameRestriction().setEnabled(!allowedDomainEndings.isEmpty());
+        provisionerConfig.getDomainNameRestriction().setMustEndWith(new ArrayList<>(allowedDomainEndings));
 
         config.getProvisioner().add(provisionerConfig);
     }

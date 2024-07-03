@@ -25,17 +25,17 @@ import java.io.Serializable;
  */
 public class EmailConfig implements Serializable {
     @ConfigurationField(name = "Enable E-Mail sending")
-    private Boolean enabled;
+    private Boolean enabled = false;
     @ConfigurationField(name = "SMTP Host")
-    private String host;
+    private String host = "";
     @ConfigurationField(name = "SMTP Port")
-    private Integer port;
+    private Integer port = 0;
     @ConfigurationField(name = "SMTP Username")
-    private String username;
+    private String username = "";
     @ConfigurationField(name = "SMTP Password")
-    private String password;
+    private String password = "";
     @ConfigurationField(name = "SMTP Connection Encryption")
-    private String encryption;
+    private String encryption = "none";
 
 
     /**
