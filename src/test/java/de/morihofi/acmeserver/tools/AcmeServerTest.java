@@ -5,6 +5,7 @@ import com.google.common.jimfs.Jimfs;
 import de.morihofi.acmeserver.tools.network.SocketUtil;
 import io.javalin.Javalin;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -22,10 +23,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.*;
 import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.time.Instant;
@@ -40,6 +38,7 @@ public class AcmeServerTest {
     private static final FileSystem fs;
     private static final Path acmeClientWorkingDir;
     private static final String PROVISIONER_NAME = "hello";
+    private static final String keystoreName = "keystore-unittest-" + UUID.randomUUID().toString() + ".p12";
 
     static {
         // Create virtual filesystem
@@ -67,7 +66,8 @@ public class AcmeServerTest {
                 "sample_user",
                 "123456"
         );
-        embeddedServer.configureKeystorePKCS12("keystore.p12", "123456");
+
+        embeddedServer.configureKeystorePKCS12(keystoreName, "123456");
         embeddedServer.configureRsaRootCertificate(1, 0, 0, "ACME Server");
         embeddedServer.addSimpleProvisioner(PROVISIONER_NAME, 1, 0, 0);
         embeddedServer.start();
@@ -494,5 +494,10 @@ public class AcmeServerTest {
     @Test
     public void acmeServerTest() throws AcmeException, IOException {
         fetchCertificate(Collections.singleton("localhost"));
+    }
+
+    @AfterAll
+    public void cleanup() throws IOException {
+        Files.deleteIfExists(Paths.get(keystoreName));
     }
 }
