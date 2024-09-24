@@ -41,9 +41,6 @@ import io.javalin.Javalin;
 import io.javalin.http.HandlerType;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.json.JavalinGson;
-import io.javalin.openapi.plugin.OpenApiPlugin;
-import io.javalin.openapi.plugin.redoc.ReDocPlugin;
-import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -117,18 +114,6 @@ public class WebServer {
             config.staticFiles.add("/webstatic", Location.CLASSPATH);
             // Object Mapper
             config.jsonMapper(new JavalinGson());
-            //
-            config.registerPlugin(new OpenApiPlugin(pluginConfig -> {
-                pluginConfig.withDefinitionConfiguration((version, definition) -> {
-                    definition.withInfo(info -> {
-                        info.setTitle("ACME Server OpenAPI");
-                        info.setDescription("This is the API documentation of morihofi's ACME Server.");
-                    });
-                });
-            }));
-            config.registerPlugin(new SwaggerPlugin());
-            config.registerPlugin(new ReDocPlugin());
-
         });
 
         JavalinSecurityHelper.initSecureApi(app, serverInstance, certificateRenewManager);

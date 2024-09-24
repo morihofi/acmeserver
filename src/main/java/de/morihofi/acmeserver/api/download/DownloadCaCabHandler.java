@@ -21,10 +21,6 @@ import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.tools.fileformats.archive.cab.CabFile;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.openapi.HttpMethod;
-import io.javalin.openapi.OpenApi;
-import io.javalin.openapi.OpenApiContent;
-import io.javalin.openapi.OpenApiResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -47,21 +43,6 @@ import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 
-@OpenApi(
-        summary = "Get the Root certificate in a Windows Mobile 5+ compatible way",
-        operationId = "getCabCertificate",
-        path = "/ca.cab",
-        methods = HttpMethod.GET,
-        tags = {"Download Root Certificate"},
-        responses = {
-                @OpenApiResponse(status = "200", content = {
-                        @OpenApiContent(
-                                from = byte[].class,
-                                mimeType = "application/vnd.ms-cab-compressed"
-                        )
-                })
-        }
-)
 public class DownloadCaCabHandler implements Handler {
     /**
      * Logger

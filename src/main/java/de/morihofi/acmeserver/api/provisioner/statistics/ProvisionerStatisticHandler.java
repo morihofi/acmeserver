@@ -18,10 +18,6 @@ import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.openapi.HttpMethod;
-import io.javalin.openapi.OpenApi;
-import io.javalin.openapi.OpenApiContent;
-import io.javalin.openapi.OpenApiResponse;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,28 +50,10 @@ public class ProvisionerStatisticHandler implements Handler {
     /**
      * Handles the HTTP request to retrieve statistics of all available provisioners.
      *
-     * <p>This method is annotated with {@link OpenApi} to define its OpenAPI documentation. It gathers statistics for each provisioner and
-     * returns them in a JSON format.
-     *
      * @param context The Javalin {@link Context} of the HTTP request.
      * @throws Exception If an error occurs while retrieving the statistics.
      */
     @Override
-    @OpenApi(
-            summary = "List statistics of all available provisioner",
-            operationId = "getProvisionerStats",
-            path = "/api/stats/provisioner-all",
-            methods = HttpMethod.GET,
-            tags = {"Statistics"},
-            responses = {
-                    @OpenApiResponse(status = "200", content = {
-                            @OpenApiContent(
-                                    from = ProvisionerStatisticResponse[].class,
-                                    mimeType = "application/json"
-                            )
-                    })
-            }
-    )
     public void handle(@NotNull Context context) throws Exception {
         List<ProvisionerStatisticResponse> statisticItemsOfProvisioner = new ArrayList<>();
 

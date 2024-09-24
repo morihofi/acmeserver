@@ -22,11 +22,6 @@ import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.network.dns.DNSLookup;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.openapi.HttpMethod;
-import io.javalin.openapi.OpenApi;
-import io.javalin.openapi.OpenApiContent;
-import io.javalin.openapi.OpenApiRequestBody;
-import io.javalin.openapi.OpenApiResponse;
 import org.jetbrains.annotations.NotNull;
 import org.xbill.DNS.A6Record;
 import org.xbill.DNS.AAAARecord;
@@ -93,32 +88,6 @@ import java.util.List;
 
 public class DnsResolverHandler implements Handler {
     @Override
-    @OpenApi(
-            summary = "Resolve a DNS Query",
-            operationId = "resolveDns",
-            path = "/api/troubleshooting/dns-resolver",
-            methods = HttpMethod.POST,
-            tags = {"Troubleshooting"},
-            requestBody = @OpenApiRequestBody(
-                    required = true,
-                    description = "DNS Query Request",
-                    content = {
-                            @OpenApiContent(
-                                    from = DnsResolverRequest.class,
-                                    mimeType = "application/json"
-                            )
-                    }),
-            responses = {
-                    @OpenApiResponse(
-                            status = "200",
-                            content = {
-                                    @OpenApiContent(
-                                            from = DnsResolverResponse.class,
-                                            mimeType = "application/json"
-                                    )
-                            })
-            }
-    )
     public void handle(@NotNull Context context) throws Exception {
         DnsResolverRequest request = context.bodyAsClass(DnsResolverRequest.class);
 

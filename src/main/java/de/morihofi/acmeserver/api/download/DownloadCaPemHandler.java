@@ -21,10 +21,6 @@ import de.morihofi.acmeserver.tools.certificate.PemUtil;
 import de.morihofi.acmeserver.tools.certificate.cryptoops.CryptoStoreManager;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.openapi.HttpMethod;
-import io.javalin.openapi.OpenApi;
-import io.javalin.openapi.OpenApiContent;
-import io.javalin.openapi.OpenApiResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -32,21 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.invoke.MethodHandles;
 
 
-@OpenApi(
-        summary = "Get the Root certificate as PEM encoded certificate",
-        operationId = "getPemCertificate",
-        path = "/ca.pem",
-        methods = HttpMethod.GET,
-        tags = {"Download Root Certificate"},
-        responses = {
-                @OpenApiResponse(status = "200", content = {
-                        @OpenApiContent(
-                                from = byte[].class,
-                                mimeType = "application/x-x509-ca-cert"
-                        )
-                })
-        }
-)
+
 public class DownloadCaPemHandler implements Handler {
 
     /**

@@ -18,10 +18,6 @@ import de.morihofi.acmeserver.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.tools.ServerInstance;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.openapi.HttpMethod;
-import io.javalin.openapi.OpenApi;
-import io.javalin.openapi.OpenApiContent;
-import io.javalin.openapi.OpenApiResponse;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -60,21 +56,6 @@ public class ProvisionerListHandler implements Handler {
      * @throws Exception If an error occurs while processing the request.
      */
     @Override
-    @OpenApi(
-            summary = "List all available provisioners",
-            operationId = "getProvisionerList",
-            path = "/api/provisioner/list",
-            methods = HttpMethod.GET,
-            tags = {"Provisioner"},
-            responses = {
-                    @OpenApiResponse(status = "200", content = {
-                            @OpenApiContent(
-                                    from = ProvisionerListEntryResponse[].class,
-                                    mimeType = "application/json"
-                            )
-                    })
-            }
-    )
     public void handle(@NotNull Context context) throws Exception {
 
         List<ProvisionerListEntryResponse> provisionerResponse = new ArrayList<>();
