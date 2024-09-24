@@ -37,8 +37,8 @@
         <agroal.version>2.3</agroal.version>
 
         <!-- Frontend -->
-        <node.version>v20.13.1</node.version>
-        <npm.version>10.8.0</npm.version>
+        <node.version>v20.17.0</node.version>
+        <npm.version>10.8.3</npm.version>
     </properties>
 
     <licenses>
@@ -377,21 +377,6 @@
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin</artifactId>
-            <version>${javalin.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.javalin.community.openapi</groupId>
-            <artifactId>javalin-openapi-plugin</artifactId>
-            <version>${javalin.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.javalin.community.openapi</groupId>
-            <artifactId>javalin-swagger-plugin</artifactId>
-            <version>${javalin.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.javalin.community.openapi</groupId>
-            <artifactId>javalin-redoc-plugin</artifactId>
             <version>${javalin.version}</version>
         </dependency>
         <dependency>
