@@ -21,6 +21,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Data;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,6 +30,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "httpnonces")
+@Data
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class HttpNonces {
 
@@ -61,47 +63,5 @@ public class HttpNonces {
     public HttpNonces() {
     }
 
-    /**
-     * Get the nonce string.
-     *
-     * @return The nonce string.
-     */
-    public String getNonce() {
-        return nonce;
-    }
 
-    /**
-     * Set the nonce string.
-     *
-     * @param nonce The nonce string to set.
-     */
-    public void setNonce(String nonce) {
-        this.nonce = nonce;
-    }
-
-    /**
-     * Get the timestamp when the nonce was redeemed.
-     *
-     * @return The timestamp.
-     */
-    public LocalDateTime getRedeemTimestamp() {
-        return redeemTimestamp;
-    }
-
-    /**
-     * Set the timestamp when the nonce was redeemed.
-     *
-     * @param redeemTimestamp The timestamp to set.
-     */
-    public void setRedeemTimestamp(LocalDateTime redeemTimestamp) {
-        this.redeemTimestamp = redeemTimestamp;
-    }
-
-    public LocalDateTime getGenerationTimestamp() {
-        return generationTimestamp;
-    }
-
-    public void setGenerationTimestamp(LocalDateTime generationTimestamp) {
-        this.generationTimestamp = generationTimestamp;
-    }
 }

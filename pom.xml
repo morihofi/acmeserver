@@ -36,8 +36,12 @@
         <hibernate.version>6.6.1.Final</hibernate.version>
         <agroal.version>2.5</agroal.version>
 
+        <!-- Lombok (Upgrade this to newest version when updating Java) -->
+        <lombok.version>1.18.34</lombok.version>
+
         <!-- Unit Testing -->
         <junit.version>5.11.0</junit.version>
+
 
         <!-- Frontend -->
         <node.version>v20.17.0</node.version>
@@ -517,6 +521,11 @@
             <groupId>org.passay</groupId>
             <artifactId>passay</artifactId>
             <version>1.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
         </dependency>
 
         <dependency>

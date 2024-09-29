@@ -23,6 +23,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.Data;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -34,6 +35,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "users")
+@Data
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class Users {
 
@@ -65,75 +67,5 @@ public class Users {
      */
     private boolean isAdmin;
 
-    /**
-     * Gets the unique identifier for the user.
-     *
-     * @return The unique identifier for the user.
-     */
-    public Long getId() {
-        return id;
-    }
 
-    /**
-     * Sets the unique identifier for the user.
-     *
-     * @param id The unique identifier for the user.
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /**
-     * Gets the email address of the user.
-     *
-     * @return The email address of the user.
-     */
-    public String getEmail() {
-        return email;
-    }
-
-    /**
-     * Sets the email address of the user.
-     *
-     * @param email The email address of the user.
-     */
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    /**
-     * Gets the set of sessions associated with the user.
-     *
-     * @return The set of sessions associated with the user.
-     */
-    public Set<UserSession> getSessions() {
-        return sessions;
-    }
-
-    /**
-     * Sets the set of sessions associated with the user.
-     *
-     * @param sessions The set of sessions associated with the user.
-     */
-    public void setSessions(Set<UserSession> sessions) {
-        this.sessions = sessions;
-    }
-
-    /**
-     * Checks if the user has administrative privileges.
-     *
-     * @return True if the user has administrative privileges, otherwise false.
-     */
-    public boolean isAdmin() {
-        return isAdmin;
-    }
-
-    /**
-     * Sets the administrative privileges for the user.
-     *
-     * @param admin True to grant administrative privileges, otherwise false.
-     */
-    public void setAdmin(boolean admin) {
-        isAdmin = admin;
-    }
 }

@@ -20,6 +20,7 @@ import de.morihofi.acmeserver.tools.ServerInstance;
 import de.morihofi.acmeserver.tools.safety.TypeSafetyHelper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
+import lombok.Data;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -34,6 +35,7 @@ import java.util.Objects;
  * Represents an ACME account entity, which is used for managing ACME accounts.
  */
 @Entity
+@Data
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ACMEAccount implements Serializable {
     /**
@@ -181,139 +183,4 @@ public class ACMEAccount implements Serializable {
      */
     @OneToMany(mappedBy = "account")
     private List<ACMEOrder> orders;
-
-    /**
-     * Get the unique identifier of the ACME account.
-     *
-     * @return The account ID.
-     */
-    public Long getId() {
-        return id;
-    }
-
-    /**
-     * Set the unique identifier of the ACME account.
-     *
-     * @param id The account ID to set.
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /**
-     * Get the account ID associated with the ACME account.
-     *
-     * @return The account ID.
-     */
-    public String getAccountId() {
-        return accountId;
-    }
-
-    /**
-     * Set the account ID associated with the ACME account.
-     *
-     * @param accountId The account ID to set.
-     */
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
-    }
-
-    /**
-     * Check if the ACME account is deactivated.
-     *
-     * @return True if deactivated, false otherwise.
-     */
-    public Boolean isDeactivated() {
-        return deactivated;
-    }
-
-    /**
-     * Get the list of email addresses associated with the ACME account.
-     *
-     * @return The list of email addresses.
-     */
-    public List<String> getEmails() {
-        return emails;
-    }
-
-    /**
-     * Set the list of email addresses associated with the ACME account.
-     *
-     * @param emails The list of email addresses to set.
-     */
-    public void setEmails(List<String> emails) {
-        this.emails = emails;
-    }
-
-    /**
-     * Get the public key in PEM format associated with the ACME account.
-     *
-     * @return The public key in PEM format.
-     */
-    public String getPublicKeyPEM() {
-        return publicKeyPEM;
-    }
-
-    /**
-     * Set the public key in PEM format associated with the ACME account.
-     *
-     * @param publicKeyPEM The public key in PEM format to set.
-     */
-    public void setPublicKeyPEM(String publicKeyPEM) {
-        this.publicKeyPEM = publicKeyPEM;
-    }
-
-    /**
-     * Get the deactivated status of the ACME account.
-     *
-     * @return True if deactivated, false otherwise.
-     */
-    public Boolean getDeactivated() {
-        return deactivated;
-    }
-
-    /**
-     * Set the deactivated status of the ACME account.
-     *
-     * @param deactivated True if deactivated, false otherwise.
-     */
-    public void setDeactivated(Boolean deactivated) {
-        this.deactivated = deactivated;
-    }
-
-    /**
-     * Get the provisioner associated with this ACME identifier.
-     *
-     * @return The provisioner name.
-     */
-    public String getProvisioner() {
-        return provisioner;
-    }
-
-    /**
-     * Set the provisioner associated with this ACME identifier.
-     *
-     * @param provisioner The provisioner name to set.
-     */
-    public void setProvisioner(String provisioner) {
-        this.provisioner = provisioner;
-    }
-
-    /**
-     * Get the list of ACME orders associated with this account.
-     *
-     * @return The list of ACME orders.
-     */
-    public List<ACMEOrder> getOrders() {
-        return orders;
-    }
-
-    /**
-     * Set the list of ACME orders associated with this account.
-     *
-     * @param orders The list of ACME orders to set.
-     */
-    public void setOrders(List<ACMEOrder> orders) {
-        this.orders = orders;
-    }
 }

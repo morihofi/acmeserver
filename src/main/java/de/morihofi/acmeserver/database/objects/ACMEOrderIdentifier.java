@@ -27,6 +27,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.Data;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -41,6 +42,7 @@ import java.util.Objects;
  * Represents an ACME identifier entity used for managing order identifiers, challenges, and certificates.
  */
 @Entity
+@Data
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ACMEOrderIdentifier implements Serializable {
 
@@ -140,104 +142,6 @@ public class ACMEOrderIdentifier implements Serializable {
     public ACMEOrderIdentifier() {
     }
 
-    /**
-     * Retrieves the challenges associated with this identifier.
-     *
-     * @return The list of challenges.
-     */
-    public List<ACMEOrderIdentifierChallenge> getChallenges() {
-        return challenges;
-    }
-
-    /**
-     * Gets the associated order for this ACME identifier.
-     *
-     * @return The ACME order.
-     */
-    public ACMEOrder getOrder() {
-        return order;
-    }
-
-    /**
-     * Sets the associated order for this ACME identifier.
-     *
-     * @param order The ACME order to set.
-     */
-    public void setOrder(ACMEOrder order) {
-        this.order = order;
-    }
-
-    /**
-     * Gets the type of this ACME identifier.
-     *
-     * @return The type of the identifier.
-     */
-    public String getType() {
-        return type;
-    }
-
-    /**
-     * Sets the type of this ACME identifier.
-     *
-     * @param type The type of the identifier to set.
-     */
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    /**
-     * Gets the data value of this ACME identifier.
-     *
-     * @return The data value of the identifier.
-     */
-    public String getDataValue() {
-        return dataValue;
-    }
-
-    /**
-     * Sets the data value of this ACME identifier.
-     *
-     * @param dataValue The data value of the identifier to set.
-     */
-    public void setDataValue(String dataValue) {
-        this.dataValue = dataValue;
-    }
-
-    /**
-     * Gets the unique identifier for the ACME order identifier.
-     *
-     * @return The identifier ID.
-     */
-    public String getIdentifierId() {
-        return identifierId;
-    }
-
-    /**
-     * Sets the unique identifier for the ACME order identifier.
-     *
-     * @param identifierId The identifier ID to set.
-     */
-    public void setIdentifierId(String identifierId) {
-        this.identifierId = identifierId;
-    }
-
-    /**
-     * Gets the unique authorization ID for this identifier.
-     *
-     * @return The authorization ID.
-     */
-    public String getAuthorizationId() {
-        return authorizationId;
-    }
-
-    /**
-     * Sets the unique authorization ID for this identifier.
-     *
-     * @param authorizationId The authorization ID to set.
-     */
-    public void setAuthorizationId(String authorizationId) {
-        this.authorizationId = authorizationId;
-    }
 
     /**
      * Gets the challenge status for this identifier.
@@ -255,21 +159,4 @@ public class ACMEOrderIdentifier implements Serializable {
         return AcmeStatus.PENDING;
     }
 
-    /**
-     * Checks if challenges have been generated for this identifier.
-     *
-     * @return True if challenges have been generated, otherwise false.
-     */
-    public boolean isHasChallengesGenerated() {
-        return hasChallengesGenerated;
-    }
-
-    /**
-     * Sets the status of challenge generation for this identifier.
-     *
-     * @param hasChallengesGenerated The status to set.
-     */
-    public void setHasChallengesGenerated(boolean hasChallengesGenerated) {
-        this.hasChallengesGenerated = hasChallengesGenerated;
-    }
 }

@@ -23,6 +23,7 @@ import de.morihofi.acmeserver.tools.crypto.Crypto;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
+import lombok.Data;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
@@ -40,6 +41,7 @@ import java.util.Objects;
  * Represents an ACME order identifier entity used for managing challenge verification.
  */
 @Entity
+@Data
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ACMEOrderIdentifierChallenge implements Serializable {
 
@@ -179,111 +181,5 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
         this.status = AcmeStatus.PENDING;
     }
 
-    /**
-     * Retrieves the ACME order identifier associated with this challenge.
-     *
-     * @return The ACME order identifier.
-     */
-    public ACMEOrderIdentifier getIdentifier() {
-        return identifier;
-    }
 
-    /**
-     * Sets the ACME order identifier associated with this challenge.
-     *
-     * @param identifier The ACME order identifier to set.
-     */
-    public void setIdentifier(ACMEOrderIdentifier identifier) {
-        this.identifier = identifier;
-    }
-
-    /**
-     * Retrieves the unique identifier for the ACME order identifier challenge.
-     *
-     * @return The challenge ID.
-     */
-    public String getChallengeId() {
-        return challengeId;
-    }
-
-    /**
-     * Sets the unique identifier for the ACME order identifier challenge.
-     *
-     * @param challengeId The challenge ID to set.
-     */
-    public void setChallengeId(String challengeId) {
-        this.challengeId = challengeId;
-    }
-
-    /**
-     * Retrieves the timestamp when the verification of this ACME order identifier occurred.
-     *
-     * @return The verification timestamp.
-     */
-    public Timestamp getVerifiedTime() {
-        return verifiedTime;
-    }
-
-    /**
-     * Sets the timestamp when the verification of this ACME order identifier occurred.
-     *
-     * @param verifiedTime The verification timestamp to set.
-     */
-    public void setVerifiedTime(Timestamp verifiedTime) {
-        this.verifiedTime = verifiedTime;
-    }
-
-    /**
-     * Retrieves the type of the challenge.
-     *
-     * @return The challenge type.
-     */
-    public AcmeChallengeType getChallengeType() {
-        return challengeType;
-    }
-
-    /**
-     * Sets the type of the challenge.
-     *
-     * @param challengeType The challenge type to set.
-     */
-    public void setChallengeType(AcmeChallengeType challengeType) {
-        this.challengeType = challengeType;
-    }
-
-    /**
-     * Retrieves the authorization token for this challenge.
-     *
-     * @return The authorization token.
-     */
-    public String getAuthorizationToken() {
-        return authorizationToken;
-    }
-
-    /**
-     * Sets the authorization token for this challenge.
-     *
-     * @param authorizationToken The authorization token to set.
-     */
-    public void setAuthorizationToken(String authorizationToken) {
-        this.authorizationToken = authorizationToken;
-    }
-
-    /**
-     * Retrieves the status of this challenge.
-     *
-     * @return The status of this challenge.
-     */
-    public AcmeStatus getStatus() {
-        return status;
-    }
-
-    /**
-     * Sets the status of this challenge.
-     *
-     * @param status The status to set.
-     */
-    public void setStatus(AcmeStatus status) {
-        this.status = status;
-    }
 }
