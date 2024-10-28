@@ -7,10 +7,12 @@ RUN chmod -R 777 /app/frontend
 # Use a non-root user to install dependencies and build
 RUN adduser -D builduser
 USER builduser
-# Download dependencies
-RUN npm ci
+# Install pnpm globally
+RUN npm install -g pnpm
+# Download dependencies with pnpm
+RUN pnpm install --frozen-lockfile
 # Build static frontend files
-RUN npm run generate
+RUN pnpm run generate
 USER root
 
 # Second stage: Build with Maven
