@@ -140,7 +140,7 @@ public class ServerCertificateGenerator {
 
         ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(intermediateKeyPair.getPrivate());
 
-        X509CertificateHolder holder = certBuilder.build(signer);
+        X509CertificateHolder holder = certBuilder.build(signer); // If it crashes here, the algorithm/curve specified in the server settings might unsupported by BouncyCastle
         JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
         converter.setProvider(BouncyCastleProvider.PROVIDER_NAME);
         return converter.getCertificate(holder);
