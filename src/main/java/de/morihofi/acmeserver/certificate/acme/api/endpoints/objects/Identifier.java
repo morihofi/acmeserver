@@ -41,7 +41,7 @@ public class Identifier {
      * @param value The value of the identifier (e.g., a DNS name).
      */
     public Identifier(IDENTIFIER_TYPE type, String value) {
-        this.type = type.name();
+        this.type = type.name().toLowerCase(Locale.ROOT);
         this.value = value;
     }
 
@@ -70,7 +70,7 @@ public class Identifier {
      * @param type The new type of the identifier as a {@code String}.
      */
     public void setType(String type) {
-        this.type = type;
+        this.type = IDENTIFIER_TYPE.getTypeByName(type).name().toLowerCase(Locale.ROOT);
     }
 
     public IDENTIFIER_TYPE getTypeAsEnumConstant() {
