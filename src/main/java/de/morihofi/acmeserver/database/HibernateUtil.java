@@ -166,7 +166,7 @@ public class HibernateUtil {
         configuration.setProperty(Environment.JAKARTA_JDBC_PASSWORD, jdbcConfig.getPassword());
 
         // Enable statistics
-        configuration.setProperty("hibernate.generate_statistics", "true");
+        // configuration.setProperty("hibernate.generate_statistics", "true");
 
         if (debug) {
             // Show verbose SQL only on debug
