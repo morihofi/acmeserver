@@ -170,7 +170,7 @@ public class ACMEAccount implements Serializable {
      * Deactivated status
      */
     @Column(name = "deactivated")
-    private Boolean deactivated;
+    private boolean deactivated;
 
     /**
      * Provisioner where this ACME account was registered in.
