@@ -45,7 +45,7 @@ class CsrDataUtilTest {
 
         Identifier identifier = identifiers.toArray(new Identifier[0])[0]; // Get the first and only entry
 
-        assertEquals("DNS", identifier.getType());
+        assertEquals("dns", identifier.getType());
         assertEquals(Identifier.IDENTIFIER_TYPE.DNS, identifier.getTypeAsEnumConstant());
         assertEquals("evilcorp.evil", identifier.getValue());
     }
