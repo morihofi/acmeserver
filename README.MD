@@ -13,10 +13,10 @@ This is an implementation of an Automatic Certificate Management Environment (AC
 - Any JDBC (and Hibernate compatible) database. Currently, H2, MariaDB and PostgreSQL drivers are in classpath
 - Proxy support for HTTP Challenge
 
-## 🎉 ACME Server is now one year old!
+## Notice
+Debian packages are no longer supported. Please use Docker/Podman instead. This reduces us maintaining multiple platforms.
 
-One year ago, I started this project. I'm happy to announce that this project is now one year old!
-And we're reaching version 2.0 😮 with a lots of features.
+
 
 ## ⚠ Breaking Changes from Version 1.x to Version 2.x
 
@@ -24,10 +24,6 @@ And we're reaching version 2.0 😮 with a lots of features.
 - Database scheme has been complete rebuilt, please clean database before use
 - Due to move of provisioner directory, the URLs to OCSP and CRL have also been moved, please regenerate your
   intermediate certificates by delete the corresponding entries in the keystore
-
-### 📰 Changelog
-
-Changelog has been moved [here](CHANGELOG.MD)
 
 ## 📒 Disclaimer
 
@@ -82,14 +78,6 @@ Server.
 | [Traefik](https://github.com/traefik/traefik)                 | ✅       | ❓      |                                                                                                                                            |
 | [win-acme](https://www.win-acme.com/)                         | ✅       | ❓      | Tested with IIS 8.5 on Win Server 2012 r2. Only use Provisioner with RSA, because IIS doesn't support Elliptical Curves                    |
 | [acme4j](https://acme4j.shredzone.org)                        | ✅       | ✅      | Also used for Unit Testing, currently HTTP-01 only                                                                                         |
-
-### 💻 Tested Operating Systems
-
-|                                                       | Test status | Notes                               |
-|-------------------------------------------------------|-------------|-------------------------------------|
-| [Debian](https://debian.org/) 11, 12                  | ✅           |                                     |
-| [FreeBSD](https://freebsd.org) 13.2, 13.3, 14         | ✅           | Only the RELEASE Builds were tested |
-| [Windows](https://www.microsoft.com/de-de/windows) 10 | ✅           |                                     |
 
 ### 🗃️ Tested Databases
 

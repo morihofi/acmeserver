@@ -109,37 +109,6 @@
         "password"
       ]
     },
-    "emailSmtp": {
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "port": {
-          "type": "integer"
-        },
-        "encryption": {
-          "type": "string"
-        },
-        "host": {
-          "type": "string"
-        },
-        "username": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "enabled",
-        "port",
-        "encryption",
-        "host",
-        "username",
-        "password"
-      ]
-    },
     "rootCA": {
       "type": "object",
       "properties": {
@@ -447,7 +416,6 @@
     "server",
     "keyStore",
     "database",
-    "emailSmtp",
     "rootCA",
     "provisioner",
     "network"

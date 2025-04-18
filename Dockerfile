@@ -16,7 +16,7 @@ RUN pnpm run generate
 USER root
 
 # Second stage: Build with Maven
-FROM maven:3.9-eclipse-temurin-17 AS builder
+FROM maven:3.9-eclipse-temurin-21 AS builder
 WORKDIR /app
 COPY pom.xml .
 # Clean up

@@ -27,14 +27,6 @@
     "user": "root",
     "password": ""
   },
-  "emailSmtp": {
-    "enabled": false,
-    "port": 587,
-    "encryption": "starttls",
-    "host": "mail.example.com",
-    "username": "acme-noreply@example.com",
-    "password": "insecurepassword"
-  },
   "rootCA": {
     "metadata": {
       "commonName": "ACMEServer Root CA",
