@@ -19,6 +19,7 @@ package de.morihofi.acmeserver.core.certificate.acme.api.endpoints;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+import de.morihofi.acmeserver.core.certificate.provisioners.ProvisionerManager;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -28,16 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.invoke.MethodHandles;
 
 public class DirectoryEndpoint implements Handler {
-    /**
-     * Logger
-     */
-
-    private final Provisioner provisioner;
-
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public DirectoryEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
-    }
 
     /**
      * Method for handling the request
@@ -46,6 +37,8 @@ public class DirectoryEndpoint implements Handler {
      */
     @Override
     public void handle(@NotNull Context ctx) {
+        Provisioner provisioner = ProvisionerManager.getProvisionerFromJavalin(ctx);
+
 
         // Response is JSON
         ctx.header("Content-Type", "application/json");

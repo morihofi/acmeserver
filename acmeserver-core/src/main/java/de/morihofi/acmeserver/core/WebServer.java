@@ -18,10 +18,21 @@ package de.morihofi.acmeserver.core;
 
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.core.api.API;
+import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.*;
+import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.account.AccountEndpoint;
+import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.account.NewAccountEndpoint;
+import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.authz.AuthzOwnershipEndpoint;
+import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.challenge.ChallengeCallbackEndpoint;
+import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
+import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order.OrderCertEndpoint;
+import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
 import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.core.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.core.certificate.queue.CertificateIssuer;
+import de.morihofi.acmeserver.core.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.CRLScheduler;
+import de.morihofi.acmeserver.core.certificate.revokeDistribution.OcspEndpointGet;
+import de.morihofi.acmeserver.core.certificate.revokeDistribution.OcspEndpointPost;
 import de.morihofi.acmeserver.core.config.ProvisionerConfig;
 import de.morihofi.acmeserver.core.config.certificateAlgorithms.EcdsaAlgorithmParams;
 import de.morihofi.acmeserver.core.config.certificateAlgorithms.RSAAlgorithmParams;
@@ -35,6 +46,7 @@ import de.morihofi.acmeserver.core.tools.certificate.generator.KeyPairGenerator;
 import de.morihofi.acmeserver.core.tools.certificate.helper.CaInitHelper;
 import de.morihofi.acmeserver.core.tools.certificate.renew.IntermediateCaRenew;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewManager;
+import de.morihofi.acmeserver.core.tools.http.HttpHeaderUtil;
 import de.morihofi.acmeserver.core.tools.network.logging.HTTPAccessLogger;
 import de.morihofi.acmeserver.core.tools.regex.ConfigCheck;
 import io.javalin.Javalin;
@@ -152,9 +164,67 @@ public class WebServer {
         // Global routes
         API.init(app, serverInstance);
 
+        // Register provisioners
         for (Provisioner provisioner : getProvisioners(serverInstance.getAppConfig().getProvisioner(), serverInstance.getCryptoStoreManager())) {
             ProvisionerManager.registerProvisioner(app, provisioner, serverInstance);
         }
+
+        // Add routes for ACME
+
+        // Global ACME headers, inspired from Let's Encrypts Boulder
+        app.before("/{provisioner}/*", context -> {
+            // Disable caching for all ACME routes
+            context.header("Cache-Control", "public, max-age=0, no-cache");
+
+            Provisioner provisioner = ProvisionerManager.getProvisionerFromJavalin(context);
+
+            if(!context.path().equals("{provisioner}/directory")){
+                context.header("Link", HttpHeaderUtil.buildLinkHeaderValue(provisioner.getAcmeApiURL() + "/directory", "index"));
+            }
+
+        });
+
+
+        // ACME Directory
+        app.get("{provisioner}/directory", new DirectoryEndpoint());
+
+        // New account
+        app.post("{provisioner}/acme/new-acct", new NewAccountEndpoint(serverInstance));
+
+        // TODO: Key Change Endpoint (Account key rollover)
+        app.post("/{provisioner}/acme/key-change", new NotImplementedEndpoint());
+        app.get("/{provisioner}/acme/key-change", new NotImplementedEndpoint());
+
+        // New Nonce
+        app.head("/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance));
+        app.get("/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance));
+
+        // Account Update
+        app.post("/{provisioner}/acme/acct/{id}", new AccountEndpoint(serverInstance));
+
+        // Create new Order
+        app.post("/{provisioner}/acme/new-order", new NewOrderEndpoint(serverInstance));
+
+        // Challenge / Ownership verification
+        app.post("/{provisioner}/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(serverInstance));
+
+        // Challenge Callback
+        app.post("/{provisioner}/acme/chall/{challengeId}/{challengeType}", new ChallengeCallbackEndpoint(serverInstance));
+
+        // Finalize endpoint
+        app.post("/{provisioner}/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(serverInstance));
+
+        // Order info Endpoint
+        app.post("/{provisioner}/acme/order/{orderId}", new OrderInfoEndpoint(serverInstance));
+
+        // Get Order Certificate
+        app.post("/{provisioner}/acme/order/{orderId}/cert", new OrderCertEndpoint(serverInstance));
+
+        // Revoke certificate
+        app.post("/{provisioner}/acme/revoke-cert", new RevokeCertEndpoint(serverInstance));
+
+
+
 
         log.info("Starting the CRL generation Scheduler");
         CRLScheduler.startScheduler();

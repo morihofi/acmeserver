@@ -51,11 +51,10 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
     /**
      * Constructs a new OrderInfoEndpoint instance with the specified provisioner and server instance.
      *
-     * @param provisioner    The provisioner responsible for handling ACME requests.
      * @param serverInstance The server instance for managing server configurations and operations.
      */
-    public OrderInfoEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
-        super(provisioner, serverInstance);
+    public OrderInfoEndpoint(ServerInstance serverInstance) {
+        super(serverInstance);
     }
 
     /**

@@ -62,11 +62,10 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
      * up the necessary components for handling certificate revocation requests, including creating a new Gson instance for JSON
      * processing.
      *
-     * @param provisioner    The {@link Provisioner} instance used for managing certificate operations.
      * @param serverInstance The {@link ServerInstance} to use for this endpoint
      */
-    public RevokeCertEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
-        super(provisioner, serverInstance);
+    public RevokeCertEndpoint(ServerInstance serverInstance) {
+        super(serverInstance);
     }
 
 

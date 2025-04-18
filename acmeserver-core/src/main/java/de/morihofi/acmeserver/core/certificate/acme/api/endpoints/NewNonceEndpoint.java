@@ -31,10 +31,6 @@ import org.jetbrains.annotations.NotNull;
  */
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class NewNonceEndpoint implements Handler {
-    /**
-     * Instance for accessing the current provisioner.
-     */
-    private final Provisioner provisioner;
 
     /**
      * Instance for accessing the server instance.
@@ -44,11 +40,9 @@ public class NewNonceEndpoint implements Handler {
     /**
      * Constructs a NewNonce handler with the specified ACME provisioner.
      *
-     * @param provisioner The ACME provisioner to use for generating nonces.
      * @param serverInstance The server instance to use for generating nonces.
      */
-    public NewNonceEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
-        this.provisioner = provisioner;
+    public NewNonceEndpoint(ServerInstance serverInstance) {
         this.serverInstance = serverInstance;
     }
 

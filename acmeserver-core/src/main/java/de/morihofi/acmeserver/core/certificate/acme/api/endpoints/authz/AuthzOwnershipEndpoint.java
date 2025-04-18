@@ -52,11 +52,10 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
     /**
      * Constructs a new endpoint for handling authorization ownership challenges.
      *
-     * @param provisioner    The provisioner instance.
      * @param serverInstance The server instance.
      */
-    public AuthzOwnershipEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
-        super(provisioner, serverInstance);
+    public AuthzOwnershipEndpoint(ServerInstance serverInstance) {
+        super(serverInstance);
     }
 
     /**
@@ -148,12 +147,12 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
         for (ACMEOrderIdentifierChallenge acmeChallenge : acmeChallenges) {
             // Add to response
-            challengeResponses.add(createChallengeResponse(acmeChallenge.getChallengeType(), acmeChallenge));
+            challengeResponses.add(createChallengeResponse(acmeChallenge.getChallengeType(), acmeChallenge, getProvisioner(ctx)));
         }
 
         AuthzResponse response = new AuthzResponse();
         response.setStatus(identifier.getChallengeStatus().getRfcName());
-        response.setExpires(DateTools.formatDateForACME(new Date()));
+        response.setExpires(DateTools.formatDateForACME(new Date())); // FIXME
         response.setIdentifier(idObj);
         response.setChallenges(challengeResponses);
 
@@ -167,11 +166,11 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
      * @param identifierChallenge The ACME identifier challenge for which the response is created.
      * @return A challenge response object with the specified type, URL, token, and status.
      */
-    private ChallengeResponse createChallengeResponse(AcmeChallengeType type, ACMEOrderIdentifierChallenge identifierChallenge) {
+    private ChallengeResponse createChallengeResponse(AcmeChallengeType type, ACMEOrderIdentifierChallenge identifierChallenge, Provisioner p) {
         ChallengeResponse challengeResponse = new ChallengeResponse();
         challengeResponse.setType(type.getName());
         challengeResponse.setUrl(
-                getProvisioner().getAcmeApiURL() + "/acme/chall/" + identifierChallenge.getChallengeId() + "/" + type.getName());
+                p.getAcmeApiURL() + "/acme/chall/" + identifierChallenge.getChallengeId() + "/" + type.getName());
         challengeResponse.setToken(identifierChallenge.getAuthorizationToken());
         if (identifierChallenge.getStatus() == AcmeStatus.VALID) {
             challengeResponse.setStatus(AcmeStatus.VALID.getRfcName());

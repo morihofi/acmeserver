@@ -54,18 +54,12 @@ import java.util.UUID;
 public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
     /**
-     * Logger instance for logging events.
-     */
-
-
-    /**
      * Constructs a new instance of the NewAccountEndpoint class.
      *
-     * @param provisioner    The provisioner managing this endpoint.
      * @param serverInstance The server instance running this endpoint.
      */
-    public NewAccountEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
-        super(provisioner, serverInstance);
+    public NewAccountEndpoint(ServerInstance serverInstance) {
+        super(serverInstance);
     }
 
     /**

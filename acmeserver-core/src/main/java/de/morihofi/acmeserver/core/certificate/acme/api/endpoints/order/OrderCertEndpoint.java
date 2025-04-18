@@ -42,11 +42,10 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
     /**
      * Constructs a new OrderCertEndpoint instance with the specified provisioner and server instance.
      *
-     * @param provisioner    The provisioner responsible for handling ACME requests.
      * @param serverInstance The server instance for managing server configurations and operations.
      */
-    public OrderCertEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
-        super(provisioner, serverInstance);
+    public OrderCertEndpoint(ServerInstance serverInstance) {
+        super(serverInstance);
     }
 
     /**

@@ -66,11 +66,10 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
     /**
      * Constructs a NewOrderEndpoint with the given provisioner and server instance.
      *
-     * @param provisioner    The provisioner instance.
      * @param serverInstance The server instance.
      */
-    public NewOrderEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
-        super(provisioner, serverInstance);
+    public NewOrderEndpoint(ServerInstance serverInstance) {
+        super(serverInstance);
     }
 
     /**
@@ -85,6 +84,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
      */
     @Override
     public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
+        Provisioner p = getProvisioner(ctx);
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
         ACMEAccount account = ACMEAccount.getAccount(accountId, getServerInstance());
         // Check if account exists
@@ -148,14 +148,14 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
                                             : ""));
                 }
 
-                if (!checkIfDomainIsAllowed(identifier.getDataValue())) {
+                if (!checkIfDomainIsAllowed(identifier.getDataValue(), p)) {
                     throw new ACMERejectedIdentifierException("Domain identifier \"" + identifier.getDataValue() + "\" is not allowed");
                 }
             }
 
             // Check IP if type is IP
             if (identifier.getType().equals("ip")) {
-                if (!getProvisioner().isIpAllowed()) { // IP Address issuing is not allowed
+                if (!p.isIpAllowed()) { // IP Address issuing is not allowed
                     throw new ACMERejectedIdentifierException("Issuing for IP Addresses has been disabled for this provisioner");
                 }
                 if (!DomainAndIpValidation.isIpAddress(identifier.getDataValue())) { // Not an IP Address
@@ -239,14 +239,14 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
      * @return True if the domain is allowed based on the configured restrictions or if restrictions are disabled;
      * otherwise, false.
      */
-    private boolean checkIfDomainIsAllowed(final String domain) {
+    private boolean checkIfDomainIsAllowed(final String domain, Provisioner p) {
         // Check if domain name restrictions are disabled
-        if (!getProvisioner().getDomainNameRestriction().isEnabled()) {
+        if (!p.getDomainNameRestriction().isEnabled()) {
             // Restriction is disabled, so any domain is allowed
             return true;
         }
 
-        List<String> mustSuffix = getProvisioner().getDomainNameRestriction().getMustEndWith();
+        List<String> mustSuffix = p.getDomainNameRestriction().getMustEndWith();
 
         for (String suffix : mustSuffix) {
             if (domain.endsWith(suffix)) {

@@ -47,11 +47,10 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
     /**
      * Constructs a NewNonce handler with the specified ACME provisioner and server instance.
      *
-     * @param provisioner The ACME provisioner to use for generating nonces.
      * @param serverInstance The server instance.
      */
-    public ChallengeCallbackEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
-        super(provisioner, serverInstance);
+    public ChallengeCallbackEndpoint(ServerInstance serverInstance) {
+        super(serverInstance);
     }
 
     @Override

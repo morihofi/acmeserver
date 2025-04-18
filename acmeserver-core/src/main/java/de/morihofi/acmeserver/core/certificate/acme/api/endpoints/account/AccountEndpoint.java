@@ -56,11 +56,10 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
     /**
      * Constructs an AccountEndpoint with the given provisioner and server instance.
      *
-     * @param provisioner    The provisioner instance.
      * @param serverInstance The server instance.
      */
-    public AccountEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
-        super(provisioner, serverInstance);
+    public AccountEndpoint(ServerInstance serverInstance) {
+        super(serverInstance);
     }
 
     /**

@@ -25,6 +25,7 @@ import de.morihofi.acmeserver.core.certificate.revokeDistribution.OcspEndpointPo
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.http.HttpHeaderUtil;
 import io.javalin.Javalin;
+import io.javalin.http.Context;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -76,8 +77,6 @@ public class ProvisionerManager {
         // CRL generator
         CRLScheduler.addProvisionerToScheduler(provisioner, serverInstance);
 
-        String prefix = getProvisionerApiPrefix(provisioner.getProvisionerName());
-
         // CRL distribution
         app.get(provisioner.getCrlPath(), new CRLEndpoint(provisioner));
 
@@ -85,59 +84,9 @@ public class ProvisionerManager {
         app.post(provisioner.getOcspPath(), new OcspEndpointPost(provisioner));
         app.get(provisioner.getOcspPath() + "/{ocspRequest}", new OcspEndpointGet(provisioner));
 
-        // Global ACME headers, inspired from Let's Encrypts Boulder
-        app.before(prefix + "/*", context -> {
-            // Disable caching for all ACME routes
-            context.header("Cache-Control", "public, max-age=0, no-cache");
-
-            if(!context.path().equals(prefix + "/directory")){
-                context.header("Link", HttpHeaderUtil.buildLinkHeaderValue(provisioner.getAcmeApiURL() + "/directory", "index"));
-            }
-
-        });
-
-
-        // ACME Directory
-        app.get(prefix + "/directory", new DirectoryEndpoint(provisioner));
-
-        // New account
-        app.post(prefix + "/acme/new-acct", new NewAccountEndpoint(provisioner, serverInstance));
-
-        // TODO: Key Change Endpoint (Account key rollover)
-        app.post(prefix + "/acme/key-change", new NotImplementedEndpoint());
-        app.get(prefix + "/acme/key-change", new NotImplementedEndpoint());
-
-        // New Nonce
-        app.head(prefix + "/acme/new-nonce", new NewNonceEndpoint(provisioner, serverInstance));
-        app.get(prefix + "/acme/new-nonce", new NewNonceEndpoint(provisioner, serverInstance));
-
-        // Account Update
-        app.post(prefix + "/acme/acct/{id}", new AccountEndpoint(provisioner, serverInstance));
-
-        // Create new Order
-        app.post(prefix + "/acme/new-order", new NewOrderEndpoint(provisioner, serverInstance));
-
-        // Challenge / Ownership verification
-        app.post(prefix + "/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(provisioner, serverInstance));
-
-        // Challenge Callback
-        app.post(prefix + "/acme/chall/{challengeId}/{challengeType}", new ChallengeCallbackEndpoint(provisioner, serverInstance));
-
-        // Finalize endpoint
-        app.post(prefix + "/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(provisioner, serverInstance));
-
-        // Order info Endpoint
-        app.post(prefix + "/acme/order/{orderId}", new OrderInfoEndpoint(provisioner, serverInstance));
-
-        // Get Order Certificate
-        app.post(prefix + "/acme/order/{orderId}/cert", new OrderCertEndpoint(provisioner, serverInstance));
-
-        // Revoke certificate
-        app.post(prefix + "/acme/revoke-cert", new RevokeCertEndpoint(provisioner, serverInstance));
+        provisioners.add(provisioner);
 
         log.info("Provisioner {} registered", provisioner.getProvisionerName());
-
-        provisioners.add(provisioner);
     }
 
     /**
@@ -152,6 +101,17 @@ public class ProvisionerManager {
                 .findFirst();
 
         return provisionerOptional.orElse(null);
+    }
+
+
+    public static Provisioner getProvisionerFromJavalin(Context context){
+        String pName = context.pathParam("provisioner");
+        Provisioner provisioner = ProvisionerManager.getProvisionerForName(pName);
+        if(provisioner == null){
+            throw new IllegalArgumentException("Specified Provisioner " + pName + " does not exist");
+        }
+
+        return provisioner;
     }
 
     /**

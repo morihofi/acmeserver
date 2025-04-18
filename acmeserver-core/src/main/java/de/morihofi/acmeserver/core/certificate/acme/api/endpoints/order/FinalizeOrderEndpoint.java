@@ -59,12 +59,10 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
     /**
      * ACME Endpoint for finalize an order
-     *
-     * @param provisioner Provisioner instance
      */
 
-    public FinalizeOrderEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
-        super(provisioner, serverInstance);
+    public FinalizeOrderEndpoint(ServerInstance serverInstance) {
+        super(serverInstance);
     }
 
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")

@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import de.morihofi.acmeserver.core.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.core.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+import de.morihofi.acmeserver.core.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.core.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -35,10 +36,6 @@ import org.jetbrains.annotations.NotNull;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public abstract class AbstractAcmeEndpoint implements Handler {
 
-    /**
-     * Instance for accessing the current provisioner.
-     */
-    private final Provisioner provisioner;
 
     /**
      * Gson instance for JSON to POJO and POJO to JSON conversion.
@@ -53,11 +50,9 @@ public abstract class AbstractAcmeEndpoint implements Handler {
     /**
      * Constructs an AbstractAcmeEndpoint with the given provisioner and server instance.
      *
-     * @param provisioner    The provisioner instance.
      * @param serverInstance The server instance.
      */
-    public AbstractAcmeEndpoint(Provisioner provisioner, ServerInstance serverInstance) {
-        this.provisioner = provisioner;
+    public AbstractAcmeEndpoint(ServerInstance serverInstance) {
         this.gson = new Gson();
         this.serverInstance = serverInstance;
     }
@@ -67,8 +62,8 @@ public abstract class AbstractAcmeEndpoint implements Handler {
      *
      * @return The provisioner instance.
      */
-    public Provisioner getProvisioner() {
-        return provisioner;
+    public Provisioner getProvisioner(Context context) {
+        return ProvisionerManager.getProvisionerFromJavalin(context);
     }
 
     /**
@@ -82,7 +77,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
-        handleRequest(ctx, provisioner, gson, acmeRequestBody);
+        handleRequest(ctx, getProvisioner(ctx), gson, acmeRequestBody);
     }
 
     /**
