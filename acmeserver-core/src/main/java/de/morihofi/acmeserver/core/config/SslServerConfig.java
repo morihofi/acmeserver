@@ -35,5 +35,9 @@ public class SslServerConfig {
      */
     private boolean allowLegacyResumption = false;
 
+    /**
+     * Indicates whether SNI (Server Name Indication) checking is enabled for HTTPS hostname.
+     */
+    private boolean enableSniCheck = true;
 
 }

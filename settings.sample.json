@@ -6,7 +6,6 @@
       "https": 443,
       "http": 80
     },
-    "enableSniCheck": true,
     "loggingDirectory": "./serverdata/logs",
     "mozillaSslConfig": {
       "enabled": false,
@@ -14,7 +13,8 @@
       "configuration": "intermediate"
     },
     "sslServerConfig": {
-      "allowLegacyResumption": false
+      "allowLegacyResumption": false,
+      "enableSniCheck": true
     }
   },
   "keyStore": {

@@ -23,9 +23,6 @@
             "http"
           ]
         },
-        "enableSniCheck": {
-          "type": "boolean"
-        },
         "loggingDirectory": {
           "type": "string"
         },
@@ -53,17 +50,20 @@
           "properties": {
             "allowLegacyResumption": {
               "type": "boolean"
+            },
+            "enableSniCheck": {
+              "type": "boolean"
             }
           },
           "required": [
-            "allowLegacyResumption"
+            "allowLegacyResumption",
+            "enableSniCheck"
           ]
         }
       },
       "required": [
         "dnsName",
         "ports",
-        "enableSniCheck",
         "loggingDirectory",
         "mozillaSslConfig",
         "sslServerConfig"

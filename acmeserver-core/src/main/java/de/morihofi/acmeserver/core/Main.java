@@ -201,6 +201,9 @@ public class Main {
         Config config = loadServerConfiguration();
         serverInstance = getServerInstance(config, debug, CONFIG_PATH);
 
+        WebServer ws = new WebServer(serverInstance);
+        ws.startServer();
+
     }
 
 

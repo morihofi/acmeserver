@@ -39,14 +39,8 @@ public class ServerConfig implements Serializable {
     private Ports ports = new Ports();
 
     /**
-     * Indicates whether SNI (Server Name Indication) checking is enabled for HTTPS hostname.
-     */
-    private boolean enableSniCheck = true;
-
-    /**
      * The directory path for HTTP logging.
      */
-
     private String loggingDirectory = null;
 
     /**

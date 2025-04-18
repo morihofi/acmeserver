@@ -120,13 +120,13 @@ public class JavalinSecurityHelper {
 
         int httpPort = appConfig.getServer().getPorts().getHttp();
         int httpsPort = appConfig.getServer().getPorts().getHttps();
-        boolean enableSniCheck = appConfig.getServer().isEnableSniCheck();
+        boolean enableSniCheck = appConfig.getServer().getSslServerConfig().isEnableSniCheck();
 
         /*
          * Why we don't use Javalin's official SSL Plugin?
          * The official SSL plugin depends on Google's Conscrypt provider, which uses native code
          * and is platform dependent. This workaround implementation uses the built-in Java security
-         * libraries and Bouncy Castle, which is platform independent.
+         * libraries and Bouncy Castle JSSE, which is platform independent.
          */
 
         JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(),
