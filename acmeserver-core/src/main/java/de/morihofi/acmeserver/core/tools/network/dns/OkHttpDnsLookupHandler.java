@@ -68,7 +68,7 @@ public class OkHttpDnsLookupHandler implements Dns {
 
         if (dnsConfig.getDohEnabled()) {
             // Use DoH
-            log.info("Lookup for {} using DNS over HTTPS", hostname);
+            log.info("Lookup for {} using DNS over HTTPS (DoH)", hostname);
             return DNSLookup.lookupHostnameUsingDoH(hostname, doHClient);
         }
 

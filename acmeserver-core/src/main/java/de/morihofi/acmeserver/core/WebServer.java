@@ -172,7 +172,7 @@ public class WebServer {
         // Add routes for ACME
 
         // Global ACME headers, inspired from Let's Encrypts Boulder
-        app.before("/{provisioner}/*", context -> {
+        app.before("/acme/{provisioner}/*", context -> {
             // Disable caching for all ACME routes
             context.header("Cache-Control", "public, max-age=0, no-cache");
 
@@ -186,42 +186,42 @@ public class WebServer {
 
 
         // ACME Directory
-        app.get("{provisioner}/directory", new DirectoryEndpoint());
+        app.get("/acme/{provisioner}/directory", new DirectoryEndpoint());
 
         // New account
-        app.post("{provisioner}/acme/new-acct", new NewAccountEndpoint(serverInstance));
+        app.post("/acme/{provisioner}/acme/new-acct", new NewAccountEndpoint(serverInstance));
 
         // TODO: Key Change Endpoint (Account key rollover)
-        app.post("/{provisioner}/acme/key-change", new NotImplementedEndpoint());
-        app.get("/{provisioner}/acme/key-change", new NotImplementedEndpoint());
+        app.post("/acme/{provisioner}/acme/key-change", new NotImplementedEndpoint());
+        app.get("/acme/{provisioner}/acme/key-change", new NotImplementedEndpoint());
 
         // New Nonce
-        app.head("/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance));
-        app.get("/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance));
+        app.head("/acme/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance));
+        app.get("/acme/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance));
 
         // Account Update
-        app.post("/{provisioner}/acme/acct/{id}", new AccountEndpoint(serverInstance));
+        app.post("/acme/{provisioner}/acme/acct/{id}", new AccountEndpoint(serverInstance));
 
         // Create new Order
-        app.post("/{provisioner}/acme/new-order", new NewOrderEndpoint(serverInstance));
+        app.post("/acme/{provisioner}/acme/new-order", new NewOrderEndpoint(serverInstance));
 
         // Challenge / Ownership verification
-        app.post("/{provisioner}/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(serverInstance));
+        app.post("/acme/{provisioner}/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(serverInstance));
 
         // Challenge Callback
-        app.post("/{provisioner}/acme/chall/{challengeId}/{challengeType}", new ChallengeCallbackEndpoint(serverInstance));
+        app.post("/acme/{provisioner}/acme/chall/{challengeId}/{challengeType}", new ChallengeCallbackEndpoint(serverInstance));
 
         // Finalize endpoint
-        app.post("/{provisioner}/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(serverInstance));
+        app.post("/acme/{provisioner}/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(serverInstance));
 
         // Order info Endpoint
-        app.post("/{provisioner}/acme/order/{orderId}", new OrderInfoEndpoint(serverInstance));
+        app.post("/acme/{provisioner}/acme/order/{orderId}", new OrderInfoEndpoint(serverInstance));
 
         // Get Order Certificate
-        app.post("/{provisioner}/acme/order/{orderId}/cert", new OrderCertEndpoint(serverInstance));
+        app.post("/acme/{provisioner}/acme/order/{orderId}/cert", new OrderCertEndpoint(serverInstance));
 
         // Revoke certificate
-        app.post("/{provisioner}/acme/revoke-cert", new RevokeCertEndpoint(serverInstance));
+        app.post("/acme/{provisioner}/acme/revoke-cert", new RevokeCertEndpoint(serverInstance));
 
 
 
