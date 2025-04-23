@@ -113,7 +113,7 @@
                                 </goals>
                                 <configuration>
                                     <environmentVariables>
-                                        <NUXT_PUBLIC_API_URL></NUXT_PUBLIC_API_URL> <!-- use empty string ("") to have an absolute path to the API without the host:port -->
+                                        <NUXT_PUBLIC_API_URL/> <!-- use empty string ("") to have an absolute path to the API without the host:port -->
                                     </environmentVariables>
                                     <arguments>run generate</arguments>
                                     <workingDirectory>frontend</workingDirectory>
@@ -420,7 +420,7 @@
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
-            <version>3.4.1</version>
+            <version>3.5.3</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
