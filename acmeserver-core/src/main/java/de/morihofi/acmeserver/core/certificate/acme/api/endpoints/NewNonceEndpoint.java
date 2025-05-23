@@ -16,7 +16,8 @@
 
 package de.morihofi.acmeserver.core.certificate.acme.api.endpoints;
 
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
+import de.morihofi.acmeserver.core.database.objects.HttpNonces;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.crypto.Crypto;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -68,6 +69,6 @@ public class NewNonceEndpoint implements Handler {
         ctx.header("Cache-Control", "no-store");
 
         // Generate a new Replay-Nonce using the ACMEProvisioner and set it in the header
-        ctx.header("Replay-Nonce", Crypto.createNonce(serverInstance));
+        ctx.header("Replay-Nonce", HttpNonces.createNonce(serverInstance));
     }
 }

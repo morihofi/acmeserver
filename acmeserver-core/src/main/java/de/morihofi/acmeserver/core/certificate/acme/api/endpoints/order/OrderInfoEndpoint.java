@@ -22,10 +22,12 @@ import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.objects.Identi
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
 import de.morihofi.acmeserver.core.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.core.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
 import de.morihofi.acmeserver.core.database.AcmeStatus;
 import de.morihofi.acmeserver.core.database.objects.ACMEOrder;
 import de.morihofi.acmeserver.core.database.objects.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
+import de.morihofi.acmeserver.core.database.objects.HttpNonces;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.crypto.Crypto;
 import de.morihofi.acmeserver.core.tools.dateAndTime.DateTools;
@@ -67,11 +69,11 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
      * @param acmeRequestBody The body of the ACME request.
      */
     @Override
-    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) {
+    public void handleRequest(Context ctx, AcmeProvisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) {
         String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
 
         ACMEOrder order = ACMEOrder.getACMEOrder(orderId, getServerInstance());
         List<ACMEOrderIdentifier> identifiers = order.getOrderIdentifiers();
@@ -80,7 +82,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         }
 
         // Check signature and nonce
-        SignatureCheck.checkSignature(ctx, identifiers.get(0).getOrder().getAccount(), gson, getServerInstance());
+        SignatureCheck.checkSignature(ctx, identifiers.getFirst().getOrder().getAccount(), gson, getServerInstance());
         getServerInstance().getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
         boolean allVerified = true;
@@ -94,7 +96,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
             }
             identifierList.add(new Identifier(identifier.getType(), identifier.getDataValue()));
 
-            authorizationsList.add(provisioner.getAcmeApiURL() + "/acme/authz/" + identifier.getAuthorizationId());
+            authorizationsList.add(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/authz/" + identifier.getAuthorizationId());
         }
 
         ACMEOrderResponse response = new ACMEOrderResponse();
@@ -113,8 +115,8 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
             }
         }
 
-        response.setFinalize(provisioner.getAcmeApiURL() + "/acme/order/" + orderId + "/finalize");
-        response.setCertificate(provisioner.getAcmeApiURL() + "/acme/order/" + orderId + "/cert");
+        response.setFinalize(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId + "/finalize");
+        response.setCertificate(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId + "/cert");
         response.setIdentifiers(identifierList);
         response.setAuthorizations(authorizationsList);
 

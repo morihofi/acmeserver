@@ -17,10 +17,12 @@ import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.authz.objects.
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.core.certificate.acme.challenges.AcmeChallengeType;
 import de.morihofi.acmeserver.core.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
 import de.morihofi.acmeserver.core.database.AcmeStatus;
 import de.morihofi.acmeserver.core.database.objects.ACMEOrderIdentifier;
 import de.morihofi.acmeserver.core.database.objects.ACMEOrderIdentifierChallenge;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
+import de.morihofi.acmeserver.core.database.objects.HttpNonces;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
@@ -68,11 +70,11 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
      * @throws Exception If an error occurs while handling the request.
      */
     @Override
-    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(Context ctx, AcmeProvisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String authorizationId = ctx.pathParam("authorizationId");
 
         ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
         ctx.status(200);
 
         ACMEOrderIdentifier identifier = ACMEOrderIdentifier.getACMEIdentifierByAuthorizationId(authorizationId, getServerInstance());
@@ -147,7 +149,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
         for (ACMEOrderIdentifierChallenge acmeChallenge : acmeChallenges) {
             // Add to response
-            challengeResponses.add(createChallengeResponse(acmeChallenge.getChallengeType(), acmeChallenge, getProvisioner(ctx)));
+            challengeResponses.add(createChallengeResponse(acmeChallenge.getChallengeType(), acmeChallenge, provisioner));
         }
 
         AuthzResponse response = new AuthzResponse();
@@ -166,11 +168,11 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
      * @param identifierChallenge The ACME identifier challenge for which the response is created.
      * @return A challenge response object with the specified type, URL, token, and status.
      */
-    private ChallengeResponse createChallengeResponse(AcmeChallengeType type, ACMEOrderIdentifierChallenge identifierChallenge, Provisioner p) {
+    private ChallengeResponse createChallengeResponse(AcmeChallengeType type, ACMEOrderIdentifierChallenge identifierChallenge, AcmeProvisioner p) {
         ChallengeResponse challengeResponse = new ChallengeResponse();
         challengeResponse.setType(type.getName());
         challengeResponse.setUrl(
-                p.getAcmeApiURL() + "/acme/chall/" + identifierChallenge.getChallengeId() + "/" + type.getName());
+                p.getAcmeApiURL(getServerInstance()) + "/acme/chall/" + identifierChallenge.getChallengeId() + "/" + type.getName());
         challengeResponse.setToken(identifierChallenge.getAuthorizationToken());
         if (identifierChallenge.getStatus() == AcmeStatus.VALID) {
             challengeResponse.setStatus(AcmeStatus.VALID.getRfcName());

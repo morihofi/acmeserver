@@ -31,7 +31,7 @@ capitals, as shown here.
 3. Copy the `settings.sample.json` into the new `serverdata` directory and rename it to `settings.json`
 4. Adjust the settings, especially the `dnsName` (of your host), and the `http`/`https` ports. (Don't forget to change
    these also in the `docker-compose.yml`-file) You can't change these later, because they will be written into the
-   intermediate/client certificates for finding revokation list etc. and ACME client configuration will be get broken.
+   certificateConfig/client certificates for finding revokation list etc. and ACME client configuration will be get broken.
 5. Run `docker compose up -d` in this directory. That's all!
 
 > You can run `docker compose logs -f` if you want to see the logs of the server. Press `Ctrl`+`C` to quit
@@ -110,7 +110,7 @@ It is RECOMMENDED to **not run** ACME Server behind a reverse proxy. If you run 
     "mozillaSslConfig": {
       "enabled": false,
       "version": "5.7",
-      "configuration": "intermediate"
+      "configuration": "certificateConfig"
     },
     "sslServerConfig": {
       "allowLegacyResumption": false
@@ -127,7 +127,7 @@ The Path to `loggingDirectory` can be null. The log files created in this direct
 
 ACME Server has the ability to configure TLS (Protocol that HTTPS uses) with the recommended configurations from the
 [Mozilla SSL Config](https://ssl-config.mozilla.org/) project. Values for `configuration` can
-be `modern`, `intermediate` and `old`.
+be `modern`, `certificateConfig` and `old`.
 
 ##### Use of very old clients
 
@@ -317,7 +317,7 @@ Please note that the selected curve must be compatible with BouncyCastle. NIST c
 ### Provisioners
 
 With provisioners, you can split this CA into multiple certificate generation policies.
-Each provisioner operates under its own intermediate certificate,
+Each provisioner operates under its own certificateConfig certificate,
 forming a 1:1 relationship with it, like in the following diagram:
 
 ```
@@ -338,7 +338,7 @@ Root CA (installed on client devices)
 ...
 ```
 
-You can configure the intermediate certificate the provisioner uses in the `intermediate`-subobject.
+You can configure the certificateConfig certificate the provisioner uses in the `certificateConfig`-subobject.
 For configuration see how the Root CA configuration above works, it uses the same syntax with the same fields.
 
 ```json
@@ -351,7 +351,7 @@ For configuration see how the Root CA configuration above works, it uses the sam
         "website": "https://example.com/testing-ca",
         "tos": " https://example.com/terms-of-service-testing.html"
       },
-      "intermediate": {
+      "certificateConfig": {
         /* see Root CA section above -> uses same config style */
       },
       "issuedCertificateExpiration": {
@@ -380,7 +380,7 @@ For configuration see how the Root CA configuration above works, it uses the sam
 - `meta`: Metadata shown to the ACME client when creating account and ordering
     - `website`: Website of the CA responsible for this provisioner, probably your website
     - `tos`: Terms of Service for this provisioner, probably the CA terms of server subpage of your website
-- `intermediate`: See Root CA above
+- `certificateConfig`: See Root CA above
 - `issuedCertificateExpiration`: How long should a certificate, issued by the ACME Protocol, live after its after creation.
 - `wildcardAllowed`: Should be issuing wildcards for DNS Domains allowed, e.g. `*.example.com`?
 - `ipAllowed`: Should be issuing for IP Addresses enabled for both IPv4 and IPv6?

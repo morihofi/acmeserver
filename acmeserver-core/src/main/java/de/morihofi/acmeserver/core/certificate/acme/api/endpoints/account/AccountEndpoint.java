@@ -21,9 +21,10 @@ import com.google.gson.JsonObject;
 import de.morihofi.acmeserver.core.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.core.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
 import de.morihofi.acmeserver.core.database.AcmeStatus;
 import de.morihofi.acmeserver.core.database.objects.ACMEAccount;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
@@ -73,7 +74,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
      * @throws Exception If an error occurs while handling the request.
      */
     @Override
-    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(Context ctx, AcmeProvisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = ctx.pathParam("id");
 
         ACMEAccountRequestPayload acmeAccountRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);

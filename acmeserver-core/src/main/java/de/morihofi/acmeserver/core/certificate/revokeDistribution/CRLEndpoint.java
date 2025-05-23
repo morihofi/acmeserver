@@ -16,7 +16,9 @@
 
 package de.morihofi.acmeserver.core.certificate.revokeDistribution;
 
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
+import de.morihofi.acmeserver.core.tools.ServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -26,17 +28,17 @@ import java.nio.ByteBuffer;
 
 public class CRLEndpoint implements Handler {
 
-    private final Provisioner provisioner;
+    private final ServerInstance serverInstance;
 
     /**
      * Constructor for the CRLEndpoint class. Initializes a new instance with a given Provisioner and CRL (Certificate Revocation List)
      * object.
      *
-     * @param provisioner the Provisioner instance to be associated with this endpoint
+     * @param serverInstance the instance instance to be associated with this endpoint
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public CRLEndpoint(Provisioner provisioner) {
-        this.provisioner = provisioner;
+    public CRLEndpoint(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
     }
 
     /**
@@ -49,9 +51,12 @@ public class CRLEndpoint implements Handler {
      */
     @Override
     public void handle(Context ctx) throws Exception {
+
+        String provisionerName = ctx.pathParam("provisioner");
+
         ctx.status(200);
-        ByteBuffer buffer =
-                ByteBuffer.wrap(CRLScheduler.getCrlGeneratorForProvisioner(provisioner.getProvisionerName()).getCurrentCrlBytes());
+        ByteBuffer buffer = ByteBuffer.wrap(CRLScheduler.getCrlGeneratorForProvisioner(provisionerName)
+                .getCurrentCrlBytes());
 
         ctx.header("Content-Type", "application/pkix-crl");
         ctx.header("Content-Length", String.valueOf(buffer.capacity()));

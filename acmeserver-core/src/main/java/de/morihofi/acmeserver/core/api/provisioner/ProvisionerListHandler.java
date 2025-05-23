@@ -13,8 +13,8 @@
 package de.morihofi.acmeserver.core.api.provisioner;
 
 import de.morihofi.acmeserver.core.api.provisioner.statistics.responses.ProvisionerListEntryResponse;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
-import de.morihofi.acmeserver.core.certificate.provisioners.ProvisionerManager;
+
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -60,10 +60,10 @@ public class ProvisionerListHandler implements Handler {
 
         List<ProvisionerListEntryResponse> provisionerResponse = new ArrayList<>();
 
-        for (Provisioner provisioner : ProvisionerManager.getProvisioners()) {
+        for (AcmeProvisioner provisioner : AcmeProvisioner.getAllProvisioners(serverInstance)) {
             ProvisionerListEntryResponse provisionerEntry = new ProvisionerListEntryResponse();
-            provisionerEntry.setName(provisioner.getProvisionerName());
-            provisionerEntry.setDirectoryUrl(provisioner.getAcmeApiURL() + "/directory");
+            provisionerEntry.setName(provisioner.getName());
+            provisionerEntry.setDirectoryUrl(provisioner.getAcmeApiURL(serverInstance) + "/directory");
 
             provisionerResponse.add(provisionerEntry);
         }

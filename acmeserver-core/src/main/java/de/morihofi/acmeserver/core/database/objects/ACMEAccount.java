@@ -26,7 +26,6 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Objects;
 
@@ -171,8 +170,9 @@ public class ACMEAccount implements Serializable {
     /**
      * Provisioner where this ACME account was registered in.
      */
-    @Column(name = "provisioner", nullable = false)
-    private String provisioner;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "provisioner_id", nullable = false)
+    private AcmeProvisioner acmeProvisioner;
 
     /**
      * Orders for this ACME Account

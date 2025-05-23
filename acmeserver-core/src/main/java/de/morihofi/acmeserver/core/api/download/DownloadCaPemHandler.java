@@ -48,9 +48,9 @@ public class DownloadCaPemHandler implements Handler {
         ctx.header("Content-Type", "application/x-x509-ca-cert");
 
         String pem = PemUtil.certificateToPEM(
-                serverInstance.getCryptoStoreManager()
-                        .getKeyStore()
-                        .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
+                serverInstance
+                        .getCryptoStoreManager()
+                        .getCerificateAuthorityX509Certificate(serverInstance.getRootCa())
                         .getEncoded()
         );
 

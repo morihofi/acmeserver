@@ -16,7 +16,8 @@
 
 package de.morihofi.acmeserver.core.tools.certificate.renew.watcher;
 
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
 import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.core.tools.certificate.cryptoops.KeyStoreUtil;
 import de.morihofi.acmeserver.core.tools.lambda.TriFunction;
@@ -65,8 +66,8 @@ public class CertificateRenewManager {
      * @param provisioner          The provisioner responsible for renewing the certificate.
      * @param regenerationFunction The function used to regenerate the certificate.
      */
-    public void registerNewCertificateRenewWatcher(String alias, Provisioner provisioner,
-                                                   TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction) {
+    public void registerNewCertificateRenewWatcher(String alias, AcmeProvisioner provisioner,
+                                                   TriFunction<AcmeProvisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction) {
         registerNewCertificateRenewWatcher(alias, provisioner, regenerationFunction, null);
     }
 
@@ -78,8 +79,8 @@ public class CertificateRenewManager {
      * @param regenerationFunction     The function used to regenerate the certificate.
      * @param triggerAfterRegeneration The runnable to execute after the certificate has been regenerated.
      */
-    public void registerNewCertificateRenewWatcher(String alias, Provisioner provisioner,
-                                                   TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction, Runnable triggerAfterRegeneration) {
+    public void registerNewCertificateRenewWatcher(String alias, AcmeProvisioner provisioner,
+                                                   TriFunction<AcmeProvisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction, Runnable triggerAfterRegeneration) {
 
         if (renewMap.containsKey(alias)) {
             throw new IllegalArgumentException("An watcher was already registered for keystore alias " + alias);
@@ -123,8 +124,8 @@ public class CertificateRenewManager {
             String alias = entry.getKey();
             RenewEntry renewEntry = entry.getValue();
 
-            TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> function = renewEntry.renewFunction();
-            Provisioner provisioner = renewEntry.provisioner();
+            TriFunction<AcmeProvisioner, X509Certificate, KeyPair, CertificateData> function = renewEntry.renewFunction();
+            AcmeProvisioner provisioner = renewEntry.provisioner();
 
             log.info("Checking if certificate for alias {} needs to be renewed", alias);
             try {
@@ -180,8 +181,8 @@ public class CertificateRenewManager {
     /**
      * Represents an entry in the renewal map, containing the provisioner, renewal function, and post-regeneration trigger.
      */
-    private record RenewEntry(Provisioner provisioner,
-                              TriFunction<Provisioner, X509Certificate, KeyPair, CertificateData> renewFunction, Runnable triggerAfterRegeneration) {
+    private record RenewEntry(AcmeProvisioner provisioner,
+                              TriFunction<AcmeProvisioner, X509Certificate, KeyPair, CertificateData> renewFunction, Runnable triggerAfterRegeneration) {
     }
 
     /**

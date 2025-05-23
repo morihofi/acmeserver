@@ -15,7 +15,7 @@ import de.morihofi.acmeserver.core.api.serverInfo.objects.MetadataInfoResponse;
 import de.morihofi.acmeserver.core.api.serverInfo.objects.ProvisionerResponse;
 import de.morihofi.acmeserver.core.api.serverInfo.objects.ServerInfoResponse;
 import de.morihofi.acmeserver.core.api.serverInfo.objects.UpdateResponse;
-import de.morihofi.acmeserver.core.config.ProvisionerConfig;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
@@ -72,10 +72,9 @@ public class ApiServerInfoEndpoint implements Handler {
     /**
      * Retrieves the server information response.
      *
-     * @param provisionerConfigList List of provisioner configurations.
      * @return ServerInfoResponse containing server metadata and provisioner information.
      */
-    public ServerInfoResponse getServerInfoResponse(List<ProvisionerConfig> provisionerConfigList) {
+    public ServerInfoResponse getServerInfoResponse() {
         MetadataInfoResponse metadataInfo = new MetadataInfoResponse();
         metadataInfo.setVersion(Main.buildMetadataVersion);
         metadataInfo.setBuildTime(Main.buildMetadataBuildTime);
@@ -119,7 +118,7 @@ public class ApiServerInfoEndpoint implements Handler {
         }
 
         List<ProvisionerResponse> provisioners = new ArrayList<>();
-        for (ProvisionerConfig provisionerConfig : provisionerConfigList) {
+        for (AcmeProvisioner provisionerConfig : AcmeProvisioner.getAllProvisioners(serverInstance)) {
             ProvisionerResponse provisioner = new ProvisionerResponse();
             provisioner.setName(provisionerConfig.getName());
             provisioners.add(provisioner);
@@ -141,7 +140,7 @@ public class ApiServerInfoEndpoint implements Handler {
     public void handle(@NotNull Context ctx) {
         ctx.header("Content-Type", "application/json");
 
-        ServerInfoResponse responseData = getServerInfoResponse(serverInstance.getAppConfig().getProvisioner());
+        ServerInfoResponse responseData = getServerInfoResponse();
         ctx.json(responseData);
     }
 }

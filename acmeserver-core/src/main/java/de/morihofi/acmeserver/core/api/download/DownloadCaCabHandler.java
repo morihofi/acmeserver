@@ -62,8 +62,7 @@ public class DownloadCaCabHandler implements Handler {
         ctx.header("Content-Type", "application/vnd.ms-cab-compressed");
 
         String xml = createXmlWithCertificate(
-                (X509Certificate) serverInstance.getCryptoStoreManager().getKeyStore()
-                        .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
+                serverInstance.getCryptoStoreManager().getCerificateAuthorityX509Certificate(serverInstance.getRootCa())
         );
 
         byte[] generatedCab = new CabFile.Builder()

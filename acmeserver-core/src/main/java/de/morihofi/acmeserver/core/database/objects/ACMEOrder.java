@@ -16,7 +16,7 @@
 
 package de.morihofi.acmeserver.core.database.objects;
 
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.core.database.AcmeOrderState;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEServerInternalException;
@@ -33,7 +33,6 @@ import org.hibernate.Transaction;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateEncodingException;
@@ -125,7 +124,7 @@ public class ACMEOrder implements Serializable {
      * @throws IOException                  if an I/O error occurs during certificate processing.
      * @throws KeyStoreException            if an error occurs while accessing the keystore.
      */
-    public static String getCertificateChainPEMofACMEbyCertificateId(String certificateId, Provisioner provisioner, ServerInstance serverInstance)
+    public static String getCertificateChainPEMofACMEbyCertificateId(String certificateId, AcmeProvisioner provisioner, ServerInstance serverInstance)
             throws CertificateEncodingException, IOException, KeyStoreException {
         StringBuilder pemBuilder = new StringBuilder();
 
@@ -164,9 +163,9 @@ public class ACMEOrder implements Serializable {
 
         List<X509Certificate> certificateChain = TypeSafetyHelper.safeCastToClassOfType(
                 Arrays.stream(
-                        provisioner.getCryptoStoreManager().getKeyStore().getCertificateChain(
+                        serverInstance.getCryptoStoreManager().getKeyStore().getCertificateChain(
                                 CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(
-                                        provisioner.getProvisionerName()
+                                        provisioner.getName()
                                 )
                         )
                 ).toList(),
@@ -242,10 +241,10 @@ public class ACMEOrder implements Serializable {
 
             transaction.commit();
             log.info("Revoked certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(),
-                    order.getAccount().getProvisioner());
+                    order.getAccount().getAcmeProvisioner());
         } catch (Exception e) {
             log.error("Unable to revoke certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(),
-                    order.getAccount().getProvisioner(), e);
+                    order.getAccount().getAcmeProvisioner(), e);
             throw new ACMEServerInternalException("Unable to revoke certificate");
         }
     }

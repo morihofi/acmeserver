@@ -19,13 +19,14 @@ package de.morihofi.acmeserver.core.certificate.acme.api.abstractclass;
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.core.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.core.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
-import de.morihofi.acmeserver.core.certificate.provisioners.ProvisionerManager;
+
 import de.morihofi.acmeserver.core.database.objects.ACMEAccount;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -40,11 +41,10 @@ public abstract class AbstractAcmeEndpoint implements Handler {
     /**
      * Gson instance for JSON to POJO and POJO to JSON conversion.
      */
-    private final Gson gson;
+    @Getter
+    private final Gson gson = new Gson();
 
-    /**
-     * Instance of the server.
-     */
+    @Getter
     private final ServerInstance serverInstance;
 
     /**
@@ -53,7 +53,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
      * @param serverInstance The server instance.
      */
     public AbstractAcmeEndpoint(ServerInstance serverInstance) {
-        this.gson = new Gson();
+
         this.serverInstance = serverInstance;
     }
 
@@ -62,8 +62,8 @@ public abstract class AbstractAcmeEndpoint implements Handler {
      *
      * @return The provisioner instance.
      */
-    public Provisioner getProvisioner(Context context) {
-        return ProvisionerManager.getProvisionerFromJavalin(context);
+    public AcmeProvisioner getProvisioner(Context context) {
+        return AcmeProvisioner.getProvisionerFromJavalin(serverInstance, context);
     }
 
     /**
@@ -90,7 +90,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
      * @param acmeRequestBody The parsed ACME request body.
      * @throws Exception If an error occurs while handling the request.
      */
-    public abstract void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception;
+    public abstract void handleRequest(Context ctx, AcmeProvisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception;
 
     /**
      * Performs signature and nonce checks for the request.
@@ -116,14 +116,5 @@ public abstract class AbstractAcmeEndpoint implements Handler {
      */
     public void performSignatureAndNonceCheck(Context ctx, ACMEAccount account, ACMERequestBody acmeRequestBody) {
         performSignatureAndNonceCheck(ctx, account.getAccountId(), acmeRequestBody);
-    }
-
-    /**
-     * Gets the server instance.
-     *
-     * @return The server instance.
-     */
-    public ServerInstance getServerInstance() {
-        return serverInstance;
     }
 }

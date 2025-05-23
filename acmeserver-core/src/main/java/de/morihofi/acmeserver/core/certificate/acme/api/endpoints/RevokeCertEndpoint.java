@@ -22,9 +22,11 @@ import com.google.gson.JsonParser;
 import de.morihofi.acmeserver.core.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.core.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.core.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
 import de.morihofi.acmeserver.core.database.objects.ACMEAccount;
 import de.morihofi.acmeserver.core.database.objects.ACMEOrder;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
+import de.morihofi.acmeserver.core.database.objects.HttpNonces;
 import de.morihofi.acmeserver.core.exception.exceptions.*;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.crypto.Crypto;
@@ -70,7 +72,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
 
     @Override
-    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(Context ctx, AcmeProvisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
 
         // Payload is Base64 Encoded, so we get the decoded one
         JsonObject reqBodyPayloadObj = JsonParser.parseString(acmeRequestBody.getDecodedPayload()).getAsJsonObject();
@@ -111,7 +113,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         log.debug("Issuer: {}", certificate.getIssuerX500Principal());
 
         // Read in root certificate
-        X509Certificate intermediateCertificate = provisioner.getIntermediateCaCertificate();
+        X509Certificate intermediateCertificate = provisioner.getIntermediateCaCertificate(getServerInstance().getCryptoStoreManager());
 
         boolean isValid = true;
         // Validate given certificate against root certificate
@@ -179,7 +181,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         ACMEOrder.revokeCertificate(order, reason, getServerInstance());
 
         ctx.status(200);
-        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
         ctx.header("Content-Length", "0");
 
         ctx.result();

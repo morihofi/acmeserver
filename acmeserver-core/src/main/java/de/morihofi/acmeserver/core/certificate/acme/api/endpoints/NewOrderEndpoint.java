@@ -17,7 +17,7 @@
 package de.morihofi.acmeserver.core.certificate.acme.api.endpoints;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
 import de.morihofi.acmeserver.core.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.objects.NewOrderRequestPayload;
@@ -25,9 +25,7 @@ import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.objects.NewOrd
 import de.morihofi.acmeserver.core.certificate.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.core.certificate.objects.ACMERequestBody;
 import de.morihofi.acmeserver.core.database.AcmeStatus;
-import de.morihofi.acmeserver.core.database.objects.ACMEAccount;
-import de.morihofi.acmeserver.core.database.objects.ACMEOrder;
-import de.morihofi.acmeserver.core.database.objects.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.core.database.objects.*;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMERejectedIdentifierException;
@@ -83,8 +81,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
      * @throws Exception If an error occurs while handling the request.
      */
     @Override
-    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
-        Provisioner p = getProvisioner(ctx);
+    public void handleRequest(Context ctx, AcmeProvisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
         ACMEAccount account = ACMEAccount.getAccount(accountId, getServerInstance());
         // Check if account exists
@@ -148,14 +145,14 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
                                             : ""));
                 }
 
-                if (!checkIfDomainIsAllowed(identifier.getDataValue(), p)) {
+                if (!checkIfDomainIsAllowed(identifier.getDataValue(), provisioner)) {
                     throw new ACMERejectedIdentifierException("Domain identifier \"" + identifier.getDataValue() + "\" is not allowed");
                 }
             }
 
             // Check IP if type is IP
             if (identifier.getType().equals("ip")) {
-                if (!p.isIpAllowed()) { // IP Address issuing is not allowed
+                if (!provisioner.isIpAllowed()) { // IP Address issuing is not allowed
                     throw new ACMERejectedIdentifierException("Issuing for IP Addresses has been disabled for this provisioner");
                 }
                 if (!DomainAndIpValidation.isIpAddress(identifier.getDataValue())) { // Not an IP Address
@@ -172,7 +169,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
             acmeOrderIdentifiersWithAuthorizationData.add(identifier);
 
-            respAuthorizations.add(provisioner.getAcmeApiURL() + "/acme/authz/" + authorizationId);
+            respAuthorizations.add(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/authz/" + authorizationId);
         }
 
         ACMEOrder order;
@@ -222,12 +219,12 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         response.setNotAfter(DateTools.formatDateForACME(order.getNotAfter()));
         response.setIdentifiers(respIdentifiers);
         response.setAuthorizations(respAuthorizations);
-        response.setFinalize(provisioner.getAcmeApiURL() + "/acme/order/" + orderId + "/finalize");
+        response.setFinalize(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId + "/finalize");
 
         ctx.status(201);
-        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
         ctx.header("Content-Type", "application/json");
-        ctx.header("Location", provisioner.getAcmeApiURL() + "/acme/order/" + orderId);
+        ctx.header("Location", provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId);
 
         ctx.json(response);
     }
@@ -239,14 +236,14 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
      * @return True if the domain is allowed based on the configured restrictions or if restrictions are disabled;
      * otherwise, false.
      */
-    private boolean checkIfDomainIsAllowed(final String domain, Provisioner p) {
+    private boolean checkIfDomainIsAllowed(final String domain, AcmeProvisioner p) {
         // Check if domain name restrictions are disabled
-        if (!p.getDomainNameRestriction().isEnabled()) {
+        if (!p.getAcmeProvisionerDomainNameRestriction().isEnabled()) {
             // Restriction is disabled, so any domain is allowed
             return true;
         }
 
-        List<String> mustSuffix = p.getDomainNameRestriction().getMustEndWith();
+        List<String> mustSuffix = p.getAcmeProvisionerDomainNameRestriction().getMustEndWith();
 
         for (String suffix : mustSuffix) {
             if (domain.endsWith(suffix)) {
@@ -268,15 +265,15 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
      * @return The calculated end date for the certificate.
      * @throws KeyStoreException if the intermediate CA certificate could not be loaded.
      */
-    private Date calculateEndDate(NewOrderRequestPayload newOrderRequestPayload, Provisioner provisioner, Date startDate) throws KeyStoreException {
+    private Date calculateEndDate(NewOrderRequestPayload newOrderRequestPayload, AcmeProvisioner provisioner, Date startDate) throws KeyStoreException {
         Date endDateByOrder = newOrderRequestPayload.getNotAfter();
 
         Date endDateByCA = DateTools.makeDateForOutliveIntermediateCertificate(
-                provisioner.getIntermediateCaCertificate().getNotAfter(),
+                provisioner.getIntermediateCaCertificate(getServerInstance().getCryptoStoreManager()).getNotAfter(),
                 DateTools.addToDate(startDate,
-                        provisioner.getGeneratedCertificateExpiration().getYears(),
-                        provisioner.getGeneratedCertificateExpiration().getMonths(),
-                        provisioner.getGeneratedCertificateExpiration().getDays()
+                        provisioner.getIssuedCertificateExpiration().getYears(),
+                        provisioner.getIssuedCertificateExpiration().getMonths(),
+                        provisioner.getIssuedCertificateExpiration().getDays()
                 )
         );
 

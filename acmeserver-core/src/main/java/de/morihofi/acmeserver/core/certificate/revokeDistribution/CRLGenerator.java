@@ -16,12 +16,15 @@
 
 package de.morihofi.acmeserver.core.certificate.revokeDistribution;
 
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.objects.RevokedCertificate;
 import de.morihofi.acmeserver.core.database.objects.ACMEOrder;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
+import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.core.tools.certificate.generator.CertificateRevokationListGenerator;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.invoke.MethodHandles;
@@ -55,9 +58,25 @@ public class CRLGenerator {
     /**
      * Instance for accessing the current provisioner
      */
-    private final Provisioner provisioner;
+    @Getter
+    private final AcmeProvisioner provisioner;
+    /**
+     * -- GETTER --
+     *  Retrieves the current CRL in byte array format.
+     *
+     * @return The current CRL as a byte array.
+     */
+    @Getter
     private volatile byte[] currentCrlBytes = null;
+    /**
+     * -- GETTER --
+     *  Retrieves the current X509CRL object.
+     *
+     * @return The current X509CRL.
+     */ // Return the CRL as a byte array
+    @Getter
     private volatile X509CRL currentCrl = null;
+    @Getter
     private volatile LocalTime lastUpdate = null;
     private final ServerInstance serverInstance;
 
@@ -67,7 +86,7 @@ public class CRLGenerator {
      *
      * @param provisioner the Provisioner instance to be used for CRL operations
      */
-    protected CRLGenerator(Provisioner provisioner, ServerInstance serverInstance) {
+    protected CRLGenerator(AcmeProvisioner provisioner, ServerInstance serverInstance) {
         this.provisioner = provisioner;
         this.serverInstance = serverInstance;
     }
@@ -79,11 +98,14 @@ public class CRLGenerator {
      */
     public void updateCachedCRL(int updateMinutes) {
         try {
+
+            CryptoStoreManager csm = serverInstance.getCryptoStoreManager();
+
             // Get the list of revoked certificates from the database
-            List<RevokedCertificate> revokedCertificates = ACMEOrder.getRevokedCertificates(provisioner.getProvisionerName(), serverInstance);
+            List<RevokedCertificate> revokedCertificates = ACMEOrder.getRevokedCertificates(provisioner.getName(), serverInstance);
             // Generate a new CRL
-            X509CRL crl = CertificateRevokationListGenerator.generateCRL(revokedCertificates, provisioner.getIntermediateCaCertificate(),
-                    provisioner.getIntermediateCaKeyPair().getPrivate(), updateMinutes);
+            X509CRL crl = CertificateRevokationListGenerator.generateCRL(revokedCertificates, provisioner.getIntermediateCaCertificate(csm),
+                    provisioner.getIntermediateCaKeyPair(csm).getPrivate(), updateMinutes);
             // Update the current CRL cache
             currentCrlBytes = getCrlAsBytes(crl);
             currentCrl = crl;
@@ -95,35 +117,4 @@ public class CRLGenerator {
         }
     }
 
-    /**
-     * Retrieves the current CRL in byte array format.
-     *
-     * @return The current CRL as a byte array.
-     */
-    public byte[] getCurrentCrlBytes() {
-        return currentCrlBytes;
-    }
-
-    /**
-     * Retrieves the current X509CRL object.
-     *
-     * @return The current X509CRL.
-     */
-    public X509CRL getCurrentCrl() {
-        // Return the CRL as a byte array
-        return currentCrl;
-    }
-
-    /**
-     * Retrieves the time of the last CRL update.
-     *
-     * @return The time of the last update as a {@link LocalTime}.
-     */
-    public LocalTime getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public Provisioner getProvisioner() {
-        return provisioner;
-    }
 }

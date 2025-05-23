@@ -23,13 +23,11 @@ import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.objects.Identi
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order.objects.ACMEOrderResponse;
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order.objects.FinalizeOrderRequestPayload;
 import de.morihofi.acmeserver.core.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
 import de.morihofi.acmeserver.core.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.core.database.AcmeOrderState;
 import de.morihofi.acmeserver.core.database.AcmeStatus;
-import de.morihofi.acmeserver.core.database.objects.ACMEAccount;
-import de.morihofi.acmeserver.core.database.objects.ACMEOrder;
-import de.morihofi.acmeserver.core.database.objects.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.core.database.objects.*;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.base64.Base64Tools;
@@ -67,7 +65,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
-    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(Context ctx, AcmeProvisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
         ACMEOrder order = ACMEOrder.getACMEOrder(orderId, getServerInstance());
@@ -95,7 +93,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
         // One authorization per identifier
         List<String> authorizationsList = identifiers.stream()
-                .map(acmeOrderIdentifier -> provisioner.getAcmeApiURL() + "/acme/authz/" + acmeOrderIdentifier.getAuthorizationId())
+                .map(acmeOrderIdentifier -> provisioner.getAcmeApiURL(getServerInstance()) + "/acme/authz/" + acmeOrderIdentifier.getAuthorizationId())
                 .toList();
 
         try {
@@ -138,8 +136,8 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
                     response.setStatus(AcmeStatus.PROCESSING.getRfcName());
                 } else {
 
-                    CertificateIssuer.generateCertificateForOrder(order, provisioner.getCryptoStoreManager(),
-                            session); // also resets need certificate status
+                    CertificateIssuer.generateCertificateForOrder(order, getServerInstance().getCryptoStoreManager(),
+                            session, getServerInstance()); // also resets need certificate status
 
                     // Valid, cause due we generated the certificate in the request, we have now a certificate available
                     response.setStatus(AcmeStatus.VALID.getRfcName());
@@ -156,11 +154,11 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         }
 
         ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
-        ctx.header("Location", provisioner.getAcmeApiURL() + "/acme/order/" + orderId);
+        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
+        ctx.header("Location", provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId);
 
-        response.setFinalize(provisioner.getAcmeApiURL() + "/acme/order/" + orderId + "/finalize");
-        response.setCertificate(provisioner.getAcmeApiURL() + "/acme/order/" + orderId + "/cert");
+        response.setFinalize(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId + "/finalize");
+        response.setCertificate(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId + "/cert");
         response.setIdentifiers(identifierList);
         response.setAuthorizations(authorizationsList);
 

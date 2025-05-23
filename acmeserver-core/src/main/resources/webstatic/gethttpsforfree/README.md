@@ -150,7 +150,7 @@ sign your certificate.
 ### Step 5: Install Certificate
 
 The response from finalizing should be your new certificate! Congrats! This
-step prints the certificate and also prints the intermediate certificate you
+step prints the certificate and also prints the certificateConfig certificate you
 need to chain this certificate to the root certificate.
 
 ## Privacy

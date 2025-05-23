@@ -23,9 +23,11 @@ import de.morihofi.acmeserver.core.certificate.acme.api.abstractclass.AbstractAc
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.account.objects.AccountResponse;
 import de.morihofi.acmeserver.core.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
 import de.morihofi.acmeserver.core.database.AcmeStatus;
 import de.morihofi.acmeserver.core.database.objects.ACMEAccount;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
+import de.morihofi.acmeserver.core.database.objects.HttpNonces;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEServerInternalException;
@@ -42,7 +44,6 @@ import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.lang.JoseException;
 
-import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -72,7 +73,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
      * @throws Exception If an error occurs while handling the request.
      */
     @Override
-    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(Context ctx, AcmeProvisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         // Check nonce
         getServerInstance().getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
@@ -122,7 +123,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
             account.setPublicKeyPEM(publicKeyPEM);
             account.setEmails(emails);
             account.setDeactivated(false);
-            account.setProvisioner(provisioner.getProvisionerName());
+            account.setAcmeProvisioner(provisioner);
             session.persist(account);
             transaction.commit();
             log.info("New ACME account created with account id {}", accountId);
@@ -132,16 +133,16 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         }
 
         // Construct response
-        String nonce = Crypto.createNonce(getServerInstance());
+        String nonce = HttpNonces.createNonce(getServerInstance());
         ctx.header("Content-Type", "application/json");
-        ctx.header("Location", provisioner.getAcmeApiURL() + "/acme/acct/" + accountId);
+        ctx.header("Location", provisioner.getAcmeApiURL(getServerInstance()) + "/acme/acct/" + accountId);
         ctx.header("Replay-Nonce", nonce);
         ctx.status(201); // Created
 
         AccountResponse response = new AccountResponse();
         response.setStatus(AcmeStatus.VALID.getRfcName());
         response.setContact(emails);
-        response.setOrders(provisioner.getAcmeApiURL() + "/acme/acct/" + accountId + "/orders");
+        response.setOrders(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/acct/" + accountId + "/orders");
 
         ctx.json(response);
     }

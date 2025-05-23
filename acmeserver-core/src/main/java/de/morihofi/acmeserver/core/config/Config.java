@@ -41,10 +41,6 @@ public class Config implements Serializable {
 
     private DatabaseConfig database;
 
-    private CertificateConfig rootCA = new CertificateConfig();
-
-    private List<ProvisionerConfig> provisioner = new ArrayList<>();
-
     private NetworkConfig network = new NetworkConfig();
 
 }

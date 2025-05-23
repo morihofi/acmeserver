@@ -16,7 +16,9 @@
 
 package de.morihofi.acmeserver.core.certificate.revokeDistribution;
 
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
+import de.morihofi.acmeserver.core.tools.ServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -36,19 +38,16 @@ import java.util.Base64;
  */
 @Slf4j
 public class OcspEndpointGet implements Handler {
-    /**
-     * Instance for accessing the current provisioner
-     */
-    private final Provisioner provisioner;
+
+    private final ServerInstance serverInstance;
 
     /**
      * Constructor for OcspEndpointGet class. Processes GET Requests Creates an instance with specified Provisioner and CRL generator.
      *
-     * @param provisioner the Provisioner instance for OCSP handling
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public OcspEndpointGet(Provisioner provisioner) {
-        this.provisioner = provisioner;
+    public OcspEndpointGet(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
     }
 
     /**
@@ -61,6 +60,9 @@ public class OcspEndpointGet implements Handler {
      */
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
+        String provisionerName = ctx.pathParam("provisioner");
+
+
         String ocspRequestEncoded = ctx.pathParam("ocspRequest");
         if (ocspRequestEncoded.isEmpty()) {
             throw new IllegalArgumentException("No OCSP request provided");
@@ -80,8 +82,8 @@ public class OcspEndpointGet implements Handler {
 
         // Processing the request and creating the OCSP response
         OCSPResp ocspResponse =
-                OcspHelper.processOCSPRequest(serialNumber, CRLScheduler.getCrlGeneratorForProvisioner(provisioner.getProvisionerName()),
-                        provisioner);
+                OcspHelper.processOCSPRequest(serialNumber, CRLScheduler.getCrlGeneratorForProvisioner(provisionerName),
+                        AcmeProvisioner.getForName(serverInstance, provisionerName), serverInstance);
 
         // Sending the OCSP response
         ctx.contentType("application/ocsp-response");

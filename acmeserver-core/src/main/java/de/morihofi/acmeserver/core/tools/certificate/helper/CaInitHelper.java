@@ -16,20 +16,23 @@
 
 package de.morihofi.acmeserver.core.tools.certificate.helper;
 
-import de.morihofi.acmeserver.core.config.certificateAlgorithms.EcdsaAlgorithmParams;
-import de.morihofi.acmeserver.core.config.certificateAlgorithms.RSAAlgorithmParams;
+import de.morihofi.acmeserver.core.database.HibernateUtil;
+import de.morihofi.acmeserver.core.database.objects.*;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.core.tools.certificate.generator.CertificateAuthorityGenerator;
 import de.morihofi.acmeserver.core.tools.certificate.generator.KeyPairGenerator;
+import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.hibernate.Session;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.UUID;
 
 /**
  * Helper class for initializing the Certificate Authority (CA).
@@ -37,56 +40,59 @@ import java.security.cert.X509Certificate;
 @Slf4j
 public class CaInitHelper {
 
-
     /**
      * Initializes the Certificate Authority (CA) by generating or loading the CA certificate and key pair.
-     *
-     * @param instance The server instance containing the configuration and crypto store manager.
-     * @throws NoSuchAlgorithmException           If the specified algorithm is not available.
-     * @throws CertificateException               If an issue occurs during certificate generation or loading.
-     * @throws IOException                        If an I/O error occurs while creating directories or writing files.
-     * @throws OperatorCreationException          If there's an issue with operator creation during certificate generation.
-     * @throws NoSuchProviderException            If the specified security provider is not available.
-     * @throws InvalidAlgorithmParameterException If there's an issue with algorithm parameters during key pair generation.
-     * @throws KeyStoreException                  If there's an issue with the key store.
      */
-    public static void initializeCA(ServerInstance instance) throws NoSuchAlgorithmException, CertificateException, IOException, OperatorCreationException,
+    public static RootCa initializeCA(HibernateUtil hibernateUtil, CryptoStoreManager cryptoStoreManager) throws NoSuchAlgorithmException, CertificateException, IOException, OperatorCreationException,
             NoSuchProviderException, InvalidAlgorithmParameterException, KeyStoreException {
 
-        KeyStore caKeyStore = instance.getCryptoStoreManager().getKeyStore();
-        if (!caKeyStore.containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)) {
+        if (RootCa.getAllRoots(hibernateUtil).length != 0) {
+            return RootCa.getAllRoots(hibernateUtil)[0]; //FIXME: Return correct one ... somehow
+            // Skip, because we already have at least one CA
+        }
 
-            // Create CA
+        // No CA is existing at the moment -> we need a new one
 
-            KeyPair caKeyPair = null;
-            if (instance.getAppConfig().getRootCA().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
-                log.info("Using RSA algorithm");
-                log.info("Generating new RSA {} bit Key Pair for Root CA", rsaParams.getKeySize());
-                caKeyPair = KeyPairGenerator.generateRSAKeyPair(rsaParams.getKeySize(),
-                        caKeyStore.getProvider().getName());
-            }
-            if (instance.getAppConfig().getRootCA().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
-                log.info("Using ECDSA algorithm (Elliptic curves)");
+        KeyStore caKeyStore = cryptoStoreManager.getKeyStore();
 
-                log.info("Generating new ECDSA Key Pair using curve {} for Root CA", ecdsaAlgorithmParams.getCurveName());
-                caKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName(), caKeyStore.getProvider().getName());
-            }
-            if (caKeyPair == null) {
-                throw new IllegalArgumentException(
-                        "Unknown algorithm " + instance.getAppConfig().getRootCA().getAlgorithm() + " used for root certificate");
-            }
+        // Create CA
+        final int keySize = 4096;
+
+
+        try (Session session = hibernateUtil.getSessionFactory().openSession()) {
+
+            log.info("Using RSA algorithm");
+            log.info("Generating new RSA {} bit Key Pair for Root CA", keySize);
+            KeyPair caKeyPair = KeyPairGenerator.generateRSAKeyPair(keySize, caKeyStore.getProvider().getName());
+
+            RootCa rootCaEntity = new RootCa(); //TODO: Add Option for ENV Variables to be set on first run
+            rootCaEntity.setCertificateConfig(new CertificateConfig(
+                    new CertificateMetadata(
+                            "ACME Server Default Root CA",
+                            "",
+                            "",
+                            ""),
+                    new CertificateExpiration(20,0,0),
+                    new CertificateAlgorithm("rsa", keySize)
+            ));
+            rootCaEntity.setInternalUuid(UUID.randomUUID().toString());
 
             log.info("Creating CA");
             X509Certificate caCertificate =
-                    CertificateAuthorityGenerator.generateCertificateAuthorityCertificate(instance.getAppConfig().getRootCA(), caKeyPair);
+                    CertificateAuthorityGenerator.generateCertificateAuthorityCertificate(rootCaEntity.getCertificateConfig(), caKeyPair);
 
             log.info("Writing CA to keystore");
-            caKeyStore.setKeyEntry(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA, caKeyPair.getPrivate(), "".toCharArray(), // No password
+            caKeyStore.setKeyEntry(rootCaEntity.getInternalUuid(), caKeyPair.getPrivate(), "".toCharArray(), // No password
                     new X509Certificate[]{caCertificate});
 
-            // Save CA in Keystore
             log.info("Saving keystore");
-            instance.getCryptoStoreManager().saveKeystore();
+            cryptoStoreManager.saveKeystore();
+
+            log.info("Persisting root CA in database");
+            session.persist(rootCaEntity);
+
+            return rootCaEntity;
+
         }
     }
 }

@@ -17,8 +17,8 @@
 package de.morihofi.acmeserver.core.api.provisioner.byname;
 
 import de.morihofi.acmeserver.core.api.provisioner.byname.responses.ProvisionerByNameInfoResponse;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
-import de.morihofi.acmeserver.core.certificate.provisioners.ProvisionerManager;
+
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -69,7 +69,7 @@ public class ProvisionerByNameInfoHandler implements Handler {
     public void handle(@NotNull Context context) throws Exception {
         String provisionerName = context.pathParam("provisionerName");
 
-        Provisioner provisioner = ProvisionerManager.getProvisionerForName(provisionerName);
+        AcmeProvisioner provisioner = AcmeProvisioner.getForName(serverInstance, provisionerName);
 
         if (provisioner == null) {
             return;
@@ -77,14 +77,14 @@ public class ProvisionerByNameInfoHandler implements Handler {
 
         ProvisionerByNameInfoResponse response = new ProvisionerByNameInfoResponse();
         // Weblinks
-        response.setTermsOfService(provisioner.getAcmeMetadataConfig().getTos());
-        response.setWebsite(provisioner.getAcmeMetadataConfig().getWebsite());
+        response.setTermsOfService(provisioner.getMeta().getTos());
+        response.setWebsite(provisioner.getMeta().getWebsite());
         // Some booleans
         response.setIpAllowed(provisioner.isIpAllowed());
         response.setDnsWildcardAllowed(provisioner.isWildcardAllowed());
-        // Revokation
-        response.setCrlUrl(provisioner.getFullCrlUrl());
-        response.setOcspUrl(provisioner.getFullOcspUrl());
+        // Revocation
+        response.setCrlUrl(provisioner.getFullCrlUrl(serverInstance));
+        response.setOcspUrl(provisioner.getFullOcspUrl(serverInstance));
 
         context.json(response);
     }
@@ -146,10 +146,10 @@ public class ProvisionerByNameInfoHandler implements Handler {
      *
      *                     <p>Usage example:</p>
      *                     <pre>
-     *                                                             byte[] asn1Data = ...; // ASN.1 encoded data
-     *                                                             ASN1Primitive asn1Object = toAsn1Object(asn1Data);
-     *                                                             // Proceed with processing the ASN1Primitive as needed
-     *                                                             </pre>
+     *                                                                                 byte[] asn1Data = ...; // ASN.1 encoded data
+     *                                                                                 ASN1Primitive asn1Object = toAsn1Object(asn1Data);
+     *                                                                                 // Proceed with processing the ASN1Primitive as needed
+     *                                                                                 </pre>
      *
      *                     <p>This method leverages Bouncy Castle's ASN1 parsing capabilities. Ensure that
      *                     the Bouncy Castle library is included in your project's dependencies to use this method.</p>

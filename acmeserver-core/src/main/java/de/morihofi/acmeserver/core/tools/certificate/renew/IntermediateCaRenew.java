@@ -16,8 +16,8 @@
 
 package de.morihofi.acmeserver.core.tools.certificate.renew;
 
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
-import de.morihofi.acmeserver.core.config.ProvisionerConfig;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
+import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.core.tools.certificate.generator.CertificateAuthorityGenerator;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewManager;
@@ -25,11 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.security.KeyPair;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -51,27 +47,26 @@ public class IntermediateCaRenew {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
-    public static CertificateRenewManager.CertificateData renewIntermediateCertificate(KeyPair provisionerKeyPair, Provisioner provisioner,
-            CryptoStoreManager cryptoStoreManager, String intermediateAlias) throws CertificateException, OperatorCreationException,
+    public static CertificateRenewManager.CertificateData renewIntermediateCertificate(KeyPair provisionerKeyPair, AcmeProvisioner provisioner,
+                                                                                       ServerInstance serverInstance, String intermediateAlias) throws CertificateException, OperatorCreationException,
             IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
 
-        ProvisionerConfig provisionerCfg = provisioner.getConfig();
 
         // Generate a new certificate
         X509Certificate renewedCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(
-                cryptoStoreManager,
+                serverInstance,
                 provisionerKeyPair,
-                provisionerCfg.getIntermediate().getMetadata(),
-                // Specify the expiration as per your requirement
-                provisionerCfg.getIntermediate().getExpiration(),
-                provisioner.getFullCrlUrl(),
-                provisioner.getFullOcspUrl()
+                provisioner.getCertificateConfig(),
+                provisioner.getFullCrlUrl(serverInstance),
+                provisioner.getFullOcspUrl(serverInstance)
         );
 
-        cryptoStoreManager.getKeyStore().deleteEntry(intermediateAlias);
+        KeyStore ks = serverInstance.getCryptoStoreManager().getKeyStore();
+
+        ks.deleteEntry(intermediateAlias);
         X509Certificate[] chain = new X509Certificate[]{
                 renewedCertificate,
-                (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
+                serverInstance.getCryptoStoreManager().getCerificateAuthorityX509Certificate(serverInstance.getRootCa())
         };
 
         return new CertificateRenewManager.CertificateData(chain, provisionerKeyPair);

@@ -16,8 +16,11 @@
 
 package de.morihofi.acmeserver.core.certificate.revokeDistribution;
 
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
+import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.certificate.CertMisc;
+import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -43,7 +46,6 @@ import java.util.Date;
 @Slf4j
 public class OcspHelper {
 
-
     /**
      * Processes an OCSP (Online Certificate Status Protocol) request for a given certificate serial number. This method checks the status
      * of the certificate using the current Certificate Revocation List (CRL) and generates an OCSP response accordingly.
@@ -60,15 +62,17 @@ public class OcspHelper {
      * @throws UnrecoverableKeyException    if there is an issue recovering the key.
      * @throws KeyStoreException            if there is an issue with the keystore.
      */
-    public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRLGenerator crlGenerator, Provisioner provisioner) throws
+    public static OCSPResp processOCSPRequest(BigInteger serialNumber, CRLGenerator crlGenerator, AcmeProvisioner provisioner, ServerInstance serverInstance) throws
             OCSPException, CRLException, CertificateEncodingException, OperatorCreationException, KeyStoreException,
             UnrecoverableKeyException, NoSuchAlgorithmException {
         CertificateStatus certStatus = getCertificateStatus(serialNumber, crlGenerator);
 
         log.info("Status for serial number {} is: {}", serialNumber, (certStatus != null ? "revoked" : "valid"));
 
-        X509Certificate caCert = provisioner.getIntermediateCaCertificate();
-        KeyPair caKeyPair = provisioner.getIntermediateCaKeyPair();
+        CryptoStoreManager csm = serverInstance.getCryptoStoreManager();
+
+        X509Certificate caCert = provisioner.getIntermediateCaCertificate(csm);
+        KeyPair caKeyPair = provisioner.getIntermediateCaKeyPair(csm);
 
         // Creating the OCSP response
         SubjectPublicKeyInfo caPublicKeyInfo = SubjectPublicKeyInfo.getInstance(caCert.getPublicKey().getEncoded());

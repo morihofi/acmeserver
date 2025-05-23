@@ -23,7 +23,7 @@ Debian packages are no longer supported. Please use Docker/Podman instead. This 
 - Provisioner directory is now in /acme/provisionername/directory
 - Database scheme has been complete rebuilt, please clean database before use
 - Due to move of provisioner directory, the URLs to OCSP and CRL have also been moved, please regenerate your
-  intermediate certificates by delete the corresponding entries in the keystore
+  certificateConfig certificates by delete the corresponding entries in the keystore
 
 ## 📒 Disclaimer
 
@@ -46,8 +46,8 @@ Server.
 - Revokation support for certificates
 - ACME Account deactivation
 - Mostly ACME RFC compliant in its behaviour
-- Multiple provisioners support with own intermediate CA
-    - Set expiration and key algorithm for each intermediate
+- Multiple provisioners support with own certificateConfig CA
+    - Set expiration and key algorithm for each certificateConfig
     - Set expiration for each issued certificate in provisioner
     - Each provisioner has its own CRL (Certificate Revokation List)
     - Set a domain naming restriction for each provisioner (e.g. domain must end with ".example.com")

@@ -30,39 +30,6 @@ import java.util.Base64;
 @Slf4j
 public class Crypto {
 
-    /**
-     * Generates a nonce (number used once) for security purposes.
-     *
-     * @return A randomly generated nonce as a hexadecimal string.
-     * @throws IllegalArgumentException If there is an issue creating the nonce.
-     */
-    public static String createNonce(ServerInstance serverInstance) {
-        try {
-            log.info("Generating nonce");
-
-            // Generate a random 128-bit nonce
-            byte[] nonce = new byte[16]; // 128 bits are 16 bytes
-            SecureRandom secureRandom = new SecureRandom();
-            secureRandom.nextBytes(nonce);
-
-            // Encode the nonce to Base64 for easy handling
-            String base64Nonce = Base64.getUrlEncoder().withoutPadding().encodeToString(nonce);
-
-
-            try (Session session = serverInstance.getHibernateUtil().getSessionFactory().openSession()) {
-                Transaction tx = session.beginTransaction();
-
-                session.persist(new HttpNonces(base64Nonce)); // Store nonce
-                log.info("Nonce {} stored", base64Nonce);
-
-                tx.commit();
-            }
-
-            return base64Nonce;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Unable to create nonce", e);
-        }
-    }
 
     /**
      * Generates a cryptographically strong random identifier.

@@ -35,8 +35,7 @@ public class DownloadCaDerHandler implements Handler {
     public void handle(@NotNull Context ctx) throws Exception {
         ctx.header("Content-Type", "application/x-x509-ca-cert");
 
-        byte[] der = serverInstance.getCryptoStoreManager().getKeyStore()
-                .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)
+        byte[] der = serverInstance.getCryptoStoreManager().getCerificateAuthorityX509Certificate(serverInstance.getRootCa())
                 .getEncoded();
 
         ctx.result(der);

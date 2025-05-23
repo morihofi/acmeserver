@@ -23,9 +23,10 @@ import de.morihofi.acmeserver.core.certificate.acme.challenges.ChallengeResult;
 import de.morihofi.acmeserver.core.certificate.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.core.certificate.acme.challenges.HTTPChallenge;
 import de.morihofi.acmeserver.core.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
 import de.morihofi.acmeserver.core.database.AcmeStatus;
 import de.morihofi.acmeserver.core.database.objects.ACMEOrderIdentifierChallenge;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
+import de.morihofi.acmeserver.core.database.objects.HttpNonces;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
@@ -54,12 +55,12 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
     }
 
     @Override
-    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(Context ctx, AcmeProvisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String challengeId = ctx.pathParam("challengeId");
         String challengeType = ctx.pathParam("challengeType"); // dns-01 or http-01
 
         ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
 
         // Check if challenge is valid
         ACMEOrderIdentifierChallenge identifierChallenge = ACMEOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getServerInstance());
@@ -122,11 +123,11 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         } else {
             response.setStatus(AcmeStatus.PENDING.getRfcName());
         }
-        response.setUrl(provisioner.getAcmeApiURL() + "/acme/chall/" + challengeId + "/" + challengeType);
+        response.setUrl(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/chall/" + challengeId + "/" + challengeType);
         response.setToken(identifierChallenge.getAuthorizationToken());
 
         // "Up"-Link header is required for certbot
-        ctx.header("Link", HttpHeaderUtil.buildLinkHeaderValue(provisioner.getAcmeApiURL() + "/acme/authz/" + identifierChallenge.getIdentifier().getAuthorizationId(), "up"));
+        ctx.header("Link", HttpHeaderUtil.buildLinkHeaderValue(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/authz/" + identifierChallenge.getIdentifier().getAuthorizationId(), "up"));
 
         ctx.json(response);
     }

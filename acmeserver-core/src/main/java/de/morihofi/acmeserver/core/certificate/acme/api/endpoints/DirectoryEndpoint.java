@@ -18,17 +18,22 @@ package de.morihofi.acmeserver.core.certificate.acme.api.endpoints;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
-import de.morihofi.acmeserver.core.certificate.provisioners.ProvisionerManager;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
+import de.morihofi.acmeserver.core.tools.ServerInstance;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.invoke.MethodHandles;
-
 public class DirectoryEndpoint implements Handler {
+
+    private final ServerInstance serverInstance;
+
+    public DirectoryEndpoint(ServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
+    }
+
 
     /**
      * Method for handling the request
@@ -37,7 +42,7 @@ public class DirectoryEndpoint implements Handler {
      */
     @Override
     public void handle(@NotNull Context ctx) {
-        Provisioner provisioner = ProvisionerManager.getProvisionerFromJavalin(ctx);
+        AcmeProvisioner provisioner = AcmeProvisioner.getProvisionerFromJavalin(serverInstance, ctx);
 
 
         // Response is JSON
@@ -51,11 +56,11 @@ public class DirectoryEndpoint implements Handler {
         {
             String website = "about:blank";
             String tos = "about:blank";
-            if(provisioner.getAcmeMetadataConfig().getWebsite() != null){
-                website = provisioner.getAcmeMetadataConfig().getWebsite().trim();
+            if(provisioner.getMeta().getWebsite() != null){
+                website = provisioner.getMeta().getWebsite().trim();
             }
-            if(provisioner.getAcmeMetadataConfig().getTos() != null){
-                tos = provisioner.getAcmeMetadataConfig().getTos().trim();
+            if(provisioner.getMeta().getTos() != null){
+                tos = provisioner.getMeta().getTos().trim();
             }
 
             metaObject.addProperty("website", website);
@@ -64,11 +69,11 @@ public class DirectoryEndpoint implements Handler {
         // Create the main JSON object
         JsonObject responseJSON = new JsonObject();
         responseJSON.add("meta", metaObject);
-        responseJSON.addProperty("newAccount", provisioner.getAcmeApiURL() + "/acme/new-acct");
-        responseJSON.addProperty("newNonce", provisioner.getAcmeApiURL() + "/acme/new-nonce");
-        responseJSON.addProperty("newOrder", provisioner.getAcmeApiURL() + "/acme/new-order");
-        responseJSON.addProperty("revokeCert", provisioner.getAcmeApiURL() + "/acme/revoke-cert");
-        responseJSON.addProperty("keyChange", provisioner.getAcmeApiURL() + "/acme/key-change");
+        responseJSON.addProperty("newAccount", provisioner.getAcmeApiURL(serverInstance) + "/acme/new-acct");
+        responseJSON.addProperty("newNonce", provisioner.getAcmeApiURL(serverInstance) + "/acme/new-nonce");
+        responseJSON.addProperty("newOrder", provisioner.getAcmeApiURL(serverInstance) + "/acme/new-order");
+        responseJSON.addProperty("revokeCert", provisioner.getAcmeApiURL(serverInstance) + "/acme/revoke-cert");
+        responseJSON.addProperty("keyChange", provisioner.getAcmeApiURL(serverInstance) + "/acme/key-change");
 
         // Convert the JsonObject to a String
         String jsonResponse = gson.toJson(responseJSON);

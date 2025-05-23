@@ -17,10 +17,10 @@
 package de.morihofi.acmeserver.core.certificate.queue;
 
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.objects.Identifier;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
-import de.morihofi.acmeserver.core.certificate.provisioners.ProvisionerManager;
+
 import de.morihofi.acmeserver.core.database.AcmeOrderState;
 import de.morihofi.acmeserver.core.database.objects.ACMEOrder;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.base64.Base64Tools;
 import de.morihofi.acmeserver.core.tools.certificate.PemUtil;
@@ -36,7 +36,6 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -77,7 +76,7 @@ public class CertificateIssuer {
         }
     }
 
-    public static void generateCertificateForOrder(ACMEOrder order, CryptoStoreManager cryptoStoreManager, Session session) throws
+    public static void generateCertificateForOrder(ACMEOrder order, CryptoStoreManager cryptoStoreManager, Session session, ServerInstance serverInstance) throws
             IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException,
             OperatorCreationException {
         String csr = order.getCertificateCSR();
@@ -87,12 +86,12 @@ public class CertificateIssuer {
         PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
 
         Set<Identifier> csrIdentifiers = CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
-        Provisioner provisioner = ProvisionerManager.getProvisionerForName(order.getAccount().getProvisioner());
+        AcmeProvisioner provisioner = order.getAccount().getAcmeProvisioner();
 
-                        /*
-                            We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using
-                            the Basic Constrain etc.
-                         */
+        /*
+            We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using
+            the Basic Constrain etc., because this is defined by the CA that we are
+        */
 
         log.info("Creating Certificate for order \"{}\" with DNS Names {}", order.getOrderId(),
                 String.join(", ", csrIdentifiers.stream()
@@ -102,13 +101,14 @@ public class CertificateIssuer {
         );
 
         X509Certificate acmeGeneratedCertificate = ServerCertificateGenerator.createServerCertificate(
-                provisioner.getIntermediateCaKeyPair(),
-                provisioner.getIntermediateCaCertificate(),
+                provisioner.getIntermediateCaKeyPair(cryptoStoreManager),
+                provisioner.getIntermediateCaCertificate(cryptoStoreManager),
                 pkPemObject.getContent(),
                 csrIdentifiers.toArray(new Identifier[0]),
                 order.getNotBefore(),
                 order.getNotAfter(),
-                provisioner
+                provisioner,
+                serverInstance
         );
 
         BigInteger serialNumber = acmeGeneratedCertificate.getSerialNumber();
@@ -152,7 +152,7 @@ public class CertificateIssuer {
                         // CryptoStoreManager csm = CryptoStoreManager;
 
                         ACMEOrder order = waitingOrders.get(0);
-                        generateCertificateForOrder(order, serverInstance.getCryptoStoreManager(), session);
+                        generateCertificateForOrder(order, serverInstance.getCryptoStoreManager(), session, serverInstance);
                     } catch (Exception ex) {
                         log.error("Error generating and/or store certificate", ex);
                     }

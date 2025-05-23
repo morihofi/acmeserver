@@ -17,7 +17,9 @@
 package de.morihofi.acmeserver.core.tools.certificate.generator;
 
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.objects.Identifier;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
+import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.certificate.CertMisc;
 import de.morihofi.acmeserver.core.tools.certificate.X509;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -79,7 +81,7 @@ public class ServerCertificateGenerator {
      */
     public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate,
                                                           byte[] serverPublicKeyBytes, Identifier[] identifiers, Date startDate,
-                                                          Date endDate, Provisioner provisioner) throws
+                                                          Date endDate, AcmeProvisioner provisioner, ServerInstance serverInstance) throws
             OperatorCreationException, CertificateException, CertIOException {
 
         // Create our virtual "CSR"
@@ -112,7 +114,7 @@ public class ServerCertificateGenerator {
         if (provisioner != null) {
 
             // CRL Distribution Points
-            GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullCrlUrl());
+            GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullCrlUrl(serverInstance));
             DistributionPointName dpn = new DistributionPointName(new GeneralNames(gn));
             DistributionPoint distp = new DistributionPoint(dpn, null, null);
             certBuilder.addExtension(Extension.cRLDistributionPoints, false, new CRLDistPoint(new DistributionPoint[]{distp}));
@@ -120,7 +122,7 @@ public class ServerCertificateGenerator {
             // Authority Information Access (OCSP Endpoint)
             AccessDescription accessDescription = new AccessDescription(
                     AccessDescription.id_ad_ocsp,
-                    new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullOcspUrl())
+                    new GeneralName(GeneralName.uniformResourceIdentifier, provisioner.getFullOcspUrl(serverInstance))
             );
 
             ASN1EncodableVector authorityInformationAccessVector = new ASN1EncodableVector();
@@ -134,7 +136,7 @@ public class ServerCertificateGenerator {
 
         ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(intermediateKeyPair.getPrivate());
 
-        X509CertificateHolder holder = certBuilder.build(signer); // If it crashes here, the algorithm/curve specified in the server settings might unsupported by BouncyCastle
+        X509CertificateHolder holder = certBuilder.build(signer);
         JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
         converter.setProvider(BouncyCastleProvider.PROVIDER_NAME);
         return converter.getCertificate(holder);

@@ -16,6 +16,7 @@
 
 package de.morihofi.acmeserver.core.tools;
 
+import de.morihofi.acmeserver.core.Main;
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.objects.Identifier;
 import de.morihofi.acmeserver.core.config.Config;
 import de.morihofi.acmeserver.core.tools.certificate.CertTools;
@@ -100,7 +101,7 @@ public class JavalinSecurityHelper {
 
         {
             String alias = CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI;
-            CertificateRenewManager.CertificateData certData = generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
+            CertificateRenewManager.CertificateData certData = generateAcmeApiClientCertificate(instance, appConfig);
 
             if (certData.keyPair() != null && certData.certificateChain() != null) {
                 log.info("Saving certificate and key for alias {} in keystore", alias);
@@ -137,7 +138,7 @@ public class JavalinSecurityHelper {
         certificateRenewManager.registerNewCertificateRenewWatcher(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, null,
                 (provisioner, x509Certificate, keyPair) -> {
                     // Generate new certificate in place
-                    return generateAcmeApiClientCertificate(cryptoStoreManager, appConfig);
+                    return generateAcmeApiClientCertificate(instance, appConfig);
                 }, () -> {
                     try {
                         log.info("Certificate renewed successfully, now reloading ACME API certificate");
@@ -152,7 +153,7 @@ public class JavalinSecurityHelper {
     /**
      * Generates an ACME API client certificate for the ACME Web Server API, if it doesn't already exist in the key store.
      *
-     * @param cryptoStoreManager The crypto store manager used for managing certificates and keys.
+     * @param serverInstance The s used for managing certificates and keys.
      * @param appConfig          The application configuration containing settings for the ACME API and certificates.
      * @throws CertificateException      If there is an issue with certificate handling.
      * @throws IOException               If an I/O error occurs.
@@ -162,12 +163,13 @@ public class JavalinSecurityHelper {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws UnrecoverableKeyException If a keystore key cannot be recovered.
      */
-    private static CertificateRenewManager.CertificateData generateAcmeApiClientCertificate(CryptoStoreManager cryptoStoreManager,
+    private static CertificateRenewManager.CertificateData generateAcmeApiClientCertificate(ServerInstance serverInstance,
                                                                                             Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
             OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
-        String rootCaAlias = CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA;
 
-        KeyPair rootCaKeyPair = cryptoStoreManager.getCerificateAuthorityKeyPair();
+        CryptoStoreManager cryptoStoreManager = serverInstance.getCryptoStoreManager();
+
+        KeyPair rootCaKeyPair = cryptoStoreManager.getCerificateAuthorityKeyPair(serverInstance.getRootCa());
 
         KeyPair acmeAPIKeyPair;
         if (!cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) ||
@@ -184,8 +186,8 @@ public class JavalinSecurityHelper {
 
             log.info("Using root CA for generation");
             X509Certificate rootCertificate =
-                    (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
-            X509Certificate intermediateCertificate = (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(rootCaAlias);
+                    cryptoStoreManager.getCerificateAuthorityX509Certificate(serverInstance.getRootCa());
+            X509Certificate intermediateCertificate = cryptoStoreManager.getCerificateAuthorityX509Certificate(serverInstance.getRootCa());
 
             log.info("Creating Server Certificate");
             Date startDate = new Date(); // Starts now
@@ -207,7 +209,8 @@ public class JavalinSecurityHelper {
                     },
                     startDate,
                     endDate,
-                    null
+                    null,
+                    serverInstance
             );
 
             X509Certificate[] chain = new X509Certificate[]{

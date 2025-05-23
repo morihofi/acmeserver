@@ -10,9 +10,9 @@
 package de.morihofi.acmeserver.core.api.provisioner.statistics;
 
 import de.morihofi.acmeserver.core.api.provisioner.statistics.responses.ProvisionerStatisticResponse;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
-import de.morihofi.acmeserver.core.certificate.provisioners.ProvisionerManager;
+
 import de.morihofi.acmeserver.core.certificate.provisioners.ProvisionerStatistics;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
@@ -56,8 +56,8 @@ public class ProvisionerStatisticHandler implements Handler {
         List<ProvisionerStatisticResponse> statisticItemsOfProvisioner = new ArrayList<>();
 
         try (Session session = serverInstance.getHibernateUtil().getSessionFactory().openSession()) {
-            for (Provisioner provisioner : ProvisionerManager.getProvisioners()) {
-                String provisionerName = provisioner.getProvisionerName();
+            for (AcmeProvisioner provisioner : AcmeProvisioner.getAllProvisioners(serverInstance)) {
+                String provisionerName = provisioner.getName();
 
                 ProvisionerStatisticResponse item = new ProvisionerStatisticResponse();
                 item.setName(provisionerName);

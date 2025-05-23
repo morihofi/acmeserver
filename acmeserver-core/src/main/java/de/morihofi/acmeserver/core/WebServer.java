@@ -26,16 +26,12 @@ import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.challenge.Chal
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
-import de.morihofi.acmeserver.core.certificate.provisioners.ProvisionerManager;
 import de.morihofi.acmeserver.core.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.CRLScheduler;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.OcspEndpointGet;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.OcspEndpointPost;
-import de.morihofi.acmeserver.core.config.ProvisionerConfig;
-import de.morihofi.acmeserver.core.config.certificateAlgorithms.EcdsaAlgorithmParams;
-import de.morihofi.acmeserver.core.config.certificateAlgorithms.RSAAlgorithmParams;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
 import de.morihofi.acmeserver.core.exception.ACMEException;
 import de.morihofi.acmeserver.core.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.core.tools.JavalinSecurityHelper;
@@ -109,7 +105,6 @@ public class WebServer {
      */
     public void startServer() throws Exception {
         log.info("Starting in Normal Mode");
-        CaInitHelper.initializeCA(serverInstance);
 
         log.info("Initializing database");
         serverInstance.getHibernateUtil().initDatabase();
@@ -146,10 +141,8 @@ public class WebServer {
             ctx.header("Access-Control-Max-Age", "3600");
         });
 
-        app.after("/*", ctx -> {
-            // This handler is just for access logging
-            httpAccessLogger.log(ctx);
-        });
+        // This handler is just for access logging
+        app.after("/*", httpAccessLogger::log);
 
         app.exception(ACMEException.class, (exception, ctx) -> {
             Gson gson = new Gson();
@@ -165,8 +158,19 @@ public class WebServer {
         API.init(app, serverInstance);
 
         // Register provisioners
-        for (Provisioner provisioner : getProvisioners(serverInstance.getAppConfig().getProvisioner(), serverInstance.getCryptoStoreManager())) {
-            ProvisionerManager.registerProvisioner(app, provisioner, serverInstance);
+        for (AcmeProvisioner provisioner : AcmeProvisioner.getAllProvisioners(serverInstance)) {
+
+            // CRL generator
+            CRLScheduler.addProvisionerToScheduler(provisioner, serverInstance);
+
+            // CRL distribution
+            app.get("/acme/crl/{provisioner}/certs-revoked.crl", new CRLEndpoint(serverInstance));
+
+            // OCSP (Online Certificate Status Protocol) endpoints
+            app.post("/acme/{provisioner}/ocsp", new OcspEndpointPost(serverInstance));
+            app.get( "/acme/{provisioner}/ocsp/{ocspRequest}", new OcspEndpointGet(serverInstance));
+
+            log.info("Provisioner {} registered", provisioner.getName());
         }
 
         // Add routes for ACME
@@ -176,17 +180,17 @@ public class WebServer {
             // Disable caching for all ACME routes
             context.header("Cache-Control", "public, max-age=0, no-cache");
 
-            Provisioner provisioner = ProvisionerManager.getProvisionerFromJavalin(context);
+            AcmeProvisioner provisioner = AcmeProvisioner.getProvisionerFromJavalin(serverInstance, context);
 
             if(!context.path().equals("{provisioner}/directory")){
-                context.header("Link", HttpHeaderUtil.buildLinkHeaderValue(provisioner.getAcmeApiURL() + "/directory", "index"));
+                context.header("Link", HttpHeaderUtil.buildLinkHeaderValue(provisioner.getAcmeApiURL(serverInstance) + "/directory", "index"));
             }
 
         });
 
 
         // ACME Directory
-        app.get("/acme/{provisioner}/directory", new DirectoryEndpoint());
+        app.get("/acme/{provisioner}/directory", new DirectoryEndpoint(serverInstance));
 
         // New account
         app.post("/acme/{provisioner}/acme/new-acct", new NewAccountEndpoint(serverInstance));
@@ -223,9 +227,6 @@ public class WebServer {
         // Revoke certificate
         app.post("/acme/{provisioner}/acme/revoke-cert", new RevokeCertEndpoint(serverInstance));
 
-
-
-
         log.info("Starting the CRL generation Scheduler");
         CRLScheduler.startScheduler();
         log.info("Starting the certificate renew watcher");
@@ -245,17 +246,15 @@ public class WebServer {
     /**
      * Retrieves or initializes provisioners based on configuration and generates ACME Web API client certificates when required.
      *
-     * @param provisionerConfigList A list of provisioner configurations.
      * @param cryptoStoreManager    Instance of {@link CryptoStoreManager} for accessing KeyStores
      * @return A list of provisioners.
      * @throws Exception If an error occurs during provisioning or certificate generation.
      */
-    private List<Provisioner> getProvisioners(List<ProvisionerConfig> provisionerConfigList,
-                                              CryptoStoreManager cryptoStoreManager) throws Exception {
+    /*private List<AcmeProvisioner> getProvisioners(CryptoStoreManager cryptoStoreManager) throws Exception {
 
-        List<Provisioner> provisioners = new ArrayList<>();
+        List<AcmeProvisioner> provisioners = new ArrayList<>();
 
-        for (ProvisionerConfig config : provisionerConfigList) {
+        for (AcmeProvisioner config : AcmeProvisioner.getAllProvisioners(serverInstance)) {
             String provisionerName = config.getName();
 
             if (!ConfigCheck.isValidProvisionerName(provisionerName)) {
@@ -265,17 +264,7 @@ public class WebServer {
 
             KeyPair intermediateKeyPair = null;
             X509Certificate intermediateCertificate;
-            final Provisioner provisioner = new Provisioner(
-                    provisionerName,
-                    config.getMeta(),
-                    config.getIssuedCertificateExpiration(),
-                    config.getDomainNameRestriction(),
-                    config.isWildcardAllowed(),
-                    cryptoStoreManager,
-                    config,
-                    config.isIpAllowed(),
-                    serverInstance
-            );
+            final AcmeProvisioner provisioner = AcmeProvisioner.getForName(serverInstance, config.getName());
 
             // Check if root ca does exist
             assert cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
@@ -306,8 +295,8 @@ public class WebServer {
                 log.info("Generating Intermediate CA");
                 intermediateCertificate =
                         CertificateAuthorityGenerator.createIntermediateCaCertificate(cryptoStoreManager, intermediateKeyPair,
-                                config.getIntermediate().getMetadata(), config.getIntermediate().getExpiration(),
-                                provisioner.getFullCrlUrl(), provisioner.getFullOcspUrl());
+                                provisioner.getCertificateConfig(),
+                                provisioner.getFullCrlUrl(serverInstance), provisioner.getFullOcspUrl(serverInstance));
                 log.info("Storing generated Intermedia CA");
                 X509Certificate[] chain = new X509Certificate[]{intermediateCertificate,
                         (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)};
@@ -320,17 +309,21 @@ public class WebServer {
                 log.info("Saving KeyStore");
                 cryptoStoreManager.saveKeystore();
             }
+
+
             // Initialize the CertificateRenewWatcher for this provisioner
             certificateRenewManager.registerNewCertificateRenewWatcher(IntermediateKeyAlias, provisioner,
                     (givenProvisioner, x509Certificate, keyPair) -> {
                         return IntermediateCaRenew.renewIntermediateCertificate(keyPair, givenProvisioner,
-                                givenProvisioner.getCryptoStoreManager(), IntermediateKeyAlias);
-                    });
+                                serverInstance, IntermediateKeyAlias);
+            });
 
             provisioners.add(provisioner);
         }
         return provisioners;
     }
+*/
+
 
     /*    *//**
      * see {@link #reloadConfiguration(Runnable)}

@@ -20,18 +20,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.morihofi.acmeserver.core.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.core.config.Config;
-import de.morihofi.acmeserver.core.config.DatabaseConfig;
-import de.morihofi.acmeserver.core.config.certificateAlgorithms.AlgorithmParams;
-import de.morihofi.acmeserver.core.config.helper.AlgorithmParamsDeserializer;
 import de.morihofi.acmeserver.core.config.helper.KeyStoreParamsDeserializer;
 import de.morihofi.acmeserver.core.config.keyStoreHelpers.KeyStoreParams;
 import de.morihofi.acmeserver.core.config.keyStoreHelpers.PKCS11KeyStoreParams;
 import de.morihofi.acmeserver.core.config.keyStoreHelpers.PKCS12KeyStoreParams;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
+import de.morihofi.acmeserver.core.database.objects.RootCa;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.core.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.core.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
+import de.morihofi.acmeserver.core.tools.certificate.helper.CaInitHelper;
 import de.morihofi.acmeserver.core.tools.cli.CLIArgument;
 import de.morihofi.acmeserver.core.tools.network.NetworkClient;
 import de.morihofi.acmeserver.core.tools.path.AppDirectoryHelper;
@@ -39,6 +38,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.IOException;
@@ -48,10 +48,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.Security;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -73,7 +70,7 @@ public class Main {
      * Path to the configuration file.
      */
     public static final Path CONFIG_PATH = FILES_DIR.resolve("settings.json");
-    
+
     /**
      * Set of server options.
      */
@@ -83,7 +80,6 @@ public class Main {
      * Gson instance for configuration deserialization.
      */
     private static final Gson CONFIG_GSON = new GsonBuilder()
-            .registerTypeAdapter(AlgorithmParams.class, new AlgorithmParamsDeserializer())
             .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())
             .setPrettyPrinting()
             .create();
@@ -201,14 +197,19 @@ public class Main {
         Config config = loadServerConfiguration();
         serverInstance = getServerInstance(config, debug, CONFIG_PATH);
 
+
         WebServer ws = new WebServer(serverInstance);
-        ws.startServer();
+        try {
+            ws.startServer();
+        } catch (Exception ex) {
+            log.error("Server startup failed", ex);
+            System.exit(1);
+        }
 
     }
 
 
-
-    public static ServerInstance getServerInstance(Config config, boolean debug, Path configPath) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+    public static ServerInstance getServerInstance(Config config, boolean debug, Path configPath) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvalidAlgorithmParameterException, OperatorCreationException {
         if (Objects.equals(System.getenv("DEBUG"), "TRUE")) {
             debug = true;
             log.info("Debug mode activated by DEBUG environment variable set to TRUE");
@@ -220,16 +221,20 @@ public class Main {
 
         log.info("Initializing core components ...");
 
+        CryptoStoreManager cryptoStoreManager = initializeCryptoStoreManagerCoreComponents(config);
         HibernateUtil hibernateUtil = new HibernateUtil(config, debug);
+
+        RootCa root = CaInitHelper.initializeCA(hibernateUtil, cryptoStoreManager);
 
         return new ServerInstance(
                 config,
                 configPath,
                 debug,
-                initializeCryptoStoreManagerCoreComponents(config),
+                cryptoStoreManager,
                 new NetworkClient(config.getNetwork()),
                 hibernateUtil,
-                new NonceManager(hibernateUtil, debug)
+                new NonceManager(hibernateUtil, debug),
+                root
         );
     }
 

@@ -20,14 +20,17 @@ import com.google.gson.Gson;
 import de.morihofi.acmeserver.core.certificate.acme.security.NonceManager;
 import de.morihofi.acmeserver.core.config.Config;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
+import de.morihofi.acmeserver.core.database.objects.RootCa;
 import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
 import de.morihofi.acmeserver.core.tools.network.NetworkClient;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,10 +75,9 @@ public class ServerInstance {
      */
     private final Path appConfigPath;
 
-    /**
-     * Logger for logging events and messages.
-     */
-    private final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    @Getter
+    @Setter
+    private RootCa rootCa;
 
     /**
      * Constructs a new ServerInstance with the specified configurations and utilities.
@@ -88,7 +90,7 @@ public class ServerInstance {
      * @param hibernateUtil      Manages Hibernate sessions and database operations.
      * @param nonceManager       Manages nonces for the ACME protocol.
      */
-    public ServerInstance(Config appConfig, Path appConfigPath, boolean debug, CryptoStoreManager cryptoStoreManager, NetworkClient networkClient, HibernateUtil hibernateUtil, NonceManager nonceManager) {
+    public ServerInstance(Config appConfig, Path appConfigPath, boolean debug, CryptoStoreManager cryptoStoreManager, NetworkClient networkClient, HibernateUtil hibernateUtil, NonceManager nonceManager, RootCa rootCa) {
         this.appConfig = appConfig;
         this.appConfigPath = appConfigPath;
         this.debug = debug;
@@ -96,6 +98,19 @@ public class ServerInstance {
         this.networkClient = networkClient;
         this.hibernateUtil = hibernateUtil;
         this.nonceManager = nonceManager;
+        this.rootCa = rootCa;
     }
+
+    /**
+     * Retrieves the server URL constructed from the application's configuration. This method combines the DNS name and HTTPS port specified
+     * in the app configuration to form the complete server URL.
+     *
+     * @return a String representing the full HTTPS URL of the server
+     */
+    public String getServerURL() {
+        return "https://" + this.getAppConfig().getServer().getDnsName() + (this.getAppConfig().getServer().getPorts().getHttps() != 443 ? ":"
+                + this.getAppConfig().getServer().getPorts().getHttps() : "");
+    }
+
 
 }

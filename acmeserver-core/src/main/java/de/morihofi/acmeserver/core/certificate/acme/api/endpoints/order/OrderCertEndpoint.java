@@ -19,8 +19,10 @@ package de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order;
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.core.certificate.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.core.certificate.objects.ACMERequestBody;
-import de.morihofi.acmeserver.core.certificate.provisioners.Provisioner;
+
 import de.morihofi.acmeserver.core.database.objects.ACMEOrder;
+import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
+import de.morihofi.acmeserver.core.database.objects.HttpNonces;
 import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.crypto.Crypto;
 import io.javalin.http.Context;
@@ -59,11 +61,11 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
      * @throws Exception If an error occurs while processing the request.
      */
     @Override
-    public void handleRequest(Context ctx, Provisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(Context ctx, AcmeProvisioner provisioner, Gson gson, ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/pem-certificate-chain");
-        ctx.header("Replay-Nonce", Crypto.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
        // ctx.header("Link", "<" + provisioner.getAcmeApiURL() + "/directory" + ">;rel=\"index\"");
 
         ACMEOrder order = ACMEOrder.getACMEOrder(orderId, getServerInstance());

@@ -153,19 +153,19 @@ public class HibernateUtil {
     private void configureDialectAndDriver(Configuration configuration, String jdbcUrl) {
         if (jdbcUrl.startsWith("jdbc:h2")) {
             configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "org.h2.Driver");
-            configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.H2Dialect");
+            //configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.H2Dialect");
             log.info("Detected H2 Database JDBC, using its recommended configuration");
         } else if (jdbcUrl.startsWith("jdbc:mariadb")) {
             configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "org.mariadb.jdbc.Driver");
-            configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.MariaDBDialect");
+            //configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.MariaDBDialect");
             log.info("Detected MariaDB JDBC, using its recommended configuration");
         } else if (jdbcUrl.startsWith("jdbc:postgresql")) {
             configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "org.postgresql.Driver");
-            configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
+            //configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
             log.info("Detected PostgreSQL JDBC, using its recommended configuration");
         } else if (jdbcUrl.startsWith("jdbc:mysql")) {
             configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "com.mysql.cj.jdbc.Driver");
-            configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
+            //configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
             log.info("Detected MySQL JDBC, using its recommended configuration");
         }
     }

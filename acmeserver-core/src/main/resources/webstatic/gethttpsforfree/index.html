@@ -873,7 +873,7 @@ Released under MIT License. Enjoy!
                 <ol>
                     <li>
                         Copy and paste the below certificates (the text contains
-                        both your domain certificate and intermediate certificate)
+                        both your domain certificate and certificateConfig certificate)
                         into a text file called "chained.pem".
                     </li>
                     <li>
@@ -925,13 +925,13 @@ server {
                     <li>
                         Copy and paste the second certificate section (e.g. the second
                         "-----BEGIN CERTIFICATE-----" section) into a text file
-                        named "intermediate.pem".
+                        named "certificateConfig.pem".
                     </li>
                     <li>
-                        Copy "domain.crt" and "intermediate.pem" to /etc/ssl/certs/.<br/>
+                        Copy "domain.crt" and "certificateConfig.pem" to /etc/ssl/certs/.<br/>
                         <pre>
 scp domain.crt root@foo.com:/etc/ssl/certs/domain.crt
-scp intermediate.pem root@foo.com:/etc/ssl/certs/intermediate.pem
+scp certificateConfig.pem root@foo.com:/etc/ssl/certs/certificateConfig.pem
 </pre>
                     </li>
                     <li>
@@ -948,7 +948,7 @@ scp intermediate.pem root@foo.com:/etc/ssl/certs/intermediate.pem
         SSLEngine on
         SSLCertificateFile    /etc/ssl/certs/domain.crt
         SSLCertificateKeyFile /etc/ssl/private/domain.key
-        SSLCertificateChainFile /etc/ssl/certs/intermediate.pem
+        SSLCertificateChainFile /etc/ssl/certs/certificateConfig.pem
         SSLProtocol TLSv1.2
         SSLCipherSuite ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
         SSLHonorCipherOrder on

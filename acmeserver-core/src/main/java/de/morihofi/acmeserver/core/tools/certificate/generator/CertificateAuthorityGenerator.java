@@ -16,9 +16,9 @@
 
 package de.morihofi.acmeserver.core.tools.certificate.generator;
 
-import de.morihofi.acmeserver.core.config.CertificateConfig;
-import de.morihofi.acmeserver.core.config.CertificateExpiration;
-import de.morihofi.acmeserver.core.config.CertificateMetadata;
+import de.morihofi.acmeserver.core.database.objects.CertificateMetadata;
+import de.morihofi.acmeserver.core.database.objects.CertificateConfig;
+import de.morihofi.acmeserver.core.tools.ServerInstance;
 import de.morihofi.acmeserver.core.tools.certificate.CertMisc;
 import de.morihofi.acmeserver.core.tools.certificate.X509;
 import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
@@ -37,7 +37,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -130,10 +129,8 @@ public class CertificateAuthorityGenerator {
      * encipherment, etc.), and extensions for CRL Distribution Points and Authority Information Access. The certificate is signed using the
      * private key of the root CA and the appropriate signature algorithm.</p>
      *
-     * @param cryptoStoreManager  Manager of the keyStore we use
      * @param intermediateKeyPair The key pair for the intermediate CA.
-     * @param certificateMetadata The metadata for the intermediate CA certificate.
-     * @param expiration          The expiration details for the certificate.
+     * @param certificateConfig The information for the intermediate CA certificate
      * @param crlDistributionUrl  The URL for the Certificate Revocation List (CRL) distribution point.
      * @param ocspServiceEndpoint The URL for the Online Certificate Status Protocol (OCSP) service endpoint.
      * @return An X509Certificate representing the intermediate CA certificate.
@@ -143,11 +140,13 @@ public class CertificateAuthorityGenerator {
      * @throws KeyStoreException         If there's an error accessing the keystore or modify data
      * @throws UnrecoverableKeyException If there's an error recovering the key
      */
-    public static X509Certificate createIntermediateCaCertificate(CryptoStoreManager cryptoStoreManager, KeyPair intermediateKeyPair, CertificateMetadata certificateMetadata, CertificateExpiration expiration, String crlDistributionUrl, String ocspServiceEndpoint) throws CertificateException, OperatorCreationException, CertIOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+    public static X509Certificate createIntermediateCaCertificate(ServerInstance serverInstance, KeyPair intermediateKeyPair, CertificateConfig certificateConfig, String crlDistributionUrl, String ocspServiceEndpoint) throws CertificateException, OperatorCreationException, CertIOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+
+        CryptoStoreManager cryptoStoreManager = serverInstance.getCryptoStoreManager();
 
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
-        X509Certificate caCertificate = (X509Certificate) keyStore.getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
+        X509Certificate caCertificate = cryptoStoreManager.getCerificateAuthorityX509Certificate(serverInstance.getRootCa());
 
         X500Name issuerName = X509.getX500NameFromX509Certificate(caCertificate); // Consider getting this from CA certificate
         BigInteger serialNumber = CertMisc.generateSerialNumber();
@@ -155,12 +154,12 @@ public class CertificateAuthorityGenerator {
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(startDate);
-        calendar.add(Calendar.YEAR, expiration.getYears());
-        calendar.add(Calendar.MONTH, expiration.getMonths());
-        calendar.add(Calendar.DATE, expiration.getDays());
+        calendar.add(Calendar.YEAR, certificateConfig.getExpiration().getYears());
+        calendar.add(Calendar.MONTH, certificateConfig.getExpiration().getMonths());
+        calendar.add(Calendar.DATE, certificateConfig.getExpiration().getDays());
         Date endDate = calendar.getTime();
 
-        X500Name subjectName = getX500Name(certificateMetadata, "A common name is required in intermediate CA. Please change it in your settings.");
+        X500Name subjectName = getX500Name(certificateConfig.getMetadata(), "A common name is required in intermediate CA. Please change it in your settings.");
         X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(issuerName, serialNumber, startDate, endDate, subjectName, SubjectPublicKeyInfo.getInstance(intermediateKeyPair.getPublic().getEncoded()));
 
         // Basic Constraints
@@ -182,7 +181,7 @@ public class CertificateAuthorityGenerator {
         certBuilder.addExtension(Extension.authorityInfoAccess, false, new DERSequence(authorityInformationAccessVector));
 
         // Signature Algorithm
-        PrivateKey caPrivateKey = (PrivateKey) keyStore.getKey(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA, "".toCharArray());
+        PrivateKey caPrivateKey = cryptoStoreManager.getCerificateAuthorityKeyPair(serverInstance.getRootCa()).getPrivate();
 
         String signatureAlgorithm = CertMisc.getSignatureAlgorithmBasedOnKeyType(caPrivateKey);
 
