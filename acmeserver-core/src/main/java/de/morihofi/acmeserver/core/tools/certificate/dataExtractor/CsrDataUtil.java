@@ -64,7 +64,6 @@ public class CsrDataUtil {
             domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, commonName));
         }
 
-
         // Extract the SAN extension
         Extension sanExtension = certRequest.getRequestedExtensions().getExtension(Extension.subjectAlternativeName);
         if (sanExtension != null) {

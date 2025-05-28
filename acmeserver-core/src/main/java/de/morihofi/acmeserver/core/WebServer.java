@@ -149,7 +149,7 @@ public class WebServer {
 
             ctx.status(exception.getHttpStatusCode());
             ctx.header("Content-Type", "application/problem+json");
-            ctx.result(gson.toJson(exception.getErrorResponse()));
+            ctx.json(exception.getErrorResponse());
             log.error("ACME Exception thrown {} : {} ({})", exception.getClass().getSimpleName(), exception.getErrorResponse().getDetail(),
                     exception.getErrorResponse().getType());
         });

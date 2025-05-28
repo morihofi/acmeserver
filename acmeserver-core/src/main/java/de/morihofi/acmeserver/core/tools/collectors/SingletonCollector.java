@@ -51,7 +51,7 @@ public class SingletonCollector {
                     if (list.size() != 1) {
                         throw new IllegalStateException("Collection does not contain exactly one element");
                     }
-                    return list.get(0);
+                    return list.getFirst();
                 }
         );
     }

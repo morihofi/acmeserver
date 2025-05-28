@@ -22,8 +22,11 @@ import de.morihofi.acmeserver.core.config.Config;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
 import de.morihofi.acmeserver.core.database.objects.RootCa;
 import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
+import de.morihofi.acmeserver.core.tools.meta.BuildMetadata;
 import de.morihofi.acmeserver.core.tools.network.NetworkClient;
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -39,11 +42,17 @@ import java.nio.file.Path;
  * Represents the server instance that holds various configurations and utilities required for the operation of the server.
  */
 @Getter
+@RequiredArgsConstructor
 public class ServerInstance {
     /**
      * The configuration settings for the application.
      */
     private final Config appConfig;
+
+    /**
+     * Path to the application's configuration file.
+     */
+    private final Path appConfigPath;
 
     /**
      * Indicates whether the server is running in debug mode.
@@ -70,36 +79,12 @@ public class ServerInstance {
      */
     private final NonceManager nonceManager;
 
-    /**
-     * Path to the application's configuration file.
-     */
-    private final Path appConfigPath;
-
-    @Getter
     @Setter
+    @NonNull
     private RootCa rootCa;
 
-    /**
-     * Constructs a new ServerInstance with the specified configurations and utilities.
-     *
-     * @param appConfig          The application configuration settings.
-     * @param appConfigPath      The path to the application's configuration file.
-     * @param debug              Indicates whether the server is running in debug mode.
-     * @param cryptoStoreManager Manages cryptographic operations and the keystore.
-     * @param networkClient      Handles network operations.
-     * @param hibernateUtil      Manages Hibernate sessions and database operations.
-     * @param nonceManager       Manages nonces for the ACME protocol.
-     */
-    public ServerInstance(Config appConfig, Path appConfigPath, boolean debug, CryptoStoreManager cryptoStoreManager, NetworkClient networkClient, HibernateUtil hibernateUtil, NonceManager nonceManager, RootCa rootCa) {
-        this.appConfig = appConfig;
-        this.appConfigPath = appConfigPath;
-        this.debug = debug;
-        this.cryptoStoreManager = cryptoStoreManager;
-        this.networkClient = networkClient;
-        this.hibernateUtil = hibernateUtil;
-        this.nonceManager = nonceManager;
-        this.rootCa = rootCa;
-    }
+    @NonNull
+    private BuildMetadata buildMetadata;
 
     /**
      * Retrieves the server URL constructed from the application's configuration. This method combines the DNS name and HTTPS port specified

@@ -225,7 +225,7 @@ public class JettySslHelper {
             https.addCustomizer(secureRequestCustomizer);
 
             SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-            sslContextFactory.setSslContext(sslContext); // Your SSL context
+            sslContextFactory.setSslContext(sslContext);
             if (mozillaConfig != null) {
                 log.info("Configuring TLS using Mozilla configuration");
                 sslContextFactory.setExcludeProtocols();

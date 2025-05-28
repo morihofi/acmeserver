@@ -19,6 +19,7 @@
  */
 package de.morihofi.acmeserver.core.tools.javaversion;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.MessageFormat;
@@ -79,9 +80,28 @@ public class JavaVersion implements Comparable<Object> {
 
         return jreVersion;
     }
+
     private final String javaVersion;
+    /**
+     * Get Java version's major number.
+     *
+     * @return Minor number
+     */
+    @Getter
     private final int major;
+    /**
+     * Get Java version's minor number.
+     *
+     * @return Minor number
+     */
+    @Getter
     private final int minor;
+    /**
+     * Get Java version's security number.
+     *
+     * @return Minor number
+     */
+    @Getter
     private final int security;
 
     /**
@@ -114,33 +134,6 @@ public class JavaVersion implements Comparable<Object> {
         this.major = version.getMajor();
         this.minor = version.getMinor();
         this.security = version.getBugfix();
-    }
-
-    /**
-     * Get Java version's major number.
-     *
-     * @return Minor number
-     */
-    public int getMajor() {
-        return this.major;
-    }
-
-    /**
-     * Get Java version's minor number.
-     *
-     * @return Minor number
-     */
-    public int getMinor() {
-        return this.minor;
-    }
-
-    /**
-     * Get Java version's security number.
-     *
-     * @return Minor number
-     */
-    public int getSecurity() {
-        return this.security;
     }
 
     /**

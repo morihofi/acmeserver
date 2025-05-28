@@ -32,6 +32,7 @@ import de.morihofi.acmeserver.core.tools.certificate.cryptoops.ksconfig.PKCS11Ke
 import de.morihofi.acmeserver.core.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.core.tools.certificate.helper.CaInitHelper;
 import de.morihofi.acmeserver.core.tools.cli.CLIArgument;
+import de.morihofi.acmeserver.core.tools.meta.BuildMetadata;
 import de.morihofi.acmeserver.core.tools.network.NetworkClient;
 import de.morihofi.acmeserver.core.tools.path.AppDirectoryHelper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -84,29 +85,7 @@ public class Main {
             .setPrettyPrinting()
             .create();
 
-    /**
-     * Build metadata version.
-     */
-    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
-    public static String buildMetadataVersion;
 
-    /**
-     * Build metadata build time.
-     */
-    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
-    public static String buildMetadataBuildTime;
-
-    /**
-     * Build metadata Git commit.
-     */
-    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
-    public static String buildMetadataGitCommit;
-
-    /**
-     * Build metadata Git closest tag name.
-     */
-    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
-    public static String buildMetadataGitClosestTagName;
 
     /**
      * Application startup time.
@@ -169,8 +148,6 @@ public class Main {
         log.info("Initializing directories");
         ensureFilesDirectoryExists();
 
-        loadBuildAndGitMetadata();
-
         // Parse CLI Arguments
         final String argPrefix = "--";
         final char splitCharacter = '=';
@@ -219,13 +196,28 @@ public class Main {
             log.warn("!!! RUNNING IN DEBUG MODE - BEHAVIOR CAN BE DIFFERENT. DO NOT USE IN PRODUCTION !!!");
         }
 
-        log.info("Initializing core components ...");
+        log.info("Initializing keystore ...");
 
-        CryptoStoreManager cryptoStoreManager = initializeCryptoStoreManagerCoreComponents(config);
+        CryptoStoreManager cryptoStoreManager = switch (config.getKeyStore()) {
+            case PKCS11KeyStoreParams p11 -> new CryptoStoreManager(new PKCS11KeyStoreConfig(
+                    Paths.get(p11.getLibraryLocation()),
+                    p11.getSlot(),
+                    p11.getPassword()
+            ));
+            case PKCS12KeyStoreParams p12 -> new CryptoStoreManager(new PKCS12KeyStoreConfig(
+                    Paths.get(p12.getLocation()),
+                    p12.getPassword()
+            ));
+            default -> throw new IllegalArgumentException("Unsupported keystore");
+        };
+
+        log.info("Initializing database ...");
         HibernateUtil hibernateUtil = new HibernateUtil(config, debug);
 
+        log.info("Initializing certificate authorities ...");
         RootCa root = CaInitHelper.initializeCA(hibernateUtil, cryptoStoreManager);
 
+        log.info("Creating new server instance ...");
         return new ServerInstance(
                 config,
                 configPath,
@@ -234,7 +226,8 @@ public class Main {
                 new NetworkClient(config.getNetwork()),
                 hibernateUtil,
                 new NonceManager(hibernateUtil, debug),
-                root
+                root,
+                BuildMetadata.getInstance()
         );
     }
 
@@ -263,70 +256,6 @@ public class Main {
     }
 
     /**
-     * Initializes the core components of the application, including database drivers and cryptographic store management based on the
-     * application configuration. This method ensures that essential components are set up before the application starts its main
-     * operations. It is designed to be idempotent, meaning it will only perform initialization once, even if called multiple times.
-     *
-     * <p>The initialization process involves:</p>
-     * <ul>
-     *     <li>Checking if core components have already been initialized to prevent redundant operations.</li>
-     *     <li>Initializing database drivers to ensure database connectivity.</li>
-     *     <li>Determining the type of key store configuration specified in the application configuration
-     *     (e.g., PKCS11 or PKCS12) and initializing the {@link CryptoStoreManager} accordingly with the
-     *     respective key store configuration.</li>
-     *     <li>Setting a flag to indicate that core components have been initialized, to avoid re-initialization.</li>
-     * </ul>
-     *
-     * <p>If the key store configuration is not supported or if any required configuration parameters are missing,
-     * the method will throw an {@link IllegalArgumentException}.</p>
-     *
-     * @param appConfig Application configuration object
-     * @return initialized {@link CryptoStoreManager}
-     * @throws ClassNotFoundException    if a database driver class cannot be found.
-     * @throws CertificateException      if there is an issue with the certificates used in cryptographic operations.
-     * @throws IOException               if there is an I/O issue with reading key store or configuration files.
-     * @throws NoSuchAlgorithmException  if a particular cryptographic algorithm is not available.
-     * @throws KeyStoreException         if there is an issue with key store initialization.
-     * @throws NoSuchProviderException   if a security provider needed for cryptographic operations is not available.
-     * @throws InvocationTargetException if an exception is thrown by an invoked method or constructor.
-     * @throws InstantiationException    if an instance of a class cannot be created.
-     * @throws IllegalAccessException    if there is illegal access to a class or field.
-     * @throws NoSuchMethodException     if a method required for initialization is not found.
-     */
-    private static CryptoStoreManager initializeCryptoStoreManagerCoreComponents(Config appConfig) throws ClassNotFoundException, CertificateException, IOException,
-            NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, InvocationTargetException, InstantiationException,
-            IllegalAccessException, NoSuchMethodException {
-        log.info("Initializing Keystore ...");
-
-        CryptoStoreManager cryptoStoreManager = null;
-
-        // Initialize KeyStore
-        if (appConfig.getKeyStore() instanceof PKCS11KeyStoreParams pkcs11KeyStoreParams) {
-            cryptoStoreManager = new CryptoStoreManager(
-                    new PKCS11KeyStoreConfig(
-                            Paths.get(pkcs11KeyStoreParams.getLibraryLocation()),
-                            pkcs11KeyStoreParams.getSlot(),
-                            pkcs11KeyStoreParams.getPassword()
-                    )
-            );
-        }
-        if (appConfig.getKeyStore() instanceof PKCS12KeyStoreParams pkcs12KeyStoreParams) {
-
-            cryptoStoreManager = new CryptoStoreManager(
-                    new PKCS12KeyStoreConfig(
-                            Paths.get(pkcs12KeyStoreParams.getLocation()),
-                            pkcs12KeyStoreParams.getPassword()
-                    )
-            );
-        }
-        if (cryptoStoreManager == null) {
-            throw new IllegalArgumentException("Could not create CryptoStoreManager, due to unsupported KeyStore configuration");
-        }
-
-        return cryptoStoreManager;
-    }
-
-    /**
      * Ensures that the necessary files directory and configuration file exist.
      *
      * @throws IOException If an I/O error occurs while creating directories or checking for the configuration file.
@@ -341,63 +270,6 @@ public class Main {
                     FILES_DIR.toAbsolutePath());
             System.exit(1);
         }
-    }
-
-    /**
-     * Loads build and Git metadata from resource files and populates corresponding variables.
-     */
-    public static void loadBuildAndGitMetadata() {
-
-        loadMetadata("/build.properties", properties -> {
-            log.info("Loading build metadata");
-            buildMetadataVersion = properties.getProperty("build.version");
-            buildMetadataBuildTime = properties.getProperty("build.date") + " UTC";
-        });
-
-        loadMetadata("/git.properties", properties -> {
-            log.info("Loading git metadata");
-            buildMetadataGitCommit = properties.getProperty("git.commit.id.full");
-            buildMetadataGitCommit = properties.getProperty("git.commit.id.full");
-            buildMetadataGitClosestTagName = properties.getProperty("git.closest.tag.name");
-        });
-    }
-
-    /**
-     * Loads metadata from a specified file and processes it using a given consumer.
-     *
-     * @param fileName           the name of the file to load.
-     * @param propertiesConsumer the consumer to process the loaded properties.
-     */
-    private static void loadMetadata(String fileName, Consumer<Properties> propertiesConsumer) {
-        try (InputStream is = Main.class.getResourceAsStream(fileName)) {
-            if (is != null) {
-                Properties properties = new Properties();
-                properties.load(is);
-                propertiesConsumer.accept(properties);
-            } else {
-                log.warn("Unable to load metadata from {}", fileName);
-            }
-        } catch (IOException e) {
-            log.error("Unable to load metadata from {}", fileName, e);
-        }
-    }
-
-    /**
-     * Startup mode
-     */
-    public enum MODE {
-        /**
-         * Normal startup
-         **/
-        NORMAL,
-        /**
-         * Post setup configuration screen
-         **/
-        POSTSETUP,
-        /**
-         * PEM to Keystore migrator
-         **/
-        KEYSTORE_MIGRATION_PEM2KS
     }
 
     /**

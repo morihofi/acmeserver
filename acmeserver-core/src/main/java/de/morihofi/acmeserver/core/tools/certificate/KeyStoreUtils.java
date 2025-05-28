@@ -127,14 +127,13 @@ public class KeyStoreUtils {
      * @throws NoSuchAlgorithmException  If the algorithm required for the keystore is not available.
      * @throws UnrecoverableKeyException If the key cannot be recovered.
      */
-    public static KeyStoreFileContent loadFromPKCS12(Path keyStorePath, String keyStorePassword, String keyAlias) throws IOException,
+    public static KeyStoreFileContent loadFromPKCS12(Path keyStorePath, char[] keyStorePassword, String keyAlias) throws IOException,
             KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         try (InputStream is = Files.newInputStream(keyStorePath)) {
             // Load the KeyPair and certificate from a PKCS12 keystore
-            char[] keyStorePasswordCharArr = keyStorePassword.toCharArray();
             KeyStore keyStore = KeyStore.getInstance(PKCS12_INSTANCE_NAME);
-            keyStore.load(is, keyStorePasswordCharArr);
-            PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, keyStorePasswordCharArr);
+            keyStore.load(is, keyStorePassword);
+            PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, keyStorePassword);
             X509Certificate cert = (X509Certificate) keyStore.getCertificate(keyAlias);
             KeyPair keyPair = new KeyPair(cert.getPublicKey(), privateKey);
 

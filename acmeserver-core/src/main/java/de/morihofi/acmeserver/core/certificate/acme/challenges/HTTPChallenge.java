@@ -45,12 +45,6 @@ public class HTTPChallenge {
      * Logger
      */
 
-    /**
-     * User Agent used for checking HTTP challenges
-     */
-    public static final String USER_AGENT =
-            "Mozilla/5.0 ACMEServer/" + Main.buildMetadataVersion + "+git" + Main.buildMetadataGitCommit + " Java/" + System.getProperty(
-                    "java.version");
     private static String proxyHost = "";
     private static int proxyPort = 0;
     private static String proxyUser = "";
@@ -93,7 +87,7 @@ public class HTTPChallenge {
             // Create an HTTP GET request to the challenge URL
             Request request = new Request.Builder()
                     .url("http://" + host + "/.well-known/acme-challenge/" + authToken)
-                    .header("User-Agent", USER_AGENT)
+                    .header("User-Agent", "Mozilla/5.0 ACMEServer/" + serverInstance.getBuildMetadata().getBuildVersion() + "+git" + serverInstance.getBuildMetadata().getGitCommit() + " Java/" + System.getProperty("java.version"))
                     .build();
 
             if (log.isDebugEnabled()) {

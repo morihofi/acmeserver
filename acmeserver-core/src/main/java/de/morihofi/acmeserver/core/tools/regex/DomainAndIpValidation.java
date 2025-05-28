@@ -48,11 +48,11 @@ public class DomainAndIpValidation {
                     "|([0-9A-Fa-f]{1,4}:){6}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\." +
                     "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\." +
                     "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\." +
-                    "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$)" // IPv6 with embedded IPv4 address
+                    "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$)" // IPv6 with embedded IPv4 address TODO: Why is this extra part needed?
     );
 
     /**
-     * /** Validates a domain or hostname string.
+     * Validates a domain or hostname string.
      *
      * @param domain        The domain or hostname to validate.
      * @param allowWildcard If true, wildcard domains are allowed (e.g., "*.example.com").

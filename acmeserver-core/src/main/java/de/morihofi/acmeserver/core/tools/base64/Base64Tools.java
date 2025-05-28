@@ -1,5 +1,7 @@
 package de.morihofi.acmeserver.core.tools.base64;
 
+import lombok.NonNull;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -19,7 +21,8 @@ public class Base64Tools {
      * @param encodedString The Base64-encoded string to decode.
      * @return The decoded string.
      */
-    public static String decodeBase64(String encodedString) {
+    @NonNull
+    public static String decodeBase64(@NonNull String encodedString) {
         byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
         return new String(decodedBytes, StandardCharsets.UTF_8);
     }
@@ -30,7 +33,8 @@ public class Base64Tools {
      * @param originalInput The string to encode.
      * @return The Base64-encoded string.
      */
-    public static String encodeBase64(String originalInput) {
+    @NonNull
+    public static String encodeBase64(@NonNull String originalInput) {
         return encodeBase64(originalInput.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -40,6 +44,7 @@ public class Base64Tools {
      * @param originalInput The byte array to encode.
      * @return The Base64-encoded string.
      */
+    @NonNull
     public static String encodeBase64(byte[] originalInput) {
         return Base64.getEncoder().encodeToString(originalInput);
     }
@@ -50,7 +55,8 @@ public class Base64Tools {
      * @param stringToDecode The Base64 URL-safe encoded string to decode.
      * @return The decoded UTF-8 encoded string.
      */
-    public static String decodeBase64URL(String stringToDecode) {
+    @NonNull
+    public static String decodeBase64URL(@NonNull String stringToDecode) {
         // Decoding URl
         return new String(decodeBase64URLAsBytes(stringToDecode), StandardCharsets.UTF_8);
     }
@@ -61,9 +67,9 @@ public class Base64Tools {
      * @param stringToDecode The Base64 URL-safe encoded string to decode.
      * @return The decoded byte array.
      */
-    public static byte[] decodeBase64URLAsBytes(String stringToDecode) {
+    public static byte @NonNull [] decodeBase64URLAsBytes(@NonNull String stringToDecode) {
         // Getting decoder
-        java.util.Base64.Decoder decoder = java.util.Base64.getUrlDecoder();
+        Base64.Decoder decoder = Base64.getUrlDecoder();
         return decoder.decode(stringToDecode);
     }
 
@@ -76,7 +82,7 @@ public class Base64Tools {
     public static String encodeBase64URL(String stringToEncode) {
 
         // Getting encoder
-        java.util.Base64.Encoder encoder = java.util.Base64.getUrlEncoder();
+        Base64.Encoder encoder = Base64.getUrlEncoder();
 
         // Encoding URL
         return encoder.encodeToString(stringToEncode.getBytes(StandardCharsets.UTF_8));

@@ -36,26 +36,6 @@ import java.util.List;
 public class ApiServerInfoEndpoint implements Handler {
 
     /**
-     * Cache duration for the latest release information.
-     */
-    private static final Duration CACHE_DURATION = Duration.ofHours(3); // Cache for 3 hours
-
-    /**
-     * Cached tag of the latest release.
-     */
-    private String cachedLatestReleaseTag = null;
-
-    /**
-     * Cached URL of the latest release.
-     */
-    private String cachedLatestReleaseUrl = null;
-
-    /**
-     * Timestamp of the last cache update.
-     */
-    private Instant cacheTimestamp = Instant.MIN;
-
-    /**
      * List of provisioners, specified in config.
      */
     private final ServerInstance serverInstance;
@@ -76,9 +56,9 @@ public class ApiServerInfoEndpoint implements Handler {
      */
     public ServerInfoResponse getServerInfoResponse() {
         MetadataInfoResponse metadataInfo = new MetadataInfoResponse();
-        metadataInfo.setVersion(Main.buildMetadataVersion);
-        metadataInfo.setBuildTime(Main.buildMetadataBuildTime);
-        metadataInfo.setGitCommit(Main.buildMetadataGitCommit);
+        metadataInfo.setVersion(serverInstance.getBuildMetadata().getBuildVersion());
+        metadataInfo.setBuildTime(serverInstance.getBuildMetadata().getBuildTime());
+        metadataInfo.setGitCommit(serverInstance.getBuildMetadata().getGitCommit());
         metadataInfo.setJavaVersion(System.getProperty("java.version"));
         metadataInfo.setOperatingSystem(System.getProperty("os.name"));
         metadataInfo.setJvmUptime(ManagementFactory.getRuntimeMXBean().getUptime() / 1000L);
@@ -86,36 +66,6 @@ public class ApiServerInfoEndpoint implements Handler {
         metadataInfo.setStartupTime(Main.startupTime); // already in seconds
         metadataInfo.setHost(serverInstance.getAppConfig().getServer().getDnsName());
         metadataInfo.setHttpsPort(serverInstance.getAppConfig().getServer().getPorts().getHttps());
-
-        {
-            String latestReleaseUrl = null;
-            boolean isUpdateAvailable = false;
-
-            // Check whether the cache is still valid
-            if (Duration.between(cacheTimestamp, Instant.now()).compareTo(CACHE_DURATION) > 0) {
-                // Cache has expired, so retrieve data again
-                // FIXME
-                /*
-                try {
-                    cachedLatestReleaseTag = GitHubVersionChecker.getLatestReleaseTag(serverInstance);
-                    cachedLatestReleaseUrl = GitHubVersionChecker.getLatestReleaseURL();
-                    cacheTimestamp = Instant.now();
-                } catch (IOException ex) {
-                    log.error("Failed to fetch the latest release information");
-                }
-
-                 */
-            }
-
-            // Use the cached data
-            if (Main.buildMetadataGitClosestTagName != null && !Main.buildMetadataGitClosestTagName.equalsIgnoreCase(
-                    cachedLatestReleaseTag)) {
-                latestReleaseUrl = cachedLatestReleaseUrl;
-                isUpdateAvailable = true;
-            }
-
-            metadataInfo.setUpdate(new UpdateResponse(isUpdateAvailable, latestReleaseUrl));
-        }
 
         List<ProvisionerResponse> provisioners = new ArrayList<>();
         for (AcmeProvisioner provisionerConfig : AcmeProvisioner.getAllProvisioners(serverInstance)) {
