@@ -17,19 +17,19 @@
 package de.morihofi.acmeserver.core.certificate.revokeDistribution;
 
 
-import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
-import de.morihofi.acmeserver.core.tools.ServerInstance;
+import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.Req;
-import org.jetbrains.annotations.NotNull;
 
-import java.lang.invoke.MethodHandles;
+
 import java.math.BigInteger;
 import java.util.Base64;
 
@@ -39,14 +39,13 @@ import java.util.Base64;
 @Slf4j
 public class OcspEndpointGet implements Handler {
 
-    private final ServerInstance serverInstance;
+    private final IServerInstance serverInstance;
 
     /**
      * Constructor for OcspEndpointGet class. Processes GET Requests Creates an instance with specified Provisioner and CRL generator.
-     *
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public OcspEndpointGet(ServerInstance serverInstance) {
+    public OcspEndpointGet(IServerInstance serverInstance) {
         this.serverInstance = serverInstance;
     }
 
@@ -59,7 +58,7 @@ public class OcspEndpointGet implements Handler {
      *                   input, empty request, or issues with request parsing.
      */
     @Override
-    public void handle(@NotNull Context ctx) throws Exception {
+    public void handle(@NonNull Context ctx) throws Exception {
         String provisionerName = ctx.pathParam("provisioner");
 
 
@@ -78,12 +77,10 @@ public class OcspEndpointGet implements Handler {
         }
 
         BigInteger serialNumber = requestList[0].getCertID().getSerialNumber();
-        log.info("Checking revokation status for serial number {}", serialNumber);
+        log.info("Checking revocation status for serial number {}", serialNumber);
 
         // Processing the request and creating the OCSP response
-        OCSPResp ocspResponse =
-                OcspHelper.processOCSPRequest(serialNumber, CRLScheduler.getCrlGeneratorForProvisioner(provisionerName),
-                        AcmeProvisioner.getForName(serverInstance, provisionerName), serverInstance);
+        OCSPResp ocspResponse = OcspHelper.processOCSPRequest(serialNumber, AcmeProvisioner.getForName(serverInstance, provisionerName), serverInstance);
 
         // Sending the OCSP response
         ctx.contentType("application/ocsp-response");

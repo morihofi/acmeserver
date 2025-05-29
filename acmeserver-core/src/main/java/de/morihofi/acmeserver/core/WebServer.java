@@ -17,34 +17,30 @@
 package de.morihofi.acmeserver.core;
 
 import com.google.gson.Gson;
-import de.morihofi.acmeserver.core.api.API;
-import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.*;
-import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.account.AccountEndpoint;
-import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.account.NewAccountEndpoint;
-import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.authz.AuthzOwnershipEndpoint;
-import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.challenge.ChallengeCallbackEndpoint;
-import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order.FinalizeOrderEndpoint;
-import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order.OrderCertEndpoint;
-import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.order.OrderInfoEndpoint;
+import de.morihofi.acmeserver.core.api.acme.api.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.acmeserver.core.api.acme.api.endpoints.*;
+import de.morihofi.acmeserver.core.api.mgmt.API;
+import de.morihofi.acmeserver.core.api.acme.api.endpoints.account.AccountEndpoint;
+import de.morihofi.acmeserver.core.api.acme.api.endpoints.account.NewAccountEndpoint;
+import de.morihofi.acmeserver.core.api.acme.api.endpoints.authz.AuthzOwnershipEndpoint;
+import de.morihofi.acmeserver.core.api.acme.api.endpoints.challenge.ChallengeCallbackEndpoint;
+import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.FinalizeOrderEndpoint;
+import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.OrderCertEndpoint;
+import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.OrderInfoEndpoint;
 import de.morihofi.acmeserver.core.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.CRLScheduler;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.OcspEndpointGet;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.OcspEndpointPost;
-import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
-import de.morihofi.acmeserver.core.exception.ACMEException;
-import de.morihofi.acmeserver.core.exception.exceptions.ACMEMalformedException;
+import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.exception.ACMEException;
+import de.morihofi.acmeserver.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.core.tools.JavalinSecurityHelper;
-import de.morihofi.acmeserver.core.tools.ServerInstance;
-import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
-import de.morihofi.acmeserver.core.tools.certificate.generator.CertificateAuthorityGenerator;
-import de.morihofi.acmeserver.core.tools.certificate.generator.KeyPairGenerator;
-import de.morihofi.acmeserver.core.tools.certificate.helper.CaInitHelper;
-import de.morihofi.acmeserver.core.tools.certificate.renew.IntermediateCaRenew;
+import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewManager;
-import de.morihofi.acmeserver.core.tools.http.HttpHeaderUtil;
+import de.morihofi.acmeserver.core.helper.http.HttpHeaderUtil;
 import de.morihofi.acmeserver.core.tools.network.logging.HTTPAccessLogger;
-import de.morihofi.acmeserver.core.tools.regex.ConfigCheck;
+import de.morihofi.acmeserver.types.intf.IServerInstance;
 import io.javalin.Javalin;
 import io.javalin.http.HandlerType;
 import io.javalin.http.staticfiles.Location;
@@ -53,10 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.security.KeyPair;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Web Server for the Website, API and ACME Service
@@ -74,9 +66,9 @@ public class WebServer {
     private final CertificateRenewManager certificateRenewManager;
 
     /**
-     * Instance of ServerInstance providing access to server-related configurations and utilities.
+     * Instance of IServerInstance providing access to server-related configurations and utilities.
      */
-    private final ServerInstance serverInstance;
+    private final IServerInstance serverInstance;
 
     /**
      * Holds a static reference to the {@link Javalin} web server instance. This server is responsible for handling all HTTP requests to the
@@ -84,15 +76,20 @@ public class WebServer {
      * application's startup sequence and is used to configure routes, middleware, and other server settings. It is essential for the
      * operation of the web-based components of the application.
      */
-    private Javalin app = null;
+    private final Javalin app = Javalin.create(config -> {
+        // Static Files
+        config.staticFiles.add("/webstatic", Location.CLASSPATH);
+        // Object Mapper
+        config.jsonMapper(new JavalinGson());
+    });;
 
     /**
      * Constructor for WebServer.
      *
-     * @param serverInstance The instance of ServerInstance providing access to server-related configurations and utilities.
+     * @param serverInstance The instance of IServerInstance providing access to server-related configurations and utilities.
      * @throws IOException if an I/O error occurs during initialization.
      */
-    public WebServer(ServerInstance serverInstance) throws IOException {
+    public WebServer(IServerInstance serverInstance) throws IOException {
         this.serverInstance = serverInstance;
         this.httpAccessLogger = new HTTPAccessLogger(serverInstance.getAppConfig());
         this.certificateRenewManager = new CertificateRenewManager(serverInstance.getCryptoStoreManager());
@@ -104,18 +101,8 @@ public class WebServer {
      * @throws Exception thrown when startup fails
      */
     public void startServer() throws Exception {
-        log.info("Starting in Normal Mode");
-
-        log.info("Initializing database");
-        serverInstance.getHibernateUtil().initDatabase();
-
         log.info("Starting ACME API WebServer");
-        app = Javalin.create(config -> {
-            // Static Files
-            config.staticFiles.add("/webstatic", Location.CLASSPATH);
-            // Object Mapper
-            config.jsonMapper(new JavalinGson());
-        });
+
 
         JavalinSecurityHelper.initSecureApi(app, serverInstance, certificateRenewManager);
 
@@ -157,30 +144,13 @@ public class WebServer {
         // Global routes
         API.init(app, serverInstance);
 
-        // Register provisioners
-        for (AcmeProvisioner provisioner : AcmeProvisioner.getAllProvisioners(serverInstance)) {
-
-            // CRL generator
-            CRLScheduler.addProvisionerToScheduler(provisioner, serverInstance);
-
-            // CRL distribution
-            app.get("/acme/crl/{provisioner}/certs-revoked.crl", new CRLEndpoint(serverInstance));
-
-            // OCSP (Online Certificate Status Protocol) endpoints
-            app.post("/acme/{provisioner}/ocsp", new OcspEndpointPost(serverInstance));
-            app.get( "/acme/{provisioner}/ocsp/{ocspRequest}", new OcspEndpointGet(serverInstance));
-
-            log.info("Provisioner {} registered", provisioner.getName());
-        }
-
-        // Add routes for ACME
 
         // Global ACME headers, inspired from Let's Encrypts Boulder
         app.before("/acme/{provisioner}/*", context -> {
             // Disable caching for all ACME routes
             context.header("Cache-Control", "public, max-age=0, no-cache");
 
-            AcmeProvisioner provisioner = AcmeProvisioner.getProvisionerFromJavalin(serverInstance, context);
+            AcmeProvisioner provisioner = AbstractAcmeEndpoint.getProvisionerFromJavalin(serverInstance, context);
 
             if(!context.path().equals("{provisioner}/directory")){
                 context.header("Link", HttpHeaderUtil.buildLinkHeaderValue(provisioner.getAcmeApiURL(serverInstance) + "/directory", "index"));
@@ -191,6 +161,13 @@ public class WebServer {
 
         // ACME Directory
         app.get("/acme/{provisioner}/directory", new DirectoryEndpoint(serverInstance));
+
+        // CRL distribution
+        app.get("/acme/crl/{provisioner}/certs-revoked.crl", new CRLEndpoint(serverInstance));
+
+        // OCSP (Online Certificate Status Protocol) endpoints
+        app.post("/acme/{provisioner}/ocsp", new OcspEndpointPost(serverInstance));
+        app.get( "/acme/{provisioner}/ocsp/{ocspRequest}", new OcspEndpointGet(serverInstance));
 
         // New account
         app.post("/acme/{provisioner}/acme/new-acct", new NewAccountEndpoint(serverInstance));
@@ -228,7 +205,7 @@ public class WebServer {
         app.post("/acme/{provisioner}/acme/revoke-cert", new RevokeCertEndpoint(serverInstance));
 
         log.info("Starting the CRL generation Scheduler");
-        CRLScheduler.startScheduler();
+        CRLScheduler.startScheduler(serverInstance);
         log.info("Starting the certificate renew watcher");
         certificateRenewManager.startScheduler();
 
@@ -325,78 +302,4 @@ public class WebServer {
 */
 
 
-    /*    *//**
-     * see {@link #reloadConfiguration(Runnable)}
-     *//*
-    public static void reloadConfiguration() throws Exception {
-        reloadConfiguration(null);
-    }*/
-
-    /**
-     * Reloads the application's configuration, effectively restarting the service. This method is designed to shut down all components of
-     * the application gracefully and then restart them with the updated configuration. This process is essential for applying configuration
-     * changes without stopping the application process entirely. Optionally, a custom runnable can be executed after all components are
-     * shut down but before the application restarts.
-     *
-     * <p>Steps performed during the reload process include:</p>
-     * <ul>
-     *     <li>Logging the start of the configuration reload process.</li>
-     *     <li>Initiating the shutdown sequence for all components, including the web server, CRL generators,
-     *     certificate watchers, and optionally the certificate issuer if asynchronous certificate issuing is
-     *     enabled.</li>
-     *     <li>Shutting down the database connection pool and other database-related resources.</li>
-     *     <li>Executing an optional {@link Runnable} provided as a parameter, which can be used for custom
-     *     cleanup or preparation tasks before the application restarts.</li>
-     *     <li>Restarting the application by calling the {@code main} method with the previously used runtime
-     *     arguments, thereby reloading the configuration and reinitializing all components.</li>
-     * </ul>
-     *
-     * <p>This method aims to minimize service disruption during the reload process and ensures that all
-     * components are reinitialized cleanly with the new configuration settings.</p>
-     *
-     * @param runWhenEverythingIsShutDown an optional {@link Runnable} to be executed after shutdown but before the application is
-     *                                    restarted. This can be used for tasks that should run in a clean state, such as cleanup
-     *                                    operations.
-     * @throws Exception if any error occurs during the shutdown or restart process.
-     */
-/*
-
-    public static void reloadConfiguration(Runnable runWhenEverythingIsShutDown) throws Exception {
-        log.info("Reloading configuration was triggered. Service will be disrupted for a moment, please wait ...");
-        log.info("Initiating shutdown of components ...");
-
-        log.info("Shutting down WebServer");
-        app.stop();
-        app = null;
-
-        log.info("Shutting down CRL scheduler");
-        CRLScheduler.shutdown();
-
-        log.info("Shutting down Certificate watchers");
-
-        log.info("Gracefully shutdown certificate watchers");
-        certificateRenewManager.shutdown();
-
-        if (Main.getServerOptions().contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
-            log.info("Shutting down Certificate Issuer");
-            CertificateIssuer.shutdown();
-        }
-
-        log.info("Shutting down Database");
-        HibernateUtil.shutdown();
-
-        // At this point the VM should shut down itself with exit code 0,
-        // so that all threads are exited at this point. If you develop and/or reload configuration,
-        // consider checking this by temporarily comment out following code after this comment
-
-        if (runWhenEverythingIsShutDown != null) {
-            // Run things you normally wouldn't do, cause due to running thread this can end
-            // in an unpredictable behaviour
-            runWhenEverythingIsShutDown.run();
-        }
-
-        // Reload config and turn everything back on by relaunching the main()
-        Main.restartMain();
-    }
-*/
 }

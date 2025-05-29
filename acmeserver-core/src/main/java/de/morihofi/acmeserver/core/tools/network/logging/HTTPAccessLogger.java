@@ -16,12 +16,11 @@
 
 package de.morihofi.acmeserver.core.tools.network.logging;
 
-import de.morihofi.acmeserver.core.config.Config;
+import de.morihofi.acmeserver.types.config.Config;
 import io.javalin.http.Context;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;

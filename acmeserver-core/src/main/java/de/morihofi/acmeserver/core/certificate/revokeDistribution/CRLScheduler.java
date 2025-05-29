@@ -17,14 +17,11 @@
 package de.morihofi.acmeserver.core.certificate.revokeDistribution;
 
 
-import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
-import de.morihofi.acmeserver.core.tools.ServerInstance;
+import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.intf.IServerInstance;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.invoke.MethodHandles;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -32,47 +29,29 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CRLScheduler {
 
-    private static final int UPDATE_MINUTES = 5;
+    //FIXME: Add trigger for update crl on provisioner removal/add
 
-    private static final Map<String, CRLGenerator> crlMap = Collections.synchronizedMap(new HashMap<>());
+    private static final int UPDATE_MINUTES = 720; // 12 hours
+
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public static CRLGenerator getCrlGeneratorForProvisioner(String provisionerName) {
-        if (!crlMap.containsKey(provisionerName)) {
-            throw new IllegalArgumentException(provisionerName + " has not an registered CRL generator");
-        }
-        return crlMap.get(provisionerName);
-    }
 
-    public static void startScheduler() {
+    public static void startScheduler(@NonNull IServerInstance serverInstance) {
         log.info("Initialized CRL Generation Scheduler");
         // Start the scheduled task to update the CRL every 5 minutes
-        scheduler.scheduleAtFixedRate(CRLScheduler::schedule, 0, UPDATE_MINUTES, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(() -> schedule(serverInstance), 0, UPDATE_MINUTES, TimeUnit.MINUTES);
     }
 
-    private static void schedule() {
+    private static void schedule(@NonNull IServerInstance serverInstance) {
         log.info("CRL Generation Scheduler is running");
 
-        for (CRLGenerator crlGenerator : crlMap.values()) {
-            log.info("Generating CRL for {} provisioner", crlGenerator.getProvisioner().getName());
+        for (AcmeProvisioner provisioner : AcmeProvisioner.getAllProvisioners(serverInstance)) {
+            log.info("Generating CRL for {} provisioner", provisioner.getName());
 
-            crlGenerator.updateCachedCRL(UPDATE_MINUTES);
+            CrlStore.updateCachedCRL(UPDATE_MINUTES, provisioner, serverInstance);
         }
 
-        log.info("CRL Generation Scheduler finished execution");
+        log.info("CRL Scheduler finished execution");
     }
 
-    public static void addProvisionerToScheduler(AcmeProvisioner provisioner, ServerInstance serverInstance) {
-        log.info("{} provisioner has been added for CRL generation scheduling", provisioner.getName());
-        crlMap.put(provisioner.getName(), new CRLGenerator(provisioner, serverInstance));
-    }
-
-    /**
-     * Shuts down the executor service. Should be called when the CRL instance is no longer needed.
-     */
-    public static void shutdown() {
-        log.info("CRL Scheduler is shutting down");
-        scheduler.shutdown();
-        crlMap.clear();
-    }
 }

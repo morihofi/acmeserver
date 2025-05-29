@@ -1,0 +1,47 @@
+package de.morihofi.acmeserver.types.database.entities;
+
+import de.morihofi.acmeserver.types.intf.IServerInstance;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NonNull;
+import org.hibernate.Session;
+
+import java.util.List;
+
+@Entity
+@Data
+public class RootCa {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Embedded
+    private CertificateConfig certificateConfig;
+
+    @OneToMany(mappedBy = "rootCa", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AcmeProvisioner> provisioners;
+
+    private String internalUuid;
+
+    public static RootCa getForId(@NonNull IServerInstance si, long id){
+        RootCa provisioner;
+        try (Session s = si.getDatabaseSession()) {
+            provisioner = s.createQuery("FROM RootCa r WHERE r.id = :id", RootCa.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+        }
+        return provisioner;
+    }
+
+
+    public static RootCa[] getAllRoots(@NonNull IServerInstance si) {
+        return getAllRoots(si);
+    }
+
+    public static RootCa[] getAllRoots(@NonNull Session s) {
+        List<RootCa> provisioners;
+        provisioners = s.createQuery("FROM RootCa", RootCa.class).list();
+        return provisioners.toArray(new RootCa[0]);
+    }
+}

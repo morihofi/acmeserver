@@ -16,12 +16,13 @@
 
 package de.morihofi.acmeserver.core.tools.certificate.generator;
 
-import de.morihofi.acmeserver.core.database.objects.CertificateMetadata;
-import de.morihofi.acmeserver.core.database.objects.CertificateConfig;
-import de.morihofi.acmeserver.core.tools.ServerInstance;
-import de.morihofi.acmeserver.core.tools.certificate.CertMisc;
-import de.morihofi.acmeserver.core.tools.certificate.X509;
-import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
+import de.morihofi.acmeserver.cryptography.certificate.X509CertificateTools;
+import de.morihofi.acmeserver.cryptography.keys.KeyHelper;
+import de.morihofi.acmeserver.cryptography.randomness.RandomGenerator;
+import de.morihofi.acmeserver.types.database.entities.CertificateMetadata;
+import de.morihofi.acmeserver.types.database.entities.CertificateConfig;
+import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
+import de.morihofi.acmeserver.types.intf.IServerInstance;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -68,14 +69,14 @@ public class CertificateAuthorityGenerator {
         calendar.add(Calendar.DATE, certificateConfig.getExpiration().getDays());
 
         X500Name issuerName = getX500Name(certificateConfig.getMetadata(), "A common name is required in root CA. Please change it in your settings.");
-        BigInteger serialNumber = CertMisc.generateSerialNumber();
+        BigInteger serialNumber = RandomGenerator.generateRandomId();
 
         X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(issuerName, serialNumber, new Date(), calendar.getTime(), issuerName, keyPair.getPublic());
 
         certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
         certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
 
-        ContentSigner signer = new JcaContentSignerBuilder(CertMisc.getSignatureAlgorithmBasedOnKeyType(keyPair.getPrivate())).build(keyPair.getPrivate());
+        ContentSigner signer = new JcaContentSignerBuilder(KeyHelper.getSignatureAlgorithmBasedOnKeyType(keyPair.getPrivate())).build(keyPair.getPrivate());
         X509CertificateHolder certHolder = certBuilder.build(signer);
 
         return new JcaX509CertificateConverter().getCertificate(certHolder);
@@ -140,16 +141,16 @@ public class CertificateAuthorityGenerator {
      * @throws KeyStoreException         If there's an error accessing the keystore or modify data
      * @throws UnrecoverableKeyException If there's an error recovering the key
      */
-    public static X509Certificate createIntermediateCaCertificate(ServerInstance serverInstance, KeyPair intermediateKeyPair, CertificateConfig certificateConfig, String crlDistributionUrl, String ocspServiceEndpoint) throws CertificateException, OperatorCreationException, CertIOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+    public static X509Certificate createIntermediateCaCertificate(IServerInstance serverInstance, KeyPair intermediateKeyPair, CertificateConfig certificateConfig, String crlDistributionUrl, String ocspServiceEndpoint) throws CertificateException, OperatorCreationException, CertIOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
 
-        CryptoStoreManager cryptoStoreManager = serverInstance.getCryptoStoreManager();
+        ICryptoStoreManager cryptoStoreManager = serverInstance.getCryptoStoreManager();
 
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
         X509Certificate caCertificate = cryptoStoreManager.getCerificateAuthorityX509Certificate(serverInstance.getRootCa());
 
-        X500Name issuerName = X509.getX500NameFromX509Certificate(caCertificate); // Consider getting this from CA certificate
-        BigInteger serialNumber = CertMisc.generateSerialNumber();
+        X500Name issuerName = X509CertificateTools.getX500NameFromX509Certificate(caCertificate);
+        BigInteger serialNumber = RandomGenerator.generateRandomId();
         Date startDate = new Date();
 
         Calendar calendar = Calendar.getInstance();
@@ -183,7 +184,7 @@ public class CertificateAuthorityGenerator {
         // Signature Algorithm
         PrivateKey caPrivateKey = cryptoStoreManager.getCerificateAuthorityKeyPair(serverInstance.getRootCa()).getPrivate();
 
-        String signatureAlgorithm = CertMisc.getSignatureAlgorithmBasedOnKeyType(caPrivateKey);
+        String signatureAlgorithm = KeyHelper.getSignatureAlgorithmBasedOnKeyType(caPrivateKey);
 
         ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(caPrivateKey);
         X509CertificateHolder holder = certBuilder.build(signer);

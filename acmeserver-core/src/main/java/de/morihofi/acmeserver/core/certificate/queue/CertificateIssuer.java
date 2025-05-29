@@ -16,18 +16,19 @@
 
 package de.morihofi.acmeserver.core.certificate.queue;
 
-import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.objects.Identifier;
+import de.morihofi.acmeserver.cryptography.csr.CsrDataUtil;
+import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
 
-import de.morihofi.acmeserver.core.database.AcmeOrderState;
-import de.morihofi.acmeserver.core.database.objects.ACMEOrder;
-import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
-import de.morihofi.acmeserver.core.tools.ServerInstance;
-import de.morihofi.acmeserver.core.tools.base64.Base64Tools;
-import de.morihofi.acmeserver.core.tools.certificate.PemUtil;
-import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
-import de.morihofi.acmeserver.core.tools.certificate.dataExtractor.CsrDataUtil;
+import de.morihofi.acmeserver.types.database.enums.AcmeOrderState;
+import de.morihofi.acmeserver.types.database.entities.ACMEOrder;
+import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
+import de.morihofi.acmeserver.types.intf.IServerInstance;
+import de.morihofi.acmeserver.utils.base64.Base64Tools;
+import de.morihofi.acmeserver.cryptography.pem.PemUtil;
 import de.morihofi.acmeserver.core.tools.certificate.generator.ServerCertificateGenerator;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -52,7 +53,7 @@ public class CertificateIssuer {
 
     private static Thread certificateQueueIssueThread = null;
 
-    public static synchronized void startThread(ServerInstance serverInstance) {
+    public static synchronized void startThread(@NonNull IServerInstance serverInstance) {
         log.info("Starting certificate issuing thread...");
         if (certificateQueueIssueThread == null) {
             certificateQueueIssueThread = new Thread(new CertificateIssuingTask(serverInstance), "Certificate Issuing Thread");
@@ -76,7 +77,7 @@ public class CertificateIssuer {
         }
     }
 
-    public static void generateCertificateForOrder(ACMEOrder order, CryptoStoreManager cryptoStoreManager, Session session, ServerInstance serverInstance) throws
+    public static void generateCertificateForOrder(@NonNull ACMEOrder order, @NonNull ICryptoStoreManager cryptoStoreManager, @NonNull Session session, @NonNull IServerInstance serverInstance) throws
             IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException,
             OperatorCreationException {
         String csr = order.getCertificateCSR();
@@ -133,7 +134,7 @@ public class CertificateIssuer {
         log.info("Stored certificate successful");
     }
 
-    private record CertificateIssuingTask(ServerInstance serverInstance) implements Runnable {
+    private record CertificateIssuingTask(@NonNull IServerInstance serverInstance) implements Runnable {
 
         @SuppressFBWarnings("REC_CATCH_EXCEPTION")
         @Override
@@ -147,11 +148,8 @@ public class CertificateIssuer {
 
                 if (!waitingOrders.isEmpty()) {
 
-                    try (Session session = Objects.requireNonNull(serverInstance.getHibernateUtil().getSessionFactory()).openSession()) {
-
-                        // CryptoStoreManager csm = CryptoStoreManager;
-
-                        ACMEOrder order = waitingOrders.get(0);
+                    try (Session session = serverInstance().getDatabaseSession()) {
+                        ACMEOrder order = waitingOrders.getFirst();
                         generateCertificateForOrder(order, serverInstance.getCryptoStoreManager(), session, serverInstance);
                     } catch (Exception ex) {
                         log.error("Error generating and/or store certificate", ex);

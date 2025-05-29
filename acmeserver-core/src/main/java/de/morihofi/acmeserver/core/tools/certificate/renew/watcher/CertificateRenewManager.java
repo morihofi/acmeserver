@@ -17,14 +17,14 @@
 package de.morihofi.acmeserver.core.tools.certificate.renew.watcher;
 
 
-import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
-import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
-import de.morihofi.acmeserver.core.tools.certificate.cryptoops.KeyStoreUtil;
-import de.morihofi.acmeserver.core.tools.lambda.TriFunction;
+import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
+import de.morihofi.acmeserver.cryptography.keystore.KeyStoreUtil;
+import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
+import de.morihofi.acmeserver.utils.lambda.TriFunction;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.invoke.MethodHandles;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
@@ -47,7 +47,7 @@ public class CertificateRenewManager {
 
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private final CryptoStoreManager cryptoStoreManager;
+    private final ICryptoStoreManager cryptoStoreManager;
     private final Map<String, RenewEntry> renewMap = Collections.synchronizedMap(new HashMap<>());
 
     /**
@@ -55,7 +55,7 @@ public class CertificateRenewManager {
      *
      * @param cryptoStoreManager The CryptoStoreManager instance used for key and certificate management.
      */
-    public CertificateRenewManager(CryptoStoreManager cryptoStoreManager) {
+    public CertificateRenewManager(ICryptoStoreManager cryptoStoreManager) {
         this.cryptoStoreManager = cryptoStoreManager;
     }
 

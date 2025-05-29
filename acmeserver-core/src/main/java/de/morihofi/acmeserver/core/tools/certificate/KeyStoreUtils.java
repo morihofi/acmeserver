@@ -16,7 +16,7 @@
 
 package de.morihofi.acmeserver.core.tools.certificate;
 
-import de.morihofi.acmeserver.core.certificate.objects.KeyStoreFileContent;
+import de.morihofi.acmeserver.cryptography.certificate.X509CertificateTools;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +36,7 @@ import java.util.ArrayList;
 /**
  * Utility class for performing operations related to KeyStore such as saving and loading KeyPairs and certificates.
  */
+@Deprecated(forRemoval = true)
 public class KeyStoreUtils {
 
     /**
@@ -74,7 +75,7 @@ public class KeyStoreUtils {
         }
 
         // Add the KeyPair and certificate to the KeyStore
-        keyStore.setKeyEntry(alias, keyPair.getPrivate(), passwordCharArr, new X509Certificate[]{X509.convertToX509Cert(certificate)});
+        keyStore.setKeyEntry(alias, keyPair.getPrivate(), passwordCharArr, new X509Certificate[]{X509CertificateTools.convertToX509Cert(certificate)});
 
         // Save the KeyStore object as a PKCS12 file
         try (OutputStream fos = Files.newOutputStream(targetLocation)) {
@@ -102,7 +103,7 @@ public class KeyStoreUtils {
 
         ArrayList<X509Certificate> chain = new ArrayList<>(); // The certificate chain to be saved
         for (byte[] certificate : certificates) {
-            chain.add(X509.convertToX509Cert(certificate));
+            chain.add(X509CertificateTools.convertToX509Cert(certificate));
         }
 
         try (OutputStream os = Files.newOutputStream(targetLocation)) {

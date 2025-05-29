@@ -16,12 +16,13 @@
 
 package de.morihofi.acmeserver.core.tools.certificate.generator;
 
-import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.objects.Identifier;
+import de.morihofi.acmeserver.cryptography.certificate.X509CertificateTools;
+import de.morihofi.acmeserver.cryptography.keys.KeyHelper;
+import de.morihofi.acmeserver.cryptography.randomness.RandomGenerator;
+import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
 
-import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
-import de.morihofi.acmeserver.core.tools.ServerInstance;
-import de.morihofi.acmeserver.core.tools.certificate.CertMisc;
-import de.morihofi.acmeserver.core.tools.certificate.X509;
+import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.intf.IServerInstance;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -44,7 +45,6 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
-import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.cert.CertificateException;
@@ -81,12 +81,12 @@ public class ServerCertificateGenerator {
      */
     public static X509Certificate createServerCertificate(KeyPair intermediateKeyPair, X509Certificate intermediateCertificate,
                                                           byte[] serverPublicKeyBytes, Identifier[] identifiers, Date startDate,
-                                                          Date endDate, AcmeProvisioner provisioner, ServerInstance serverInstance) throws
+                                                          Date endDate, AcmeProvisioner provisioner, IServerInstance serverInstance) throws
             OperatorCreationException, CertificateException, CertIOException {
 
         // Create our virtual "CSR"
-        X500Name issuerName = X509.getX500NameFromX509Certificate(intermediateCertificate);
-        BigInteger serialNumber = CertMisc.generateSerialNumber();
+        X500Name issuerName = X509CertificateTools.getX500NameFromX509Certificate(intermediateCertificate);
+        BigInteger serialNumber = RandomGenerator.generateRandomId();
 
         X500Name subjectName = new X500Name("CN=" + identifiers[0].getValue());
         X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(
@@ -132,7 +132,7 @@ public class ServerCertificateGenerator {
         }
 
         // Signature Algorithm
-        String signatureAlgorithm = CertMisc.getSignatureAlgorithmBasedOnKeyType(intermediateKeyPair.getPrivate());
+        String signatureAlgorithm = KeyHelper.getSignatureAlgorithmBasedOnKeyType(intermediateKeyPair.getPrivate());
 
         ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(intermediateKeyPair.getPrivate());
 

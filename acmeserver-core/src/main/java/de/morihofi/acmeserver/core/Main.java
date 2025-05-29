@@ -18,23 +18,23 @@ package de.morihofi.acmeserver.core;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import de.morihofi.acmeserver.core.certificate.acme.security.NonceManager;
-import de.morihofi.acmeserver.core.config.Config;
-import de.morihofi.acmeserver.core.config.helper.KeyStoreParamsDeserializer;
-import de.morihofi.acmeserver.core.config.keyStoreHelpers.KeyStoreParams;
-import de.morihofi.acmeserver.core.config.keyStoreHelpers.PKCS11KeyStoreParams;
-import de.morihofi.acmeserver.core.config.keyStoreHelpers.PKCS12KeyStoreParams;
+import de.morihofi.acmeserver.core.api.acme.security.NonceManager;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
-import de.morihofi.acmeserver.core.database.objects.RootCa;
-import de.morihofi.acmeserver.core.tools.ServerInstance;
-import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
-import de.morihofi.acmeserver.core.tools.certificate.cryptoops.ksconfig.PKCS11KeyStoreConfig;
-import de.morihofi.acmeserver.core.tools.certificate.cryptoops.ksconfig.PKCS12KeyStoreConfig;
-import de.morihofi.acmeserver.core.tools.certificate.helper.CaInitHelper;
-import de.morihofi.acmeserver.core.tools.cli.CLIArgument;
-import de.morihofi.acmeserver.core.tools.meta.BuildMetadata;
-import de.morihofi.acmeserver.core.tools.network.NetworkClient;
-import de.morihofi.acmeserver.core.tools.path.AppDirectoryHelper;
+import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
+import de.morihofi.acmeserver.types.cryptography.keystore.PKCS11KeyStoreConfig;
+import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
+import de.morihofi.acmeserver.core.helper.cert.CaInitHelper;
+import de.morihofi.acmeserver.types.config.Config;
+import de.morihofi.acmeserver.types.config.helper.KeyStoreParamsDeserializer;
+import de.morihofi.acmeserver.types.config.keyStoreHelpers.KeyStoreParams;
+import de.morihofi.acmeserver.types.config.keyStoreHelpers.PKCS11KeyStoreParams;
+import de.morihofi.acmeserver.types.config.keyStoreHelpers.PKCS12KeyStoreParams;
+import de.morihofi.acmeserver.types.intf.IServerInstance;
+import de.morihofi.acmeserver.utils.cli.CLIArgument;
+import de.morihofi.acmeserver.utils.meta.BuildMetadataImpl;
+import de.morihofi.acmeserver.utils.network.http.NetworkClient;
+import de.morihofi.acmeserver.utils.path.AppDirectoryHelper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -43,8 +43,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,7 +50,6 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * Main class for the ACME server application. This class handles the initialization and startup of the server, including configuration
@@ -94,25 +91,9 @@ public class Main {
     public static long startupTime = 0; // Set after all routes are ready
 
     /**
-     * Arguments passed to the application at startup.
-     */
-    @SuppressFBWarnings("MS_PKGPROTECT")
-    public static String[] runArgs = new String[]{};
-
-    /**
      * Instance of the server.
      */
-    private static ServerInstance serverInstance;
-
-    /**
-     * Restarts the main application.
-     *
-     * @throws Exception if an error occurs during startup.
-     */
-    public static void restartMain() throws Exception {
-        startupTime = 0;
-        Main.main(runArgs);
-    }
+    private static IServerInstance serverInstance;
 
     /**
      * Returns the set of server options.
@@ -130,9 +111,6 @@ public class Main {
      * @throws Exception if an error occurs during startup.
      */
     public static void main(String[] args) throws Exception {
-        // runArgs are needed to restart the whole server
-        runArgs = args;
-
         printBanner();
 
         SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -186,7 +164,7 @@ public class Main {
     }
 
 
-    public static ServerInstance getServerInstance(Config config, boolean debug, Path configPath) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvalidAlgorithmParameterException, OperatorCreationException {
+    public static IServerInstance getServerInstance(Config config, boolean debug, Path configPath) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvalidAlgorithmParameterException, OperatorCreationException {
         if (Objects.equals(System.getenv("DEBUG"), "TRUE")) {
             debug = true;
             log.info("Debug mode activated by DEBUG environment variable set to TRUE");
@@ -213,6 +191,7 @@ public class Main {
 
         log.info("Initializing database ...");
         HibernateUtil hibernateUtil = new HibernateUtil(config, debug);
+        hibernateUtil.initDatabase();
 
         log.info("Initializing certificate authorities ...");
         RootCa root = CaInitHelper.initializeCA(hibernateUtil, cryptoStoreManager);
@@ -227,7 +206,7 @@ public class Main {
                 hibernateUtil,
                 new NonceManager(hibernateUtil, debug),
                 root,
-                BuildMetadata.getInstance()
+                BuildMetadataImpl.getInstance()
         );
     }
 

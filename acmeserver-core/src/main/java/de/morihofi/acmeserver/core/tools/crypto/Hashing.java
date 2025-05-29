@@ -17,6 +17,10 @@
 package de.morihofi.acmeserver.core.tools.crypto;
 
 
+import de.morihofi.acmeserver.utils.conversion.HexConverter;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -24,6 +28,7 @@ import java.security.NoSuchAlgorithmException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Hashing {
 
     /**
@@ -41,7 +46,7 @@ public class Hashing {
         byte[] encodedHash = digest.digest(stringToHash.getBytes(StandardCharsets.UTF_8));
 
         // Convert the byte array to a hexadecimal string representation
-        return hexEncode(encodedHash);
+        return HexConverter.bytesAsHexString(encodedHash);
     }
 
     /**
@@ -60,19 +65,4 @@ public class Hashing {
         }
     }
 
-    /**
-     * Converts a byte array to a hexadecimal string.
-     *
-     * @param bytes The byte array to convert.
-     * @return The hexadecimal representation of the byte array.
-     */
-    public static String hexEncode(byte[] bytes) {
-        StringBuilder hexString = new StringBuilder(2 * bytes.length);
-        for (byte b : bytes) {
-            hexString.append(String.format("%02x", b & 0xff));
-        }
-        return hexString.toString();
-    }
-
-    private Hashing() {}
 }

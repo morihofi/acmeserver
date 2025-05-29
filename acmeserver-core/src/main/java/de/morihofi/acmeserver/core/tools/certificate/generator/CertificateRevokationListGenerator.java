@@ -16,8 +16,9 @@
 
 package de.morihofi.acmeserver.core.tools.certificate.generator;
 
-import de.morihofi.acmeserver.core.certificate.revokeDistribution.objects.RevokedCertificate;
-import de.morihofi.acmeserver.core.tools.certificate.CertMisc;
+import de.morihofi.acmeserver.cryptography.keys.KeyHelper;
+import de.morihofi.acmeserver.types.cryptography.revoke.RevokedCertificate;
+import lombok.NonNull;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509v2CRLBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CRLConverter;
@@ -26,7 +27,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
-import java.lang.invoke.MethodHandles;
 import java.security.PrivateKey;
 import java.security.cert.CRLException;
 import java.security.cert.CertificateEncodingException;
@@ -51,9 +51,11 @@ public class CertificateRevokationListGenerator {
      * @throws CRLException                 if an error occurs during the CRL generation.
      * @throws OperatorCreationException    if there's an error in creating the content signer.
      */
-    public static X509CRL generateCRL(List<RevokedCertificate> revokedCertificates,
-            X509Certificate caCert,
-            PrivateKey caPrivateKey, int updateMinutes) throws CertificateEncodingException, CRLException, OperatorCreationException {
+    public static X509CRL generateCRL(@NonNull List<RevokedCertificate> revokedCertificates,
+                                      @NonNull X509Certificate caCert,
+                                      @NonNull PrivateKey caPrivateKey,
+                                      int updateMinutes
+    ) throws CertificateEncodingException, CRLException, OperatorCreationException {
 
         // Create the CRL Builder
         X509v2CRLBuilder crlBuilder = new X509v2CRLBuilder(
@@ -66,12 +68,12 @@ public class CertificateRevokationListGenerator {
 
         // Add the revoked serial numbers
         for (RevokedCertificate revokedCertificate : revokedCertificates) {
-            crlBuilder.addCRLEntry(revokedCertificate.getSerialNumber(), revokedCertificate.getRevokationDate(),
-                    revokedCertificate.getRevokationReason());
+            crlBuilder.addCRLEntry(revokedCertificate.serialNumber(), revokedCertificate.revocationDate(),
+                    revokedCertificate.revocationReason());
         }
 
         // Sign the CRL with the CA's private key
-        JcaContentSignerBuilder signerBuilder = new JcaContentSignerBuilder(CertMisc.getSignatureAlgorithmBasedOnKeyType(caPrivateKey));
+        JcaContentSignerBuilder signerBuilder = new JcaContentSignerBuilder(KeyHelper.getSignatureAlgorithmBasedOnKeyType(caPrivateKey));
         signerBuilder.setProvider(BouncyCastleProvider.PROVIDER_NAME);
         X509CRLHolder crlHolder = crlBuilder.build(signerBuilder.build(caPrivateKey));
 

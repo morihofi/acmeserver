@@ -17,18 +17,18 @@
 package de.morihofi.acmeserver.core.certificate.revokeDistribution;
 
 
-import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
-import de.morihofi.acmeserver.core.tools.ServerInstance;
+import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.Req;
-import org.jetbrains.annotations.NotNull;
 
-import java.lang.invoke.MethodHandles;
+
 import java.math.BigInteger;
 
 /**
@@ -40,7 +40,7 @@ public class OcspEndpointPost implements Handler {
     /**
      * Instance for accessing the current provisioner
      */
-    private final ServerInstance serverInstance;
+    private final IServerInstance serverInstance;
     /**
      * Constructor for OcspEndpointPost class. Processes POST Requests. Initializes an instance with a specified Provisioner and CRL
      * generator.
@@ -48,7 +48,7 @@ public class OcspEndpointPost implements Handler {
      * @param serverInstance the server instance object to be used with this endpoint
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public OcspEndpointPost(ServerInstance serverInstance) {
+    public OcspEndpointPost(IServerInstance serverInstance) {
         this.serverInstance = serverInstance;
     }
 
@@ -60,7 +60,7 @@ public class OcspEndpointPost implements Handler {
      * @throws Exception if there is an issue with handling the HTTP request or processing the OCSP request.
      */
     @Override
-    public void handle(@NotNull Context context) throws Exception {
+    public void handle(@NonNull Context context) throws Exception {
         String provisionerName = context.pathParam("provisioner");
         AcmeProvisioner provisioner = AcmeProvisioner.getForName(serverInstance, provisionerName);
 
@@ -74,11 +74,10 @@ public class OcspEndpointPost implements Handler {
         }
 
         BigInteger serialNumber = requestList[0].getCertID().getSerialNumber();
-        log.info("Checking revokation status for serial number {}", serialNumber);
+        log.info("Checking revocation status for serial number {}", serialNumber);
 
         // Processing the request and creating the OCSP response
-        OCSPResp ocspResponse =
-                OcspHelper.processOCSPRequest(serialNumber, CRLScheduler.getCrlGeneratorForProvisioner(provisionerName), provisioner, serverInstance);
+        OCSPResp ocspResponse = OcspHelper.processOCSPRequest(serialNumber, provisioner, serverInstance);
 
         // Sending the OCSP response
         context.contentType("application/ocsp-response");

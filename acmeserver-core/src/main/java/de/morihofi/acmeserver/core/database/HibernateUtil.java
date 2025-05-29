@@ -16,9 +16,11 @@
 
 package de.morihofi.acmeserver.core.database;
 
-import de.morihofi.acmeserver.core.config.Config;
-import de.morihofi.acmeserver.core.config.DatabaseConfig;
+import de.morihofi.acmeserver.types.config.Config;
+import de.morihofi.acmeserver.types.config.DatabaseConfig;
 import jakarta.persistence.Entity;
+import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -35,12 +37,13 @@ import java.lang.invoke.MethodHandles;
 @Slf4j
 public class HibernateUtil {
 
+    @Getter
     private SessionFactory sessionFactory;
 
     private final Config appConfig;
     private final boolean debug;
 
-    public HibernateUtil(Config appConfig, boolean debug) throws IOException {
+    public HibernateUtil(@NonNull Config appConfig, boolean debug) throws IOException {
         this.appConfig = appConfig;
         this.debug = debug;
         initDatabase();
@@ -53,7 +56,6 @@ public class HibernateUtil {
         if (sessionFactory == null) {
 
             DatabaseConfig databaseConfig = appConfig.getDatabase();
-
 
             try {
                 Configuration configuration = getConfigurationFor(databaseConfig);
@@ -99,7 +101,7 @@ public class HibernateUtil {
      * configuration.
      * @throws NullPointerException if {@code dbType} is null.
      */
-    private Configuration getConfigurationFor(DatabaseConfig jdbcConfig) {
+    private Configuration getConfigurationFor(@NonNull DatabaseConfig jdbcConfig) {
         Configuration configuration = new Configuration();
 
         String jdbcUrl = jdbcConfig.getJdbcUrl();
@@ -141,16 +143,7 @@ public class HibernateUtil {
         return configuration;
     }
 
-    /**
-     * Get the Hibernate SessionFactory for database operations.
-     *
-     * @return The SessionFactory instance.
-     */
-    public SessionFactory getSessionFactory() {
-        return sessionFactory;
-    }
-
-    private void configureDialectAndDriver(Configuration configuration, String jdbcUrl) {
+    private void configureDialectAndDriver(@NonNull Configuration configuration, @NonNull String jdbcUrl) {
         if (jdbcUrl.startsWith("jdbc:h2")) {
             configuration.setProperty(Environment.JAKARTA_JDBC_DRIVER, "org.h2.Driver");
             //configuration.setProperty(Environment.DIALECT, "org.hibernate.dialect.H2Dialect");
@@ -170,7 +163,7 @@ public class HibernateUtil {
         }
     }
 
-    private void configureAgroalConnectionPool(Configuration configuration) {
+    private void configureAgroalConnectionPool(@NonNull Configuration configuration) {
         log.info("Configuring Agroal connection pool");
         configuration.setProperty("hibernate.connection.provider_class", "org.hibernate.agroal.internal.AgroalConnectionProvider");
         configuration.setProperty("hibernate.agroal.minSize", "10");

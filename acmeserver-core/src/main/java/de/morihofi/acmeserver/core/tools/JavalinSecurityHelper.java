@@ -16,23 +16,23 @@
 
 package de.morihofi.acmeserver.core.tools;
 
-import de.morihofi.acmeserver.core.Main;
-import de.morihofi.acmeserver.core.certificate.acme.api.endpoints.objects.Identifier;
-import de.morihofi.acmeserver.core.config.Config;
-import de.morihofi.acmeserver.core.tools.certificate.CertTools;
-import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
-import de.morihofi.acmeserver.core.tools.certificate.generator.KeyPairGenerator;
+import de.morihofi.acmeserver.cryptography.certificate.X509CertificateTools;
+import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
+import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
+import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
 import de.morihofi.acmeserver.core.tools.certificate.generator.ServerCertificateGenerator;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewManager;
-import de.morihofi.acmeserver.core.tools.dateAndTime.DateTools;
+import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
+import de.morihofi.acmeserver.types.intf.IServerInstance;
+import de.morihofi.acmeserver.utils.datetime.DateTools;
 import de.morihofi.acmeserver.core.tools.network.JettySslHelper;
-import de.morihofi.acmeserver.core.tools.network.ssl.mozillaSslConfiguration.MozillaSslConfigHelper;
+import de.morihofi.acmeserver.utils.network.ssl.mozillasslconfig.MozillaSslConfigHelper;
+import de.morihofi.acmeserver.types.config.Config;
 import io.javalin.Javalin;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -60,10 +60,10 @@ public class JavalinSecurityHelper {
      * @throws Exception if there is an error in generating the ACME API client certificate, updating the Jetty server SSL configuration, or
      *                   during automatic certificate renewal.
      */
-    public static void initSecureApi(Javalin app, ServerInstance instance,
+    public static void initSecureApi(Javalin app, IServerInstance instance,
                                      CertificateRenewManager certificateRenewManager) throws Exception {
 
-        CryptoStoreManager cryptoStoreManager = instance.getCryptoStoreManager();
+        ICryptoStoreManager cryptoStoreManager = instance.getCryptoStoreManager();
         Config appConfig = instance.getAppConfig();
 
 
@@ -87,9 +87,10 @@ public class JavalinSecurityHelper {
                                 + " must be one of modern, intermediate or old");
             };
 
-            mozillaSSlConfig =
-                    MozillaSslConfigHelper.getConfigurationGuidelinesForVersion(appConfig.getServer().getMozillaSslConfig().getVersion(),
-                            MozillaSslConfigHelper.CONFIGURATION.OLD);
+            mozillaSSlConfig = MozillaSslConfigHelper.getConfigurationGuidelinesForVersion(
+                    appConfig.getServer().getMozillaSslConfig().getVersion(),
+                    MozillaSslConfigHelper.CONFIGURATION.OLD
+            );
 
             log.info(
                     "Using Mozilla's SSL Configuration guidelines configuration {} version {} at {} with the following oldest clients "
@@ -154,7 +155,7 @@ public class JavalinSecurityHelper {
      * Generates an ACME API client certificate for the ACME Web Server API, if it doesn't already exist in the key store.
      *
      * @param serverInstance The s used for managing certificates and keys.
-     * @param appConfig          The application configuration containing settings for the ACME API and certificates.
+     * @param appConfig      The application configuration containing settings for the ACME API and certificates.
      * @throws CertificateException      If there is an issue with certificate handling.
      * @throws IOException               If an I/O error occurs.
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
@@ -163,18 +164,18 @@ public class JavalinSecurityHelper {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws UnrecoverableKeyException If a keystore key cannot be recovered.
      */
-    private static CertificateRenewManager.CertificateData generateAcmeApiClientCertificate(ServerInstance serverInstance,
+    private static CertificateRenewManager.CertificateData generateAcmeApiClientCertificate(IServerInstance serverInstance,
                                                                                             Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
             OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
 
-        CryptoStoreManager cryptoStoreManager = serverInstance.getCryptoStoreManager();
+        ICryptoStoreManager cryptoStoreManager = serverInstance.getCryptoStoreManager();
 
         KeyPair rootCaKeyPair = cryptoStoreManager.getCerificateAuthorityKeyPair(serverInstance.getRootCa());
 
         KeyPair acmeAPIKeyPair;
         if (!cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) ||
                 (cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) &&
-                        !CertTools.isCertificateValid(((X509Certificate) cryptoStoreManager.getKeyStore()
+                        !X509CertificateTools.isCertificateCurrentlyDateValid(((X509Certificate) cryptoStoreManager.getKeyStore()
                                 .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI))))
         ) {
 

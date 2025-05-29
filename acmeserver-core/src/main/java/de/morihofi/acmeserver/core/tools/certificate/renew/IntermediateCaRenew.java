@@ -16,11 +16,10 @@
 
 package de.morihofi.acmeserver.core.tools.certificate.renew;
 
-import de.morihofi.acmeserver.core.database.objects.AcmeProvisioner;
-import de.morihofi.acmeserver.core.tools.ServerInstance;
-import de.morihofi.acmeserver.core.tools.certificate.cryptoops.CryptoStoreManager;
+import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.core.tools.certificate.generator.CertificateAuthorityGenerator;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewManager;
+import de.morihofi.acmeserver.types.intf.IServerInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -48,7 +47,7 @@ public class IntermediateCaRenew {
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
     public static CertificateRenewManager.CertificateData renewIntermediateCertificate(KeyPair provisionerKeyPair, AcmeProvisioner provisioner,
-                                                                                       ServerInstance serverInstance, String intermediateAlias) throws CertificateException, OperatorCreationException,
+                                                                                       IServerInstance serverInstance, String intermediateAlias) throws CertificateException, OperatorCreationException,
             IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
 
 

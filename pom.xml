@@ -13,6 +13,8 @@
         <module>acmeserver-core</module>
         <module>acmeserver-utils</module>
         <module>acmeserver-parent</module>
+        <module>acmeserver-types</module>
+        <module>acmeserver-cryptography</module>
     </modules>
 
     <licenses>

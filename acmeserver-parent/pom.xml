@@ -27,7 +27,7 @@
         <bouncycastle.version>1.80</bouncycastle.version>
         <jose4j.version>0.9.6</jose4j.version>
 
-        <!-- WebServer and Template Engine -->
+        <!-- WebServer -->
         <javalin.version>6.6.0</javalin.version>
 
         <!-- Hibernate and connection pool -->
@@ -40,9 +40,6 @@
         <!-- Unit Testing -->
         <junit.version>5.11.0</junit.version>
 
-        <!-- Frontend -->
-        <node.version>v20.17.0</node.version>
-        <npm.version>10.8.3</npm.version>
     </properties>
 
     <build>
@@ -190,6 +187,12 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>jakarta.persistence</groupId>
+                <artifactId>jakarta.persistence-api</artifactId>
+                <version>3.1.0</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
                 <groupId>jakarta.enterprise</groupId>
                 <artifactId>jakarta.enterprise.cdi-api</artifactId>
                 <version>3.0.1</version>
@@ -257,6 +260,13 @@
                 <groupId>org.shredzone.acme4j</groupId>
                 <artifactId>acme4j-client</artifactId>
                 <version>3.5.1</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>5.11.1</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
