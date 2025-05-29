@@ -75,22 +75,27 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
         return challenge;
     }
 
-    /**
-     * This function marks an ACME challenge as passed.
-     *
-     * @param challengeId    The ID of the Challenge, provided in URL.
-     * @param serverInstance The server instance for database connection.
-     */
-    @Transactional
-    public static void passChallenge(String challengeId, IServerInstance serverInstance) {
+
+    public static void markChallenge(AcmeStatus newState, String challengeId, IServerInstance serverInstance) {
         Transaction transaction = null;
         try (Session session = serverInstance.getDatabaseSession()) {
             transaction = session.beginTransaction();
 
             ACMEOrderIdentifierChallenge orderIdentifierChallenge = session.get(ACMEOrderIdentifierChallenge.class, challengeId);
             if (orderIdentifierChallenge != null) {
-                orderIdentifierChallenge.setStatus(AcmeStatus.VALID);
-                orderIdentifierChallenge.setVerifiedTime(Timestamp.from(Instant.now()));
+
+                if(
+                        !isChallengeTransitionAllowed(orderIdentifierChallenge.getStatus(), newState)
+                ){
+                    throw new IllegalStateException("The challenge transition from " + orderIdentifierChallenge.getStatus() + " to " + newState + " is not allowed");
+                }
+
+                orderIdentifierChallenge.setStatus(newState);
+
+                if(newState.equals(AcmeStatus.VALID)){
+                    orderIdentifierChallenge.setVerifiedTime(Timestamp.from(Instant.now()));
+                }
+
                 session.merge(orderIdentifierChallenge);
 
                 log.info("ACME challenge {} was marked as passed", challengeId);
@@ -105,6 +110,34 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
             }
             log.error("Unable to mark ACME challenge as passed", e);
         }
+    }
+
+    private static boolean isChallengeTransitionAllowed(AcmeStatus currentState, AcmeStatus newState) {
+
+        if (currentState.equals(AcmeStatus.PENDING)){
+            if (newState.equals(AcmeStatus.INVALID) || newState.equals(AcmeStatus.VALID)){
+                return true;
+            }
+            return false;
+        }
+
+        log.warn("Unimplemented challenge state transition from {} to {}. Allowing them now.", currentState, newState);
+        return true;
+    }
+
+    public static void failChallenge(String challengeId, IServerInstance serverInstance) {
+        markChallenge(AcmeStatus.INVALID, challengeId, serverInstance);
+    }
+
+    /**
+     * This function marks an ACME challenge as passed.
+     *
+     * @param challengeId    The ID of the Challenge, provided in URL.
+     * @param serverInstance The server instance for database connection.
+     */
+    @Transactional
+    public static void passChallenge(String challengeId, IServerInstance serverInstance) {
+        markChallenge(AcmeStatus.VALID, challengeId, serverInstance);
     }
 
     /**
@@ -168,6 +201,7 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
         this.authorizationToken = authorizationTokenBase64Url;
 
     }
+
 
 
 }

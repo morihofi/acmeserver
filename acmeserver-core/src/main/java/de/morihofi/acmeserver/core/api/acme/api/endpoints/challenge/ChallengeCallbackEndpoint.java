@@ -102,10 +102,10 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
             // Mark challenge as passed
             ACMEOrderIdentifierChallenge.passChallenge(challengeId, getServerInstance());
         } else {
+            ACMEOrderIdentifierChallenge.failChallenge(challengeId, getServerInstance());
+
             log.error("Throwing API error: Host verification failed with method {}", challengeType);
             throw new ACMEConnectionErrorException(result.errorReason());
-            // TODO: Fail challenge in database
-            // Database.failChallenge(challengeId);
         }
 
         // Reload identifier, e.g., host has validated

@@ -19,7 +19,82 @@ package de.morihofi.acmeserver.types.database.enums;
 import lombok.Getter;
 
 /**
- * Enumeration representing the possible statuses of an ACME order or challenge.
+ * Enumeration representing the possible statuses of an ACME order or challenge. <a href="https://datatracker.ietf.org/doc/html/rfc8555#section-7.1.6">See Section 7.1.6 of RFC8555</a>
+ *
+ * <p><b>For Challenges:</b></p>
+ * <pre>
+ *             pending
+ *                |
+ *                | Receive
+ *                | response
+ *                V
+ *            processing <-+
+ *                |   |    | Server retry or
+ *                |   |    | client retry request
+ *                |   +----+
+ *                |
+ *                |
+ *    Successful  |   Failed
+ *    validation  |   validation
+ *      +---------+---------+
+ *      |                   |
+ *      V                   V
+ *    valid              invalid
+ * </pre>
+ *
+ * <p><b>For Authorizations:</b></p>
+ * <pre>
+ *                pending --------------------+
+ *                   |                        |
+ * Challenge failure |                        |
+ *        or         |                        |
+ *       Error       |  Challenge valid       |
+ *         +---------+---------+              |
+ *         |                   |              |
+ *         V                   V              |
+ *      invalid              valid            |
+ *                             |              |
+ *                             |              |
+ *                             |              |
+ *              +--------------+--------------+
+ *              |              |              |
+ *              |              |              |
+ *       Server |       Client |   Time after |
+ *       revoke |   deactivate |    "expires" |
+ *              V              V              V
+ *           revoked      deactivated      expired
+ * </pre>
+ * <p><b>State Transitions for Authorization Objects</b></p>
+ * <pre>
+ *    pending --------------+
+ *       |                  |
+ *       | All authz        |
+ *       | "valid"          |
+ *       V                  |
+ *     ready ---------------+
+ *       |                  |
+ *       | Receive          |
+ *       | finalize         |
+ *       | request          |
+ *       V                  |
+ *   processing ------------+
+ *       |                  |
+ *       | Certificate      | Error or
+ *       | issued           | Authorization failure
+ *       V                  V
+ *     valid             invalid
+ * </pre>
+ * <p><b>State Transitions for Order Objects</b></p>
+ * <pre>
+ *                     valid
+ *                       |
+ *                       |
+ *           +-----------+-----------+
+ *    Client |                Server |
+ *   deactiv.|                revoke |
+ *           V                       V
+ *      deactivated               revoked
+ * </pre>
  */
 @Getter
 public enum AcmeStatus {
@@ -65,11 +140,6 @@ public enum AcmeStatus {
 
     /**
      * The RFC-compliant name of the status.
-     * -- GETTER --
-     *  Retrieves the RFC-compliant name of the status.
-     *
-     * @return The RFC-compliant name of the status.
-
      */
     private final String rfcName;
 
