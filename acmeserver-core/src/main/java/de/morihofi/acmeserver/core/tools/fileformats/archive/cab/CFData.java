@@ -81,41 +81,41 @@ public class CFData {
      */
     private Vector<Byte> convertToByte(int val, int numBytes) {
         Vector<Byte> b = new Vector<>();
-        Integer tempInt;
-        Byte byteToAdd;
+        int tempInt;
+        byte byteToAdd;
         if (numBytes == 1) {
             tempInt = val;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
         } else if (numBytes == 2) {
             tempInt = 0xFF & val;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
             tempInt = (0xFF00 & val) >>> 8;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
         } else if (numBytes == 3) {
             tempInt = 0xFF & val;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
             tempInt = (0xFF00 & val) >>> 8;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
             tempInt = (0xFF0000 & val) >>> 16;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
         } else if (numBytes == 4) {
             tempInt = 0xFF & val;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
             tempInt = (0xFF00 & val) >>> 8;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
             tempInt = (0xFF0000 & val) >>> 16;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
             tempInt = (0xFF000000 & val) >>> 24;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
         } else {
             b.add(Byte.valueOf("255"));

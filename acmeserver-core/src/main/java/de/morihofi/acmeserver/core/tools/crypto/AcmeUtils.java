@@ -22,7 +22,6 @@ import org.bouncycastle.cert.X509CertificateHolder;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.invoke.MethodHandles;
 import java.net.IDN;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;

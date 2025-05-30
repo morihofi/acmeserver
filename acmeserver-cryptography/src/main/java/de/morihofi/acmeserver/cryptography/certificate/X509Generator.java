@@ -191,7 +191,7 @@ public class X509Generator {
         Objects.requireNonNull(req.getEndDate(), "endDate is required");
 
         X500Name issuerName = X509CertificateTools.getX500NameFromX509Certificate(req.getIssuerCertificate());
-        X500Name subjectName = new X500Name("CN=" + req.getIdentifiers().get(0).getValue());
+        X500Name subjectName = new X500Name("CN=" + req.getIdentifiers().getFirst().getValue());
 
         X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
                 issuerName,

@@ -4,10 +4,12 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Embeddable
 @Data
 @AllArgsConstructor
-public class CertificateConfig {
+public class CertificateConfig implements Serializable {
 
     @Embedded
     private CertificateMetadata metadata;

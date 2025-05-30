@@ -81,7 +81,7 @@ public class WebServer {
         config.staticFiles.add("/webstatic", Location.CLASSPATH);
         // Object Mapper
         config.jsonMapper(new JavalinGson());
-    });;
+    });
 
     /**
      * Constructor for WebServer.
@@ -132,8 +132,6 @@ public class WebServer {
         app.after("/*", httpAccessLogger::log);
 
         app.exception(ACMEException.class, (exception, ctx) -> {
-            Gson gson = new Gson();
-
             ctx.status(exception.getHttpStatusCode());
             ctx.header("Content-Type", "application/problem+json");
             ctx.json(exception.getErrorResponse());
@@ -152,7 +150,7 @@ public class WebServer {
 
             AcmeProvisioner provisioner = AbstractAcmeEndpoint.getProvisionerFromJavalin(serverInstance, context);
 
-            if(!context.path().equals("{provisioner}/directory")){
+            if (!context.path().equals("{provisioner}/directory")) {
                 context.header("Link", HttpHeaderUtil.buildLinkHeaderValue(provisioner.getAcmeApiURL(serverInstance) + "/directory", "index"));
             }
 
@@ -167,7 +165,7 @@ public class WebServer {
 
         // OCSP (Online Certificate Status Protocol) endpoints
         app.post("/acme/{provisioner}/ocsp", new OcspEndpointPost(serverInstance));
-        app.get( "/acme/{provisioner}/ocsp/{ocspRequest}", new OcspEndpointGet(serverInstance));
+        app.get("/acme/{provisioner}/ocsp/{ocspRequest}", new OcspEndpointGet(serverInstance));
 
         // New account
         app.post("/acme/{provisioner}/acme/new-acct", new NewAccountEndpoint(serverInstance));

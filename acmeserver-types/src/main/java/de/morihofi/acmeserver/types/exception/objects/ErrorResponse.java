@@ -16,7 +16,6 @@
 
 package de.morihofi.acmeserver.types.exception.objects;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 

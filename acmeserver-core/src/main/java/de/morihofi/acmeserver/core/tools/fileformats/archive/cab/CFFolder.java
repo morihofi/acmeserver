@@ -19,7 +19,9 @@ package de.morihofi.acmeserver.core.tools.fileformats.archive.cab;
 
 
 
-import java.lang.invoke.MethodHandles;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Vector;
 
 /**
@@ -32,6 +34,8 @@ import java.util.Vector;
  * This code is originally based on the work of Graham Rivers-Brown and has been adapted for use in the ACME server project.
  * </p>
  */
+@Setter
+@Getter
 public class CFFolder {
 
     /**
@@ -61,23 +65,6 @@ public class CFFolder {
         typeCompress = CFFolder.NO_COMPRESSION;
     }
 
-    /**
-     * Sets the offset of the first CFDATA block in this folder.
-     *
-     * @param coffCabStart The offset to set.
-     */
-    public void setCoffCabStart(int coffCabStart) {
-        this.coffCabStart = coffCabStart;
-    }
-
-    /**
-     * Sets the number of CFDATA blocks in this folder.
-     *
-     * @param cCFData The number of CFDATA blocks to set.
-     */
-    public void setCCFData(int cCFData) {
-        this.cCFData = cCFData;
-    }
 
     /**
      * Converts the CFFolder instance to a byte array representation.

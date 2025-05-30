@@ -17,7 +17,6 @@
  */
 package de.morihofi.acmeserver.core.tools.fileformats.archive.cab;
 
-import java.lang.invoke.MethodHandles;
 import java.util.Calendar;
 import java.util.Vector;
 

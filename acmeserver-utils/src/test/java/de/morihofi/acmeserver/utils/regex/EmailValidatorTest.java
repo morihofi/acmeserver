@@ -28,10 +28,9 @@ class EmailValidatorTest {
     }
 
     @Test
+    @SuppressWarnings("ConstantConditions")
     void testEdgeCases() {
-        assertThrows(NullPointerException.class, () -> {
-            EmailValidator.isValidEmail(null);
-        });
+        assertThrows(NullPointerException.class, () -> EmailValidator.isValidEmail(null));
         assertFalse(EmailValidator.isValidEmail(""));
         assertFalse(EmailValidator.isValidEmail(" "));
     }

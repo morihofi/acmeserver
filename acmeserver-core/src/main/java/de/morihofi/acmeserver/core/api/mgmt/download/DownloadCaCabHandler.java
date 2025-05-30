@@ -80,7 +80,7 @@ public class DownloadCaCabHandler implements Handler {
     }
 
     private String getPEMWithoutHeaderAndFooter(X509Certificate certificate) throws Exception {
-        Base64.Encoder encoder = Base64.getMimeEncoder(64, "\r\n".getBytes());
+        Base64.Encoder encoder = Base64.getMimeEncoder(64, "\r\n".getBytes(StandardCharsets.UTF_8));
         byte[] derCert = certificate.getEncoded();
         return encoder.encodeToString(derCert);
     }

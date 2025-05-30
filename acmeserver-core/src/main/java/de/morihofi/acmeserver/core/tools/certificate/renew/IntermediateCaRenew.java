@@ -31,21 +31,7 @@ import java.security.cert.X509Certificate;
 @Slf4j
 public class IntermediateCaRenew {
 
-    /**
-     * Renews an intermediate certificate for a provisioner and updates it in the keystore.
-     *
-     * @param provisionerKeyPair The key pair associated with the provisioner.
-     * @param provisioner        The provisioner for which the certificate is being renewed.
-     * @param cryptoStoreManager The CryptoStoreManager responsible for managing certificates.
-     * @param intermediateAlias  The alias of the intermediate certificate to renew.
-     * @return object containing the new certificate and keyPair
-     * @throws CertificateException      If there is an issue with certificate handling.
-     * @throws OperatorCreationException If there is an issue with certificate operator creation.
-     * @throws IOException               If there is an I/O error.
-     * @throws UnrecoverableKeyException If there is an issue with unrecoverable keys.
-     * @throws KeyStoreException         If there is an issue with the keystore.
-     * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
-     */
+
     public static CertificateRenewManager.CertificateData renewIntermediateCertificate(KeyPair provisionerKeyPair, AcmeProvisioner provisioner,
                                                                                        IServerInstance serverInstance, String intermediateAlias) throws CertificateException, OperatorCreationException,
             IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {

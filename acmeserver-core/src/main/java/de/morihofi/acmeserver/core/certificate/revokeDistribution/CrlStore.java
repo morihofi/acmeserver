@@ -6,9 +6,9 @@ import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.core.tools.certificate.generator.CertificateRevokationListGenerator;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -70,15 +70,15 @@ public class CrlStore {
      * the revoked certificate entry has extensions; if so, it uses the ordinal of the {@link CRLReason} enum value. If there are no
      * extensions, the reason defaults to {@code CRLReason.unspecified}.
      *
-     * @param serialNumber The serial number of the certificate to check the status for.
+     * @param serialNumber    The serial number of the certificate to check the status for.
      * @param provisionerName The provisioner instance used to obtain the current CRL.
      * @return A {@link CertificateStatus} indicating whether the certificate is valid or revoked. If revoked, additional details such as
      * the revocation date and reason are provided.
      * @throws CRLException If there is an issue obtaining the current CRL from the {@code crlGenerator}.
      */
     @NonNull
-    static CertificateStatus getCertificateStatus(BigInteger serialNumber, @NonNull  String provisionerName) throws CRLException {
-        X509CRL crl = getCrlForProvisioner(provisionerName).getCurrentCrl(); // Current CRL
+    static CertificateStatus getCertificateStatus(BigInteger serialNumber, @NonNull String provisionerName) throws CRLException {
+        X509CRL crl = getCrlForProvisioner(provisionerName).currentCrl(); // Current CRL
 
         CertificateStatus certStatus;
         X509CRLEntry revokedCertificate = crl.getRevokedCertificate(serialNumber);
@@ -96,13 +96,7 @@ public class CrlStore {
         return certStatus;
     }
 
-
-    @Getter
-    @AllArgsConstructor
-    public static class CrlEntry {
-        private volatile LocalTime lastUpdate = null;
-        private volatile X509CRL currentCrl = null;
-
+    public record CrlEntry(LocalTime lastUpdate, X509CRL currentCrl) {
         /**
          * Converts a given X509CRL object to its byte array representation. This method is useful for encoding the CRL for storage or
          * transmission.

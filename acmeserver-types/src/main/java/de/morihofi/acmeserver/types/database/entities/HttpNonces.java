@@ -51,6 +51,8 @@ public class HttpNonces {
     @Column(name = "generated")
     private final LocalDateTime generationTimestamp = LocalDateTime.now();
 
+    private final static SecureRandom secureRandom = new SecureRandom();
+
 
     /**
      * Generates a nonce (number used once) for security purposes.
@@ -64,7 +66,6 @@ public class HttpNonces {
 
         // Generate a random 128-bit nonce
         byte[] nonce = new byte[16]; // 128 bits are 16 bytes
-        SecureRandom secureRandom = new SecureRandom();
         secureRandom.nextBytes(nonce);
 
         // Encode the nonce to Base64 for easy handling

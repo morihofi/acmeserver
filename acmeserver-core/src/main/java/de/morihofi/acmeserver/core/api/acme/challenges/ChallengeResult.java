@@ -16,8 +16,6 @@
 
 package de.morihofi.acmeserver.core.api.acme.challenges;
 
-import lombok.Getter;
-
 /**
  * Represents the result of a challenge verification.
  *

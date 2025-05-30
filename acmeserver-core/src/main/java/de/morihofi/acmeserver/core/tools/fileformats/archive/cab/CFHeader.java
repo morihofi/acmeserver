@@ -18,9 +18,9 @@
 package de.morihofi.acmeserver.core.tools.fileformats.archive.cab;
 
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.lang.invoke.MethodHandles;
 import java.util.Vector;
 
 /**
@@ -33,6 +33,8 @@ import java.util.Vector;
  * This code is originally based on the work of Graham Rivers-Brown and has been adapted for use in the ACME server project.
  * </p>
  */
+@Setter
+@Getter
 public class CFHeader {
 
     /**
@@ -117,41 +119,6 @@ public class CFHeader {
         iCabinet = 0;
     }
 
-    /**
-     * Sets the size of this cabinet file in bytes.
-     *
-     * @param cbCabinet The size of the cabinet file in bytes.
-     */
-    public void setCbCabinet(int cbCabinet) {
-        this.cbCabinet = cbCabinet;
-    }
-
-    /**
-     * Sets the offset of the first CFFILE entry.
-     *
-     * @param coffFiles The offset of the first CFFILE entry.
-     */
-    public void setCoffFiles(int coffFiles) {
-        this.coffFiles = coffFiles;
-    }
-
-    /**
-     * Sets the number of CFFOLDER entries in this cabinet.
-     *
-     * @param cFolders The number of CFFOLDER entries.
-     */
-    public void setCFolders(int cFolders) {
-        this.cFolders = cFolders;
-    }
-
-    /**
-     * Sets the number of CFFILE entries in this cabinet.
-     *
-     * @param cFiles The number of CFFILE entries.
-     */
-    public void setCFiles(int cFiles) {
-        this.cFiles = cFiles;
-    }
 
     /**
      * Converts the CFHeader instance to a byte array representation.
@@ -190,41 +157,41 @@ public class CFHeader {
      */
     private Vector<Byte> convertToByte(int val, int numBytes) {
         Vector<Byte> b = new Vector<>();
-        Integer tempInt;
-        Byte byteToAdd;
+        int tempInt;
+        byte byteToAdd;
         if (numBytes == 1) {
             tempInt = val;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
         } else if (numBytes == 2) {
             tempInt = 0xFF & val;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
             tempInt = (0xFF00 & val) >>> 8;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
         } else if (numBytes == 3) {
             tempInt = 0xFF & val;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
             tempInt = (0xFF00 & val) >>> 8;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
             tempInt = (0xFF0000 & val) >>> 16;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
         } else if (numBytes == 4) {
             tempInt = 0xFF & val;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
             tempInt = (0xFF00 & val) >>> 8;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
             tempInt = (0xFF0000 & val) >>> 16;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
             tempInt = (0xFF000000 & val) >>> 24;
-            byteToAdd = tempInt.byteValue();
+            byteToAdd = (byte) tempInt;
             b.add(byteToAdd);
         } else {
             b.add(Byte.valueOf("255"));

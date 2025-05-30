@@ -7,13 +7,14 @@ import lombok.Data;
 import lombok.NonNull;
 import org.hibernate.Session;
 
+import java.io.Serializable;
 import java.security.*;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
 @Entity
 @Data
-public class AcmeProvisioner {
+public class AcmeProvisioner implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

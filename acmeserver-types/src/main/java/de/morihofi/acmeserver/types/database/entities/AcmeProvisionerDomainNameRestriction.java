@@ -7,11 +7,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Embeddable
 @Data
-public class AcmeProvisionerDomainNameRestriction {
+public class AcmeProvisionerDomainNameRestriction implements Serializable {
     private boolean enabled;
 
     @ElementCollection

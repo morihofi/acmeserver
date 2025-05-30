@@ -18,7 +18,8 @@ package de.morihofi.acmeserver.types.config;
 
 
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+
+import java.io.Serializable;
 
 /**
  * Configuration class for SSL server settings.
@@ -27,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  * loaded from an external source and managed using the provided getter and setter methods.</p>
  */
 @Data
-public class SslServerConfig {
+public class SslServerConfig implements Serializable {
 
     /**
      * Indicates whether legacy resumption is allowed. Legacy resumption is a feature that allows SSL/TLS sessions to be resumed even if the

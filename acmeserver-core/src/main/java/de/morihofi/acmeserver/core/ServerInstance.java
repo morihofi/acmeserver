@@ -24,6 +24,7 @@ import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.database.entities.RootCa;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -99,9 +100,15 @@ public class ServerInstance implements IServerInstance {
                 + this.getAppConfig().getServer().getPorts().getHttps() : "");
     }
 
+
     @NotNull
     @Override
+    @SuppressFBWarnings("NP_NONNULL_RETURN_VIOLATION") // Suppress false positive for non-null return value
     public Session getDatabaseSession() {
+        if(getHibernateUtil().getSessionFactory() == null) {
+            throw new IllegalStateException("Hibernate SessionFactory is not initialized. Please ensure that the HibernateUtil is properly configured.");
+        }
+
         return getHibernateUtil().getSessionFactory().openSession();
     }
 

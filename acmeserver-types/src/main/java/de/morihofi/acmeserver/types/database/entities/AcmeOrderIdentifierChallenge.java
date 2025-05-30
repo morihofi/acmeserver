@@ -49,7 +49,7 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
      * @param serverInstance The server instance for database connection.
      * @return The ACME identifier matching the provided challenge ID, or null if not found.
      */
-    public static AcmeOrderIdentifierChallenge getACMEIdentifierChallenge(@NonNull String challengeId, IServerInstance serverInstance) {
+    public static AcmeOrderIdentifierChallenge getACMEIdentifierChallenge(@NonNull String challengeId, @NonNull IServerInstance serverInstance) {
         AcmeOrderIdentifierChallenge challenge = null;
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();

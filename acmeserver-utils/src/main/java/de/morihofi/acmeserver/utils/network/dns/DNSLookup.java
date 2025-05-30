@@ -84,7 +84,7 @@ public class DNSLookup {
     public static List<InetAddress> doHostnameLookup(String hostname, int type, DoHClient doHClient) {
         List<InetAddress> addresses = new ArrayList<>();
         try {
-            log.info("Resolving {} of type {} using DNS over HTTPS", hostname, Type.string(type));
+            log.info("Performing a hostname lookup {} of type {} using DNS over HTTPS", hostname, Type.string(type));
 
             // Create a DNS query message
             Message query = Message.newQuery(Record.newRecord(Name.fromString(hostname + "."), type, DClass.IN));

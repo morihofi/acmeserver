@@ -315,17 +315,17 @@ public class AcmeOrder implements Serializable {
     /**
      * Serial number of the certificate
      */
-    @Column(name = "certificateSerialNumber", precision = 50, scale = 0)
+    @Column(name = "certificateSerialNumber", precision = 50)
     private BigInteger certificateSerialNumber;
     /**
      * Revokation status of the certificate. Defaults to null if not revoked
      */
-    @Column(name = "revokeStatusCode", nullable = true)
+    @Column(name = "revokeStatusCode")
     private Integer revokeStatusCode;
     /**
      * Revokation timestamp of the certificate. Defaults to null if not revoked
      */
-    @Column(name = "revokeTimestamp", nullable = true)
+    @Column(name = "revokeTimestamp")
     private Timestamp revokeTimestamp;
 
 }

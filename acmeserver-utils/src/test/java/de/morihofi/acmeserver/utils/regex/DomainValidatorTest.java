@@ -1,7 +1,5 @@
 package de.morihofi.acmeserver.utils.regex;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -108,11 +106,13 @@ class DomainValidatorTest {
     // NULL / EXCEPTION TESTS
 
     @Test
+    @SuppressWarnings("ConstantConditions")
     void testNullDomainThrowsException() {
         assertThrows(NullPointerException.class, () -> DomainValidator.isValidDomain(null, false));
     }
 
     @Test
+    @SuppressWarnings("ConstantConditions")
     void testNullDomainWithWildcardThrowsException() {
         assertThrows(NullPointerException.class, () -> DomainValidator.isValidDomain(null, true));
     }

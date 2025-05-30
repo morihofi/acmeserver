@@ -105,7 +105,7 @@ public class CertificateAuthorityGenerator {
         String organisationalUnit = certificateConfig.getOrganisationalUnit();
         String countryCode = certificateConfig.getCountryCode();
 
-        if (certificateConfig.getCommonName() == null || "".equals(certificateConfig.getCommonName())) {
+        if (certificateConfig.getCommonName() == null || certificateConfig.getCommonName().isEmpty()) {
             throw new IllegalArgumentException(s);
         }
         String issuerNameString = "CN=" + certificateConfig.getCommonName();

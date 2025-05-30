@@ -52,6 +52,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
      *
      * @param serverInstance The server instance.
      */
+    @SuppressFBWarnings("CT_CONSTRUCTOR_THROW")
     public AbstractAcmeEndpoint(@NonNull IServerInstance serverInstance) {
         this.serverInstance = serverInstance;
     }

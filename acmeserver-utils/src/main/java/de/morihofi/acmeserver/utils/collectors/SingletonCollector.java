@@ -17,9 +17,6 @@
 package de.morihofi.acmeserver.utils.collectors;
 
 
-import lombok.extern.slf4j.Slf4j;
-
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -29,7 +26,6 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 /**
  * Utility class for providing a custom collector that ensures a collection contains exactly one element.
@@ -52,8 +48,8 @@ public class SingletonCollector {
      * @param <T> the type of elements being collected
      * @return a collector that ensures the collection contains exactly one element
      */
-    public static <T> Collector<T, ?, T> toSingleton() {
-        return new Collector<T, List<T>, T>() {
+    public static <T> Collector<T, List<T>, T> toSingleton() {
+        return new Collector<>() {
 
             @Override
             public Supplier<List<T>> supplier() {

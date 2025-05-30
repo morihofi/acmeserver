@@ -11,7 +11,6 @@
 
 package de.morihofi.acmeserver.core.tools.fileformats.archive.cab;
 
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -103,7 +102,7 @@ public class CabFile {
         for (CFFile f : files) {
             dataBlockOffset = dataBlockOffset + f.makeByteArray().size();
         }
-        folders.get(0).setCoffCabStart(dataBlockOffset);
+        folders.getFirst().setCoffCabStart(dataBlockOffset);
         header.setCFolders(folders.size());
         header.setCFiles(files.size());
         header.setCoffFiles(filesBlockOffset);

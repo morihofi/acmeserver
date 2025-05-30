@@ -1,7 +1,6 @@
 package de.morihofi.acmeserver.utils.meta;
 
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;

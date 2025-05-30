@@ -139,7 +139,7 @@ public class Version implements Comparable<Object>, Serializable {
      * @return Major version
      */
     public int getMajor() {
-        return iSections.get(0);
+        return iSections.getFirst();
     }
 
     /**

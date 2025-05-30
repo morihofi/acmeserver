@@ -57,6 +57,7 @@ class ACMEOrderIdentifierChallengeStatusTransitionTest {
 
         @Test
         @DisplayName("currentState == null → NullPointerException")
+        @SuppressWarnings("ConstantConditions")
         void nullCurrentState() {
             assertThrows(NullPointerException.class,
                     () -> AcmeOrderIdentifierChallenge.isChallengeTransitionAllowed(null, AcmeStatus.PENDING));
@@ -64,6 +65,7 @@ class ACMEOrderIdentifierChallengeStatusTransitionTest {
 
         @Test
         @DisplayName("newState == null → NullPointerException")
+        @SuppressWarnings("ConstantConditions")
         void nullNewState() {
             assertThrows(NullPointerException.class,
                     () -> AcmeOrderIdentifierChallenge.isChallengeTransitionAllowed(AcmeStatus.PENDING, null));
@@ -71,6 +73,7 @@ class ACMEOrderIdentifierChallengeStatusTransitionTest {
 
         @Test
         @DisplayName("both arguments null → NullPointerException")
+        @SuppressWarnings("ConstantConditions")
         void bothNull() {
             assertThrows(NullPointerException.class,
                     () -> AcmeOrderIdentifierChallenge.isChallengeTransitionAllowed(null, null));

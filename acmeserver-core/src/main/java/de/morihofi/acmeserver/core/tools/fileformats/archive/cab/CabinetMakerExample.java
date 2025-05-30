@@ -18,16 +18,18 @@
 package de.morihofi.acmeserver.core.tools.fileformats.archive.cab;
 
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
  * This class provides an example of how to create a CAB file using the {@link CabFile} class.
  */
+@Slf4j
 public class CabinetMakerExample {
 
     /**
@@ -44,7 +46,8 @@ public class CabinetMakerExample {
         try (FileOutputStream fs = new FileOutputStream(new File("out.cab"))) {
             fs.write(cabFile.getCabFile());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error writing CAB file", e);
+            throw new IOException("Failed to write CAB file", e);
         }
     }
 }

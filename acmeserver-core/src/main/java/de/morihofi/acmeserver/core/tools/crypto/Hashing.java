@@ -21,7 +21,6 @@ import de.morihofi.acmeserver.utils.conversion.HexConverter;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

@@ -58,19 +58,17 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         super(serverInstance);
     }
 
-    private final Supplier<String> challengeIdSupplier = new Supplier<String>() {
-        @Override
-        public String get() {
-            return HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId());
-        }
-    };
+    /**
+     * A supplier for generating a random challenge ID in hexadecimal format.
+     * This is used to create unique identifiers for each challenge.
+     */
+    private final Supplier<String> challengeIdSupplier = () -> HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId());
 
-    private final Supplier<String> authorizationTokenBase64UrlSupplier = new Supplier<String>() {
-        @Override
-        public String get() {
-            return Base64Tools.base64UrlEncode(HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId()).getBytes(StandardCharsets.UTF_8));
-        }
-    };
+    /**
+     * A supplier for generating a base64 URL-encoded authorization token.
+     * This token is used in the ACME challenge process to verify ownership of the domain.
+     */
+    private final Supplier<String> authorizationTokenBase64UrlSupplier = () -> Base64Tools.base64UrlEncode(HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId()).getBytes(StandardCharsets.UTF_8));
 
     /**
      * Handles the request for authorization ownership challenges.
@@ -114,8 +112,6 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
         if (!identifier.isHasChallengesGenerated()) {
             // Challenges were not generated, so let's do that
-
-
 
             if (idObj.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.DNS) {
                 // HTTP-01 Challenge only for non-wildcard domains

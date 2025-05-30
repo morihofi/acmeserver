@@ -29,6 +29,5 @@ import java.util.Date;
  * @param revocationDate   Date when the certificate was revoked
  * @param revocationReason The reason why the certificate was revoked
  */
-@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public record RevokedCertificate(BigInteger serialNumber, Date revocationDate, int revocationReason) {
 }

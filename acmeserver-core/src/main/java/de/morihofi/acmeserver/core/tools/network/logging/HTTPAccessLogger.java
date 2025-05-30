@@ -23,20 +23,25 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Slf4j
 public class HTTPAccessLogger {
     private static final String LOG_FORMAT = "%s - %s [%s] \"%s\" %d %d \"%s\" \"%s\"";
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z");
-    private static final SimpleDateFormat FILENAME_FORMAT = new SimpleDateFormat("yyyy_MM_dd");
+    private static final DateTimeFormatter LOG_STAMP =  DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.US);
+    private static final DateTimeFormatter FILENAME_STAMP =  DateTimeFormatter.ofPattern("yyyy_MM_dd", Locale.US);
 
     private final BlockingQueue<String> logQueue = new LinkedBlockingQueue<>();
     private final Thread logWriterThread;
@@ -77,7 +82,7 @@ public class HTTPAccessLogger {
 
     public void log(String remoteAddr, String remoteUser, String request, int status, int bodyBytesSent, String httpReferer,
             String httpUserAgent) {
-        String timeLocal = DATE_FORMAT.format(new Date());
+        String timeLocal = ZonedDateTime.now(ZoneOffset.UTC).format(LOG_STAMP);
         String logEntry = String.format(
                 LOG_FORMAT,
                 remoteAddr,
@@ -97,7 +102,7 @@ public class HTTPAccessLogger {
         while (running) {
             try {
                 String logEntry = logQueue.take();
-                String filename = "access_" + FILENAME_FORMAT.format(new Date()) + ".log";
+                String filename = "access_" + ZonedDateTime.now(ZoneOffset.UTC).format(FILENAME_STAMP) + ".log";
 
                 Path path = logFileDirectory.resolve(filename);
 
@@ -108,7 +113,7 @@ public class HTTPAccessLogger {
 
                 try (FileChannel fileChannel = FileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
 
-                    ByteBuffer buffer = ByteBuffer.wrap((logEntry + System.lineSeparator()).getBytes());
+                    ByteBuffer buffer = ByteBuffer.wrap((logEntry + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
                     fileChannel.write(buffer);
                 } catch (IOException e) {
                     log.error("Error writing to HTTP access log", e);
@@ -134,7 +139,7 @@ public class HTTPAccessLogger {
     public void log(Context ctx) {
         String remoteAddr = ctx.ip();
         String remoteUser = ctx.basicAuthCredentials() != null ? ctx.basicAuthCredentials().getUsername() : "-";
-        String timeLocal = DATE_FORMAT.format(new Date());
+        String timeLocal = ZonedDateTime.now(ZoneOffset.UTC).format(LOG_STAMP);
         String request = ctx.method() + " " + ctx.path() + " " + ctx.protocol();
         int status = ctx.statusCode();
         int bodyBytesSent = ctx.resultInputStream() != null ? ctx.resultInputStream().toString().length() : 0;

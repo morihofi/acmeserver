@@ -6,11 +6,12 @@ import lombok.Data;
 import lombok.NonNull;
 import org.hibernate.Session;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
 @Data
-public class RootCa {
+public class RootCa implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,9 +35,8 @@ public class RootCa {
         return provisioner;
     }
 
-
     public static RootCa[] getAllRoots(@NonNull IServerInstance si) {
-        return getAllRoots(si);
+        return getAllRoots(si.getDatabaseSession());
     }
 
     public static RootCa[] getAllRoots(@NonNull Session s) {

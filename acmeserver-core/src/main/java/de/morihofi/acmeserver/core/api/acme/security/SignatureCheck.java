@@ -122,7 +122,6 @@ public class SignatureCheck {
      * @param protectedHeader The protected header of an ACME request as a JSON object.
      * @return The account ID extracted from the "kid," or null if not found.
      */
-    @NonNull
     public static String getAccountIdFromProtectedKID(@NonNull JsonObject protectedHeader) {
         final String prefix = "/acme/acct/";
         final String kid = protectedHeader.get("kid").getAsString();
@@ -142,7 +141,6 @@ public class SignatureCheck {
      * @param protectedJsonString The protected header of an ACME request as a JSON string.
      * @return The account ID extracted from the "kid," or null if not found.
      */
-    @NonNull
     public static String getAccountIdFromProtectedKID(@NonNull String protectedJsonString) {
         return getAccountIdFromProtectedKID(JsonParser.parseString(protectedJsonString).getAsJsonObject());
     }

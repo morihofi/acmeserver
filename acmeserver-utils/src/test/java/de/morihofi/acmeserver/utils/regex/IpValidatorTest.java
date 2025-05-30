@@ -71,6 +71,7 @@ public class IpValidatorTest {
     // --- Null Case (expect exception due to @NonNull) ---
 
     @Test
+    @SuppressWarnings("ConstantConditions")
     void testNullInputThrowsException() {
         assertThrows(NullPointerException.class, () -> IpValidator.isIpAddress(null));
         assertThrows(NullPointerException.class, () -> IpValidator.isIPv4Address(null));

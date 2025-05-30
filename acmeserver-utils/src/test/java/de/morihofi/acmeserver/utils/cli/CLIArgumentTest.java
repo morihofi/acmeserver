@@ -69,11 +69,13 @@ class CLIArgumentTest {
     }
 
     @Test
+    @SuppressWarnings("ConstantConditions")
     void testNullArgumentThrowsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new CLIArgument("-", '=', null));
     }
 
     @Test
+    @SuppressWarnings("ConstantConditions")
     void testNullPrefixThrowsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new CLIArgument(null, '=', "-port=8080"));
     }
