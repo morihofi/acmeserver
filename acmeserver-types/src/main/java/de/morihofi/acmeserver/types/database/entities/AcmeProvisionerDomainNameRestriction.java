@@ -6,12 +6,14 @@ import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.List;
 
 @Embeddable
 @Data
+@NoArgsConstructor
 public class AcmeProvisionerDomainNameRestriction implements Serializable {
     private boolean enabled;
 

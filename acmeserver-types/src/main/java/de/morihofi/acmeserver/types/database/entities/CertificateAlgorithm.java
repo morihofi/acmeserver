@@ -1,11 +1,14 @@
 package de.morihofi.acmeserver.types.database.entities;
 
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.*;
 import lombok.Data;
 
-@Embeddable
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 @Data
 public abstract class CertificateAlgorithm {
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 }
 

@@ -23,6 +23,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -39,6 +40,7 @@ import java.time.Instant;
 @Data
 @Slf4j
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
+@NoArgsConstructor
 public class AcmeOrderIdentifierChallenge implements Serializable {
 
 
@@ -211,12 +213,6 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private AcmeStatus status = AcmeStatus.PENDING;
-
-    /**
-     * Default constructor for ACME order identifier challenge.
-     */
-    public AcmeOrderIdentifierChallenge() {
-    }
 
     /**
      * Creates an instance of ACME order identifier challenge with a specified challenge type and identifier.

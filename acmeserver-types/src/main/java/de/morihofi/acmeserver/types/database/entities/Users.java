@@ -24,6 +24,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Set;
 
@@ -34,6 +35,7 @@ import java.util.Set;
 @Table(name = "users")
 @Data
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
+@NoArgsConstructor
 public class Users {
     /**
      * The unique identifier for the user.

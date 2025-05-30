@@ -4,6 +4,7 @@ import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.hibernate.Session;
 
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Entity
 @Data
+@NoArgsConstructor
 public class AcmeProvisioner implements Serializable {
 
     @Id

@@ -23,6 +23,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,21 +39,24 @@ import java.util.Base64;
 @Data
 @Slf4j
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class HttpNonces {
+
+    public HttpNonces(String nonce) {
+        this.nonce = nonce;
+    }
 
     @Id
     @Column(name = "nonce", nullable = false)
-    private final String nonce;
+    private String nonce;
 
     @Column(name = "redeemed")
     private LocalDateTime redeemTimestamp;
 
     @Column(name = "generated")
-    private final LocalDateTime generationTimestamp = LocalDateTime.now();
+    private LocalDateTime generationTimestamp = LocalDateTime.now();
 
     private final static SecureRandom secureRandom = new SecureRandom();
-
 
     /**
      * Generates a nonce (number used once) for security purposes.

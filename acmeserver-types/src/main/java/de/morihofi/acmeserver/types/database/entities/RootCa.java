@@ -3,6 +3,7 @@ package de.morihofi.acmeserver.types.database.entities;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.hibernate.Session;
 
@@ -11,6 +12,7 @@ import java.util.List;
 
 @Entity
 @Data
+@NoArgsConstructor
 public class RootCa implements Serializable {
 
     @Id
