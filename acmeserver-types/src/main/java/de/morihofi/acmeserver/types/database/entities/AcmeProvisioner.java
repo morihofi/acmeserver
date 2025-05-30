@@ -145,7 +145,7 @@ public class AcmeProvisioner {
         try (Session s = si.getDatabaseSession()) {
             provisioner = s.createQuery("FROM AcmeProvisioner p WHERE p.name = :name", AcmeProvisioner.class)
                     .setParameter("name", name)
-                    .getSingleResult();
+                    .uniqueResult();
         }
         return provisioner;
     }

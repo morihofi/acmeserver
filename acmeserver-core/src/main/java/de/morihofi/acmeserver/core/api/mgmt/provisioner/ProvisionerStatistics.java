@@ -68,7 +68,7 @@ public class ProvisionerStatistics {
         Long count = session.createQuery(
                         "SELECT COUNT(a) FROM ACMEAccount a WHERE a.provisioner = :provisionerName", Long.class)
                 .setParameter("provisionerName", provisionerName)
-                .getSingleResult();
+                .uniqueResult();
         return count != null ? count : 0;
     }
 
@@ -84,7 +84,7 @@ public class ProvisionerStatistics {
                         "SELECT COUNT(o) FROM ACMEOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NOT NULL",
                         Long.class)
                 .setParameter("provisionerName", provisionerName)
-                .getSingleResult();
+                .uniqueResult();
         return count != null ? count : 0;
     }
 
@@ -101,7 +101,7 @@ public class ProvisionerStatistics {
                                 + " AND o.revokeStatusCode IS NOT NULL AND o.revokeTimestamp IS NOT NULL",
                         Long.class)
                 .setParameter("provisionerName", provisionerName)
-                .getSingleResult();
+                .uniqueResult();
         return count != null ? count : 0;
     }
 
@@ -118,7 +118,7 @@ public class ProvisionerStatistics {
                                 + " o.certificateCSR IS NOT NULL",
                         Long.class)
                 .setParameter("provisionerName", provisionerName)
-                .getSingleResult();
+                .uniqueResult();
         return count != null ? count : 0;
     }
 
@@ -131,7 +131,7 @@ public class ProvisionerStatistics {
     public static long countGlobalIssuedCertificates(Session session) {
         Long count = session.createQuery(
                         "SELECT COUNT(o) FROM ACMEOrder o WHERE o.certificatePem IS NOT NULL", Long.class)
-                .getSingleResult();
+                .uniqueResult();
         return count != null ? count : 0;
     }
 
@@ -146,7 +146,7 @@ public class ProvisionerStatistics {
                         "SELECT COUNT(o) FROM ACMEOrder o WHERE o.certificatePem IS NOT NULL AND o.revokeStatusCode IS NOT NULL AND o"
                                 + ".revokeTimestamp IS NOT NULL",
                         Long.class)
-                .getSingleResult();
+                .uniqueResult();
         return count != null ? count : 0;
     }
 
@@ -159,7 +159,7 @@ public class ProvisionerStatistics {
     public static long countGlobalActiveACMEAccounts(Session session) {
         Long count = session.createQuery(
                         "SELECT COUNT(a) FROM ACMEAccount a WHERE a.deactivated = false", Long.class)
-                .getSingleResult();
+                .uniqueResult();
         return count != null ? count : 0;
     }
 
@@ -174,7 +174,7 @@ public class ProvisionerStatistics {
                         "SELECT COUNT(o) FROM ACMEOrder o WHERE o.certificatePem IS NULL AND"
                                 + " o.certificateCSR IS NOT NULL",
                         Long.class)
-                .getSingleResult();
+                .uniqueResult();
         return count != null ? count : 0;
     }
 }

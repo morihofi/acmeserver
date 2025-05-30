@@ -62,8 +62,8 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
     public void handleRequest(@NotNull Context ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
-        ACMEOrder order = ACMEOrder.getACMEOrder(orderId, getServerInstance());
-        ACMEAccount account = order.getAccount();
+        AcmeOrder order = AcmeOrder.getACMEOrder(orderId, getServerInstance());
+        AcmeAccount account = order.getAccount();
 
         // Check signature and nonce
         assert account != null;
@@ -75,7 +75,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         String csr = reqBodyPayloadObj.getCsr();
 
         // Get our ACME identifiers
-        List<ACMEOrderIdentifier> identifiers = ACMEOrder.getACMEOrder(orderId, getServerInstance()).getOrderIdentifiers();
+        List<AcmeOrderIdentifier> identifiers = AcmeOrder.getACMEOrder(orderId, getServerInstance()).getOrderIdentifiers();
 
         // We just use the verification, that throws exceptions, here not the resulting identifiers
         CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);

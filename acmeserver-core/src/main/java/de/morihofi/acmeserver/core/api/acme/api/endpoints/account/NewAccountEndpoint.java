@@ -25,7 +25,7 @@ import de.morihofi.acmeserver.core.api.acme.api.endpoints.account.objects.Accoun
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
 
 import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
-import de.morihofi.acmeserver.types.database.entities.ACMEAccount;
+import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEInvalidContactException;
@@ -117,7 +117,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
         try (Session session = getServerInstance().getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
-            ACMEAccount account = new ACMEAccount();
+            AcmeAccount account = new AcmeAccount();
             account.setAccountId(accountId);
             account.setPublicKeyPEM(publicKeyPEM);
             account.setEmails(emails);

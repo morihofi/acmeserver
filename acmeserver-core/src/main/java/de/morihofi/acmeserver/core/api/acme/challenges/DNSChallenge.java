@@ -16,7 +16,7 @@
 
 package de.morihofi.acmeserver.core.api.acme.challenges;
 
-import de.morihofi.acmeserver.types.database.entities.ACMEAccount;
+import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.base64.Base64Tools;
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;
@@ -58,7 +58,7 @@ public class DNSChallenge {
      * @throws GeneralSecurityException If a security-related error occurs.
      */
     @NonNull
-    public static ChallengeResult check(@NonNull String token, @NonNull String domain, @NonNull ACMEAccount acmeAccount, @NonNull IServerInstance serverInstance) throws IOException, GeneralSecurityException {
+    public static ChallengeResult check(@NonNull String token, @NonNull String domain, @NonNull AcmeAccount acmeAccount, @NonNull IServerInstance serverInstance) throws IOException, GeneralSecurityException {
         String lastError = "";
 
         String dnsExpectedValue = getDigest(token, PemUtil.readPublicKeyFromPem(acmeAccount.getPublicKeyPEM()));

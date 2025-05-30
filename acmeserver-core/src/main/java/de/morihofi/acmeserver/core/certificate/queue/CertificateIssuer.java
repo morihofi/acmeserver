@@ -20,7 +20,7 @@ import de.morihofi.acmeserver.cryptography.csr.CsrDataUtil;
 import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
 
 import de.morihofi.acmeserver.types.database.enums.AcmeOrderState;
-import de.morihofi.acmeserver.types.database.entities.ACMEOrder;
+import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
@@ -45,7 +45,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
@@ -77,7 +76,7 @@ public class CertificateIssuer {
         }
     }
 
-    public static void generateCertificateForOrder(@NonNull ACMEOrder order, @NonNull ICryptoStoreManager cryptoStoreManager, @NonNull Session session, @NonNull IServerInstance serverInstance) throws
+    public static void generateCertificateForOrder(@NonNull AcmeOrder order, @NonNull ICryptoStoreManager cryptoStoreManager, @NonNull Session session, @NonNull IServerInstance serverInstance) throws
             IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException,
             OperatorCreationException {
         String csr = order.getCertificateCSR();
@@ -144,12 +143,12 @@ public class CertificateIssuer {
             while (!Thread.currentThread().isInterrupted()) {
                 log.trace("Looking for certificates to be issued in the database");
 
-                List<ACMEOrder> waitingOrders = ACMEOrder.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE, serverInstance);
+                List<AcmeOrder> waitingOrders = AcmeOrder.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE, serverInstance);
 
                 if (!waitingOrders.isEmpty()) {
 
                     try (Session session = serverInstance().getDatabaseSession()) {
-                        ACMEOrder order = waitingOrders.getFirst();
+                        AcmeOrder order = waitingOrders.getFirst();
                         generateCertificateForOrder(order, serverInstance.getCryptoStoreManager(), session, serverInstance);
                     } catch (Exception ex) {
                         log.error("Error generating and/or store certificate", ex);

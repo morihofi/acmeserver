@@ -46,7 +46,7 @@ import java.util.*;
 @Data
 @Slf4j
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-public class ACMEOrder implements Serializable {
+public class AcmeOrder implements Serializable {
 
 
     /**
@@ -56,14 +56,14 @@ public class ACMEOrder implements Serializable {
      * @param serverInstance The server instance for database connection.
      * @return The ACME identifier matching the provided certificate serial number, or null if not found.
      */
-    public static ACMEOrder getACMEOrderCertificateSerialNumber(@NonNull BigInteger serialNumber, @NonNull IServerInstance serverInstance) {
-        ACMEOrder order = null;
+    public static AcmeOrder getACMEOrderCertificateSerialNumber(@NonNull BigInteger serialNumber, @NonNull IServerInstance serverInstance) {
+        AcmeOrder order = null;
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
-            order = session.createQuery("FROM ACMEOrder WHERE certificateSerialNumber = :certificateSerialNumber", ACMEOrder.class)
+            order = session.createQuery("FROM ACMEOrder WHERE certificateSerialNumber = :certificateSerialNumber", AcmeOrder.class)
                     .setParameter("certificateSerialNumber", serialNumber)
                     .setMaxResults(1)
-                    .getSingleResult();
+                    .uniqueResult();
 
             if (order != null) {
                 log.info("Got ACME certificate with serial number {} in database", serialNumber);
@@ -82,12 +82,12 @@ public class ACMEOrder implements Serializable {
      * @param serverInstance The server instance for database connection.
      * @return The ACME order matching the provided order ID, or null if not found.
      */
-    public static ACMEOrder getACMEOrder(@NonNull String orderId, @NonNull IServerInstance serverInstance) {
-        ACMEOrder order;
+    public static AcmeOrder getACMEOrder(@NonNull String orderId, @NonNull IServerInstance serverInstance) {
+        AcmeOrder order;
         try (Session session = serverInstance.getDatabaseSession()) {
-            order = session.createQuery("FROM ACMEOrder a WHERE a.orderId = :orderId", ACMEOrder.class)
+            order = session.createQuery("FROM ACMEOrder a WHERE a.orderId = :orderId", AcmeOrder.class)
                     .setParameter("orderId", orderId)
-                    .getSingleResult();
+                    .uniqueResult();
         }
         return order;
     }
@@ -99,10 +99,10 @@ public class ACMEOrder implements Serializable {
      * @param serverInstance The server instance for database connection.
      * @return A list of ACME orders with the specified state.
      */
-    public static List<ACMEOrder> getAllACMEOrdersWithState(@NonNull AcmeOrderState orderState, @NonNull IServerInstance serverInstance) {
-        List<ACMEOrder> orders;
+    public static List<AcmeOrder> getAllACMEOrdersWithState(@NonNull AcmeOrderState orderState, @NonNull IServerInstance serverInstance) {
+        List<AcmeOrder> orders;
         try (Session session = serverInstance.getDatabaseSession()) {
-            orders = session.createQuery("FROM ACMEOrder a WHERE a.orderState = :orderState", ACMEOrder.class)
+            orders = session.createQuery("FROM ACMEOrder a WHERE a.orderState = :orderState", AcmeOrder.class)
                     .setParameter("orderState", orderState)
                     .getResultList();
         }
@@ -127,11 +127,11 @@ public class ACMEOrder implements Serializable {
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
 
-            Query<ACMEOrder> query = session.createQuery("SELECT a FROM ACMEOrder a WHERE a.certificateId = :certificateId", ACMEOrder.class);
+            Query<AcmeOrder> query = session.createQuery("SELECT a FROM ACMEOrder a WHERE a.certificateId = :certificateId", AcmeOrder.class);
             query.setParameter("certificateId", certificateId);
-            Object result = query.getSingleResult();
+            Object result = query.uniqueResult();
 
-            if (result instanceof ACMEOrder acmeOrder) {
+            if (result instanceof AcmeOrder acmeOrder) {
 
                 String certificatePEM = acmeOrder.getCertificatePem();
                 Date certificateExpires = acmeOrder.getCertificateExpires();
@@ -179,15 +179,15 @@ public class ACMEOrder implements Serializable {
             Transaction transaction = session.beginTransaction();
 
             // Certificates are revoked when they have a statusCode and a timestamp
-            Query<ACMEOrder> query = session.createQuery(
+            Query<AcmeOrder> query = session.createQuery(
                     "FROM ACMEOrder a WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL AND a.account.provisioner = "
                             + ":provisionerName",
-                    ACMEOrder.class);
+                    AcmeOrder.class);
             query.setParameter("provisionerName", provisionerName);
-            List<ACMEOrder> result = query.getResultList();
+            List<AcmeOrder> result = query.getResultList();
 
             if (!result.isEmpty()) {
-                for (ACMEOrder revokedIdentifier : result) {
+                for (AcmeOrder revokedIdentifier : result) {
                     certificates.add(new RevokedCertificate(
                             revokedIdentifier.getCertificateSerialNumber(),
                             revokedIdentifier.getRevokeTimestamp(),
@@ -212,7 +212,7 @@ public class ACMEOrder implements Serializable {
      * @param serverInstance The server instance for database connection.
      * @throws ACMEServerInternalException If an error occurs while revoking the certificate.
      */
-    public static void revokeCertificate(ACMEOrder order, int reason, IServerInstance serverInstance) {
+    public static void revokeCertificate(AcmeOrder order, int reason, IServerInstance serverInstance) {
         order.setRevokeTimestamp(Timestamp.from(Instant.now()));
         order.setRevokeStatusCode(reason);
 
@@ -250,7 +250,7 @@ public class ACMEOrder implements Serializable {
      */
     @ManyToOne
     @JoinColumn(name = "accountId", referencedColumnName = "accountId")
-    private ACMEAccount account;
+    private AcmeAccount account;
 
     /**
      * Creation of the order
@@ -278,7 +278,7 @@ public class ACMEOrder implements Serializable {
      * Order Identifiers (Domains, IPs) of this Order
      */
     @OneToMany(mappedBy = "order")
-    private List<ACMEOrderIdentifier> orderIdentifiers;
+    private List<AcmeOrderIdentifier> orderIdentifiers;
 
     /**
      * Order state, used for background certificate generation

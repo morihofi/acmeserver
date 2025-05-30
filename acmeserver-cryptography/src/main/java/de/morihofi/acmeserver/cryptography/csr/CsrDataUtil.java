@@ -17,7 +17,7 @@
 package de.morihofi.acmeserver.cryptography.csr;
 
 import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
-import de.morihofi.acmeserver.types.database.entities.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifier;
 import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEServerInternalException;
@@ -101,7 +101,7 @@ public class CsrDataUtil {
 
     @NonNull
     public static Set<@NonNull Identifier> getCsrIdentifiersAndVerifyWithIdentifiers(
-            String csr, List<ACMEOrderIdentifier> identifiers) throws IOException {
+            String csr, List<AcmeOrderIdentifier> identifiers) throws IOException {
         // Extract CSR Domain Names
         Set<Identifier> csrDomainNames = getDomainsAndIPsFromCSR(csr);
         if (csrDomainNames.isEmpty()) {
@@ -117,7 +117,7 @@ public class CsrDataUtil {
 
         // Verify CSR domains match ACME identifiers
         List<String> identifierValues = identifiers.stream()
-                .map(ACMEOrderIdentifier::getDataValue)
+                .map(AcmeOrderIdentifier::getDataValue)
                 .toList();
 
         boolean allDomainsMatch = csrDomainNames.stream()

@@ -39,7 +39,7 @@ import java.time.Instant;
 @Data
 @Slf4j
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-public class ACMEOrderIdentifierChallenge implements Serializable {
+public class AcmeOrderIdentifierChallenge implements Serializable {
 
 
     /**
@@ -49,12 +49,12 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
      * @param serverInstance The server instance for database connection.
      * @return The ACME identifier matching the provided challenge ID, or null if not found.
      */
-    public static ACMEOrderIdentifierChallenge getACMEIdentifierChallenge(@NonNull String challengeId, IServerInstance serverInstance) {
-        ACMEOrderIdentifierChallenge challenge = null;
+    public static AcmeOrderIdentifierChallenge getACMEIdentifierChallenge(@NonNull String challengeId, IServerInstance serverInstance) {
+        AcmeOrderIdentifierChallenge challenge = null;
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
             challenge = session.createQuery("FROM ACMEOrderIdentifierChallenge WHERE challengeId = :challengeId",
-                            ACMEOrderIdentifierChallenge.class)
+                            AcmeOrderIdentifierChallenge.class)
                     .setParameter("challengeId", challengeId)
                     .setMaxResults(1)
                     .uniqueResult();
@@ -81,7 +81,7 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
         try (Session session = serverInstance.getDatabaseSession()) {
             transaction = session.beginTransaction();
 
-            ACMEOrderIdentifierChallenge orderIdentifierChallenge = session.get(ACMEOrderIdentifierChallenge.class, challengeId);
+            AcmeOrderIdentifierChallenge orderIdentifierChallenge = session.get(AcmeOrderIdentifierChallenge.class, challengeId);
             if (orderIdentifierChallenge != null) {
 
                 if(
@@ -112,18 +112,50 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
         }
     }
 
-    private static boolean isChallengeTransitionAllowed(AcmeStatus currentState, AcmeStatus newState) {
+    /**
+     * Returns {@code true} iff the requested state change is permitted by the ACME
+     *  authorization-status state machine (RFC 8555 §7.1.6).
+     *
+     * <pre>
+     *              pending ──┬─────────► valid ──┬────────► revoked   (server)
+     *                        │                   │
+     *                        │                   ├────────► deactivated (client or server)
+     *                        │                   │
+     *                        │                   └────────► expired    (clock)
+     *                        │
+     *                        └─────────► invalid   (challenge failure / error)
+     * </pre>
+     *
+     * Once an authorization is in {@code invalid}, {@code revoked}, {@code
+     * deactivated}, or {@code expired}, it is a terminal state and can no longer
+     * transition.
+     */
+    static boolean isChallengeTransitionAllowed(@NonNull AcmeStatus currentState,
+                                                @NonNull AcmeStatus newState) {
 
-        if (currentState.equals(AcmeStatus.PENDING)){
-            if (newState.equals(AcmeStatus.INVALID) || newState.equals(AcmeStatus.VALID)){
-                return true;
+        return switch (currentState) {
+            /* -------------------------------- pending --------------------------- */
+            case PENDING -> newState == AcmeStatus.VALID
+                    || newState == AcmeStatus.INVALID
+                    || newState == AcmeStatus.DEACTIVATED;
+
+            /* -------------------------------- valid ----------------------------- */
+            case VALID -> newState == AcmeStatus.DEACTIVATED
+                    || newState == AcmeStatus.REVOKED
+                    || newState == AcmeStatus.EXPIRED;
+
+            /* ------------- terminal states: nothing may change them ------------- */
+            case INVALID, DEACTIVATED, REVOKED, EXPIRED -> false;
+
+            /* ------------- unknown enum constant (defensive fallback) ----------- */
+            default -> {
+                log.warn("Unknown authorization state '{}'; refusing transition to '{}'",
+                        currentState, newState);
+                yield false;
             }
-            return false;
-        }
-
-        log.warn("Unimplemented challenge state transition from {} to {}. Allowing them now.", currentState, newState);
-        return true;
+        };
     }
+
 
     public static void failChallenge(String challengeId, IServerInstance serverInstance) {
         markChallenge(AcmeStatus.INVALID, challengeId, serverInstance);
@@ -165,7 +197,7 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "identifierId", referencedColumnName = "identifierId")
-    private ACMEOrderIdentifier identifier;
+    private AcmeOrderIdentifier identifier;
 
     /**
      * The authorization token for this challenge.
@@ -183,7 +215,7 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
     /**
      * Default constructor for ACME order identifier challenge.
      */
-    public ACMEOrderIdentifierChallenge() {
+    public AcmeOrderIdentifierChallenge() {
     }
 
     /**
@@ -192,7 +224,7 @@ public class ACMEOrderIdentifierChallenge implements Serializable {
      * @param challengeType The type of the challenge.
      * @param identifier    The ACME order identifier associated with this challenge.
      */
-    public ACMEOrderIdentifierChallenge(AcmeChallengeType challengeType, ACMEOrderIdentifier identifier, String challengeId, String authorizationTokenBase64Url) {
+    public AcmeOrderIdentifierChallenge(AcmeChallengeType challengeType, AcmeOrderIdentifier identifier, String challengeId, String authorizationTokenBase64Url) {
         this.challengeType = challengeType;
         this.identifier = identifier;
 

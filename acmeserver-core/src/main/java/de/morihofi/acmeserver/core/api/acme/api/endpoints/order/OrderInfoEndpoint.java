@@ -24,8 +24,8 @@ import de.morihofi.acmeserver.core.api.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
 
 import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
-import de.morihofi.acmeserver.types.database.entities.ACMEOrder;
-import de.morihofi.acmeserver.types.database.entities.ACMEOrderIdentifier;
+import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
+import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifier;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
@@ -70,8 +70,8 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
 
-        ACMEOrder order = ACMEOrder.getACMEOrder(orderId, getServerInstance());
-        List<ACMEOrderIdentifier> identifiers = order.getOrderIdentifiers();
+        AcmeOrder order = AcmeOrder.getACMEOrder(orderId, getServerInstance());
+        List<AcmeOrderIdentifier> identifiers = order.getOrderIdentifiers();
         if (identifiers.isEmpty()) {
             throw new IllegalArgumentException("Identifiers empty, FIXME");
         }
@@ -85,7 +85,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         List<String> authorizationsList = new ArrayList<>();
         Date orderExpires = new Date();
 
-        for (ACMEOrderIdentifier identifier : identifiers) {
+        for (AcmeOrderIdentifier identifier : identifiers) {
             if (identifier.getChallengeStatus() != AcmeStatus.VALID) {
                 allVerified = false;
             }

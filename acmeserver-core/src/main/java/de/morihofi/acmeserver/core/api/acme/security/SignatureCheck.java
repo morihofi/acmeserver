@@ -21,7 +21,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
-import de.morihofi.acmeserver.types.database.entities.ACMEAccount;
+import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEBadSignatureAlgorithmException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEUnauthorizedException;
@@ -57,7 +57,7 @@ public class SignatureCheck {
      * @param serverInstance The server instance containing necessary configurations and services.
      * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
      */
-    public static void checkSignature(@NonNull Context ctx, @NonNull ACMEAccount account, @NonNull Gson gson, @NonNull IServerInstance serverInstance) {
+    public static void checkSignature(@NonNull Context ctx, @NonNull AcmeAccount account, @NonNull Gson gson, @NonNull IServerInstance serverInstance) {
         checkSignature(ctx, account.getAccountId(), gson, serverInstance);
     }
 
@@ -83,7 +83,7 @@ public class SignatureCheck {
             String serializedJws = protectedHeader + "." + payload + "." + signature;
 
             // Obtain the client's public key
-            ACMEAccount account = ACMEAccount.getAccount(accountId, serverInstance);
+            AcmeAccount account = AcmeAccount.getAccount(accountId, serverInstance);
 
             if (account.isDeactivated()) {
                 throw new ACMEUnauthorizedException("Account is deactivated");

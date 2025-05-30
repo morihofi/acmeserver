@@ -23,7 +23,7 @@ import de.morihofi.acmeserver.core.api.acme.api.endpoints.account.objects.ACMEAc
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
 
 import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
-import de.morihofi.acmeserver.types.database.entities.ACMEAccount;
+import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEInvalidContactException;
@@ -76,7 +76,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
         performSignatureAndNonceCheck(ctx, accountId, acmeRequestBody);
 
         // Check if account exists
-        ACMEAccount account = ACMEAccount.getAccount(accountId, getServerInstance());
+        AcmeAccount account = AcmeAccount.getAccount(accountId, getServerInstance());
         if (account == null) {
             throw new ACMEAccountNotFoundException("Account with ID " + accountId + " not found!");
         }

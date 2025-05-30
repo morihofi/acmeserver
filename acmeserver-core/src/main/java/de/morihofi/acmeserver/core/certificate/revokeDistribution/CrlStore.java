@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.core.certificate.revokeDistribution;
 
 import de.morihofi.acmeserver.types.cryptography.revoke.RevokedCertificate;
-import de.morihofi.acmeserver.types.database.entities.ACMEOrder;
+import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.core.tools.certificate.generator.CertificateRevokationListGenerator;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
@@ -38,7 +38,7 @@ public class CrlStore {
             ICryptoStoreManager csm = serverInstance.getCryptoStoreManager();
 
             // Get the list of revoked certificates from the database
-            List<RevokedCertificate> revokedCertificates = ACMEOrder.getRevokedCertificates(provisioner.getName(), serverInstance);
+            List<RevokedCertificate> revokedCertificates = AcmeOrder.getRevokedCertificates(provisioner.getName(), serverInstance);
             // Generate a new CRL
             X509CRL crl = CertificateRevokationListGenerator.generateCRL(revokedCertificates, provisioner.getIntermediateCaCertificate(csm),
                     provisioner.getIntermediateCaKeyPair(csm).getPrivate(), updateMinutes);

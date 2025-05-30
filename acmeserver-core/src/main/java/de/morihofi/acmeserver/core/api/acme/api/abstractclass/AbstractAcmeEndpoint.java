@@ -20,7 +20,7 @@ import com.google.gson.Gson;
 import de.morihofi.acmeserver.core.api.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
 
-import de.morihofi.acmeserver.types.database.entities.ACMEAccount;
+import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -123,7 +123,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
      * @param account         The ACME account object.
      * @param acmeRequestBody The parsed ACME request body.
      */
-    public void performSignatureAndNonceCheck(@NonNull Context ctx, @NonNull ACMEAccount account, @NonNull ACMERequestBody acmeRequestBody) {
+    public void performSignatureAndNonceCheck(@NonNull Context ctx, @NonNull AcmeAccount account, @NonNull ACMERequestBody acmeRequestBody) {
         performSignatureAndNonceCheck(ctx, account.getAccountId(), acmeRequestBody);
     }
 }

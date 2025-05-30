@@ -29,7 +29,7 @@ public class RootCa {
         try (Session s = si.getDatabaseSession()) {
             provisioner = s.createQuery("FROM RootCa r WHERE r.id = :id", RootCa.class)
                     .setParameter("id", id)
-                    .getSingleResult();
+                    .uniqueResult();
         }
         return provisioner;
     }

@@ -59,13 +59,7 @@ public class NonceManager implements INonceManager {
         this.debug = debug;
     }
 
-    /**
-     * Checks if a nonce from a decoded protected request body has already been used.
-     * If the nonce has been used, an ACMEBadNonceException is thrown.
-     *
-     * @param decodedProtected The decoded protected request body as a JSON string.
-     * @throws ACMEBadNonceException If the nonce has already been used.
-     */
+
     public void checkNonceFromDecodedProtected(@NonNull String decodedProtected) {
         JsonObject reqBodyProtectedObj = JsonParser.parseString(decodedProtected).getAsJsonObject();
         String nonce = reqBodyProtectedObj.get("nonce").getAsString();

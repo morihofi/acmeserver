@@ -37,7 +37,7 @@ import java.util.List;
 @Data
 @Slf4j
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-public class ACMEAccount implements Serializable {
+public class AcmeAccount implements Serializable {
 
     /**
      * Retrieves an ACME (Automated Certificate Management Environment) account by its unique account ID.
@@ -46,15 +46,15 @@ public class ACMEAccount implements Serializable {
      * @param serverInstance The server instance for database connection.
      * @return The ACME account matching the provided account ID, or null if not found.
      */
-    public static ACMEAccount getAccount(@NonNull String accountId, @NonNull IServerInstance serverInstance) {
-        ACMEAccount acmeAccount = null;
+    public static AcmeAccount getAccount(@NonNull String accountId, @NonNull IServerInstance serverInstance) {
+        AcmeAccount acmeAccount = null;
 
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
 
-            Query<ACMEAccount> query = session.createQuery("SELECT a FROM ACMEAccount a WHERE a.accountId = :accountId", ACMEAccount.class);
+            Query<AcmeAccount> query = session.createQuery("SELECT a FROM ACMEAccount a WHERE a.accountId = :accountId", AcmeAccount.class);
             query.setParameter("accountId", accountId);
-            ACMEAccount result = query.uniqueResult();
+            AcmeAccount result = query.uniqueResult();
 
             if (result != null) {
                 acmeAccount = result;
@@ -75,13 +75,13 @@ public class ACMEAccount implements Serializable {
      * @return A list of all ACME accounts.
      */
     @NonNull
-    public static List<ACMEAccount> getAllAccounts(@NonNull IServerInstance serverInstance) {
-        List<ACMEAccount> acmeAccounts = null;
+    public static List<AcmeAccount> getAllAccounts(@NonNull IServerInstance serverInstance) {
+        List<AcmeAccount> acmeAccounts = null;
 
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
 
-            Query<ACMEAccount> query = session.createQuery("FROM ACMEAccount", ACMEAccount.class);
+            Query<AcmeAccount> query = session.createQuery("FROM ACMEAccount", AcmeAccount.class);
             acmeAccounts = query.getResultList();
 
             transaction.commit();
@@ -99,12 +99,12 @@ public class ACMEAccount implements Serializable {
      * @param serverInstance The server instance for database connection.
      * @return The ACME account associated with the provided order ID, or null if not found.
      */
-    public static ACMEAccount getAccountByOrderId(@NonNull String orderId, @NonNull IServerInstance serverInstance) {
+    public static AcmeAccount getAccountByOrderId(@NonNull String orderId, @NonNull IServerInstance serverInstance) {
         try (Session session = serverInstance.getDatabaseSession()) {
-            Query<ACMEAccount> query = session.createQuery("SELECT o.account FROM ACMEOrder o WHERE o.orderId = :orderId", ACMEAccount.class);
+            Query<AcmeAccount> query = session.createQuery("SELECT o.account FROM ACMEOrder o WHERE o.orderId = :orderId", AcmeAccount.class);
             query.setParameter("orderId", orderId);
 
-            return query.getSingleResult();
+            return query.uniqueResult();
 
         } catch (Exception e) {
             log.error("Unable to get ACME Account for order {}", orderId, e);
@@ -121,10 +121,10 @@ public class ACMEAccount implements Serializable {
      * @return A list of ACME accounts associated with the provided email address.
      */
     @NonNull
-    public static List<ACMEAccount> getAllACMEAccountsForEmail(@NonNull String email, @NonNull IServerInstance serverInstance) {
+    public static List<AcmeAccount> getAllACMEAccountsForEmail(@NonNull String email, @NonNull IServerInstance serverInstance) {
         try (Session session = serverInstance.getDatabaseSession()) {
-            Query<ACMEAccount> query = session.createQuery(
-                    "SELECT a FROM ACMEAccount a JOIN a.emails e WHERE e = :email", ACMEAccount.class);
+            Query<AcmeAccount> query = session.createQuery(
+                    "SELECT a FROM ACMEAccount a JOIN a.emails e WHERE e = :email", AcmeAccount.class);
             query.setParameter("email", email);
 
             return query.getResultList();
@@ -172,5 +172,5 @@ public class ACMEAccount implements Serializable {
      * Orders for this ACME Account
      */
     @OneToMany(mappedBy = "account")
-    private List<ACMEOrder> orders;
+    private List<AcmeOrder> orders;
 }

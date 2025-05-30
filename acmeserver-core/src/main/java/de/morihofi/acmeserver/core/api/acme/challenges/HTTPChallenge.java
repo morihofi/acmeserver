@@ -16,7 +16,7 @@
 
 package de.morihofi.acmeserver.core.api.acme.challenges;
 
-import de.morihofi.acmeserver.types.database.entities.ACMEAccount;
+import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;
 import de.morihofi.acmeserver.cryptography.acme.AcmeTokenCryptography;
 import de.morihofi.acmeserver.core.tools.crypto.AcmeUtils;
@@ -58,7 +58,7 @@ public class HTTPChallenge {
      * @throws NoSuchProviderException  If a requested security provider is not available.
      */
     @NonNull
-    public static ChallengeResult check(@NonNull String authToken, @NonNull String host, @NonNull ACMEAccount acmeAccount, @NonNull IServerInstance serverInstance) throws IOException,
+    public static ChallengeResult check(@NonNull String authToken, @NonNull String host, @NonNull AcmeAccount acmeAccount, @NonNull IServerInstance serverInstance) throws IOException,
             NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         boolean passed = false;
         String lastError = "";

@@ -20,8 +20,8 @@ import de.morihofi.acmeserver.types.api.acme.challenge.AcmeChallengeType;
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
 
 import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
-import de.morihofi.acmeserver.types.database.entities.ACMEOrderIdentifier;
-import de.morihofi.acmeserver.types.database.entities.ACMEOrderIdentifierChallenge;
+import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifier;
+import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEMalformedException;
@@ -89,7 +89,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
         ctx.status(200);
 
-        ACMEOrderIdentifier identifier = ACMEOrderIdentifier.getACMEIdentifierByAuthorizationId(authorizationId, getServerInstance());
+        AcmeOrderIdentifier identifier = AcmeOrderIdentifier.getACMEIdentifierByAuthorizationId(authorizationId, getServerInstance());
 
         // Not found handling
         if (identifier == null) {
@@ -110,7 +110,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         idObj.setType(identifier.getType());
         idObj.setValue(nonWildcardDomain);
 
-        List<ACMEOrderIdentifierChallenge> acmeChallenges = new ArrayList<>();
+        List<AcmeOrderIdentifierChallenge> acmeChallenges = new ArrayList<>();
 
         if (!identifier.isHasChallengesGenerated()) {
             // Challenges were not generated, so let's do that
@@ -122,7 +122,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
 
                 if (!isWildcardDomain) {
-                    acmeChallenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
+                    acmeChallenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
 
                     // This is just a placeholder for the currently unsupported TLS-ALPN Challenge
                     // challenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
@@ -130,10 +130,10 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
                 }
 
                 // DNS-01 Challenge
-                acmeChallenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.DNS_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
+                acmeChallenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.DNS_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
             } else if (idObj.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.IP) {
                 // HTTP-01 Challenge is the only allowed for IP addresses
-                acmeChallenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
+                acmeChallenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
 
                 // This is just a placeholder for the currently unsupported TLS-ALPN Challenge
                 // challenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
@@ -144,7 +144,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
                 Transaction transaction = session.beginTransaction();
 
                 // Persist generated challenges in database
-                for (ACMEOrderIdentifierChallenge challenge : acmeChallenges) {
+                for (AcmeOrderIdentifierChallenge challenge : acmeChallenges) {
                     session.persist(challenge);
                 }
 
@@ -164,7 +164,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
         List<ChallengeResponse> challengeResponses = new ArrayList<>();
 
-        for (ACMEOrderIdentifierChallenge acmeChallenge : acmeChallenges) {
+        for (AcmeOrderIdentifierChallenge acmeChallenge : acmeChallenges) {
             // Add to response
             challengeResponses.add(createChallengeResponse(acmeChallenge.getChallengeType(), acmeChallenge, provisioner));
         }
@@ -185,7 +185,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
      * @param identifierChallenge The ACME identifier challenge for which the response is created.
      * @return A challenge response object with the specified type, URL, token, and status.
      */
-    private ChallengeResponse createChallengeResponse(AcmeChallengeType type, ACMEOrderIdentifierChallenge identifierChallenge, AcmeProvisioner p) {
+    private ChallengeResponse createChallengeResponse(AcmeChallengeType type, AcmeOrderIdentifierChallenge identifierChallenge, AcmeProvisioner p) {
         ChallengeResponse challengeResponse = new ChallengeResponse();
         challengeResponse.setType(type.getName());
         challengeResponse.setUrl(

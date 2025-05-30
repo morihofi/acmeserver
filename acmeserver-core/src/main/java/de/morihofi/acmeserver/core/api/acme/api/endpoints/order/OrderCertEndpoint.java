@@ -21,7 +21,7 @@ import de.morihofi.acmeserver.core.api.acme.api.abstractclass.AbstractAcmeEndpoi
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
 
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;
-import de.morihofi.acmeserver.types.database.entities.ACMEOrder;
+import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
@@ -66,12 +66,12 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
        // ctx.header("Link", "<" + provisioner.getAcmeApiURL() + "/directory" + ">;rel=\"index\"");
 
-        ACMEOrder order = ACMEOrder.getACMEOrder(orderId, getServerInstance());
+        AcmeOrder order = AcmeOrder.getACMEOrder(orderId, getServerInstance());
 
 
         StringBuilder responseCertificateChainBuilder = new StringBuilder();
 
-        List<X509Certificate> certChain = ACMEOrder.getCertificateChainOfACMEbyCertificateId(  order.getCertificateId(),
+        List<X509Certificate> certChain = AcmeOrder.getCertificateChainOfACMEbyCertificateId(  order.getCertificateId(),
                 provisioner,
                 getServerInstance());
 

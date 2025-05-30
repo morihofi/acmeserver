@@ -44,7 +44,7 @@ import java.util.List;
 @Slf4j
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 @RequiredArgsConstructor
-public class ACMEOrderIdentifier implements Serializable {
+public class AcmeOrderIdentifier implements Serializable {
 
     /**
      * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated authorization ID.
@@ -53,14 +53,14 @@ public class ACMEOrderIdentifier implements Serializable {
      * @param serverInstance  The server instance for database connection.
      * @return The ACME identifier matching the provided authorization ID, or null if not found.
      */
-    public static ACMEOrderIdentifier getACMEIdentifierByAuthorizationId(@NonNull String authorizationId, @NonNull IServerInstance serverInstance) {
-        ACMEOrderIdentifier identifier = null;
+    public static AcmeOrderIdentifier getACMEIdentifierByAuthorizationId(@NonNull String authorizationId, @NonNull IServerInstance serverInstance) {
+        AcmeOrderIdentifier identifier = null;
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
-            identifier = session.createQuery("FROM ACMEOrderIdentifier WHERE authorizationId = :authorizationId", ACMEOrderIdentifier.class)
+            identifier = session.createQuery("FROM ACMEOrderIdentifier WHERE authorizationId = :authorizationId", AcmeOrderIdentifier.class)
                     .setParameter("authorizationId", authorizationId)
                     .setMaxResults(1)
-                    .getSingleResult();
+                    .uniqueResult();
 
             if (identifier != null) {
                 log.info("Got ACME identifier of type {} with value {} for authorization ID: {} ",
@@ -100,7 +100,7 @@ public class ACMEOrderIdentifier implements Serializable {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "orderId", referencedColumnName = "orderId")
-    private ACMEOrder order;
+    private AcmeOrder order;
 
     /**
      * Indicates whether challenges have been generated for this identifier.
@@ -112,7 +112,7 @@ public class ACMEOrderIdentifier implements Serializable {
      * The list of challenges associated with this identifier.
      */
     @OneToMany(mappedBy = "identifier")
-    private List<ACMEOrderIdentifierChallenge> challenges;
+    private List<AcmeOrderIdentifierChallenge> challenges;
 
     /**
      * The unique authorization ID for this identifier.
@@ -128,7 +128,7 @@ public class ACMEOrderIdentifier implements Serializable {
     @NonNull
     public AcmeStatus getChallengeStatus() {
         // Checks whether there is at least one challenge with the status VALID
-        for (ACMEOrderIdentifierChallenge challenge : challenges) {
+        for (AcmeOrderIdentifierChallenge challenge : challenges) {
             if (challenge.getStatus() == AcmeStatus.VALID) {
                 return AcmeStatus.VALID;
             }

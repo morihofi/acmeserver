@@ -24,7 +24,7 @@ import de.morihofi.acmeserver.core.api.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.core.api.acme.challenges.HTTPChallenge;
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
 import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
-import de.morihofi.acmeserver.types.database.entities.ACMEOrderIdentifierChallenge;
+import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEConnectionErrorException;
@@ -60,7 +60,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
 
         // Check if challenge is valid
-        ACMEOrderIdentifierChallenge identifierChallenge = ACMEOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getServerInstance());
+        AcmeOrderIdentifierChallenge identifierChallenge = AcmeOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getServerInstance());
 
         assert identifierChallenge != null;
 
@@ -100,16 +100,16 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         log.info("Validating ownership of host {}", nonWildcardDomain);
         if (result.successful()) {
             // Mark challenge as passed
-            ACMEOrderIdentifierChallenge.passChallenge(challengeId, getServerInstance());
+            AcmeOrderIdentifierChallenge.passChallenge(challengeId, getServerInstance());
         } else {
-            ACMEOrderIdentifierChallenge.failChallenge(challengeId, getServerInstance());
+            AcmeOrderIdentifierChallenge.failChallenge(challengeId, getServerInstance());
 
             log.error("Throwing API error: Host verification failed with method {}", challengeType);
             throw new ACMEConnectionErrorException(result.errorReason());
         }
 
         // Reload identifier, e.g., host has validated
-        identifierChallenge = ACMEOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getServerInstance());
+        identifierChallenge = AcmeOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getServerInstance());
 
         // Creating response object
         ACMEChallengeResponse response = new ACMEChallengeResponse();

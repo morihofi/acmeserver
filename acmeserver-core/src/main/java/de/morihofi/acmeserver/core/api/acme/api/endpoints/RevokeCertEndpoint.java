@@ -23,8 +23,8 @@ import de.morihofi.acmeserver.core.api.acme.api.abstractclass.AbstractAcmeEndpoi
 import de.morihofi.acmeserver.core.api.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
 
-import de.morihofi.acmeserver.types.database.entities.ACMEAccount;
-import de.morihofi.acmeserver.types.database.entities.ACMEOrder;
+import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
+import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.exception.exceptions.*;
@@ -84,7 +84,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
         // Else domain key
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
-        ACMEAccount account = ACMEAccount.getAccount(accountId, getServerInstance());
+        AcmeAccount account = AcmeAccount.getAccount(accountId, getServerInstance());
         // Check if account exists
         if (account == null) {
             log.error("Throwing API error: Account {} not found", accountId);
@@ -140,7 +140,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         BigInteger serialNumber = certificate.getSerialNumber();
 
         // Get the identifier, where the certificate belongs to
-        ACMEOrder order = ACMEOrder.getACMEOrderCertificateSerialNumber(serialNumber, getServerInstance());
+        AcmeOrder order = AcmeOrder.getACMEOrderCertificateSerialNumber(serialNumber, getServerInstance());
 
         if (!order.getAccount().getAccountId().equals(accountId)) {
             throw new ACMEServerInternalException("Rejected: You cannot revoke a certificate, that belongs to another account.");
@@ -173,7 +173,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         log.info("Revoking certificate for reason {}", reason);
 
         // Revoke it
-        ACMEOrder.revokeCertificate(order, reason, getServerInstance());
+        AcmeOrder.revokeCertificate(order, reason, getServerInstance());
 
         ctx.status(HttpURLConnection.HTTP_OK);
         ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
