@@ -68,9 +68,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * Key store configuration, including type and parameters.
      */
     private final IKeyStoreConfig keyStoreConfig;
-    /**
-     * The loaded keystore instance for cryptographic operations.
-     */
+
     @Getter
     private KeyStore keyStore;
 
@@ -121,33 +119,19 @@ public class CryptoStoreManager implements ICryptoStoreManager {
 
     }
 
-    /**
-     * Retrieves the key pair for the root certificate authority from the keystore.
-     *
-     * @return The key pair associated with the root certificate authority.
-     * @throws UnrecoverableKeyException If the key is unrecoverable.
-     * @throws KeyStoreException         If there is an issue with the keystore.
-     * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
-     */
+
     @NonNull
     public KeyPair getCerificateAuthorityKeyPair(@NonNull RootCa rootCa) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(rootCa.getInternalUuid(), keyStore);
     }
+
 
     @NonNull
     public X509Certificate getCerificateAuthorityX509Certificate(@NonNull RootCa rootCa) throws KeyStoreException {
         return (X509Certificate) getKeyStore().getCertificate(rootCa.getInternalUuid());
     }
 
-    /**
-     * Retrieves the key pair for an intermediate certificate authority from the keystore.
-     *
-     * @param intermediateCaName The name of the intermediate certificate authority.
-     * @return The key pair associated with the intermediate certificate authority.
-     * @throws UnrecoverableKeyException If the key is unrecoverable.
-     * @throws KeyStoreException         If there is an issue with the keystore.
-     * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
-     */
+
     @NonNull
     public KeyPair getIntermediateCerificateAuthorityKeyPair(@NonNull String intermediateCaName) throws UnrecoverableKeyException, KeyStoreException,
             NoSuchAlgorithmException {
@@ -155,24 +139,17 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     }
 
     @NonNull
-    public X509Certificate getX509CertificateForProvisioner(@NonNull String intermediateCaName) throws KeyStoreException {
-        return (X509Certificate) getKeyStore().getCertificate(getKeyStoreAliasForProvisionerIntermediate(intermediateCaName));
+    public X509Certificate getX509CertificateForProvisioner(@NonNull String provisionerName) throws KeyStoreException {
+        return (X509Certificate) getKeyStore().getCertificate(getKeyStoreAliasForProvisionerIntermediate(provisionerName));
     }
 
 
-    /**
-     * Retrieves the password associated with the keystore configuration.
-     *
-     * @return The password for the keystore.
-     */
+    @Deprecated(forRemoval = true)
     public char[] getKeyStorePassword() {
         return keyStoreConfig.getPassword();
     }
 
-    /**
-     * Saves the keystore to the specified location, if it is a PKCS#12 keystore configuration.
-     *
-     */
+
     public void saveKeystore() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         if (keyStoreConfig instanceof PKCS12KeyStoreConfig pkcs12Config) {
             try (OutputStream fos = Files.newOutputStream(pkcs12Config.getPath())) {
