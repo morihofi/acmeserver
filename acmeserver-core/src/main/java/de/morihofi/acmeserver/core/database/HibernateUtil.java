@@ -61,7 +61,7 @@ public class HibernateUtil {
                 Configuration configuration = getConfigurationFor(databaseConfig);
 
                 // Scan Entity classes
-                Reflections reflections = new Reflections(MethodHandles.lookup().lookupClass().getPackageName());
+                Reflections reflections = new Reflections("de.morihofi.acmeserver.types.database");
                 for (Class<?> clazz : reflections.getTypesAnnotatedWith(Entity.class)) {
                     configuration.addAnnotatedClass(clazz);
                 }
