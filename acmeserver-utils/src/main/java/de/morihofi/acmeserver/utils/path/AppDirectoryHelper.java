@@ -36,9 +36,9 @@ public class AppDirectoryHelper {
      * @return The application directory as a string, or null if an error occurs.
      */
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-    public static String getAppDirectory() {
+    public static String getAppDirectory(Class<?> targetClass) {
         try {
-            return Paths.get(AppDirectoryHelper.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent().toString();
+            return Paths.get(targetClass.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent().toString();
         } catch (URISyntaxException e) {
             return null;
         }
@@ -49,9 +49,9 @@ public class AppDirectoryHelper {
      *
      * @return The JAR file path as a string, or null if an error occurs.
      */
-    public static String getAppJarFilePath() {
+    public static String getAppJarFilePath(Class<?> targetClass) {
         try {
-            return Paths.get(AppDirectoryHelper.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
+            return Paths.get(targetClass.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
         } catch (URISyntaxException e) {
             return null;
         }

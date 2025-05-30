@@ -43,6 +43,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,7 +63,7 @@ public class Main {
      * `serverdata` directory as an absolute path.
      */
     public static final Path FILES_DIR =
-            Paths.get(Objects.requireNonNull(AppDirectoryHelper.getAppDirectory())).resolve("serverdata").toAbsolutePath();
+            Paths.get(Objects.requireNonNull(AppDirectoryHelper.getAppDirectory(MethodHandles.lookup().lookupClass()))).resolve("serverdata").toAbsolutePath();
 
     /**
      * Path to the configuration file.
