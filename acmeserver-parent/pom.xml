@@ -31,7 +31,7 @@
         <javalin.version>6.6.0</javalin.version>
 
         <!-- Hibernate and connection pool -->
-        <hibernate.version>6.6.1.Final</hibernate.version>
+        <hibernate.version>6.6.12.Final</hibernate.version>
         <agroal.version>2.5</agroal.version>
 
         <!-- Lombok (Upgrade this to newest version when updating Java) -->
@@ -52,6 +52,13 @@
                     <version>3.11.0</version>
                     <configuration>
                         <release>${maven.compiler.release}</release>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
 
@@ -222,7 +229,7 @@
             <dependency>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-annotations</artifactId>
-                <version>4.9.0</version>
+                <version>4.9.3</version>
                 <scope>compile</scope>
             </dependency>
 

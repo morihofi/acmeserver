@@ -43,8 +43,7 @@
         <dependency>
             <groupId>de.morihofi.acmeserver</groupId>
             <artifactId>acmeserver-types</artifactId>
-            <version>3.0.0</version>
-            <scope>compile</scope>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

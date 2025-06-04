@@ -30,7 +30,7 @@
         <dependency>
             <groupId>de.morihofi.acmeserver</groupId>
             <artifactId>acmeserver-utils</artifactId>
-            <version>${version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
