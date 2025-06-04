@@ -146,11 +146,6 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     }
 
 
-    @Deprecated(forRemoval = true)
-    public char[] getKeyStorePassword() {
-        return keyStoreConfig.getPassword();
-    }
-
 
     public void saveKeystore() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         if (keyStoreConfig instanceof PKCS12KeyStoreConfig pkcs12Config) {

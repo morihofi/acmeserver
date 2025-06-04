@@ -38,8 +38,25 @@ import java.nio.file.Path;
  * Represents the server instance that holds various configurations and utilities required for the operation of the server.
  */
 @Getter
-@RequiredArgsConstructor
 public class ServerInstance implements IServerInstance {
+
+
+    public ServerInstance(@NonNull Config appConfig, @NonNull Path appConfigPath, boolean debug, @NonNull CryptoStoreManager cryptoStoreManager, @NonNull INetworkClient networkClient, @NonNull HibernateUtil hibernateUtil, @NonNull INonceManager nonceManager, @NonNull RootCa rootCa, @NonNull BuildMetadata buildMetadata) {
+        this.appConfig = appConfig;
+        this.appConfigPath = appConfigPath;
+        this.debug = debug;
+        this.cryptoStoreManager = cryptoStoreManager;
+        this.networkClient = networkClient;
+        this.hibernateUtil = hibernateUtil;
+        this.nonceManager = nonceManager;
+        this.rootCa = rootCa;
+        this.buildMetadata = buildMetadata;
+
+        // Clear sensitive passwords from in memory config to avoid accidental exposure
+        this.appConfig.getDatabase().setPassword(null);
+        this.appConfig.getKeyStore().setPassword(null);
+    }
+
     /**
      * The configuration settings for the application.
      */
@@ -86,7 +103,7 @@ public class ServerInstance implements IServerInstance {
     private RootCa rootCa;
 
     @NonNull
-    private BuildMetadata buildMetadata;
+    private final BuildMetadata buildMetadata;
 
     /**
      * Retrieves the server URL constructed from the application's configuration. This method combines the DNS name and HTTPS port specified

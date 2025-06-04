@@ -63,16 +63,6 @@ public interface ICryptoStoreManager {
     X509Certificate getX509CertificateForProvisioner(@NonNull String provisionerName) throws KeyStoreException;
 
     /**
-     * Returns the password for the keystore, if it is a PKCS#12 keystore configuration.
-     * <p>
-     * <strong>Note:</strong> This method is deprecated and should not be used in new code and will be removed in future versions.
-     *
-     * @return The password for the keystore as a char array.
-     */
-    @Deprecated(forRemoval = true)
-    char[] getKeyStorePassword();
-
-    /**
      * Saves the keystore to the specified location, if it is a PKCS#12 keystore configuration.
      */
     void saveKeystore() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException;
