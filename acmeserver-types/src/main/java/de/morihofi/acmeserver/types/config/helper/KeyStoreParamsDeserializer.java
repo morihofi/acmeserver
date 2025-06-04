@@ -23,6 +23,7 @@ import de.morihofi.acmeserver.types.config.keyStoreHelpers.PKCS12KeyStoreParams;
 import lombok.NonNull;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
 
 /**
  * Deserializer for {@link KeyStoreParams} objects. This class implements the {@link JsonDeserializer} interface to provide custom
@@ -78,7 +79,12 @@ public class KeyStoreParamsDeserializer implements JsonDeserializer<KeyStorePara
         };
 
         // 3. inject the password we converted
-        params.setPassword(password);
+        params.setPassword(Arrays.copyOf(password, password.length));
+
+        // overwrite the password field in the params object for security reasons
+        Arrays.fill(password, '\0');
+        password = null;
+
         return params;
     }
 }

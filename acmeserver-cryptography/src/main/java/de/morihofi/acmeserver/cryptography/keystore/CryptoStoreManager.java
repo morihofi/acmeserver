@@ -21,6 +21,7 @@ import de.morihofi.acmeserver.types.cryptography.keystore.IKeyStoreConfig;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
+import de.morihofi.acmeserver.utils.regex.ConfigCheck;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Getter;
 import lombok.NonNull;
@@ -60,7 +61,20 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     @Deprecated
     public static final String KEYSTORE_ALIASPREFIX_INTERMEDIATECA = "intermediateCA_";
 
-    public String getKeyStoreAliasForProvisionerIntermediate(String provisioner) {
+    /**
+     * Returns the key store alias for a provisioner intermediate certificate authority.
+     * The alias is constructed by appending the provisioner's name to the predefined prefix.
+     * The return value is not null, but it is possible that the alias does not exist in the keystore.
+     *
+     * @param provisioner The name of the provisioner.
+     * @return The key store alias for the provisioner intermediate certificate authority.
+     */
+    @NonNull
+    public String getKeyStoreAliasForProvisionerIntermediate(@NonNull String provisioner) {
+        if (!ConfigCheck.isValidProvisionerName(provisioner)) {
+            throw new IllegalArgumentException("Invalid provisioner name: " + provisioner);
+        }
+
         return KEYSTORE_ALIASPREFIX_INTERMEDIATECA + provisioner;
     }
 
@@ -69,6 +83,14 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      */
     private final IKeyStoreConfig keyStoreConfig;
 
+    /**
+     * Password for the key store, used for loading and saving the keystore. This will be cleared from the in-memory configuration after loading the keystore.
+     */
+    private final char[] keyStorePassword;
+
+    /**
+     * The loaded key store instance for cryptographic operations.
+     */
     @Getter
     private KeyStore keyStore;
 
@@ -97,60 +119,108 @@ public class CryptoStoreManager implements ICryptoStoreManager {
             case PKCS11KeyStoreConfig pkcs11Config -> {
                 String libraryLocation = pkcs11Config.getLibraryPath().toAbsolutePath().toString();
                 log.info("Using PKCS#11 KeyStore with native library at {} with slot {}", libraryLocation, pkcs11Config.getSlot());
+                this.keyStorePassword = pkcs11Config.getPassword();
+
                 keyStore = PKCS11KeyStoreLoader.loadPKCS11Keystore(
-                        pkcs11Config.getPassword(),
+                        keyStorePassword,
                         pkcs11Config.getSlot(),
                         libraryLocation
                 );
             }
             case PKCS12KeyStoreConfig pkcs12Config -> {
                 log.info("Using PKCS#12 KeyStore at {}", pkcs12Config.getPath().toAbsolutePath().toString());
+                this.keyStorePassword = pkcs12Config.getPassword();
+
                 keyStore = KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
                 if (Files.exists(pkcs12Config.getPath())) {
                     log.info("KeyStore does exist, loading existing into memory");
                     try (InputStream is = Files.newInputStream(pkcs12Config.getPath())) {
-                        keyStore.load(is, pkcs12Config.getPassword());
+                        keyStore.load(is, keyStorePassword);
                     }
                 } else {
                     log.info("KeyStore does not exist, creating new KeyStore");
-                    keyStore.load(null, pkcs12Config.getPassword());
+                    keyStore.load(null, keyStorePassword);
                 }
             }
-            default -> throw new IllegalArgumentException("Unsupported key store config type: " + keyStoreConfig.getClass());
+            default ->
+                    throw new IllegalArgumentException("Unsupported key store config type: " + keyStoreConfig.getClass());
         }
 
     }
 
 
+    /**
+     * Returns the key pair from the keystore for the root certificate authority provided.
+     * This method retrieves the key pair associated with the root CA's internal UUID.
+     *
+     * @param rootCa The root certificate authority.
+     * @return The key pair consisting of the public and private keys for the root CA.
+     * @throws UnrecoverableKeyException If the key is unrecoverable (e.g., due to an incorrect password).
+     * @throws KeyStoreException         If there is an issue accessing the keystore.
+     * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
+     */
     @NonNull
     public KeyPair getCerificateAuthorityKeyPair(@NonNull RootCa rootCa) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(rootCa.getInternalUuid(), keyStore);
     }
 
 
+    /**
+     * Returns the X509 certificate from the keystore for the root certificate authority provided.
+     * This method retrieves the certificate associated with the root CA's internal UUID.
+     *
+     * @param rootCa The root certificate authority.
+     * @return The X509 certificate associated with the root CA.
+     * @throws KeyStoreException If there is an issue accessing the keystore.
+     */
     @NonNull
     public X509Certificate getCerificateAuthorityX509Certificate(@NonNull RootCa rootCa) throws KeyStoreException {
         return (X509Certificate) getKeyStore().getCertificate(rootCa.getInternalUuid());
     }
 
 
+    /**
+     * Returns the key pair for an intermediate certificate authority from the keystore.
+     * This method retrieves the key pair associated with the intermediate CA's name.
+     *
+     * @param intermediateCaName The name of the intermediate certificate authority.
+     * @return key pair consisting of the public and private keys for the intermediate CA.
+     * @throws UnrecoverableKeyException If the key is unrecoverable (e.g., due to an incorrect password).
+     * @throws KeyStoreException         If there is an issue accessing the keystore.
+     * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
+     */
     @NonNull
     public KeyPair getIntermediateCerificateAuthorityKeyPair(@NonNull String intermediateCaName) throws UnrecoverableKeyException, KeyStoreException,
             NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(getKeyStoreAliasForProvisionerIntermediate(intermediateCaName), keyStore);
     }
 
+    /**
+     * Returns the X509 certificate for an intermediate certificate authority from the keystore.
+     * This method retrieves the certificate associated with the intermediate CA's name.
+     *
+     * @param provisionerName The name of the intermediate certificate authority.
+     * @return The X509 certificate associated with the intermediate CA.
+     * @throws KeyStoreException If there is an issue accessing the keystore.
+     */
     @NonNull
     public X509Certificate getX509CertificateForProvisioner(@NonNull String provisionerName) throws KeyStoreException {
         return (X509Certificate) getKeyStore().getCertificate(getKeyStoreAliasForProvisionerIntermediate(provisionerName));
     }
 
-
-
+    /**
+     * Saves the current state of the keystore to the configured file path.
+     * This method is applicable for PKCS#12 keystores and does not apply to PKCS#11 keystores.
+     *
+     * @throws CertificateException      If there is an issue with certificates.
+     * @throws KeyStoreException         If there is an issue accessing the keystore.
+     * @throws IOException               If there is an I/O error.
+     * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
+     */
     public void saveKeystore() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         if (keyStoreConfig instanceof PKCS12KeyStoreConfig pkcs12Config) {
             try (OutputStream fos = Files.newOutputStream(pkcs12Config.getPath())) {
-                keyStore.store(fos, pkcs12Config.getPassword());
+                keyStore.store(fos, keyStorePassword);
             }
         }
         // Hint: PKCS#11 does not need to be saved. It happens automatically when you create/remove certificate entry in the store

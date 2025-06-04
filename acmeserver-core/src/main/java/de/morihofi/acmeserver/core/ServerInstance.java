@@ -54,7 +54,7 @@ public class ServerInstance implements IServerInstance {
 
         // Clear sensitive passwords from in memory config to avoid accidental exposure
         this.appConfig.getDatabase().setPassword(null);
-        this.appConfig.getKeyStore().setPassword(null);
+        this.appConfig.getKeyStore().clearPassword();
     }
 
     /**
