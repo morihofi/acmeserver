@@ -83,7 +83,6 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         boolean allVerified = true;
         List<Identifier> identifierList = new ArrayList<>();
         List<String> authorizationsList = new ArrayList<>();
-        Date orderExpires = new Date();
 
         for (AcmeOrderIdentifier identifier : identifiers) {
             if (identifier.getChallengeStatus() != AcmeStatus.VALID) {
@@ -95,7 +94,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         }
 
         ACMEOrderResponse response = new ACMEOrderResponse();
-        response.setExpires(DateTools.formatDateForACME(orderExpires));
+        response.setExpires(DateTools.formatDateForACME(getOrderExpiration(order)));
 
         if (order.getCertificatePem() != null) {
             response.setStatus(AcmeStatus.VALID.getRfcName());
@@ -116,5 +115,15 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         response.setAuthorizations(authorizationsList);
 
         ctx.json(response);
+    }
+
+    /**
+     * Returns the expiration timestamp for the provided order.
+     *
+     * @param order The ACME order.
+     * @return The expiration {@link Date} of the order.
+     */
+    Date getOrderExpiration(@NotNull AcmeOrder order) {
+        return order.getExpires();
     }
 }
