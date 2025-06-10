@@ -42,6 +42,7 @@ import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRe
 import de.morihofi.acmeserver.core.helper.http.HttpHeaderUtil;
 import de.morihofi.acmeserver.core.tools.network.logging.HTTPAccessLogger;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
+import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import io.javalin.Javalin;
 import io.javalin.http.HandlerType;
 import io.javalin.http.staticfiles.Location;
@@ -135,6 +136,7 @@ public class WebServer {
         app.exception(ACMEException.class, (exception, ctx) -> {
             ctx.status(exception.getHttpStatusCode());
             ctx.header("Content-Type", "application/problem+json");
+            ctx.header("Replay-Nonce", HttpNonces.createNonce(serverInstance));
             ctx.json(exception.getErrorResponse());
             log.error("ACME Exception thrown {} : {} ({})", exception.getClass().getSimpleName(), exception.getErrorResponse().getDetail(),
                     exception.getErrorResponse().getType());
