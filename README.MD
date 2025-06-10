@@ -9,7 +9,7 @@
 
 This is an implementation of an Automatic Certificate Management Environment (ACME) Server, fully written in Java
 
-- Java 17 and up
+- Java 21 and up
 - Any JDBC (and Hibernate compatible) database. Currently, H2, MariaDB and PostgreSQL drivers are in classpath
 - Proxy support for HTTP Challenge
 
@@ -128,4 +128,4 @@ on coding standards and practices. This ensures that the code keeps readable and
 - [Acme4j](https://github.com/shred/acme4j) (It's client implementation helped me to generate the expected DNS Challenge
   value on the server side)
 - [CabinetMaker](https://github.com/grahamrb/CabinetMaker) for generating CAB file using pure Java, it has been
-  refactored for Java 17+
+  refactored for Java 21+
