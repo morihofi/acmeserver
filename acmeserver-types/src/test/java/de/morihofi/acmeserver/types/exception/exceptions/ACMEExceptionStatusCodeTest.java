@@ -25,6 +25,7 @@ class ACMEExceptionStatusCodeTest {
     static Stream<Arguments> exceptionProvider() {
         return Stream.of(
                 Arguments.of(new ACMEAccountNotFoundException("msg"), 404),
+                Arguments.of(new ACMEResourceNotFoundException("msg"), 404),
                 Arguments.of(new ACMEAlreadyRevokedException("msg"), 400),
                 Arguments.of(new ACMEBadCsrException("msg"), 400),
                 Arguments.of(new ACMEBadNonceException("msg"), 400),
@@ -51,7 +52,8 @@ class ACMEExceptionStatusCodeTest {
 
     static Stream<Arguments> errorTypeProvider() {
         return Stream.of(
-                Arguments.of(new ACMEUserActionRequiredException("msg"), "urn:ietf:params:acme:error:userActionRequired")
+                Arguments.of(new ACMEUserActionRequiredException("msg"), "urn:ietf:params:acme:error:userActionRequired"),
+                Arguments.of(new ACMEResourceNotFoundException("msg"), "urn:ietf:params:acme:error:notFound")
         );
     }
 }
