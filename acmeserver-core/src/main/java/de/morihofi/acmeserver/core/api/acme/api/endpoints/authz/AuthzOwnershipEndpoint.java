@@ -167,11 +167,21 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
         AuthzResponse response = new AuthzResponse();
         response.setStatus(identifier.getChallengeStatus().getRfcName());
-        response.setExpires(DateTools.formatDateForACME(new Date())); // FIXME
+        response.setExpires(DateTools.formatDateForACME(getAuthorizationExpiration(identifier)));
         response.setIdentifier(idObj);
         response.setChallenges(challengeResponses);
 
         ctx.json(response);
+    }
+
+    /**
+     * Returns the expiration timestamp for the provided authorization identifier.
+     *
+     * @param identifier The ACME order identifier.
+     * @return The expiration {@link Date} of the authorization.
+     */
+    Date getAuthorizationExpiration(@NotNull AcmeOrderIdentifier identifier) {
+        return identifier.getOrder().getExpires();
     }
 
     /**
