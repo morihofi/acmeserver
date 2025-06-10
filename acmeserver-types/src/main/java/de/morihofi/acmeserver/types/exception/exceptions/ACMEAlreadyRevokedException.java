@@ -41,7 +41,6 @@ public class ACMEAlreadyRevokedException extends ACMEException {
 
     @Override
     public int getHttpStatusCode() {
-        // TODO: Check if this is correct
         return 400;
     }
 

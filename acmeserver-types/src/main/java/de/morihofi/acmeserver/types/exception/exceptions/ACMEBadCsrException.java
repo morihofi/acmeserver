@@ -41,7 +41,6 @@ public class ACMEBadCsrException extends ACMEException {
 
     @Override
     public int getHttpStatusCode() {
-        // TODO: Check if this is the correct code
         return 400;
     }
 
