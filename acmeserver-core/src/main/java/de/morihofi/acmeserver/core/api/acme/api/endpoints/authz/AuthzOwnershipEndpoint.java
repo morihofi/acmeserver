@@ -24,7 +24,7 @@ import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifier;
 import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
-import de.morihofi.acmeserver.types.exception.exceptions.ACMEMalformedException;
+import de.morihofi.acmeserver.types.exception.exceptions.ACMEResourceNotFoundException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.base64.Base64Tools;
@@ -92,7 +92,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         // Not found handling
         if (identifier == null) {
             log.error("Throwing API error: For the requested authorization id {} was no identifier found", authorizationId);
-            throw new ACMEMalformedException("For the requested authorization id was no identifier found");
+            throw new ACMEResourceNotFoundException("For the requested authorization id was no identifier found");
         }
 
         // Check signature and nonce
