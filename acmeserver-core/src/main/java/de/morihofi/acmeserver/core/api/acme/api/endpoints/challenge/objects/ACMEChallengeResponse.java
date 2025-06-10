@@ -16,10 +16,13 @@
 
 package de.morihofi.acmeserver.core.api.acme.api.endpoints.challenge.objects;
 
+import lombok.Data;
+
 /**
  * Represents the response for an ACME challenge. This class encapsulates the details required
  * for the ACME challenge operations such as status, validation date, challenge URL, token, and type.
  */
+@Data
 public class ACMEChallengeResponse {
 
     /**
@@ -46,94 +49,4 @@ public class ACMEChallengeResponse {
      * Type of the challenge.
      */
     private String type;
-
-    /**
-     * Retrieves the status of the ACME challenge.
-     *
-     * @return The status of the challenge.
-     */
-    public String getStatus() {
-        return status;
-    }
-
-    /**
-     * Sets the status of the ACME challenge.
-     *
-     * @param status The status to set.
-     */
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    /**
-     * Retrieves the validated date of the ACME challenge.
-     *
-     * @return The validated date as a string.
-     */
-    public String getValidated() {
-        return validated;
-    }
-
-    /**
-     * Sets the validated date of the ACME challenge.
-     *
-     * @param validated The validated date to set.
-     */
-    public void setValidated(String validated) {
-        this.validated = validated;
-    }
-
-    /**
-     * Retrieves the URL for challenge approval.
-     *
-     * @return The URL for challenge approval.
-     */
-    public String getUrl() {
-        return url;
-    }
-
-    /**
-     * Sets the URL for challenge approval.
-     *
-     * @param url The URL to set.
-     */
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    /**
-     * Retrieves the token to place for the ACME challenge.
-     *
-     * @return The token for the challenge.
-     */
-    public String getToken() {
-        return token;
-    }
-
-    /**
-     * Sets the token to place for the ACME challenge.
-     *
-     * @param token The token to set.
-     */
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    /**
-     * Retrieves the type of the ACME challenge.
-     *
-     * @return The type of the challenge.
-     */
-    public String getType() {
-        return type;
-    }
-
-    /**
-     * Sets the type of the ACME challenge.
-     *
-     * @param type The type to set.
-     */
-    public void setType(String type) {
-        this.type = type;
-    }
 }
