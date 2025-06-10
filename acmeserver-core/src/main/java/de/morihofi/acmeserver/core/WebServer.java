@@ -27,6 +27,7 @@ import de.morihofi.acmeserver.core.api.acme.api.endpoints.challenge.ChallengeCal
 import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.OrderInfoEndpoint;
+import de.morihofi.acmeserver.core.api.acme.api.endpoints.KeyChangeEndpoint;
 import de.morihofi.acmeserver.core.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.CRLScheduler;
@@ -170,9 +171,8 @@ public class WebServer {
         // New account
         app.post("/acme/{provisioner}/acme/new-acct", new NewAccountEndpoint(serverInstance));
 
-        // TODO: Key Change Endpoint (Account key rollover)
-        app.post("/acme/{provisioner}/acme/key-change", new NotImplementedEndpoint());
-        app.get("/acme/{provisioner}/acme/key-change", new NotImplementedEndpoint());
+        // Key Change Endpoint (Account key rollover)
+        app.post("/acme/{provisioner}/acme/key-change", new KeyChangeEndpoint(serverInstance));
 
         // New Nonce
         app.head("/acme/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance));
