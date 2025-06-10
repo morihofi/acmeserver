@@ -23,11 +23,20 @@ class ACMEExceptionStatusCodeTest {
 
     static Stream<Arguments> exceptionProvider() {
         return Stream.of(
+                Arguments.of(new ACMEAccountNotFoundException("msg"), 404),
                 Arguments.of(new ACMEAlreadyRevokedException("msg"), 400),
-                Arguments.of(new ACMEConnectionErrorException("msg"), 400),
                 Arguments.of(new ACMEBadCsrException("msg"), 400),
+                Arguments.of(new ACMEBadNonceException("msg"), 400),
+                Arguments.of(new ACMEBadPublicKeyException("msg"), 400),
                 Arguments.of(new ACMEBadRevocationReasonException("msg"), 400),
-                Arguments.of(new ACMEMalformedException("msg"), 400)
+                Arguments.of(new ACMEBadSignatureAlgorithmException("msg"), 400),
+                Arguments.of(new ACMEConnectionErrorException("msg"), 400),
+                Arguments.of(new ACMEInvalidContactException("msg"), 403),
+                Arguments.of(new ACMEMalformedException("msg"), 400),
+                Arguments.of(new ACMERateLimitedException("msg"), 429),
+                Arguments.of(new ACMERejectedIdentifierException("msg"), 400),
+                Arguments.of(new ACMEUnauthorizedException("msg"), 403),
+                Arguments.of(new ACMEServerInternalException("msg"), 500)
         );
     }
 }
