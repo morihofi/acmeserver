@@ -29,11 +29,12 @@ import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEInvalidContactException;
-import de.morihofi.acmeserver.types.exception.exceptions.ACMEMalformedException;
+import de.morihofi.acmeserver.types.exception.exceptions.ACMEUserActionRequiredException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.regex.EmailValidator;
+import de.morihofi.acmeserver.core.helper.http.HttpHeaderUtil;
 import io.javalin.http.Context;
 
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +82,12 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
         // Check terms of service agreement
         if (!payload.isTermsOfServiceAgreed()) {
-            throw new ACMEMalformedException("Terms of Service not accepted. Unable to create account");
+            String tosUrl = "about:blank";
+            if (provisioner.getMeta().getTos() != null) {
+                tosUrl = provisioner.getMeta().getTos().trim();
+            }
+            ctx.header("Link", HttpHeaderUtil.buildLinkHeaderValue(tosUrl, "terms-of-service"));
+            throw new ACMEUserActionRequiredException("User must agree to terms of service");
         }
 
         // Validate email addresses
