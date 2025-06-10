@@ -34,6 +34,9 @@ import io.javalin.http.Context;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jose4j.jwk.JsonWebKey;
+import org.jose4j.jwk.PublicJsonWebKey;
+import org.jose4j.lang.JoseException;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
@@ -71,30 +74,47 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
         // Payload is Base64 Encoded, so we get the decoded one
         JsonObject reqBodyPayloadObj = JsonParser.parseString(acmeRequestBody.getDecodedPayload()).getAsJsonObject();
-        // JsonObject reqBodyProtectedObj = JsonParser.parseString(acmeRequestBody.getDecodedProtected()).getAsJsonObject();
+        JsonObject reqBodyProtectedObj = JsonParser.parseString(acmeRequestBody.getDecodedProtected()).getAsJsonObject();
 
         // Check which method our server uses:
-
-        if (reqBodyPayloadObj.has("jwk")) {
-            // Domain Key Method
-            // Currently unsupported
-            // TODO: Implement JWK Method
-            throw new ACMEMalformedException("Method currently unsupported. Please use Account Key Method (kid)");
-        }
+        boolean usingJwkMethod = reqBodyProtectedObj.has("jwk");
 
         // Else domain key
-        String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
-        AcmeAccount account = AcmeAccount.getAccount(accountId, getServerInstance());
-        // Check if account exists
-        if (account == null) {
-            log.error("Throwing API error: Account {} not found", accountId);
-            throw new ACMEAccountNotFoundException("The account id was not found");
+        String accountId = null;
+        AcmeAccount account = null;
+        PublicKey jwkPublicKey = null;
+
+        if (usingJwkMethod) {
+            // Domain Key Method
+            String jwkStr = reqBodyProtectedObj.getAsJsonObject("jwk").toString();
+            PublicJsonWebKey jwk;
+            try {
+                jwk = (PublicJsonWebKey) JsonWebKey.Factory.newJwk(jwkStr);
+            } catch (JoseException e) {
+                throw new ACMEServerInternalException("Error parsing JWK: " + e.getMessage());
+            }
+
+            jwkPublicKey = jwk.getPublicKey();
+
+            SignatureCheck.checkSignature(ctx, jwkPublicKey, gson);
+            getServerInstance().getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+
+            log.info("Certificate key wants to revoke a certificate");
+        } else {
+            // Account Key Method
+            accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
+            account = AcmeAccount.getAccount(accountId, getServerInstance());
+            // Check if account exists
+            if (account == null) {
+                log.error("Throwing API error: Account {} not found", accountId);
+                throw new ACMEAccountNotFoundException("The account id was not found");
+            }
+
+            // Check signature and nonce
+            performSignatureAndNonceCheck(ctx, account, acmeRequestBody);
+
+            log.info("Account ID {} wants to revoke a certificate", accountId);
         }
-
-        // Check signature and nonce
-        performSignatureAndNonceCheck(ctx, account, acmeRequestBody);
-
-        log.info("Account ID {} wants to revoke a certificate", accountId);
 
         String certificateBase64 = reqBodyPayloadObj.get("certificate").getAsString();
 
@@ -106,6 +126,10 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
         // Check certificate
         log.debug("Issuer: {}", certificate.getIssuerX500Principal());
+
+        if (usingJwkMethod && !certificate.getPublicKey().equals(jwkPublicKey)) {
+            throw new ACMEMalformedException("JWK does not match certificate public key");
+        }
 
         // Read in root certificate
         X509Certificate intermediateCertificate = provisioner.getIntermediateCaCertificate(getServerInstance().getCryptoStoreManager());
@@ -142,7 +166,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         // Get the identifier, where the certificate belongs to
         AcmeOrder order = AcmeOrder.getACMEOrderCertificateSerialNumber(serialNumber, getServerInstance());
 
-        if (!order.getAccount().getAccountId().equals(accountId)) {
+        if (!usingJwkMethod && !order.getAccount().getAccountId().equals(accountId)) {
             throw new ACMEServerInternalException("Rejected: You cannot revoke a certificate, that belongs to another account.");
         }
 

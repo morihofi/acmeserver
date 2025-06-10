@@ -62,6 +62,41 @@ public class SignatureCheck {
     }
 
     /**
+     * Verifies the signature of an ACME request using a raw public key.
+     *
+     * @param ctx      The Javalin context containing the request data.
+     * @param publicKey The public key used for signature verification.
+     * @param gson     The Gson instance for JSON parsing.
+     * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
+     */
+    public static void checkSignature(@NonNull Context ctx, @NonNull PublicKey publicKey, @NonNull Gson gson) {
+        try {
+            ACMERequestBody requestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
+
+            String protectedHeader = requestBody.getProtected();
+            String payload = requestBody.getPayload();
+            String signature = requestBody.getSignature();
+
+            String serializedJws = protectedHeader + "." + payload + "." + signature;
+
+            JsonWebSignature jws = new JsonWebSignature();
+            jws.setCompactSerialization(serializedJws);
+            jws.setKey(publicKey);
+
+            if (!jws.verifySignature()) {
+                log.error("Signature verification failed for provided key");
+                throw new ACMEBadSignatureAlgorithmException("Signature does not match");
+            }
+        } catch (JsonParseException e) {
+            log.error("Unable to parse request body from JSON", e);
+            throw new ACMEMalformedException("Unable to parse request body from JSON");
+        } catch (JoseException e) {
+            log.error("Unable to verify the request signature", e);
+            throw new ACMEMalformedException("Unable to verify the request signature");
+        }
+    }
+
+    /**
      * Verifies the signature of an ACME request using an ACME account's public key. The method checks the signature against the public key
      * to ensure the request's authenticity and integrity.
      *
