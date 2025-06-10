@@ -67,7 +67,7 @@ If you don't use a released JAR, you need to build it yourself.
 
 You'll need the following prerequisites to be able to build ACME Server
 
-- Java 17
+- Java 21
 - Maven 3.9
 
 ### Initiating the build

@@ -41,7 +41,6 @@ public class ACMEMalformedException extends ACMEException {
 
     @Override
     public int getHttpStatusCode() {
-        // TODO: Check if correct
         return 400;
     }
 

@@ -32,8 +32,8 @@ COPY --from=frontendbuilder /app/frontend/.output/public /app/target/classes/web
 # Compile and create package
 RUN mvn package
 
-# Third stage: Execution with Java 17 Temurin
-FROM eclipse-temurin:17-jdk AS runner
+# Third stage: Execution with Java 21 Temurin
+FROM eclipse-temurin:21-jdk AS runner
 WORKDIR /app
 # Copying the built artifact from the first stage
 COPY --from=builder /app/target/acmeserver.jar app.jar

@@ -41,8 +41,7 @@ public class ACMEConnectionErrorException extends ACMEException {
 
     @Override
     public int getHttpStatusCode() {
-        // TODO: Check if this is correct
-        return 403;
+        return 400;
     }
 
     @Override
