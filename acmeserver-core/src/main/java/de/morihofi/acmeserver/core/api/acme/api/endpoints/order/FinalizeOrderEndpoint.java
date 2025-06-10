@@ -30,6 +30,7 @@ import de.morihofi.acmeserver.types.database.entities.*;
 import de.morihofi.acmeserver.types.database.enums.AcmeOrderState;
 import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEBadCsrException;
+import de.morihofi.acmeserver.types.exception.exceptions.ACMEUnauthorizedException;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.base64.Base64Tools;
 import de.morihofi.acmeserver.utils.datetime.DateTools;
@@ -57,6 +58,14 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         super(serverInstance);
     }
 
+    void verifyAuthorizationsComplete(@NotNull List<AcmeOrderIdentifier> identifiers) throws ACMEUnauthorizedException {
+        boolean allValid = identifiers.stream()
+                .allMatch(id -> id.getChallengeStatus() == AcmeStatus.VALID);
+        if (!allValid) {
+            throw new ACMEUnauthorizedException("One or more identifiers are not validated yet");
+        }
+    }
+
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
     public void handleRequest(@NotNull Context ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) throws Exception {
@@ -76,6 +85,9 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
         // Get our ACME identifiers
         List<AcmeOrderIdentifier> identifiers = AcmeOrder.getACMEOrder(orderId, getServerInstance()).getOrderIdentifiers();
+
+        // Ensure all authorizations are completed before processing the CSR
+        verifyAuthorizationsComplete(identifiers);
 
         // We just use the verification, that throws exceptions, here not the resulting identifiers
         CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
