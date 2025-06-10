@@ -14,7 +14,10 @@ package de.morihofi.acmeserver.core.tools.crypto;
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 
+import de.morihofi.acmeserver.utils.base64.Base64Tools;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.Certificate;
@@ -36,6 +39,7 @@ import java.util.Base64;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -46,6 +50,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * This class is internal. You may use it in your own code, but be warned that methods may change their signature or disappear without prior
  * announcement.
  */
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AcmeUtils {
 
 
@@ -96,15 +102,6 @@ public final class AcmeUtils {
     private static final Base64.Encoder PEM_ENCODER = Base64.getMimeEncoder(64,
             "\n".getBytes(StandardCharsets.US_ASCII));
 
-    /**
-     * Base64 URL encoder.
-     */
-    private static final Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
-
-    /**
-     * Base64 URL decoder.
-     */
-    private static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
 
     /**
      * Computes a SHA-256 hash of the given string.
@@ -120,42 +117,6 @@ public final class AcmeUtils {
         } catch (NoSuchAlgorithmException ex) {
             throw new IllegalArgumentException("Could not compute hash", ex);
         }
-    }
-
-    /**
-     * Hex encodes the given byte array.
-     *
-     * @param data byte array to hex encode
-     * @return Hex encoded string of the data (with lower case characters)
-     */
-    public static String hexEncode(byte[] data) {
-        var result = new char[data.length * 2];
-        for (var ix = 0; ix < data.length; ix++) {
-            var val = data[ix] & 0xFF;
-            result[ix * 2] = HEX[val >>> 4];
-            result[ix * 2 + 1] = HEX[val & 0x0F];
-        }
-        return new String(result);
-    }
-
-    /**
-     * Base64 encodes the given byte array, using URL style encoding.
-     *
-     * @param data byte array to base64 encode
-     * @return base64 encoded string
-     */
-    public static String base64UrlEncode(byte[] data) {
-        return URL_ENCODER.encodeToString(data);
-    }
-
-    /**
-     * Base64 decodes to a byte array, using URL style encoding.
-     *
-     * @param base64 base64 encoded string
-     * @return decoded data
-     */
-    public static byte[] base64UrlDecode(String base64) {
-        return URL_DECODER.decode(base64);
     }
 
     /**
@@ -196,7 +157,7 @@ public final class AcmeUtils {
      * @see <a href="https://www.ietf.org/rfc/rfc3339.txt">RFC 3339</a>
      */
     public static Instant parseTimestamp(String str) {
-        var m = DATE_PATTERN.matcher(str);
+        Matcher m = DATE_PATTERN.matcher(str);
         if (!m.matches()) {
             throw new IllegalArgumentException("Illegal date: " + str);
         }
@@ -321,14 +282,14 @@ public final class AcmeUtils {
                     .map(X509CertificateHolder::getExtensions)
                     .map(AuthorityKeyIdentifier::fromExtensions)
                     .map(AuthorityKeyIdentifier::getKeyIdentifier)
-                    .map(AcmeUtils::base64UrlEncode)
+                    .map(Base64Tools::base64UrlEncode)
                     .orElseThrow(() -> new IllegalArgumentException("Missing or invalid Authority Key Identifier"));
 
             var sn = Optional.of(cert)
                     .map(X509CertificateHolder::toASN1Structure)
                     .map(Certificate::getSerialNumber)
                     .map(AcmeUtils::getRawInteger)
-                    .map(AcmeUtils::base64UrlEncode)
+                    .map(Base64Tools::base64UrlEncode)
                     .orElseThrow(() -> new IllegalArgumentException("Missing or invalid serial number"));
 
             return aki + '.' + sn;
@@ -352,12 +313,4 @@ public final class AcmeUtils {
             throw new UncheckedIOException(ex);
         }
     }
-
-    /**
-     * Private constructor to prevent instantiation of this utility class.
-     */
-    private AcmeUtils() {
-        // Utility class without constructor
-    }
-
 }

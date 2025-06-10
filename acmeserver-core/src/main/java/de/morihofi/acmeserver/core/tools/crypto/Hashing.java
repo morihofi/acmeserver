@@ -56,7 +56,7 @@ public class Hashing {
      */
     public static byte[] sha256hash(String z) {
         try {
-            var md = MessageDigest.getInstance("SHA-256");
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(z.getBytes(UTF_8));
             return md.digest();
         } catch (NoSuchAlgorithmException ex) {

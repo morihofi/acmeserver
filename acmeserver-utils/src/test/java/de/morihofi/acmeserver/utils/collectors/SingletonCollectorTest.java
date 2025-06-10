@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -36,7 +37,7 @@ class SingletonCollectorTest {
 
     @Test
     void testCharacteristicsIsEmpty() {
-        var characteristics = SingletonCollector.<String>toSingleton().characteristics();
+        Set<Collector.Characteristics> characteristics = SingletonCollector.<String>toSingleton().characteristics();
         assertTrue(characteristics.isEmpty());
     }
 
