@@ -4,6 +4,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.api.DisplayName;
 import de.morihofi.acmeserver.types.exception.ACMEException;
+import de.morihofi.acmeserver.types.exception.exceptions.ACMEUserActionRequiredException;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.provider.Arguments;
 
@@ -36,7 +37,21 @@ class ACMEExceptionStatusCodeTest {
                 Arguments.of(new ACMERateLimitedException("msg"), 429),
                 Arguments.of(new ACMERejectedIdentifierException("msg"), 400),
                 Arguments.of(new ACMEUnauthorizedException("msg"), 403),
-                Arguments.of(new ACMEServerInternalException("msg"), 500)
+                Arguments.of(new ACMEServerInternalException("msg"), 500),
+                Arguments.of(new ACMEUserActionRequiredException("msg"), 403)
+        );
+    }
+
+    @ParameterizedTest(name = "{0} -> {1}")
+    @MethodSource("errorTypeProvider")
+    @DisplayName("getErrorResponse returns expected type")
+    void testErrorType(ACMEException exception, String expectedType) {
+        assertEquals(expectedType, exception.getErrorResponse().getType());
+    }
+
+    static Stream<Arguments> errorTypeProvider() {
+        return Stream.of(
+                Arguments.of(new ACMEUserActionRequiredException("msg"), "urn:ietf:params:acme:error:userActionRequired")
         );
     }
 }
