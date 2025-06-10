@@ -25,6 +25,8 @@ import java.net.HttpURLConnection;
 
 /**
  * Endpoint for ACME account key rollover.
+ * <p>
+ * <b>This is an experimental feature implementation which has not been fully tested yet. Use with caution.</b>
  */
 @Slf4j
 public class KeyChangeEndpoint extends AbstractAcmeEndpoint {

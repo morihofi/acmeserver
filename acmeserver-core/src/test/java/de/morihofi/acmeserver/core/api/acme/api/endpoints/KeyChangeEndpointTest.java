@@ -1,6 +1,14 @@
 package de.morihofi.acmeserver.core.api.acme.api.endpoints;
 
+import de.morihofi.acmeserver.core.api.acme.api.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.acmeserver.types.config.Config;
+import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
+import de.morihofi.acmeserver.types.intf.INonceManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
+import de.morihofi.acmeserver.types.intf.network.INetworkClient;
+import de.morihofi.acmeserver.types.runtime.BuildMetadata;
+import org.hibernate.Session;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -12,19 +20,19 @@ class KeyChangeEndpointTest {
         @Override
         public String getServerURL() { return ""; }
         @Override
-        public org.hibernate.Session getDatabaseSession() { return null; }
+        public Session getDatabaseSession() { return null; }
         @Override
-        public de.morihofi.acmeserver.types.intf.crypto.ICryptoStoreManager getCryptoStoreManager() { return null; }
+        public ICryptoStoreManager getCryptoStoreManager() { return null; }
         @Override
-        public de.morihofi.acmeserver.types.config.Config getAppConfig() { return null; }
+        public Config getAppConfig() { return null; }
         @Override
-        public de.morihofi.acmeserver.types.intf.INonceManager getNonceManager() { return null; }
+        public INonceManager getNonceManager() { return null; }
         @Override
-        public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
+        public RootCa getRootCa() { return null; }
         @Override
-        public de.morihofi.acmeserver.types.runtime.BuildMetadata getBuildMetadata() { return null; }
+        public BuildMetadata getBuildMetadata() { return null; }
         @Override
-        public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
+        public INetworkClient getNetworkClient() { return null; }
     }
 
     @Test
@@ -32,6 +40,6 @@ class KeyChangeEndpointTest {
     void testConstructor() {
         KeyChangeEndpoint endpoint = new KeyChangeEndpoint(new DummyServerInstance());
         assertNotNull(endpoint);
-        assertTrue(endpoint instanceof de.morihofi.acmeserver.core.api.acme.api.abstractclass.AbstractAcmeEndpoint);
+        assertInstanceOf(AbstractAcmeEndpoint.class, endpoint);
     }
 }
