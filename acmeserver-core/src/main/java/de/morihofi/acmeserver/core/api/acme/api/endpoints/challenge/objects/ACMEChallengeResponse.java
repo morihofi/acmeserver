@@ -18,7 +18,7 @@ package de.morihofi.acmeserver.core.api.acme.api.endpoints.challenge.objects;
 
 /**
  * Represents the response for an ACME challenge. This class encapsulates the details required
- * for the ACME challenge operations such as status, verification date, challenge URL, token, and type.
+ * for the ACME challenge operations such as status, validation date, challenge URL, token, and type.
  */
 public class ACMEChallengeResponse {
 
@@ -28,9 +28,9 @@ public class ACMEChallengeResponse {
     private String status;
 
     /**
-     * Verified date, formatted as a string.
+     * Validated date, formatted as a string.
      */
-    private String verified;
+    private String validated;
 
     /**
      * URL for challenge approval.
@@ -66,21 +66,21 @@ public class ACMEChallengeResponse {
     }
 
     /**
-     * Retrieves the verified date of the ACME challenge.
+     * Retrieves the validated date of the ACME challenge.
      *
-     * @return The verified date as a string.
+     * @return The validated date as a string.
      */
-    public String getVerified() {
-        return verified;
+    public String getValidated() {
+        return validated;
     }
 
     /**
-     * Sets the verified date of the ACME challenge.
+     * Sets the validated date of the ACME challenge.
      *
-     * @param verified The verified date to set.
+     * @param validated The validated date to set.
      */
-    public void setVerified(String verified) {
-        this.verified = verified;
+    public void setValidated(String validated) {
+        this.validated = validated;
     }
 
     /**
