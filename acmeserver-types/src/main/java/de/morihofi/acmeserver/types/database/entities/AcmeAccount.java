@@ -101,7 +101,7 @@ public class AcmeAccount implements Serializable {
      */
     public static AcmeAccount getAccountByOrderId(@NonNull String orderId, @NonNull IServerInstance serverInstance) {
         try (Session session = serverInstance.getDatabaseSession()) {
-            Query<AcmeAccount> query = session.createQuery("SELECT o.account FROM ACMEOrder o WHERE o.orderId = :orderId", AcmeAccount.class);
+            Query<AcmeAccount> query = session.createQuery("SELECT o.account FROM AcmeOrder o WHERE o.orderId = :orderId", AcmeAccount.class);
             query.setParameter("orderId", orderId);
 
             return query.uniqueResult();

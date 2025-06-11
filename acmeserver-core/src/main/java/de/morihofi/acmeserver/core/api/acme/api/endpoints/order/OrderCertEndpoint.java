@@ -66,7 +66,7 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
        // ctx.header("Link", "<" + provisioner.getAcmeApiURL() + "/directory" + ">;rel=\"index\"");
 
-        AcmeOrder order = AcmeOrder.getACMEOrder(orderId, getServerInstance());
+        AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getServerInstance());
 
 
         StringBuilder responseCertificateChainBuilder = new StringBuilder();

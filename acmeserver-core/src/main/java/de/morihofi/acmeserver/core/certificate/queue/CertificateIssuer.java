@@ -143,7 +143,7 @@ public class CertificateIssuer {
             while (!Thread.currentThread().isInterrupted()) {
                 log.trace("Looking for certificates to be issued in the database");
 
-                List<AcmeOrder> waitingOrders = AcmeOrder.getAllACMEOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE, serverInstance);
+                List<AcmeOrder> waitingOrders = AcmeOrder.getAllAcmeOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE, serverInstance);
 
                 if (!waitingOrders.isEmpty()) {
 

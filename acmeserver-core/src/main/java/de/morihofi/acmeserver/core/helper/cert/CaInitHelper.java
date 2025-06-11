@@ -25,6 +25,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import java.io.IOException;
 import java.security.*;
@@ -44,17 +45,14 @@ public class CaInitHelper {
     public static RootCa initializeCA(@NonNull HibernateUtil h, ICryptoStoreManager cryptoStoreManager) throws NoSuchAlgorithmException, CertificateException, IOException, OperatorCreationException,
             NoSuchProviderException, KeyStoreException, UnrecoverableKeyException {
         try (Session session = h.getSessionFactory().openSession()) {
-            var transaction = session.beginTransaction();
 
             RootCa rootCaEntity;
             KeyPair caKeyPair;
             X509Certificate caCertificate;
 
-            if (RootCa.getAllRoots(session).length != 0) {
-                rootCaEntity = RootCa.getAllRoots(session)[0]; //FIXME: Return correct one ... somehow
-                caKeyPair = cryptoStoreManager.getCerificateAuthorityKeyPair(rootCaEntity);
-                caCertificate = cryptoStoreManager.getCerificateAuthorityX509Certificate(rootCaEntity);
-            } else {
+            if (RootCa.getAllRoots(session).length == 0) {
+                Transaction transaction = session.beginTransaction();
+
                 KeyStore caKeyStore = cryptoStoreManager.getKeyStore();
                 final int keySize = 4096;
 
@@ -84,12 +82,17 @@ public class CaInitHelper {
 
                 log.info("Persisting root CA in database");
                 session.persist(rootCaEntity);
+                transaction.commit();
+            } else {
+                rootCaEntity = RootCa.getAllRoots(session)[0]; //FIXME: Return correct one ... somehow
+                caKeyPair = cryptoStoreManager.getCerificateAuthorityKeyPair(rootCaEntity);
+                caCertificate = cryptoStoreManager.getCerificateAuthorityX509Certificate(rootCaEntity);
             }
 
+            Transaction transaction = session.beginTransaction();
             if (session.createQuery("FROM AcmeProvisioner", AcmeProvisioner.class).list().isEmpty()) {
                 createDefaultProvisioner(session, cryptoStoreManager, rootCaEntity, caKeyPair, caCertificate);
             }
-
             transaction.commit();
 
             return rootCaEntity;

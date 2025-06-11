@@ -164,7 +164,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         BigInteger serialNumber = certificate.getSerialNumber();
 
         // Get the identifier, where the certificate belongs to
-        AcmeOrder order = AcmeOrder.getACMEOrderCertificateSerialNumber(serialNumber, getServerInstance());
+        AcmeOrder order = AcmeOrder.getAcmeOrderCertificateSerialNumber(serialNumber, getServerInstance());
 
         if (!usingJwkMethod && !order.getAccount().getAccountId().equals(accountId)) {
             throw new ACMEServerInternalException("Rejected: You cannot revoke a certificate, that belongs to another account.");

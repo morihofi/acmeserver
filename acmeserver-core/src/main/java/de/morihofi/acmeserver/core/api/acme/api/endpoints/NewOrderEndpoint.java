@@ -95,13 +95,13 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         // Convert payload into object
         NewOrderRequestPayload newOrderRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), NewOrderRequestPayload.class);
 
-        List<AcmeOrderIdentifier> acmeOrderIdentifiers = new ArrayList<>();
+        List<AcmeOrderIdentifier> AcmeOrderIdentifiers = new ArrayList<>();
 
         for (Identifier identifier : newOrderRequestPayload.getIdentifiers()) {
             String type = identifier.getType();
             String value = identifier.getValue();
 
-            acmeOrderIdentifiers.add(new AcmeOrderIdentifier(type, value));
+            AcmeOrderIdentifiers.add(new AcmeOrderIdentifier(type, value));
         }
 
         // Create order in Database
@@ -115,12 +115,12 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         List<Identifier> respIdentifiers = new ArrayList<>();
         List<String> respAuthorizations = new ArrayList<>();
 
-        List<AcmeOrderIdentifier> acmeOrderIdentifiersWithAuthorizationData = new ArrayList<>();
+        List<AcmeOrderIdentifier> AcmeOrderIdentifiersWithAuthorizationData = new ArrayList<>();
 
         // Unique certificate id per order
         String certificateId = HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId());
 
-        for (AcmeOrderIdentifier identifier : acmeOrderIdentifiers) {
+        for (AcmeOrderIdentifier identifier : AcmeOrderIdentifiers) {
             // Unique value for each domain
             String authorizationId = HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId());
 
@@ -166,7 +166,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             identifierObj.setValue(identifier.getDataValue());
             respIdentifiers.add(identifierObj);
 
-            acmeOrderIdentifiersWithAuthorizationData.add(identifier);
+            AcmeOrderIdentifiersWithAuthorizationData.add(identifier);
 
             respAuthorizations.add(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/authz/" + authorizationId);
         }
@@ -193,7 +193,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             log.info("Created new order {}", orderId);
 
             // Create order identifiers
-            for (AcmeOrderIdentifier identifier : acmeOrderIdentifiersWithAuthorizationData) {
+            for (AcmeOrderIdentifier identifier : AcmeOrderIdentifiersWithAuthorizationData) {
                 identifier.setIdentifierId(HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId()));
                 identifier.setOrder(order);
                 session.persist(identifier);

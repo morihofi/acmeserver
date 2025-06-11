@@ -35,7 +35,7 @@ public class ProvisionerStatistics {
 
         Query<Object[]> query = session.createQuery(
                 "SELECT cast(o.created as date), COUNT(o) " +
-                        "FROM ACMEOrder o " +
+                        "FROM AcmeOrder o " +
                         "WHERE o.certificatePem IS NOT NULL " +
                         (provisionerName != null ? "AND o.account.provisioner = :provisionerName " : "") +
                         "GROUP BY cast(o.created as date)",
@@ -81,7 +81,7 @@ public class ProvisionerStatistics {
      */
     public static long countIssuedCertificatesByProvisioner(Session session, String provisionerName) {
         Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NOT NULL",
+                        "SELECT COUNT(o) FROM AcmeOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NOT NULL",
                         Long.class)
                 .setParameter("provisionerName", provisionerName)
                 .uniqueResult();
@@ -97,7 +97,7 @@ public class ProvisionerStatistics {
      */
     public static long countRevokedCertificatesByProvisioner(Session session, String provisionerName) {
         Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NOT NULL"
+                        "SELECT COUNT(o) FROM AcmeOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NOT NULL"
                                 + " AND o.revokeStatusCode IS NOT NULL AND o.revokeTimestamp IS NOT NULL",
                         Long.class)
                 .setParameter("provisionerName", provisionerName)
@@ -114,7 +114,7 @@ public class ProvisionerStatistics {
      */
     public static long countCertificatesWaitingForIssueByProvisioner(Session session, String provisionerName) {
         Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NULL AND"
+                        "SELECT COUNT(o) FROM AcmeOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NULL AND"
                                 + " o.certificateCSR IS NOT NULL",
                         Long.class)
                 .setParameter("provisionerName", provisionerName)
@@ -130,7 +130,7 @@ public class ProvisionerStatistics {
      */
     public static long countGlobalIssuedCertificates(Session session) {
         Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.certificatePem IS NOT NULL", Long.class)
+                        "SELECT COUNT(o) FROM AcmeOrder o WHERE o.certificatePem IS NOT NULL", Long.class)
                 .uniqueResult();
         return count != null ? count : 0;
     }
@@ -143,7 +143,7 @@ public class ProvisionerStatistics {
      */
     public static long countGlobalRevokedCertificates(Session session) {
         Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.certificatePem IS NOT NULL AND o.revokeStatusCode IS NOT NULL AND o"
+                        "SELECT COUNT(o) FROM AcmeOrder o WHERE o.certificatePem IS NOT NULL AND o.revokeStatusCode IS NOT NULL AND o"
                                 + ".revokeTimestamp IS NOT NULL",
                         Long.class)
                 .uniqueResult();
@@ -171,7 +171,7 @@ public class ProvisionerStatistics {
      */
     public static long countGlobalCertificatesWaiting(Session session) {
         Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM ACMEOrder o WHERE o.certificatePem IS NULL AND"
+                        "SELECT COUNT(o) FROM AcmeOrder o WHERE o.certificatePem IS NULL AND"
                                 + " o.certificateCSR IS NOT NULL",
                         Long.class)
                 .uniqueResult();

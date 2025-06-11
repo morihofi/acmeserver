@@ -110,7 +110,7 @@ public class CsrDataUtil {
 
         // Verify all ACME Identifiers are validated
         boolean allIdentifiersValid = identifiers.stream()
-                .allMatch(acmeOrderIdentifier -> acmeOrderIdentifier.getChallengeStatus() == AcmeStatus.VALID);
+                .allMatch(AcmeOrderIdentifier -> AcmeOrderIdentifier.getChallengeStatus() == AcmeStatus.VALID);
         if (!allIdentifiersValid) {
             throw new ACMEServerInternalException("Not all ACME identifiers were validated");
         }

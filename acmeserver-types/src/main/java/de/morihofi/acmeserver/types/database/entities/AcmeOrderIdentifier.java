@@ -57,7 +57,7 @@ public class AcmeOrderIdentifier implements Serializable {
         AcmeOrderIdentifier identifier = null;
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
-            identifier = session.createQuery("FROM ACMEOrderIdentifier WHERE authorizationId = :authorizationId", AcmeOrderIdentifier.class)
+            identifier = session.createQuery("FROM AcmeOrderIdentifier WHERE authorizationId = :authorizationId", AcmeOrderIdentifier.class)
                     .setParameter("authorizationId", authorizationId)
                     .setMaxResults(1)
                     .uniqueResult();

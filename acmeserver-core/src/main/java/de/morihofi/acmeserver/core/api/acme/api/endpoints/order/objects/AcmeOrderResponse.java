@@ -27,7 +27,7 @@ import java.util.List;
  */
 @Data
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-public class ACMEOrderResponse {
+public class AcmeOrderResponse {
     /**
      * The status of the ACME order.
      */

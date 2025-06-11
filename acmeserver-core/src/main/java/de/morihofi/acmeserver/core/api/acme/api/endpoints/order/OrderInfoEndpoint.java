@@ -19,7 +19,7 @@ package de.morihofi.acmeserver.core.api.acme.api.endpoints.order;
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.core.api.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
-import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.objects.ACMEOrderResponse;
+import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.objects.AcmeOrderResponse;
 import de.morihofi.acmeserver.core.api.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
 
@@ -70,7 +70,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
 
-        AcmeOrder order = AcmeOrder.getACMEOrder(orderId, getServerInstance());
+        AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getServerInstance());
         List<AcmeOrderIdentifier> identifiers = order.getOrderIdentifiers();
         if (identifiers.isEmpty()) {
             throw new IllegalArgumentException("Identifiers empty, FIXME");
@@ -93,7 +93,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
             authorizationsList.add(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/authz/" + identifier.getAuthorizationId());
         }
 
-        ACMEOrderResponse response = new ACMEOrderResponse();
+        AcmeOrderResponse response = new AcmeOrderResponse();
         response.setExpires(DateTools.formatDateForACME(getOrderExpiration(order)));
 
         if (order.getCertificatePem() != null) {
