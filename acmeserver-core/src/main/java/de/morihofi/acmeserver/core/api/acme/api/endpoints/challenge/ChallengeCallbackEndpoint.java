@@ -78,6 +78,9 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEMalformedException("DNS-01 method is only valid for non wildcard domains");
         }
 
+        // move challenge into processing state before performing validation
+        AcmeOrderIdentifierChallenge.markChallenge(AcmeStatus.PROCESSING, challengeId, getServerInstance());
+
         ChallengeResult result = switch (challengeType) {
             case "http-01" -> HTTPChallenge.check(
                     identifierChallenge.getAuthorizationToken(),

@@ -12,18 +12,17 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for {@link AcmeOrderIdentifierChallenge#isChallengeTransitionAllowed(AcmeStatus, AcmeStatus)}.
  */
-@DisplayName("ACME authorization-state transitions")
+@DisplayName("ACME challenge-state transitions")
 class ACMEOrderIdentifierChallengeStatusTransitionTest {
 
     /* ---------- transitions that the spec ALLOWS ---------- */
     @ParameterizedTest(name = "{index}: {0} ➜ {1} must be allowed")
     @CsvSource({
-            "PENDING, VALID",
+            "PENDING, PROCESSING",
             "PENDING, INVALID",
-            "PENDING, DEACTIVATED",
-            "VALID,   DEACTIVATED",
-            "VALID,   REVOKED",
-            "VALID,   EXPIRED"
+            "PROCESSING, PROCESSING",
+            "PROCESSING, VALID",
+            "PROCESSING, INVALID"
     })
     void allowedTransitions(AcmeStatus from, AcmeStatus to) {
         assertTrue(AcmeOrderIdentifierChallenge.isChallengeTransitionAllowed(from, to));
@@ -32,19 +31,23 @@ class ACMEOrderIdentifierChallengeStatusTransitionTest {
     /* ---------- transitions that the spec FORBIDS ---------- */
     @ParameterizedTest(name = "{index}: {0} ➜ {1} must be rejected")
     @CsvSource({
-            // anything other than VALID / INVALID / DEACTIVATED out of PENDING
+            // disallowed transitions from PENDING
+            "PENDING, VALID",
+            "PENDING, DEACTIVATED",
             "PENDING, REVOKED",
             "PENDING, EXPIRED",
 
+            // disallowed transitions from PROCESSING
+            "PROCESSING, DEACTIVATED",
+            "PROCESSING, REVOKED",
+            "PROCESSING, EXPIRED",
+            "PROCESSING, PENDING",
+
             // terminal states cannot change again
-            "INVALID, PENDING",
+            "VALID, PROCESSING",
+            "VALID, PENDING",
             "INVALID, VALID",
-            "DEACTIVATED, VALID",
-            "DEACTIVATED, PENDING",
-            "REVOKED,   VALID",
-            "REVOKED,   PENDING",
-            "EXPIRED,   VALID",
-            "EXPIRED,   PENDING"
+            "INVALID, PROCESSING"
     })
     void forbiddenTransitions(AcmeStatus from, AcmeStatus to) {
         assertFalse(AcmeOrderIdentifierChallenge.isChallengeTransitionAllowed(from, to));

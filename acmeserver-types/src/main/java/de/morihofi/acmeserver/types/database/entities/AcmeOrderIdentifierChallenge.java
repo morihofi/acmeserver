@@ -116,42 +116,34 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
 
     /**
      * Returns {@code true} iff the requested state change is permitted by the ACME
-     *  authorization-status state machine (RFC 8555 §7.1.6).
+     *  challenge-status state machine (RFC 8555 §7.1.5).
      *
      * <pre>
-     *              pending ──┬─────────► valid ──┬────────► revoked   (server)
-     *                        │                   │
-     *                        │                   ├────────► deactivated (client or server)
-     *                        │                   │
-     *                        │                   └────────► expired    (clock)
-     *                        │
-     *                        └─────────► invalid   (challenge failure / error)
+     *              pending ──► processing ──┬─────► valid
+     *                        │             └─────► invalid
+     *                        └─────────────► invalid
      * </pre>
      *
-     * Once an authorization is in {@code invalid}, {@code revoked}, {@code
-     * deactivated}, or {@code expired}, it is a terminal state and can no longer
-     * transition.
+     * Once a challenge is in {@code valid} or {@code invalid}, it is a terminal state and can no longer transition.
      */
     static boolean isChallengeTransitionAllowed(@NonNull AcmeStatus currentState,
                                                 @NonNull AcmeStatus newState) {
 
         return switch (currentState) {
             /* -------------------------------- pending --------------------------- */
-            case PENDING -> newState == AcmeStatus.VALID
-                    || newState == AcmeStatus.INVALID
-                    || newState == AcmeStatus.DEACTIVATED;
+            case PENDING -> newState == AcmeStatus.PROCESSING 
+                    || newState == AcmeStatus.INVALID;
 
-            /* -------------------------------- valid ----------------------------- */
-            case VALID -> newState == AcmeStatus.DEACTIVATED
-                    || newState == AcmeStatus.REVOKED
-                    || newState == AcmeStatus.EXPIRED;
+            /* -------------------------------- processing --------------------- */
+            case PROCESSING -> newState == AcmeStatus.PROCESSING 
+                    || newState == AcmeStatus.VALID 
+                    || newState == AcmeStatus.INVALID;
 
-            /* ------------- terminal states: nothing may change them ------------- */
-            case INVALID, DEACTIVATED, REVOKED, EXPIRED -> false;
+            case VALID, INVALID -> false;
 
             /* ------------- unknown enum constant (defensive fallback) ----------- */
             default -> {
-                log.warn("Unknown authorization state '{}'; refusing transition to '{}'",
+                log.warn("Unknown challenge state '{}'; refusing transition to '{}'",
                         currentState, newState);
                 yield false;
             }
