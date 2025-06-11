@@ -131,7 +131,7 @@ public class X509Generator {
                 RandomGenerator.generateRandomId(),
                 validity[0], validity[1],
                 issuer,
-                SubjectPublicKeyInfo.getInstance(req.getOwnKeyPair().getPublic()));
+                SubjectPublicKeyInfo.getInstance(req.getOwnKeyPair().getPublic().getEncoded()));
 
         builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
         builder.addExtension(Extension.keyUsage, true,
