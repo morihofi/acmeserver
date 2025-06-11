@@ -30,6 +30,8 @@ import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.datetime.DateTools;
+import de.morihofi.acmeserver.types.exception.exceptions.ACMEResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import io.javalin.http.Context;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,6 +44,7 @@ import java.util.List;
  * Endpoint for retrieving information about an ACME order.
  * This class handles the request to fetch detailed information about a specific ACME order by its ID.
  */
+@Slf4j
 public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
 
 
@@ -72,9 +75,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
 
         AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getServerInstance());
         List<AcmeOrderIdentifier> identifiers = order.getOrderIdentifiers();
-        if (identifiers.isEmpty()) {
-            throw new IllegalArgumentException("Identifiers empty, FIXME");
-        }
+        verifyIdentifiersPresent(orderId, identifiers);
 
         // Check signature and nonce
         SignatureCheck.checkSignature(ctx, identifiers.getFirst().getOrder().getAccount(), gson, getServerInstance());
@@ -125,5 +126,19 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
      */
     Date getOrderExpiration(@NotNull AcmeOrder order) {
         return order.getExpires();
+    }
+
+    /**
+     * Ensures that an order contains at least one identifier.
+     *
+     * @param orderId    The ID of the order being validated.
+     * @param identifiers The list of identifiers associated with the order.
+     * @throws ACMEResourceNotFoundException if no identifiers are present.
+     */
+    void verifyIdentifiersPresent(@NotNull String orderId, @NotNull List<AcmeOrderIdentifier> identifiers) {
+        if (identifiers.isEmpty()) {
+            log.error("Throwing API error: For the requested order {} was no identifier found", orderId);
+            throw new ACMEResourceNotFoundException("For the requested order id was no identifier found");
+        }
     }
 }
