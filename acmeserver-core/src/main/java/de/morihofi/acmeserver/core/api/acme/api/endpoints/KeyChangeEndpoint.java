@@ -25,8 +25,6 @@ import java.net.HttpURLConnection;
 
 /**
  * Endpoint for ACME account key rollover.
- * <p>
- * <b>This is an experimental feature implementation which has not been fully tested yet. Use with caution.</b>
  */
 @Slf4j
 public class KeyChangeEndpoint extends AbstractAcmeEndpoint {
@@ -36,7 +34,14 @@ public class KeyChangeEndpoint extends AbstractAcmeEndpoint {
 
     @Override
     public void handleRequest(@NotNull Context ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) throws Exception {
-        String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
+        JsonObject outerProtected;
+        try {
+            outerProtected = JsonParser.parseString(acmeRequestBody.getDecodedProtected()).getAsJsonObject();
+        } catch (Exception e) {
+            throw new ACMEMalformedException("Unable to parse protected header");
+        }
+
+        String accountId = SignatureCheck.getAccountIdFromProtectedKID(outerProtected);
         if (accountId == null) {
             throw new ACMEMalformedException("Account id missing in protected header");
         }
@@ -48,8 +53,23 @@ public class KeyChangeEndpoint extends AbstractAcmeEndpoint {
 
         performSignatureAndNonceCheck(ctx, account, acmeRequestBody);
 
-        ACMERequestBody innerBody = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMERequestBody.class);
-        JsonObject innerPayload = JsonParser.parseString(innerBody.getDecodedPayload()).getAsJsonObject();
+        ACMERequestBody innerBody;
+        try {
+            innerBody = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMERequestBody.class);
+        } catch (Exception e) {
+            throw new ACMEMalformedException("Unable to parse inner JWS");
+        }
+
+        JsonObject innerPayload;
+        try {
+            innerPayload = JsonParser.parseString(innerBody.getDecodedPayload()).getAsJsonObject();
+        } catch (Exception e) {
+            throw new ACMEMalformedException("Unable to parse key-change payload");
+        }
+
+        if (!innerPayload.has("account") || !innerPayload.has("oldKey")) {
+            throw new ACMEMalformedException("Mandatory fields missing in key-change payload");
+        }
 
         String accountUrl = provisioner.getAcmeApiURL(getServerInstance()) + "/acme/acct/" + accountId;
         if (!accountUrl.equals(innerPayload.get("account").getAsString())) {
@@ -60,7 +80,7 @@ public class KeyChangeEndpoint extends AbstractAcmeEndpoint {
         PublicJsonWebKey oldKey;
         try {
             oldKey = (PublicJsonWebKey) JsonWebKey.Factory.newJwk(oldKeyStr);
-        } catch (JoseException e) {
+        } catch (JoseException | IllegalStateException e) {
             throw new ACMEServerInternalException("Unable to parse old key: " + e.getMessage());
         }
         String oldKeyPem = PemUtil.convertToPem(oldKey.getPublicKey());
@@ -68,7 +88,17 @@ public class KeyChangeEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEUnauthorizedException("Old key does not match account key");
         }
 
-        JsonObject innerProtected = JsonParser.parseString(innerBody.getDecodedProtected()).getAsJsonObject();
+        JsonObject innerProtected;
+        try {
+            innerProtected = JsonParser.parseString(innerBody.getDecodedProtected()).getAsJsonObject();
+        } catch (Exception e) {
+            throw new ACMEMalformedException("Unable to parse inner protected header");
+        }
+
+        if (!innerProtected.has("jwk")) {
+            throw new ACMEMalformedException("Missing JWK for new key");
+        }
+
         String newKeyStr = innerProtected.getAsJsonObject("jwk").toString();
         PublicJsonWebKey newKey;
         try {
