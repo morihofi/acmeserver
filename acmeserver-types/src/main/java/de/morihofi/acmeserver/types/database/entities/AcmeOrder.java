@@ -109,61 +109,7 @@ public class AcmeOrder implements Serializable {
         return orders;
     }
 
-    /**
-     * Retrieves the PEM-encoded certificate chain of an ACME entity by its certificate ID. This method fetches the issued certificate from
-     * a database using Hibernate, appends the intermediate certificate, and then appends each certificate in the CA certificate chain. If
-     * the issued certificate is not found, it throws an IllegalArgumentException.
-     *
-     * @param certificateId  The authorization ID associated with the ACME entity.
-     * @param provisioner    The provisioner instance used for cryptographic operations.
-     * @param serverInstance The server instance for database connection.
-     * @return A string representation of the certificate chain in PEM format.
-     * @throws KeyStoreException if an error occurs while accessing the keystore.
-     */
-    public static List<X509Certificate> getCertificateChainOfACMEbyCertificateId(@NonNull String certificateId, @NonNull AcmeProvisioner provisioner, @NonNull IServerInstance serverInstance)
-            throws KeyStoreException {
-
-        // Get Issued certificate
-        try (Session session = serverInstance.getDatabaseSession()) {
-            Transaction transaction = session.beginTransaction();
-
-            Query<AcmeOrder> query = session.createQuery("SELECT a FROM AcmeOrder a WHERE a.certificateId = :certificateId", AcmeOrder.class);
-            query.setParameter("certificateId", certificateId);
-            Object result = query.uniqueResult();
-
-            if (result instanceof AcmeOrder AcmeOrder) {
-
-                String certificatePEM = AcmeOrder.getCertificatePem();
-                Date certificateExpires = AcmeOrder.getCertificateExpires();
-
-                if (certificatePEM == null && AcmeOrder.getCertificateCSR() == null) {
-                    throw new ACMEServerInternalException(
-                            "No CSR was found in database. Have you already submitted a CSR? You cannot get a certificate without "
-                                    + "submitting a CSR.");
-                } else if (certificatePEM == null) {
-                    return null; // Returning null if it looks like that the server is generating in background
-                }
-
-                log.info("Getting Certificate for authorization Id {} -> Expires at {}", certificateId, certificateExpires);
-
-            }
-
-            transaction.commit();
-        }
-
-        // Certificate chain
-        log.info("Adding Intermediate and CA certificate");
-
-        KeyStore keyStore = serverInstance.getCryptoStoreManager().getKeyStore();
-        String alias = serverInstance.getCryptoStoreManager().getKeyStoreAliasForProvisionerIntermediate(provisioner.getName());
-
-        //FIXME: Check if we return the full chain (root ca until server cert)
-        // I think we are missing the last one, but we will see until testing
-        return Arrays.stream(keyStore.getCertificateChain(alias))
-                .map(X509Certificate.class::cast)
-                .toList();
-    }
-
+    
     /**
      * Retrieves a list of revoked certificates from the database. Revoked certificates are identified by having both a revoke status code
      * and a revoke timestamp in their associated ACME identifiers.

@@ -29,6 +29,7 @@ import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEMalformedException;
+import de.morihofi.acmeserver.types.exception.exceptions.ACMEResourceNotFoundException;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.datetime.DateTools;
 import de.morihofi.acmeserver.core.helper.http.HttpHeaderUtil;
@@ -72,7 +73,9 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         // Check if challenge is valid
         AcmeOrderIdentifierChallenge identifierChallenge = AcmeOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getServerInstance());
 
-        assert identifierChallenge != null;
+        if (identifierChallenge == null){
+            throw new ACMEResourceNotFoundException("Challenge not found");
+        }
 
         // Check signature and nonce
         performSignatureAndNonceCheck(ctx, identifierChallenge.getIdentifier().getOrder().getAccount(), acmeRequestBody);

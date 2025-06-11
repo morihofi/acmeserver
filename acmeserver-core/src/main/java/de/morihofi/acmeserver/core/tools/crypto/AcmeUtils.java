@@ -187,7 +187,8 @@ public final class AcmeUtils {
 
         return ZonedDateTime.of(
                 year, month, dom, hour, minute, second, ms * 1_000_000,
-                ZoneId.of(tz)).toInstant();
+                ZoneId.of(tz)
+        ).toInstant();
     }
 
     /**
@@ -230,7 +231,7 @@ public final class AcmeUtils {
     }
 
     /**
-     * Extracts the content type of a Content-Type header.
+     * Extracts the content type of Content-Type header.
      *
      * @param header Content-Type header
      * @return Content-Type, or {@code null} if the header was invalid or empty
