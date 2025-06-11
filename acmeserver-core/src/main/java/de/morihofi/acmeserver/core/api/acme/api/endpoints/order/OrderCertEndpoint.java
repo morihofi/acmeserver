@@ -85,8 +85,7 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
             responseCertificateChainBuilder.append(PemUtil.certificateToPEM(certificate.getEncoded()));
             responseCertificateChainBuilder.append("\n");
         }
-        responseCertificateChainBuilder.append("\n"); // Gap between
-        //TODO: We will see if correct chain is returned or i messed something up when refactored
+        responseCertificateChainBuilder.append("\n");
 
         log.info("Returning certificate chain of intermediate and root-ca {}", certChain);
 
@@ -102,12 +101,13 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
 
         X509Certificate entityCertificate = PemUtil.parseCertificatePem(order.getCertificatePem());
 
-        List<X509Certificate> finalCertificateChain = new ArrayList<>(
-                Arrays.stream(keyStore.getCertificateChain(alias))
+        List<X509Certificate> chainFromStore = Arrays.stream(keyStore.getCertificateChain(alias))
                 .map(X509Certificate.class::cast)
-                        .toList()
-        );
+                .toList();
+
+        List<X509Certificate> finalCertificateChain = new ArrayList<>();
         finalCertificateChain.add(entityCertificate);
+        finalCertificateChain.addAll(chainFromStore);
 
         return finalCertificateChain;
     }
