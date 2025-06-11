@@ -15,9 +15,11 @@ jobs:
       - restore_cache:
           key: cache-{{ checksum "/tmp/CIRCLECI_CACHE_KEY" }}
       - run:
-          command: mvn verify
+          command: mvn -B verify
       - store_test_results:
           path: target/surefire-reports
+      - store_artifacts:
+          path: target/site/jacoco
       - save_cache:
           key: cache-{{ checksum "/tmp/CIRCLECI_CACHE_KEY" }}
           paths:

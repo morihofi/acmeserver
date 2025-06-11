@@ -8,13 +8,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: https://github.com/actions/checkout@v3
-
-      - name: Maven Clean Compile
+      - name: Maven Verify with Coverage
         uses: docker://maven:3.9-eclipse-temurin-21-alpine
         with:
           entrypoint: /bin/sh
-          args: -c "mvn clean compile -B"
+          args: -c "mvn -B verify"
+      - name: Upload coverage
+        uses: https://github.com/actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco
