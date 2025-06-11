@@ -19,21 +19,15 @@ public class KeyHelper {
             throw new IllegalArgumentException("Private key algorithm is null for class: " + privateKey.getClass().getName());
         }
 
-        switch (algorithm.toUpperCase(java.util.Locale.ROOT)) {
-            case "RSA":
-                return "SHA256withRSA";
-            case "EC":
-            case "ECDSA":
-                return "SHA256withECDSA";
-            case "DSA":
-                return "SHA256withDSA";
-            case "ED25519":
-                return "Ed25519";
-            case "ED448":
-                return "Ed448";
-            default:
-                throw new IllegalArgumentException("Unsupported key algorithm: " + algorithm + " (" + privateKey.getClass().getName() + ")");
-        }
+        return switch (algorithm.toUpperCase(java.util.Locale.ROOT)) {
+            case "RSA" -> "SHA256withRSA";
+            case "EC", "ECDSA" -> "SHA256withECDSA";
+            case "DSA" -> "SHA256withDSA";
+            case "ED25519" -> "Ed25519";
+            case "ED448" -> "Ed448";
+            default ->
+                    throw new IllegalArgumentException("Unsupported key algorithm: " + algorithm + " (" + privateKey.getClass().getName() + ")");
+        };
     }
 
 
