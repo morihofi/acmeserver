@@ -29,7 +29,13 @@ import io.javalin.http.Context;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -64,14 +70,14 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
 
         ctx.header("Content-Type", "application/pem-certificate-chain");
         ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
-       // ctx.header("Link", "<" + provisioner.getAcmeApiURL() + "/directory" + ">;rel=\"index\"");
+        // ctx.header("Link", "<" + provisioner.getAcmeApiURL() + "/directory" + ">;rel=\"index\"");
 
-        AcmeOrder order = AcmeOrder.getACMEOrder(orderId, getServerInstance());
+        AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getServerInstance());
 
 
         StringBuilder responseCertificateChainBuilder = new StringBuilder();
 
-        List<X509Certificate> certChain = AcmeOrder.getCertificateChainOfACMEbyCertificateId(  order.getCertificateId(),
+        List<X509Certificate> certChain = getCertificateChainOfACMEbyCertificateId(order,
                 provisioner,
                 getServerInstance());
 
@@ -79,6 +85,7 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
             responseCertificateChainBuilder.append(PemUtil.certificateToPEM(certificate.getEncoded()));
             responseCertificateChainBuilder.append("\n");
         }
+        responseCertificateChainBuilder.append("\n"); // Gap between
         //TODO: We will see if correct chain is returned or i messed something up when refactored
 
         log.info("Returning certificate chain of intermediate and root-ca {}", certChain);
@@ -87,5 +94,21 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
 
         String responseCertificateChain = responseCertificateChainBuilder.toString();
         ctx.result(responseCertificateChain);
+    }
+
+    private List<X509Certificate> getCertificateChainOfACMEbyCertificateId(AcmeOrder order, AcmeProvisioner provisioner, IServerInstance serverInstance) throws KeyStoreException, CertificateException, IOException {
+        KeyStore keyStore = serverInstance.getCryptoStoreManager().getKeyStore();
+        String alias = serverInstance.getCryptoStoreManager().getKeyStoreAliasForProvisionerIntermediate(provisioner.getName());
+
+        X509Certificate entityCertificate = PemUtil.parseCertificatePem(order.getCertificatePem());
+
+        List<X509Certificate> finalCertificateChain = new ArrayList<>(
+                Arrays.stream(keyStore.getCertificateChain(alias))
+                .map(X509Certificate.class::cast)
+                        .toList()
+        );
+        finalCertificateChain.add(entityCertificate);
+
+        return finalCertificateChain;
     }
 }

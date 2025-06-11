@@ -56,11 +56,11 @@ public class AcmeOrder implements Serializable {
      * @param serverInstance The server instance for database connection.
      * @return The ACME identifier matching the provided certificate serial number, or null if not found.
      */
-    public static AcmeOrder getACMEOrderCertificateSerialNumber(@NonNull BigInteger serialNumber, @NonNull IServerInstance serverInstance) {
+    public static AcmeOrder getAcmeOrderCertificateSerialNumber(@NonNull BigInteger serialNumber, @NonNull IServerInstance serverInstance) {
         AcmeOrder order = null;
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
-            order = session.createQuery("FROM ACMEOrder WHERE certificateSerialNumber = :certificateSerialNumber", AcmeOrder.class)
+            order = session.createQuery("FROM AcmeOrder WHERE certificateSerialNumber = :certificateSerialNumber", AcmeOrder.class)
                     .setParameter("certificateSerialNumber", serialNumber)
                     .setMaxResults(1)
                     .uniqueResult();
@@ -82,10 +82,10 @@ public class AcmeOrder implements Serializable {
      * @param serverInstance The server instance for database connection.
      * @return The ACME order matching the provided order ID, or null if not found.
      */
-    public static AcmeOrder getACMEOrder(@NonNull String orderId, @NonNull IServerInstance serverInstance) {
+    public static AcmeOrder getAcmeOrder(@NonNull String orderId, @NonNull IServerInstance serverInstance) {
         AcmeOrder order;
         try (Session session = serverInstance.getDatabaseSession()) {
-            order = session.createQuery("FROM ACMEOrder a WHERE a.orderId = :orderId", AcmeOrder.class)
+            order = session.createQuery("FROM AcmeOrder a WHERE a.orderId = :orderId", AcmeOrder.class)
                     .setParameter("orderId", orderId)
                     .uniqueResult();
         }
@@ -99,71 +99,17 @@ public class AcmeOrder implements Serializable {
      * @param serverInstance The server instance for database connection.
      * @return A list of ACME orders with the specified state.
      */
-    public static List<AcmeOrder> getAllACMEOrdersWithState(@NonNull AcmeOrderState orderState, @NonNull IServerInstance serverInstance) {
+    public static List<AcmeOrder> getAllAcmeOrdersWithState(@NonNull AcmeOrderState orderState, @NonNull IServerInstance serverInstance) {
         List<AcmeOrder> orders;
         try (Session session = serverInstance.getDatabaseSession()) {
-            orders = session.createQuery("FROM ACMEOrder a WHERE a.orderState = :orderState", AcmeOrder.class)
+            orders = session.createQuery("FROM AcmeOrder a WHERE a.orderState = :orderState", AcmeOrder.class)
                     .setParameter("orderState", orderState)
                     .getResultList();
         }
         return orders;
     }
 
-    /**
-     * Retrieves the PEM-encoded certificate chain of an ACME entity by its certificate ID. This method fetches the issued certificate from
-     * a database using Hibernate, appends the intermediate certificate, and then appends each certificate in the CA certificate chain. If
-     * the issued certificate is not found, it throws an IllegalArgumentException.
-     *
-     * @param certificateId  The authorization ID associated with the ACME entity.
-     * @param provisioner    The provisioner instance used for cryptographic operations.
-     * @param serverInstance The server instance for database connection.
-     * @return A string representation of the certificate chain in PEM format.
-     * @throws KeyStoreException if an error occurs while accessing the keystore.
-     */
-    public static List<X509Certificate> getCertificateChainOfACMEbyCertificateId(@NonNull String certificateId, @NonNull AcmeProvisioner provisioner, @NonNull IServerInstance serverInstance)
-            throws KeyStoreException {
-
-        // Get Issued certificate
-        try (Session session = serverInstance.getDatabaseSession()) {
-            Transaction transaction = session.beginTransaction();
-
-            Query<AcmeOrder> query = session.createQuery("SELECT a FROM ACMEOrder a WHERE a.certificateId = :certificateId", AcmeOrder.class);
-            query.setParameter("certificateId", certificateId);
-            Object result = query.uniqueResult();
-
-            if (result instanceof AcmeOrder acmeOrder) {
-
-                String certificatePEM = acmeOrder.getCertificatePem();
-                Date certificateExpires = acmeOrder.getCertificateExpires();
-
-                if (certificatePEM == null && acmeOrder.getCertificateCSR() == null) {
-                    throw new ACMEServerInternalException(
-                            "No CSR was found in database. Have you already submitted a CSR? You cannot get a certificate without "
-                                    + "submitting a CSR.");
-                } else if (certificatePEM == null) {
-                    return null; // Returning null if it looks like that the server is generating in background
-                }
-
-                log.info("Getting Certificate for authorization Id {} -> Expires at {}", certificateId, certificateExpires);
-
-            }
-
-            transaction.commit();
-        }
-
-        // Certificate chain
-        log.info("Adding Intermediate and CA certificate");
-
-        KeyStore keyStore = serverInstance.getCryptoStoreManager().getKeyStore();
-        String alias = serverInstance.getCryptoStoreManager().getKeyStoreAliasForProvisionerIntermediate(provisioner.getName());
-
-        //FIXME: Check if we return the full chain (root ca until server cert)
-        // I think we are missing the last one, but we will see until testing
-        return Arrays.stream(keyStore.getCertificateChain(alias))
-                .map(X509Certificate.class::cast)
-                .toList();
-    }
-
+    
     /**
      * Retrieves a list of revoked certificates from the database. Revoked certificates are identified by having both a revoke status code
      * and a revoke timestamp in their associated ACME identifiers.
@@ -180,7 +126,7 @@ public class AcmeOrder implements Serializable {
 
             // Certificates are revoked when they have a statusCode and a timestamp
             Query<AcmeOrder> query = session.createQuery(
-                    "FROM ACMEOrder a WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL AND a.account.provisioner = "
+                    "FROM AcmeOrder a WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL AND a.account.provisioner = "
                             + ":provisionerName",
                     AcmeOrder.class);
             query.setParameter("provisionerName", provisionerName);

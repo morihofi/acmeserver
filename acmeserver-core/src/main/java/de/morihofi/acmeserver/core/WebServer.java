@@ -244,7 +244,7 @@ public class WebServer {
             final AcmeProvisioner provisioner = AcmeProvisioner.getForName(serverInstance, config.getName());
 
             // Check if root ca does exist
-            assert cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA);
+            assert cryptoStoreManager.getKeyStore().containsAlias(serverInstance.getRootCaAlias());
 
             if (!cryptoStoreManager.getKeyStore().containsAlias(IntermediateKeyAlias)) {
 
@@ -276,7 +276,7 @@ public class WebServer {
                                 provisioner.getFullCrlUrl(serverInstance), provisioner.getFullOcspUrl(serverInstance));
                 log.info("Storing generated Intermedia CA");
                 X509Certificate[] chain = new X509Certificate[]{intermediateCertificate,
-                        (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ROOTCA)};
+                        (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(serverInstance.getRootCaAlias())};
                 cryptoStoreManager.getKeyStore().setKeyEntry(
                         IntermediateKeyAlias,
                         intermediateKeyPair.getPrivate(),

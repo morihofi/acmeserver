@@ -27,6 +27,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +44,26 @@ import java.util.List;
 @Data
 @Slf4j
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class AcmeOrderIdentifier implements Serializable {
+
+    public AcmeOrderIdentifier(String type, String dataValue) {
+
+        if(!(type.equals("dns") || type.equals("ip"))){
+            throw new IllegalArgumentException("Invalid type for ACME identifier: " + type);
+        }
+
+        this.type = type;
+        this.dataValue = dataValue;
+    }
+
+    @NonNull
+    public static List<AcmeOrderIdentifier> getAllAcmeIdentifiers(@NonNull IServerInstance serverInstance) {
+        try (Session session = serverInstance.getDatabaseSession()) {
+            return session.createQuery("FROM AcmeOrderIdentifier", AcmeOrderIdentifier.class).getResultList();
+        }
+    }
+
 
     /**
      * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated authorization ID.
@@ -57,7 +76,7 @@ public class AcmeOrderIdentifier implements Serializable {
         AcmeOrderIdentifier identifier = null;
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
-            identifier = session.createQuery("FROM ACMEOrderIdentifier WHERE authorizationId = :authorizationId", AcmeOrderIdentifier.class)
+            identifier = session.createQuery("FROM AcmeOrderIdentifier WHERE authorizationId = :authorizationId", AcmeOrderIdentifier.class)
                     .setParameter("authorizationId", authorizationId)
                     .setMaxResults(1)
                     .uniqueResult();
@@ -87,13 +106,13 @@ public class AcmeOrderIdentifier implements Serializable {
      * The type of the ACME order identifier (e.g., "dns", "ip").
      */
     @Column(name = "type")
-    private final String type;
+    private String type;
 
     /**
      * The data value of the ACME order identifier (e.g., the domain name or IP address).
      */
     @Column(name = "dataValue")
-    private final String dataValue;
+    private String dataValue;
 
     /**
      * The ACME order associated with this identifier.

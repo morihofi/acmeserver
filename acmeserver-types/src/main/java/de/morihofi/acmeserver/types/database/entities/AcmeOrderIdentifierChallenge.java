@@ -55,7 +55,7 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
         AcmeOrderIdentifierChallenge challenge = null;
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
-            challenge = session.createQuery("FROM ACMEOrderIdentifierChallenge WHERE challengeId = :challengeId",
+            challenge = session.createQuery("FROM AcmeOrderIdentifierChallenge WHERE challengeId = :challengeId",
                             AcmeOrderIdentifierChallenge.class)
                     .setParameter("challengeId", challengeId)
                     .setMaxResults(1)
@@ -68,7 +68,7 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
                         challengeId
                 );
             } else {
-                log.error("Challenge ID {} returns null for the ACMEOrderIdentifierChallenge, must be something went wrong", challengeId);
+                log.error("Challenge ID {} returns null for the AcmeOrderIdentifierChallenge, must be something went wrong", challengeId);
             }
             transaction.commit();
         } catch (Exception e) {

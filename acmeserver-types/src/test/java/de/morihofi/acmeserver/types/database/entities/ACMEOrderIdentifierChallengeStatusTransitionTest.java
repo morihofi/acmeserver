@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for {@link AcmeOrderIdentifierChallenge#isChallengeTransitionAllowed(AcmeStatus, AcmeStatus)}.
  */
 @DisplayName("ACME challenge-state transitions")
-class ACMEOrderIdentifierChallengeStatusTransitionTest {
+class AcmeOrderIdentifierChallengeStatusTransitionTest {
 
     /* ---------- transitions that the spec ALLOWS ---------- */
     @ParameterizedTest(name = "{index}: {0} ➜ {1} must be allowed")

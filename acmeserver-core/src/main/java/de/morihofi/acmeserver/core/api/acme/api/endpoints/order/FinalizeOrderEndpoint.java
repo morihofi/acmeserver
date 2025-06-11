@@ -19,9 +19,9 @@ package de.morihofi.acmeserver.core.api.acme.api.endpoints.order;
 import com.google.gson.Gson;
 import de.morihofi.acmeserver.core.Main;
 import de.morihofi.acmeserver.core.api.acme.api.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.objects.AcmeOrderResponse;
 import de.morihofi.acmeserver.cryptography.csr.CsrDataUtil;
 import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
-import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.objects.ACMEOrderResponse;
 import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.objects.FinalizeOrderRequestPayload;
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
 
@@ -71,7 +71,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
     public void handleRequest(@NotNull Context ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
-        AcmeOrder order = AcmeOrder.getACMEOrder(orderId, getServerInstance());
+        AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getServerInstance());
         AcmeAccount account = order.getAccount();
 
         // Check signature and nonce
@@ -84,7 +84,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         String csr = reqBodyPayloadObj.getCsr();
 
         // Get our ACME identifiers
-        List<AcmeOrderIdentifier> identifiers = AcmeOrder.getACMEOrder(orderId, getServerInstance()).getOrderIdentifiers();
+        List<AcmeOrderIdentifier> identifiers = AcmeOrder.getAcmeOrder(orderId, getServerInstance()).getOrderIdentifiers();
 
         // Ensure all authorizations are completed before processing the CSR
         verifyAuthorizationsComplete(identifiers);
@@ -92,14 +92,14 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         // We just use the verification, that throws exceptions, here not the resulting identifiers
         CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
 
-        // Convert ACMEOrderIdentifier into simple identifier
+        // Convert AcmeOrderIdentifier into simple identifier
         List<Identifier> identifierList = identifiers.stream()
                 .map(id -> new Identifier(id.getType(), id.getDataValue()))
                 .toList();
 
         // One authorization per identifier
         List<String> authorizationsList = identifiers.stream()
-                .map(acmeOrderIdentifier -> provisioner.getAcmeApiURL(getServerInstance()) + "/acme/authz/" + acmeOrderIdentifier.getAuthorizationId())
+                .map(AcmeOrderIdentifier -> provisioner.getAcmeApiURL(getServerInstance()) + "/acme/authz/" + AcmeOrderIdentifier.getAuthorizationId())
                 .toList();
 
         try {
@@ -118,7 +118,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEBadCsrException("Unable to process requested CSR. Is the CSR valid and deserializable?");
         }
 
-        ACMEOrderResponse response = new ACMEOrderResponse();
+        AcmeOrderResponse response = new AcmeOrderResponse();
 
         if (order.getCertificatePem() == null && order.getCertificateCSR() == null) {
 

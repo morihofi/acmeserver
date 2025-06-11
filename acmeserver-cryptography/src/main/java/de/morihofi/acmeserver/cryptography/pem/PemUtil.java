@@ -14,6 +14,7 @@ import lombok.NonNull;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
@@ -57,6 +58,28 @@ public class PemUtil {
 
         try (JcaPEMWriter writer = new JcaPEMWriter(new OutputStreamWriter(Files.newOutputStream(publicKeyFilePath), StandardCharsets.UTF_8))) {
             writer.writeObject(keyPair.getPublic());
+        }
+    }
+
+    /**
+     * Parses a PEM-encoded X.509 certificate using Bouncy Castle.
+     *
+     * @param pem PEM string including BEGIN/END lines
+     * @return X509Certificate instance
+     * @throws IOException if reading fails
+     * @throws CertificateException if conversion fails
+     */
+    public static X509Certificate parseCertificatePem(String pem) throws IOException, CertificateException {
+        try (PEMParser pemParser = new PEMParser(new StringReader(pem))) {
+            Object obj = pemParser.readObject();
+            if (obj instanceof X509CertificateHolder) {
+                X509CertificateHolder holder = (X509CertificateHolder) obj;
+                return new JcaX509CertificateConverter()
+                        .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+                        .getCertificate(holder);
+            } else {
+                throw new CertificateException("Not a valid X509CertificateHolder: " + obj.getClass().getName());
+            }
         }
     }
 

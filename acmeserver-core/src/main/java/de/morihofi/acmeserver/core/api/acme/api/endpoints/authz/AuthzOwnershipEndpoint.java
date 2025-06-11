@@ -121,7 +121,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
                     acmeChallenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
 
                     // This is just a placeholder for the currently unsupported TLS-ALPN Challenge
-                    // challenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
+                    // challenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
 
                 }
 
@@ -132,7 +132,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
                 acmeChallenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
 
                 // This is just a placeholder for the currently unsupported TLS-ALPN Challenge
-                // challenges.add(new ACMEOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
+                // challenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
             }
 
             // Save in database

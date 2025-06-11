@@ -17,7 +17,6 @@
 package de.morihofi.acmeserver.core.tools.network;
 
 import de.morihofi.acmeserver.types.exception.ServerStartupException;
-import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.utils.network.ssl.mozillasslconfig.MozillaSslConfigHelper;
 import io.javalin.jetty.JettyServer;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +38,44 @@ import java.util.List;
 @Slf4j
 public class JettySslHelper {
 
+    /**
+     * Builds a configured {@link SslContextFactory.Server} instance for the given key material.
+     *
+     * @param keyStore    the keystore containing the certificate
+     * @param alias       alias of the certificate entry
+     * @param keyPassword password for the private key
+     * @return configured SslContextFactory
+     */
+    private static SslContextFactory.Server buildSslContextFactory(KeyStore keyStore, String alias, String keyPassword) {
+        SslContextFactory.Server factory = new SslContextFactory.Server();
+        factory.setKeyStore(keyStore);
+        factory.setKeyStorePassword(keyPassword);
+        factory.setKeyManagerPassword(keyPassword);
+        factory.setCertAlias(alias);
+        factory.setProvider(BouncyCastleJsseProvider.PROVIDER_NAME);
+        factory.setProtocol("TLS");
+        factory.setKeyManagerFactoryAlgorithm("PKIX");
+        return factory;
+    }
+
+    private static void applyMozillaTlsConfig(MozillaSslConfigHelper.BasicConfiguration cfg,
+                                              SslContextFactory.Server factory,
+                                              SecureRequestCustomizer customizer) {
+        if (cfg == null) {
+            return;
+        }
+
+        log.info("Configuring TLS using Mozilla configuration");
+        factory.setExcludeProtocols();
+        factory.setExcludeCipherSuites();
+        factory.setRenegotiationAllowed(false);
+        factory.setUseCipherSuitesOrder(true);
+        factory.setIncludeCipherSuites(cfg.ciphers().toArray(new String[0]));
+        factory.setIncludeProtocols(cfg.protocols().toArray(new String[0]));
+        customizer.setStsMaxAge(cfg.hstsMinAge());
+        customizer.setStsIncludeSubDomains(false);
+    }
+
 
     /**
      * Creates and configures an SSLContext for secure communication using the provided KeyStore, certificate alias, and key password.
@@ -51,28 +88,8 @@ public class JettySslHelper {
      */
     public static SSLContext createSSLContext(KeyStore keyStore, String alias, String keyPassword)
             throws Exception {
-
-        // Create an instance of SslContextFactory
-        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-
-        // Set the KeyStore and passwords
-        sslContextFactory.setKeyStore(keyStore);
-        sslContextFactory.setKeyStorePassword(keyPassword);
-        sslContextFactory.setKeyManagerPassword(keyPassword);
-
-        // Set the alias for the certificate
-        sslContextFactory.setCertAlias(alias);
-
-        sslContextFactory.setProvider(BouncyCastleJsseProvider.PROVIDER_NAME);
-        sslContextFactory.setProtocol("TLS");
-
-        // Set the algorithm for the KeyManager
-        sslContextFactory.setKeyManagerFactoryAlgorithm("PKIX");
-
-        // Initialize SslContextFactory
+        SslContextFactory.Server sslContextFactory = buildSslContextFactory(keyStore, alias, keyPassword);
         sslContextFactory.start();
-
-        // Get the SSLContext object from SslContextFactory
         return sslContextFactory.getSslContext();
     }
 
@@ -89,17 +106,19 @@ public class JettySslHelper {
      * @throws Exception If an error occurs while creating or configuring the Jetty Server.
      */
     public static Server getSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String alias, JettyServer jettyServer,
-            boolean enableSniCheck, MozillaSslConfigHelper.BasicConfiguration mozillaConfig)
+                                     boolean enableSniCheck, MozillaSslConfigHelper.BasicConfiguration mozillaConfig)
             throws Exception {
 
         SSLContext sslContext = createSSLContext(keyStore, alias, "");
 
-        return getSslJetty(httpsPort, httpPort, sslContext, jettyServer, enableSniCheck, mozillaConfig);
+        Server server = jettyServer != null ? jettyServer.server() : new Server();
+        return configureServer(server, sslContext, httpsPort, httpPort, enableSniCheck, mozillaConfig);
     }
 
     public static void updateSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String keystoreAliasAcmeapi, JettyServer jettyServer,
             boolean enableSniCheck, MozillaSslConfigHelper.BasicConfiguration mozillaConfig) throws Exception {
-        getSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, jettyServer, enableSniCheck, mozillaConfig);
+        SSLContext ctx = createSSLContext(keyStore, keystoreAliasAcmeapi, "");
+        configureServer(jettyServer.server(), ctx, httpsPort, httpPort, enableSniCheck, mozillaConfig);
     }
 
     /**
@@ -113,15 +132,14 @@ public class JettySslHelper {
      */
     public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext, JettyServer jettyServer, boolean enableSniCheck,
             MozillaSslConfigHelper.BasicConfiguration mozillaConfig) throws Exception {
-    /*
-        If the port is not 0, the Service (e.g., HTTP/HTTPS) is enabled. Otherwise, it is disabled.
-    */
-        Server server;
-        if (jettyServer != null) {
-            server = jettyServer.server();
-        } else {
-            server = new Server();
-        }
+
+        Server server = jettyServer != null ? jettyServer.server() : new Server();
+        return configureServer(server, sslContext, httpsPort, httpPort, enableSniCheck, mozillaConfig);
+    }
+
+    private static Server configureServer(Server server, SSLContext sslContext, int httpsPort, int httpPort,
+                                          boolean enableSniCheck, MozillaSslConfigHelper.BasicConfiguration mozillaConfig) throws Exception {
+        /* If the port is not 0, the Service (e.g., HTTP/HTTPS) is enabled. Otherwise, it is disabled. */
 
         for (Connector connector : server.getConnectors()) {
             if (connector instanceof ServerConnector serverConnector) {
@@ -144,19 +162,7 @@ public class JettySslHelper {
 
             SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
             sslContextFactory.setSslContext(sslContext);
-            if (mozillaConfig != null) {
-                log.info("Configuring TLS using Mozilla configuration");
-                sslContextFactory.setExcludeProtocols();
-                sslContextFactory.setExcludeCipherSuites();
-                sslContextFactory.setRenegotiationAllowed(false);
-                sslContextFactory.setUseCipherSuitesOrder(true);
-
-                sslContextFactory.setIncludeCipherSuites(mozillaConfig.ciphers().toArray(new String[0]));
-                sslContextFactory.setIncludeProtocols(mozillaConfig.protocols().toArray(new String[0]));
-
-                secureRequestCustomizer.setStsMaxAge(mozillaConfig.hstsMinAge());
-                secureRequestCustomizer.setStsIncludeSubDomains(false);
-            }
+            applyMozillaTlsConfig(mozillaConfig, sslContextFactory, secureRequestCustomizer);
 
             ServerConnector sslConnector = new ServerConnector(server,
                     new SslConnectionFactory(sslContextFactory, "http/1.1"),
