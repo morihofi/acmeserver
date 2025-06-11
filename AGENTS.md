@@ -31,6 +31,7 @@ development.
   clarify complex logic.
 * **Testing**: Write unit tests for all new features and bug fixes. Use JUnit 5 for testing. Ensure that tests cover
   edge cases and error handling.
+* **Coverage**: Aim for at least 80% code coverage with unit tests.
 * **Error Handling**: Use exceptions for error handling. Custom exceptions should be created for specific error
   scenarios. Avoid using generic exceptions.
 * **Logging**: Use SLF4J with Logback for logging. Log at appropriate levels (DEBUG, INFO, WARN, ERROR) and avoid
