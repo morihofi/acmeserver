@@ -38,6 +38,23 @@ class KeyHelperTest {
     }
 
     @Test
+    @DisplayName("DSA private key returns DSA algorithm")
+    void testDsaKey() throws Exception {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("DSA", BouncyCastleProvider.PROVIDER_NAME);
+        kpg.initialize(1024);
+        PrivateKey pk = kpg.generateKeyPair().getPrivate();
+        assertEquals("SHA256withDSA", KeyHelper.getSignatureAlgorithmBasedOnKeyType(pk));
+    }
+
+    @Test
+    @DisplayName("Ed25519 private key returns Ed25519 algorithm")
+    void testEd25519Key() throws Exception {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("Ed25519", BouncyCastleProvider.PROVIDER_NAME);
+        PrivateKey pk = kpg.generateKeyPair().getPrivate();
+        assertEquals("Ed25519", KeyHelper.getSignatureAlgorithmBasedOnKeyType(pk));
+    }
+
+    @Test
     @DisplayName("Unsupported key throws exception")
     void testUnsupportedKey() {
         PrivateKey dummy = new PrivateKey() {

@@ -3,8 +3,6 @@ package de.morihofi.acmeserver.cryptography.keys;
 import lombok.NonNull;
 
 import java.security.PrivateKey;
-import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.RSAPrivateKey;
 
 public class KeyHelper {
     /**
@@ -16,18 +14,26 @@ public class KeyHelper {
      */
     @NonNull
     public static String getSignatureAlgorithmBasedOnKeyType(@NonNull PrivateKey privateKey) {
-        String signatureAlgorithm;
-        if (privateKey instanceof RSAPrivateKey) {
-            signatureAlgorithm = "SHA256withRSA";
-        } else if (privateKey instanceof ECPrivateKey) {
-            signatureAlgorithm = "SHA256withECDSA";
-        } else if (privateKey.getClass().getName().equals("sun.security.pkcs11.P11Key$P11PrivateKey")) {
-            // Assuming RSA key for PKCS#11 - may need to be adjusted based on actual key type and capabilities
-            signatureAlgorithm = "SHA256withRSA";
-        } else {
-            throw new IllegalArgumentException("Unsupported key type: " + privateKey.getClass().getName());
+        String algorithm = privateKey.getAlgorithm();
+        if (algorithm == null) {
+            throw new IllegalArgumentException("Private key algorithm is null for class: " + privateKey.getClass().getName());
         }
-        return signatureAlgorithm;
+
+        switch (algorithm.toUpperCase(java.util.Locale.ROOT)) {
+            case "RSA":
+                return "SHA256withRSA";
+            case "EC":
+            case "ECDSA":
+                return "SHA256withECDSA";
+            case "DSA":
+                return "SHA256withDSA";
+            case "ED25519":
+                return "Ed25519";
+            case "ED448":
+                return "Ed448";
+            default:
+                throw new IllegalArgumentException("Unsupported key algorithm: " + algorithm + " (" + privateKey.getClass().getName() + ")");
+        }
     }
 
 
