@@ -42,55 +42,107 @@ public class CaInitHelper {
      * Initializes the Certificate Authority (CA) by generating or loading the CA certificate and key pair.
      */
     public static RootCa initializeCA(@NonNull HibernateUtil h, ICryptoStoreManager cryptoStoreManager) throws NoSuchAlgorithmException, CertificateException, IOException, OperatorCreationException,
-            NoSuchProviderException, KeyStoreException {
+            NoSuchProviderException, KeyStoreException, UnrecoverableKeyException {
         try (Session session = h.getSessionFactory().openSession()) {
+            var transaction = session.beginTransaction();
 
+            RootCa rootCaEntity;
+            KeyPair caKeyPair;
+            X509Certificate caCertificate;
 
             if (RootCa.getAllRoots(session).length != 0) {
-                return RootCa.getAllRoots(session)[0]; //FIXME: Return correct one ... somehow
-                // Skip, because we already have at least one CA
+                rootCaEntity = RootCa.getAllRoots(session)[0]; //FIXME: Return correct one ... somehow
+                caKeyPair = cryptoStoreManager.getCerificateAuthorityKeyPair(rootCaEntity);
+                caCertificate = cryptoStoreManager.getCerificateAuthorityX509Certificate(rootCaEntity);
+            } else {
+                KeyStore caKeyStore = cryptoStoreManager.getKeyStore();
+                final int keySize = 4096;
+
+                log.info("Using RSA algorithm");
+                log.info("Generating new RSA {} bit Key Pair for Root CA", keySize);
+                caKeyPair = KeyPairGenerator.generateRSAKeyPair(keySize, caKeyStore.getProvider().getName());
+
+                rootCaEntity = new RootCa();
+                rootCaEntity.setCertificateConfig(new CertificateConfig(
+                        new CertificateMetadata(
+                                "ACME Server Default Root CA",
+                                "",
+                                "",
+                                ""),
+                        new CertificateExpiration(0, 0, 20),
+                        new RsaCertificateAlgorithm(keySize)
+                ));
+                rootCaEntity.setInternalUuid(UUID.randomUUID().toString());
+
+                log.info("Creating CA");
+                caCertificate =
+                        CertificateAuthorityGenerator.generateCertificateAuthorityCertificate(rootCaEntity.getCertificateConfig(), caKeyPair);
+
+                log.info("Writing CA to keystore");
+                caKeyStore.setKeyEntry(rootCaEntity.getInternalUuid(), caKeyPair.getPrivate(), "".toCharArray(), new X509Certificate[]{caCertificate});
+                cryptoStoreManager.saveKeystore();
+
+                log.info("Persisting root CA in database");
+                session.persist(rootCaEntity);
             }
 
-            // No CA is existing at the moment -> we need a new one
+            if (session.createQuery("FROM AcmeProvisioner", AcmeProvisioner.class).list().isEmpty()) {
+                createDefaultProvisioner(session, cryptoStoreManager, rootCaEntity, caKeyPair, caCertificate);
+            }
 
-            KeyStore caKeyStore = cryptoStoreManager.getKeyStore();
-
-            // Create CA
-            final int keySize = 4096;
-
-
-            log.info("Using RSA algorithm");
-            log.info("Generating new RSA {} bit Key Pair for Root CA", keySize);
-            KeyPair caKeyPair = KeyPairGenerator.generateRSAKeyPair(keySize, caKeyStore.getProvider().getName());
-
-            RootCa rootCaEntity = new RootCa(); //TODO: Add Option for ENV Variables to be set on first run
-            rootCaEntity.setCertificateConfig(new CertificateConfig(
-                    new CertificateMetadata(
-                            "ACME Server Default Root CA",
-                            "",
-                            "",
-                            ""),
-                    new CertificateExpiration(0, 0, 20),
-                    new RsaCertificateAlgorithm(keySize)
-            ));
-            rootCaEntity.setInternalUuid(UUID.randomUUID().toString());
-
-            log.info("Creating CA");
-            X509Certificate caCertificate =
-                    CertificateAuthorityGenerator.generateCertificateAuthorityCertificate(rootCaEntity.getCertificateConfig(), caKeyPair);
-
-            log.info("Writing CA to keystore");
-            caKeyStore.setKeyEntry(rootCaEntity.getInternalUuid(), caKeyPair.getPrivate(), "".toCharArray(), // No password
-                    new X509Certificate[]{caCertificate});
-
-            log.info("Saving keystore");
-            cryptoStoreManager.saveKeystore();
-
-            log.info("Persisting root CA in database");
-            session.persist(rootCaEntity);
+            transaction.commit();
 
             return rootCaEntity;
 
         }
+    }
+
+    private static void createDefaultProvisioner(Session session, ICryptoStoreManager cryptoStoreManager,
+                                                 RootCa rootCa, KeyPair caKeyPair, X509Certificate caCertificate)
+            throws NoSuchAlgorithmException, CertificateException, KeyStoreException, OperatorCreationException, IOException, NoSuchProviderException {
+
+        log.info("Creating default provisioner");
+
+        final int keySize = 4096;
+        KeyPair intermediateKeyPair = KeyPairGenerator.generateRSAKeyPair(keySize, cryptoStoreManager.getKeyStore().getProvider().getName());
+
+        CertificateConfig intConfig = new CertificateConfig(
+                new CertificateMetadata(
+                        "ACME Server Default Intermediate",
+                        "",
+                        "",
+                        ""),
+                new CertificateExpiration(0, 0, 5),
+                new RsaCertificateAlgorithm(keySize)
+        );
+
+        X509Certificate intermediateCert = de.morihofi.acmeserver.cryptography.certificate.X509Generator.generate(
+                de.morihofi.acmeserver.cryptography.certificate.X509Generator.Request.builder()
+                        .type(de.morihofi.acmeserver.cryptography.certificate.X509Generator.Type.INTERMEDIATE_CA)
+                        .certificateConfig(intConfig)
+                        .ownKeyPair(intermediateKeyPair)
+                        .issuerKeyPair(caKeyPair)
+                        .issuerCertificate(caCertificate)
+                        .build()
+        );
+
+        String alias = cryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate("default");
+        cryptoStoreManager.getKeyStore().setKeyEntry(alias, intermediateKeyPair.getPrivate(), "".toCharArray(), new X509Certificate[]{intermediateCert, caCertificate});
+        cryptoStoreManager.saveKeystore();
+
+        AcmeProvisioner provisioner = new AcmeProvisioner();
+        provisioner.setName("default");
+        provisioner.setRootCa(rootCa);
+        provisioner.setMeta(new ProvisionerMeta("", ""));
+        provisioner.setCertificateConfig(intConfig);
+        provisioner.setIssuedCertificateExpiration(new CertificateExpiration(0, 3, 0));
+        provisioner.setWildcardAllowed(false);
+        provisioner.setIpAllowed(true);
+        AcmeProvisionerDomainNameRestriction restr = new AcmeProvisionerDomainNameRestriction();
+        restr.setEnabled(false);
+        restr.setMustEndWith(java.util.Collections.emptyList());
+        provisioner.setAcmeProvisionerDomainNameRestriction(restr);
+
+        session.persist(provisioner);
     }
 }

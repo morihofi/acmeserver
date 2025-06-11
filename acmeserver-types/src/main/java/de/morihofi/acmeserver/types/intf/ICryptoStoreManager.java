@@ -11,9 +11,14 @@ import java.security.cert.X509Certificate;
 public interface ICryptoStoreManager {
 
     /**
-     * Returns the alias for the root certificate authority in the keystore.
+     * Generates the alias used for a provisioner's intermediate certificate authority.
+     * The alias is created by appending the provisioner name to a predefined prefix.
+     * The provisioner name is validated and an {@link IllegalArgumentException} is
+     * thrown when the name does not meet the expected requirements.
      *
-     * @return The alias for the root certificate authority.
+     * @param name the provisioner name used to construct the alias
+     * @return the generated alias for the provisioner's intermediate CA
+     * @throws IllegalArgumentException if the provisioner name is invalid
      */
     String getKeyStoreAliasForProvisionerIntermediate(String name);
 

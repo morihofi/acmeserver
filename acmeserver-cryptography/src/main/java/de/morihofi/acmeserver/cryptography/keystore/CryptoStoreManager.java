@@ -55,6 +55,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * Alias for the ACME API certificate in the keystore.
      */
     public static final String KEYSTORE_ALIAS_ACMEAPI = "serverAcmeApi";
+
     /**
      * Prefix for aliases of intermediate certificate authorities in the keystore.
      */
@@ -145,6 +146,9 @@ public class CryptoStoreManager implements ICryptoStoreManager {
             default ->
                     throw new IllegalArgumentException("Unsupported key store config type: " + keyStoreConfig.getClass());
         }
+
+        // wipe password from memory after loading the keystore
+        java.util.Arrays.fill(this.keyStorePassword, '\0');
 
     }
 

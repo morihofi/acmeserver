@@ -53,6 +53,16 @@ public interface IServerInstance {
     RootCa getRootCa();
 
     /**
+     * Convenience method returning the keystore alias for the active root CA.
+     *
+     * @return alias of the root certificate authority in the keystore
+     */
+    @NonNull
+    default String getRootCaAlias() {
+        return getRootCa().getInternalUuid();
+    }
+
+    /**
      * Get the Build Metadata for this server instance
      */
     @NonNull

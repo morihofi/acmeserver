@@ -165,7 +165,7 @@ public class Main {
     }
 
 
-    public static IServerInstance getServerInstance(Config config, boolean debug, Path configPath) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvalidAlgorithmParameterException, OperatorCreationException {
+    public static IServerInstance getServerInstance(Config config, boolean debug, Path configPath) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvalidAlgorithmParameterException, OperatorCreationException, UnrecoverableKeyException {
         if (Objects.equals(System.getenv("DEBUG"), "TRUE")) {
             debug = true;
             log.info("Debug mode activated by DEBUG environment variable set to TRUE");

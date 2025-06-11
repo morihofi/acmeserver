@@ -43,4 +43,18 @@ class CryptoStoreManagerTest {
         mgr.saveKeystore();
         assertTrue(Files.exists(path));
     }
+
+    @Test
+    @DisplayName("password cleared after initialization")
+    void testPasswordCleared() throws Exception {
+        Path p = Files.createTempDirectory("ks").resolve("store.p12");
+        PKCS12KeyStoreConfig cfg = new PKCS12KeyStoreConfig(p, "secret".toCharArray());
+        CryptoStoreManager mgr = new CryptoStoreManager(cfg);
+        var field = CryptoStoreManager.class.getDeclaredField("keyStorePassword");
+        field.setAccessible(true);
+        char[] stored = (char[]) field.get(mgr);
+        for (char c : stored) {
+            assertEquals('\0', c);
+        }
+    }
 }
