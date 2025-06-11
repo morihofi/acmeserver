@@ -120,7 +120,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
             case PKCS11KeyStoreConfig pkcs11Config -> {
                 String libraryLocation = pkcs11Config.getLibraryPath().toAbsolutePath().toString();
                 log.info("Using PKCS#11 KeyStore with native library at {} with slot {}", libraryLocation, pkcs11Config.getSlot());
-                this.keyStorePassword = pkcs11Config.getPassword();
+                this.keyStorePassword = pkcs11Config.getPassword().clone();
 
                 keyStore = PKCS11KeyStoreLoader.loadPKCS11Keystore(
                         keyStorePassword,
@@ -130,7 +130,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
             }
             case PKCS12KeyStoreConfig pkcs12Config -> {
                 log.info("Using PKCS#12 KeyStore at {}", pkcs12Config.getPath().toAbsolutePath().toString());
-                this.keyStorePassword = pkcs12Config.getPassword();
+                this.keyStorePassword = pkcs12Config.getPassword().clone();
 
                 keyStore = KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
                 if (Files.exists(pkcs12Config.getPath())) {
@@ -147,10 +147,9 @@ public class CryptoStoreManager implements ICryptoStoreManager {
                     throw new IllegalArgumentException("Unsupported key store config type: " + keyStoreConfig.getClass());
         }
 
-        // wipe password from memory after loading the keystore
-        java.util.Arrays.fill(this.keyStorePassword, '\0');
+            // we cannot wipe the password here, because we won't be able to save it later
 
-    }
+        }
 
 
     /**
@@ -222,12 +221,23 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
     public void saveKeystore() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+        if (isAllZero(keyStorePassword)) {
+            throw new IllegalStateException("KeyStore password is empty. Cannot save keystore without a password.");
+        }
+
         if (keyStoreConfig instanceof PKCS12KeyStoreConfig pkcs12Config) {
             try (OutputStream fos = Files.newOutputStream(pkcs12Config.getPath())) {
                 keyStore.store(fos, keyStorePassword);
             }
         }
         // Hint: PKCS#11 does not need to be saved. It happens automatically when you create/remove certificate entry in the store
+    }
+
+    private static boolean isAllZero(char[] array) {
+        for (char c : array) {          // fast & allocation-free
+            if (c != '\0') return false;
+        }
+        return true;
     }
 
 }
