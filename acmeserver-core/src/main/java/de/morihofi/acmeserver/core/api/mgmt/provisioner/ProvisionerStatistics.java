@@ -66,7 +66,7 @@ public class ProvisionerStatistics {
      */
     public static long countACMEAccountsByProvisioner(Session session, String provisionerName) {
         Long count = session.createQuery(
-                        "SELECT COUNT(a) FROM ACMEAccount a WHERE a.provisioner = :provisionerName", Long.class)
+                        "SELECT COUNT(a) FROM AcmeAccount a WHERE a.provisioner = :provisionerName", Long.class)
                 .setParameter("provisionerName", provisionerName)
                 .uniqueResult();
         return count != null ? count : 0;
@@ -158,7 +158,7 @@ public class ProvisionerStatistics {
      */
     public static long countGlobalActiveACMEAccounts(Session session) {
         Long count = session.createQuery(
-                        "SELECT COUNT(a) FROM ACMEAccount a WHERE a.deactivated = false", Long.class)
+                        "SELECT COUNT(a) FROM AcmeAccount a WHERE a.deactivated = false", Long.class)
                 .uniqueResult();
         return count != null ? count : 0;
     }

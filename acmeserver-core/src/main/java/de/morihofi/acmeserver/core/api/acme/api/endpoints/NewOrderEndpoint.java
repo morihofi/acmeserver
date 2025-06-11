@@ -196,12 +196,15 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             for (AcmeOrderIdentifier identifier : AcmeOrderIdentifiersWithAuthorizationData) {
                 identifier.setIdentifierId(HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId()));
                 identifier.setOrder(order);
+                identifier.setAuthorizationId(identifier.getAuthorizationId());
+
                 session.persist(identifier);
 
-                log.info("Added identifier {} of type {} to order {}",
+                log.info("Added identifier {} of type {} to order {} (authorizationId: {})",
                         identifier.getDataValue(),
                         identifier.getType(),
-                        orderId
+                        orderId,
+                        identifier.getAuthorizationId()
                 );
             }
 

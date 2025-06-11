@@ -56,6 +56,16 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         String challengeId = ctx.pathParam("challengeId");
         String challengeType = ctx.pathParam("challengeType"); // dns-01 or http-01
 
+        // Validate challengeId and challengeType
+        if (challengeId.isEmpty()) {
+            throw new ACMEMalformedException("Challenge ID is missing or empty");
+        }
+        if (!"dns-01".equals(challengeType) && !"http-01".equals(challengeType)) {
+            throw new ACMEMalformedException("Challenge type must be either 'dns-01' or 'http-01'");
+        }
+
+
+        // Set response headers
         ctx.header("Content-Type", "application/json");
         ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
 

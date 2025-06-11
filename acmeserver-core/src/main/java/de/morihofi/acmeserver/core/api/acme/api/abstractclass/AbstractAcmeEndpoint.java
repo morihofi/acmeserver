@@ -117,7 +117,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
     }
 
     /**
-     * Performs signature and nonce checks for the request using an ACMEAccount object.
+     * Performs signature and nonce checks for the request using an AcmeAccount object.
      * This method verifies the request signature and checks the nonce for replay attacks.
      *
      * @param ctx             The context of the HTTP request.

@@ -52,7 +52,7 @@ public class AcmeAccount implements Serializable {
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
 
-            Query<AcmeAccount> query = session.createQuery("SELECT a FROM ACMEAccount a WHERE a.accountId = :accountId", AcmeAccount.class);
+            Query<AcmeAccount> query = session.createQuery("SELECT a FROM AcmeAccount a WHERE a.accountId = :accountId", AcmeAccount.class);
             query.setParameter("accountId", accountId);
             AcmeAccount result = query.uniqueResult();
 
@@ -124,7 +124,7 @@ public class AcmeAccount implements Serializable {
     public static List<AcmeAccount> getAllACMEAccountsForEmail(@NonNull String email, @NonNull IServerInstance serverInstance) {
         try (Session session = serverInstance.getDatabaseSession()) {
             Query<AcmeAccount> query = session.createQuery(
-                    "SELECT a FROM ACMEAccount a JOIN a.emails e WHERE e = :email", AcmeAccount.class);
+                    "SELECT a FROM AcmeAccount a JOIN a.emails e WHERE e = :email", AcmeAccount.class);
             query.setParameter("email", email);
 
             return query.getResultList();
