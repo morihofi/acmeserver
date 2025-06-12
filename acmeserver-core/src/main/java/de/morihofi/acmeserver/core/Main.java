@@ -35,6 +35,10 @@ import de.morihofi.acmeserver.utils.cli.CLIArgument;
 import de.morihofi.acmeserver.utils.meta.BuildMetadataImpl;
 import de.morihofi.acmeserver.utils.network.http.NetworkClient;
 import de.morihofi.acmeserver.utils.path.AppDirectoryHelper;
+import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.ServerInitializedEvent;
+import de.morihofi.acmeserver.types.events.ServerStartedEvent;
+import de.morihofi.acmeserver.types.events.ServerShutdownEvent;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -152,11 +156,15 @@ public class Main {
 
         Config config = loadServerConfiguration();
         serverInstance = getServerInstance(config, debug, CONFIG_PATH);
+        GlobalEventBus.publish(new ServerInitializedEvent(serverInstance));
 
 
         WebServer ws = new WebServer(serverInstance);
         try {
             ws.startServer();
+            GlobalEventBus.publish(new ServerStartedEvent(serverInstance));
+            Runtime.getRuntime().addShutdownHook(new Thread(() ->
+                    GlobalEventBus.publish(new ServerShutdownEvent(serverInstance))));
         } catch (Exception ex) {
             log.error("Server startup failed", ex);
             System.exit(1);

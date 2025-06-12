@@ -21,6 +21,8 @@ import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.cryptography.keystore.KeyStoreUtil;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.utils.lambda.TriFunction;
+import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.ProvisionerCertificateRenewedEvent;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 
@@ -153,6 +155,7 @@ public class CertificateRenewManager {
                             newCertificateData.certificateChain()
                     );
                     cryptoStoreManager.saveKeystore();
+                    GlobalEventBus.publish(new ProvisionerCertificateRenewedEvent(provisioner));
 
                     if (renewEntry.triggerAfterRegeneration != null) {
                         log.info("Running post configuration runnable");

@@ -27,6 +27,8 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.reflections.Reflections;
+import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.ServerShutdownEvent;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -73,14 +75,9 @@ public class HibernateUtil {
                 throw new ExceptionInInitializerError(e);
             }
 
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    this.setName("Database Shutdown Thread");
-                    super.run();
-
-                    shutdown();
-                }
+            GlobalEventBus.subscribe(ServerShutdownEvent.class, event -> {
+                Thread.currentThread().setName("Database Shutdown Thread");
+                shutdown();
             });
         }
     }

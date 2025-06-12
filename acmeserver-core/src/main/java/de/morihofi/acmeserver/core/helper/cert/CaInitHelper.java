@@ -26,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.ProvisionerCreatedEvent;
 
 import java.io.IOException;
 import java.security.*;
@@ -152,5 +154,6 @@ public class CaInitHelper {
         provisioner.setAcmeProvisionerDomainNameRestriction(restr);
 
         session.persist(provisioner);
+        GlobalEventBus.publish(new ProvisionerCreatedEvent(provisioner));
     }
 }

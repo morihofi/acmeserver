@@ -22,6 +22,8 @@ import de.morihofi.acmeserver.core.database.HibernateUtil;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEBadNonceException;
 import de.morihofi.acmeserver.types.intf.INonceManager;
+import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.AcmeNonceRedeemedEvent;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -113,6 +115,7 @@ public class NonceManager implements INonceManager {
 
             // Apply
             transaction.commit();
+            GlobalEventBus.publish(new AcmeNonceRedeemedEvent(nonce));
 
             return false;
 

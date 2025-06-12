@@ -1,0 +1,16 @@
+package de.morihofi.acmeserver.types.events;
+import de.morihofi.acmeserver.types.events.AbstractEvent;
+
+import de.morihofi.acmeserver.types.api.acme.challenge.AcmeChallengeType;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+/**
+ * Event fired before a challenge is processed.
+ */
+@AllArgsConstructor
+@Getter
+public class BeforeChallengeEvent extends AbstractEvent {
+    private final AcmeChallengeType method;
+    private final String challengeId;
+}

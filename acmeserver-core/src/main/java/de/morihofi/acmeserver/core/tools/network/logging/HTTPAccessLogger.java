@@ -37,6 +37,9 @@ import java.util.Locale;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.ServerShutdownEvent;
+
 @Slf4j
 public class HTTPAccessLogger {
     private static final String LOG_FORMAT = "%s - %s [%s] \"%s\" %d %d \"%s\" \"%s\"";
@@ -66,11 +69,11 @@ public class HTTPAccessLogger {
             logWriterThread.setName("HTTP Access Background Logger");
             logWriterThread.start();
 
-            // Add shutdown hook
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            // Subscribe to global shutdown event
+            GlobalEventBus.subscribe(ServerShutdownEvent.class, event -> {
                 log.info("Shutting down HTTP Access Logger ...");
                 this.stop();
-            }));
+            });
         } else {
             log.info("HTTP Access Logger deactivated, because no logging directory was set");
             logFileDirectory = null;
