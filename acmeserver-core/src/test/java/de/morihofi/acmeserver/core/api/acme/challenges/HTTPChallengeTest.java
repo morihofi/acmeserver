@@ -11,10 +11,8 @@ import de.morihofi.acmeserver.types.intf.INonceManager;
 import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import okhttp3.OkHttpClient;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -22,11 +20,17 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.Security;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class HTTPChallengeTest {
+
+    @BeforeAll
+    static void addProvider() {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     static class DummyNetworkClient implements INetworkClient {
         private final OkHttpClient client = new OkHttpClient();
@@ -79,7 +83,7 @@ class HTTPChallengeTest {
     @Test
     @DisplayName("check returns success for valid token")
     void testCheckValid() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
         kpg.initialize(512);
         KeyPair kp = kpg.generateKeyPair();
         String token = "token123";
@@ -97,7 +101,7 @@ class HTTPChallengeTest {
     @Test
     @DisplayName("check fails on invalid token")
     void testCheckInvalid() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
         kpg.initialize(512);
         KeyPair kp = kpg.generateKeyPair();
         String token = "token123";

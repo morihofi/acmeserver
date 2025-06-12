@@ -15,6 +15,8 @@ import de.morihofi.acmeserver.types.intf.network.dns.IDoHClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.utils.base64.Base64Tools;
 import de.morihofi.acmeserver.utils.network.dns.DNSLookup;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -26,12 +28,17 @@ import org.xbill.DNS.Type;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.Security;
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class DNSChallengeTest {
+    @BeforeAll
+    static void addProvider() {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     static class DummyServerInstance implements IServerInstance {
         private final INetworkClient net = new INetworkClient() {
@@ -60,7 +67,7 @@ class DNSChallengeTest {
     @Test
     @DisplayName("getDigest computes expected value")
     void testGetDigest() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
         kpg.initialize(512);
         KeyPair kp = kpg.generateKeyPair();
         String token = "tok";
@@ -71,7 +78,7 @@ class DNSChallengeTest {
     @Test
     @DisplayName("check returns success when TXT record matches")
     void testCheckSuccess() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
         kpg.initialize(512);
         KeyPair kp = kpg.generateKeyPair();
         String token = "tok";
@@ -91,7 +98,7 @@ class DNSChallengeTest {
     @Test
     @DisplayName("check fails when no record matches")
     void testCheckFail() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
         kpg.initialize(512);
         KeyPair kp = kpg.generateKeyPair();
         String token = "tok";
