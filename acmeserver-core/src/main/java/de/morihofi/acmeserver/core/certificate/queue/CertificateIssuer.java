@@ -26,7 +26,7 @@ import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.base64.Base64Tools;
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;
-import de.morihofi.acmeserver.core.tools.certificate.generator.ServerCertificateGenerator;
+import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.utils.network.dns.CAAValidator;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMECaaException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -117,15 +117,18 @@ public class CertificateIssuer {
                 )
         );
 
-        X509Certificate acmeGeneratedCertificate = ServerCertificateGenerator.createServerCertificate(
-                provisioner.getIntermediateCaKeyPair(cryptoStoreManager),
-                provisioner.getIntermediateCaCertificate(cryptoStoreManager),
-                pkPemObject.getContent(),
-                csrIdentifiers.toArray(new Identifier[0]),
-                order.getNotBefore(),
-                order.getNotAfter(),
-                provisioner,
-                serverInstance
+        X509Certificate acmeGeneratedCertificate = X509Generator.generate(
+                X509Generator.Request.builder()
+                        .type(X509Generator.Type.SERVER)
+                        .issuerKeyPair(provisioner.getIntermediateCaKeyPair(cryptoStoreManager))
+                        .issuerCertificate(provisioner.getIntermediateCaCertificate(cryptoStoreManager))
+                        .serverPublicKeyBytes(pkPemObject.getContent())
+                        .identifiers(csrIdentifiers)
+                        .startDate(order.getNotBefore())
+                        .endDate(order.getNotAfter())
+                        .provisioner(provisioner)
+                        .serverInstance(serverInstance)
+                        .build()
         );
 
         BigInteger serialNumber = acmeGeneratedCertificate.getSerialNumber();

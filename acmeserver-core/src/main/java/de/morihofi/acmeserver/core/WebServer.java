@@ -39,6 +39,7 @@ import de.morihofi.acmeserver.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.core.tools.JavalinSecurityHelper;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewManager;
+import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.core.helper.http.HttpHeaderUtil;
 import de.morihofi.acmeserver.core.tools.network.logging.HTTPAccessLogger;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
@@ -270,10 +271,17 @@ public class WebServer {
                 }
 
                 log.info("Generating Intermediate CA");
-                intermediateCertificate =
-                        CertificateAuthorityGenerator.createIntermediateCaCertificate(cryptoStoreManager, intermediateKeyPair,
-                                provisioner.getCertificateConfig(),
-                                provisioner.getFullCrlUrl(serverInstance), provisioner.getFullOcspUrl(serverInstance));
+                intermediateCertificate = X509Generator.generate(
+                        X509Generator.Request.builder()
+                                .type(X509Generator.Type.INTERMEDIATE_CA)
+                                .certificateConfig(provisioner.getCertificateConfig())
+                                .ownKeyPair(intermediateKeyPair)
+                                .issuerKeyPair(cryptoStoreManager.getCerificateAuthorityKeyPair(serverInstance.getRootCa()))
+                                .issuerCertificate((X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(serverInstance.getRootCaAlias()))
+                                .crlDistributionUrl(provisioner.getFullCrlUrl(serverInstance))
+                                .ocspServiceEndpoint(provisioner.getFullOcspUrl(serverInstance))
+                                .build()
+                );
                 log.info("Storing generated Intermedia CA");
                 X509Certificate[] chain = new X509Certificate[]{intermediateCertificate,
                         (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(serverInstance.getRootCaAlias())};

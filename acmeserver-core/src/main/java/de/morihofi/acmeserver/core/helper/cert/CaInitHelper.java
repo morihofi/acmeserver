@@ -17,7 +17,7 @@
 package de.morihofi.acmeserver.core.helper.cert;
 
 import de.morihofi.acmeserver.core.database.HibernateUtil;
-import de.morihofi.acmeserver.core.tools.certificate.generator.CertificateAuthorityGenerator;
+import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
 import de.morihofi.acmeserver.types.database.entities.*;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
@@ -73,8 +73,13 @@ public class CaInitHelper {
                 rootCaEntity.setInternalUuid(UUID.randomUUID().toString());
 
                 log.info("Creating CA");
-                caCertificate =
-                        CertificateAuthorityGenerator.generateCertificateAuthorityCertificate(rootCaEntity.getCertificateConfig(), caKeyPair);
+                caCertificate = X509Generator.generate(
+                        X509Generator.Request.builder()
+                                .type(X509Generator.Type.ROOT_CA)
+                                .certificateConfig(rootCaEntity.getCertificateConfig())
+                                .ownKeyPair(caKeyPair)
+                                .build()
+                );
 
                 log.info("Writing CA to keystore");
                 caKeyStore.setKeyEntry(rootCaEntity.getInternalUuid(), caKeyPair.getPrivate(), "".toCharArray(), new X509Certificate[]{caCertificate});
