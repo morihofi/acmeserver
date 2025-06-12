@@ -41,7 +41,6 @@ import java.util.List;
  */
 @Slf4j
 public class DoHClient implements IDoHClient {
-    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private final String dohUrl;
     private final OkHttpClient client;
 
