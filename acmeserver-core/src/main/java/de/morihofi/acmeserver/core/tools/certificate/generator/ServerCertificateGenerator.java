@@ -53,8 +53,13 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Class for generating the certificate for the Webserver
+ * This class provides methods to generate an X509 server certificate using an intermediate certificate authority's key pair and certificate.
+ * <p>
+ * Note: This class is deprecated and may be removed in future versions. Use the new certificate generation tools instead.
+ * @see de.morihofi.acmeserver.cryptography.certificate.X509Generator for newer certificate generation methods.
+ * @see X509CertificateTools for utility methods related to X509 certificates.
  */
+@Deprecated
 public class ServerCertificateGenerator {
 
 

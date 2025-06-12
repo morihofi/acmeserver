@@ -45,6 +45,15 @@ import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * This class provides methods to generate X509 certificates for certificate authorities (CA).
+ * It includes methods to create self-signed CA certificates and intermediate CA certificates.
+ * <p>
+ * Note: This class is deprecated and may be removed in future versions. Use the new certificate generation tools instead.
+ * @see de.morihofi.acmeserver.cryptography.certificate.X509Generator for newer certificate generation methods.
+ * @see X509CertificateTools for utility methods related to X509 certificates.
+ */
+@Deprecated
 public class CertificateAuthorityGenerator {
 
     /**
