@@ -18,7 +18,7 @@ package de.morihofi.acmeserver.core.tools.certificate.renew;
 
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
-import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewManager;
+import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -32,7 +32,7 @@ import java.security.cert.X509Certificate;
 public class IntermediateCaRenew {
 
 
-    public static CertificateRenewManager.CertificateData renewIntermediateCertificate(KeyPair provisionerKeyPair, AcmeProvisioner provisioner,
+    public static CertificateRenewScheduler.CertificateData renewIntermediateCertificate(KeyPair provisionerKeyPair, AcmeProvisioner provisioner,
                                                                                        IServerInstance serverInstance, String intermediateAlias) throws CertificateException, OperatorCreationException,
             IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
 
@@ -58,6 +58,6 @@ public class IntermediateCaRenew {
                 serverInstance.getCryptoStoreManager().getCerificateAuthorityX509Certificate(serverInstance.getRootCa())
         };
 
-        return new CertificateRenewManager.CertificateData(chain, provisionerKeyPair);
+        return new CertificateRenewScheduler.CertificateData(chain, provisionerKeyPair);
     }
 }

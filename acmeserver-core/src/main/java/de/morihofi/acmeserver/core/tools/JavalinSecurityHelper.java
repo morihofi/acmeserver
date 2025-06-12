@@ -21,7 +21,7 @@ import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
-import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewManager;
+import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.datetime.DateTools;
@@ -61,7 +61,7 @@ public class JavalinSecurityHelper {
      *                   during automatic certificate renewal.
      */
     public static void initSecureApi(Javalin app, IServerInstance instance,
-                                     CertificateRenewManager certificateRenewManager) throws Exception {
+                                     CertificateRenewScheduler certificateRenewManager) throws Exception {
 
         ICryptoStoreManager cryptoStoreManager = instance.getCryptoStoreManager();
         Config appConfig = instance.getAppConfig();
@@ -102,7 +102,7 @@ public class JavalinSecurityHelper {
 
         {
             String alias = CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI;
-            CertificateRenewManager.CertificateData certData = generateAcmeApiClientCertificate(instance, appConfig);
+            CertificateRenewScheduler.CertificateData certData = generateAcmeApiClientCertificate(instance, appConfig);
 
             if (certData.keyPair() != null && certData.certificateChain() != null) {
                 log.info("Saving certificate and key for alias {} in keystore", alias);
@@ -164,7 +164,7 @@ public class JavalinSecurityHelper {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws UnrecoverableKeyException If a keystore key cannot be recovered.
      */
-    private static CertificateRenewManager.CertificateData generateAcmeApiClientCertificate(IServerInstance serverInstance,
+    private static CertificateRenewScheduler.CertificateData generateAcmeApiClientCertificate(IServerInstance serverInstance,
                                                                                             Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
             OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
 
@@ -220,9 +220,9 @@ public class JavalinSecurityHelper {
                     rootCertificate
             };
 
-            return new CertificateRenewManager.CertificateData(chain, acmeAPIKeyPair);
+            return new CertificateRenewScheduler.CertificateData(chain, acmeAPIKeyPair);
         } else {
-            return new CertificateRenewManager.CertificateData(null, null);
+            return new CertificateRenewScheduler.CertificateData(null, null);
         }
     }
 }
