@@ -38,7 +38,8 @@ import de.morihofi.acmeserver.types.exception.ACMEException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.core.tools.JavalinSecurityHelper;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
-import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewManager;
+import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
+import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.ProvisionerRenewSubscriber;
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.core.helper.http.HttpHeaderUtil;
 import de.morihofi.acmeserver.core.tools.network.logging.HTTPAccessLogger;
@@ -67,9 +68,9 @@ public class WebServer {
     private final HTTPAccessLogger httpAccessLogger;
 
     /**
-     * Instance of CertificateRenewManager for managing certificate renewals.
+     * Scheduler for automatically renewing certificates.
      */
-    private final CertificateRenewManager certificateRenewManager;
+    private final CertificateRenewScheduler certificateRenewScheduler;
 
     /**
      * Instance of IServerInstance providing access to server-related configurations and utilities.
@@ -98,7 +99,7 @@ public class WebServer {
     public WebServer(IServerInstance serverInstance) throws IOException {
         this.serverInstance = serverInstance;
         this.httpAccessLogger = new HTTPAccessLogger(serverInstance.getAppConfig(), serverInstance.getEventBus());
-        this.certificateRenewManager = new CertificateRenewManager(serverInstance.getCryptoStoreManager(), serverInstance.getEventBus());
+        this.certificateRenewScheduler = new CertificateRenewScheduler(serverInstance.getCryptoStoreManager(), serverInstance.getEventBus());
     }
 
     /**
@@ -110,7 +111,7 @@ public class WebServer {
         log.info("Starting ACME API WebServer");
 
 
-        JavalinSecurityHelper.initSecureApi(app, serverInstance, certificateRenewManager);
+        JavalinSecurityHelper.initSecureApi(app, serverInstance, certificateRenewScheduler);
 
         app.before(ctx -> {
             ctx.header("Access-Control-Allow-Origin", "*");
@@ -213,8 +214,15 @@ public class WebServer {
 
         log.info("Starting the CRL generation Scheduler");
         CRLScheduler.startScheduler(serverInstance);
+
+        // Register and initialize provisioner certificate watcher
+        ProvisionerRenewSubscriber provisionerWatcher =
+                new ProvisionerRenewSubscriber(serverInstance, certificateRenewScheduler);
+        serverInstance.getEventBus().register(provisionerWatcher);
+        provisionerWatcher.initialize();
+
         log.info("Starting the certificate renew watcher");
-        certificateRenewManager.startScheduler();
+        certificateRenewScheduler.startScheduler();
 
         if (Main.getServerOptions().contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
             log.info("Starting Certificate Issuer");
@@ -303,7 +311,7 @@ public class WebServer {
 
 
             // Initialize the CertificateRenewWatcher for this provisioner
-            certificateRenewManager.registerNewCertificateRenewWatcher(IntermediateKeyAlias, provisioner,
+            certificateRenewScheduler.registerNewCertificateRenewWatcher(IntermediateKeyAlias, provisioner,
                     (givenProvisioner, x509Certificate, keyPair) -> {
                         return IntermediateCaRenew.renewIntermediateCertificate(keyPair, givenProvisioner,
                                 serverInstance, IntermediateKeyAlias);

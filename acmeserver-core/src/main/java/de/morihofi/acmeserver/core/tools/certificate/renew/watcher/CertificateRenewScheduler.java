@@ -38,10 +38,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Manages the automatic renewal of certificates. Registers certificates to be monitored and renewed if they are about to expire.
+ * Scheduler that periodically checks registered certificates and renews them
+ * when they are close to expiry.
  */
 @Slf4j
-public class CertificateRenewManager {
+public class CertificateRenewScheduler {
     private static final int PERIOD = 6;
     private static final TimeUnit TIME_UNIT = TimeUnit.HOURS;
     private static final int RENEWAL_THRESHOLD_DAYS = 7; // Tage vor Ablauf, an denen das Zertifikat erneuert werden soll
@@ -53,11 +54,11 @@ public class CertificateRenewManager {
     private final Map<String, RenewEntry> renewMap = Collections.synchronizedMap(new HashMap<>());
 
     /**
-     * Constructor for CertificateRenewManager.
+     * Constructs a new scheduler instance.
      *
      * @param cryptoStoreManager The CryptoStoreManager instance used for key and certificate management.
      */
-    public CertificateRenewManager(ICryptoStoreManager cryptoStoreManager, EventBus eventBus) {
+    public CertificateRenewScheduler(ICryptoStoreManager cryptoStoreManager, EventBus eventBus) {
         this.cryptoStoreManager = cryptoStoreManager;
         this.eventBus = eventBus;
     }
@@ -90,6 +91,25 @@ public class CertificateRenewManager {
         }
 
         renewMap.put(alias, new RenewEntry(provisioner, regenerationFunction, triggerAfterRegeneration));
+    }
+
+    /**
+     * Removes a previously registered renew watcher.
+     *
+     * @param alias keystore alias of the watcher to remove
+     */
+    public void unregisterCertificateRenewWatcher(String alias) {
+        renewMap.remove(alias);
+    }
+
+    /**
+     * Checks whether a renew watcher is already registered for the given alias.
+     *
+     * @param alias keystore alias to check
+     * @return {@code true} if a watcher for this alias exists
+     */
+    public boolean isWatcherRegistered(String alias) {
+        return renewMap.containsKey(alias);
     }
 
     /**
