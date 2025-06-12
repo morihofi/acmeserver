@@ -66,9 +66,9 @@ Server.
   writing this) are included, if specified version not available it will try to fetch these from the Mozilla server.
   Note: Version before 5.1 might be a bit buggy)
 - Support for ACME account key rollover
+- CAA-Lookup (see [RFC 6844](https://datatracker.ietf.org/doc/html/rfc6844))
 
 ## Features in the future
-- CAA-Lookup (see [RFC 6844](https://datatracker.ietf.org/doc/html/rfc6844))
 
 ## ✅ Testing status
 
