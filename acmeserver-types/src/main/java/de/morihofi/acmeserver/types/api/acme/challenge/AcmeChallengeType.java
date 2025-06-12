@@ -34,7 +34,7 @@ public enum AcmeChallengeType {
      */
     DNS_01("dns-01"),
     /**
-     * TLS-ALPN-01 Challenge (unsupported, maybe implemented in future)
+     * TLS-ALPN-01 Challenge
      */
     TLS_ALPN_01("tls-alpn-01");
 

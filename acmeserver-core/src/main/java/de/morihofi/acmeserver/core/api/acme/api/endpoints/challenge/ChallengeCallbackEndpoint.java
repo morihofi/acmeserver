@@ -22,6 +22,7 @@ import de.morihofi.acmeserver.core.api.acme.api.endpoints.challenge.objects.ACME
 import de.morihofi.acmeserver.core.api.acme.challenges.ChallengeResult;
 import de.morihofi.acmeserver.core.api.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.core.api.acme.challenges.HTTPChallenge;
+import de.morihofi.acmeserver.core.api.acme.challenges.TLSALPNChallenge;
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
 import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
 import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifierChallenge;
@@ -61,8 +62,8 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         if (challengeId.isEmpty()) {
             throw new ACMEMalformedException("Challenge ID is missing or empty");
         }
-        if (!"dns-01".equals(challengeType) && !"http-01".equals(challengeType)) {
-            throw new ACMEMalformedException("Challenge type must be either 'dns-01' or 'http-01'");
+        if (!"dns-01".equals(challengeType) && !"http-01".equals(challengeType) && !"tls-alpn-01".equals(challengeType)) {
+            throw new ACMEMalformedException("Challenge type must be either 'dns-01', 'http-01' or 'tls-alpn-01'");
         }
 
 
@@ -104,6 +105,12 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
             case "dns-01" -> DNSChallenge.check(
                     identifierChallenge.getAuthorizationToken(),
                     nonWildcardDomain,
+                    identifierChallenge.getIdentifier().getOrder().getAccount(),
+                    getServerInstance()
+            );
+            case "tls-alpn-01" -> TLSALPNChallenge.check(
+                    identifierChallenge.getAuthorizationToken(),
+                    identifierChallenge.getIdentifier().getDataValue(),
                     identifierChallenge.getIdentifier().getOrder().getAccount(),
                     getServerInstance()
             );

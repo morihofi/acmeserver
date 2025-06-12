@@ -119,10 +119,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
                 if (!isWildcardDomain) {
                     acmeChallenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
-
-                    // This is just a placeholder for the currently unsupported TLS-ALPN Challenge
-                    // challenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
-
+                    acmeChallenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
                 }
 
                 // DNS-01 Challenge
@@ -130,9 +127,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
             } else if (idObj.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.IP) {
                 // HTTP-01 Challenge is the only allowed for IP addresses
                 acmeChallenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
-
-                // This is just a placeholder for the currently unsupported TLS-ALPN Challenge
-                // challenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier));
+                acmeChallenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.TLS_ALPN_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
             }
 
             // Save in database
