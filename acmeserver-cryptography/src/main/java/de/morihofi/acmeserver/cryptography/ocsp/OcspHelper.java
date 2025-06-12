@@ -14,19 +14,22 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.core.certificate.revokeDistribution;
+package de.morihofi.acmeserver.cryptography.ocsp;
 
 
 import de.morihofi.acmeserver.cryptography.keys.KeyHelper;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
+import de.morihofi.acmeserver.types.cryptography.revoke.RevokedCertificate;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.ocsp.*;
+import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
@@ -47,14 +50,14 @@ import java.util.Date;
 public class OcspHelper {
 
     /**
-     * Processes an OCSP (Online Certificate Status Protocol) request for a given certificate serial number. This method checks the status
-     * of the certificate using the current Certificate Revocation List (CRL) and generates an OCSP response accordingly.
+     * Processes an OCSP (Online Certificate Status Protocol) request for a given
+     * certificate serial number. The certificate status is resolved directly from
+     * the database and the appropriate OCSP response is generated.
      *
      * @param serialNumber The serial number of the certificate for which the OCSP response is requested.
      * @param provisioner  Provisioner Instance
      * @return An OCSPResp object representing the OCSP response for the given certificate.
      * @throws OCSPException                if there is an issue with OCSP processing.
-     * @throws CRLException                 if there is an issue with CRL processing.
      * @throws CertificateEncodingException if there is an issue with encoding certificates.
      * @throws OperatorCreationException    if there is an issue with operator creation.
      * @throws NoSuchAlgorithmException     if there is an issue with signing algorithm.
@@ -62,10 +65,16 @@ public class OcspHelper {
      * @throws KeyStoreException            if there is an issue with the keystore.
      */
     public static OCSPResp processOCSPRequest(BigInteger serialNumber, @NonNull AcmeProvisioner provisioner, @NonNull IServerInstance serverInstance) throws
-            OCSPException, CRLException, CertificateEncodingException, OperatorCreationException, KeyStoreException,
+            OCSPException, CertificateEncodingException, OperatorCreationException, KeyStoreException,
             UnrecoverableKeyException, NoSuchAlgorithmException {
 
-        CertificateStatus certStatus = CrlStore.getCertificateStatus(serialNumber, provisioner.getName());
+        RevokedCertificate rc = AcmeOrder.getRevokedCertificate(serialNumber, provisioner.getName(), serverInstance);
+        CertificateStatus certStatus;
+        if (rc != null) {
+            certStatus = new RevokedStatus(rc.revocationDate(), rc.revocationReason());
+        } else {
+            certStatus = CertificateStatus.GOOD;
+        }
 
         log.info("Status for serial number {} is: {}", serialNumber, (certStatus != CertificateStatus.GOOD ? "revoked" : "valid"));
 

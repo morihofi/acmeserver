@@ -4,16 +4,25 @@ import com.google.common.jimfs.Jimfs;
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
-import de.morihofi.acmeserver.cryptography.revoke.CrlGenerator;
-import de.morihofi.acmeserver.types.cryptography.revoke.RevokedCertificate;
+import de.morihofi.acmeserver.cryptography.ocsp.OcspHelper;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.AcmeProvisionerDomainNameRestriction;
 import de.morihofi.acmeserver.types.database.entities.CertificateConfig;
 import de.morihofi.acmeserver.types.database.entities.CertificateExpiration;
 import de.morihofi.acmeserver.types.database.entities.CertificateMetadata;
+import de.morihofi.acmeserver.types.database.entities.ProvisionerMeta;
+import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
+import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
+import de.morihofi.acmeserver.types.database.entities.RsaCertificateAlgorithm;
+import de.morihofi.acmeserver.types.config.Config;
+import de.morihofi.acmeserver.types.config.DatabaseConfig;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
+import de.morihofi.acmeserver.core.database.HibernateUtil;
+import org.hibernate.Transaction;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
@@ -26,11 +35,8 @@ import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.Security;
-import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
-import java.time.LocalTime;
 import java.util.Collections;
-import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -48,6 +54,7 @@ class OcspHelperTest {
     }
 
     private CryptoStoreManager csm;
+    private HibernateUtil hu;
     private IServerInstance si;
     private AcmeProvisioner prov;
 
@@ -76,32 +83,56 @@ class OcspHelperTest {
         csm.getKeyStore().setKeyEntry(csm.getKeyStoreAliasForProvisionerIntermediate("test"),
                 interKey.getPrivate(), "".toCharArray(), new java.security.cert.Certificate[]{interCert});
 
+        Config cfg = new Config();
+        DatabaseConfig db = new DatabaseConfig();
+        db.setJdbcUrl("jdbc:h2:mem:" + java.util.UUID.randomUUID() + ";DB_CLOSE_DELAY=-1");
+        db.setUser("sa");
+        db.setPassword("");
+        cfg.setDatabase(db);
+
+        hu = new HibernateUtil(cfg, true);
+
+        RootCa root = new RootCa();
+        root.setCertificateConfig(cfg("root"));
+        root.setInternalUuid("root");
+
         prov = new AcmeProvisioner();
         prov.setName("test");
+        prov.setRootCa(root);
+        prov.setMeta(new ProvisionerMeta("", ""));
+        prov.setCertificateConfig(cfg("inter"));
+        prov.setIssuedCertificateExpiration(new CertificateExpiration(0, 0, 1));
+        prov.setWildcardAllowed(false);
+        prov.setIpAllowed(true);
+        AcmeProvisionerDomainNameRestriction r = new AcmeProvisionerDomainNameRestriction();
+        r.setEnabled(false);
+        r.setMustEndWith(Collections.emptyList());
+        prov.setAcmeProvisionerDomainNameRestriction(r);
+
+        try (Session s = hu.getSessionFactory().openSession()) {
+            Transaction tx = s.beginTransaction();
+            s.persist(root);
+            s.persist(prov);
+            tx.commit();
+        }
 
         si = new IServerInstance() {
             @Override public String getServerURL() { return "https://example.com"; }
-            @Override public Session getDatabaseSession() { return null; }
+            @Override public Session getDatabaseSession() { return hu.getSessionFactory().openSession(); }
             @Override public ICryptoStoreManager getCryptoStoreManager() { return csm; }
-            @Override public de.morihofi.acmeserver.types.config.Config getAppConfig() { return null; }
+            @Override public de.morihofi.acmeserver.types.config.Config getAppConfig() { return cfg; }
             @Override public de.morihofi.acmeserver.types.intf.INonceManager getNonceManager() { return null; }
-            @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
+            @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return root; }
             @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
             @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
         };
-
-        X509CRL crl = CrlGenerator.generate(CrlGenerator.Request.builder()
-                .revokedCertificates(Collections.emptyList())
-                .caCert(interCert)
-                .caPrivateKey(interKey.getPrivate())
-                .updateMinutes(5)
-                .build());
-        CrlStore.entryMap.put("test", new CrlStore.CrlEntry(LocalTime.now(), crl));
     }
 
     @AfterEach
     void cleanup() {
-        CrlStore.entryMap.clear();
+        if (hu != null && hu.getSessionFactory() != null) {
+            hu.getSessionFactory().close();
+        }
     }
 
     @Test
@@ -116,16 +147,25 @@ class OcspHelperTest {
     @Test
     @DisplayName("OCSP response revoked for revoked cert")
     void testOcspRevoked() throws Exception {
-        KeyPair intKey = csm.getIntermediateCerificateAuthorityKeyPair("test");
-        X509Certificate intCert = csm.getX509CertificateForProvisioner("test");
-        RevokedCertificate rc = new RevokedCertificate(BigInteger.TEN, new Date(), 0);
-        X509CRL crl = CrlGenerator.generate(CrlGenerator.Request.builder()
-                .revokedCertificate(rc)
-                .caCert(intCert)
-                .caPrivateKey(intKey.getPrivate())
-                .updateMinutes(5)
-                .build());
-        CrlStore.entryMap.put("test", new CrlStore.CrlEntry(LocalTime.now(), crl));
+        try (Session s = si.getDatabaseSession()) {
+            Transaction tx = s.beginTransaction();
+
+            AcmeAccount acc = new AcmeAccount();
+            acc.setAccountId("acc");
+            acc.setPublicKeyPEM("");
+            acc.setEmails(Collections.emptyList());
+            acc.setAcmeProvisioner(prov);
+            s.persist(acc);
+
+            AcmeOrder order = new AcmeOrder();
+            order.setAccount(acc);
+            order.setCertificateSerialNumber(BigInteger.TEN);
+            order.setRevokeStatusCode(0);
+            order.setRevokeTimestamp(new java.sql.Timestamp(System.currentTimeMillis()));
+            s.persist(order);
+
+            tx.commit();
+        }
 
         OCSPResp resp = OcspHelper.processOCSPRequest(BigInteger.TEN, prov, si);
         BasicOCSPResp basic = (BasicOCSPResp) resp.getResponseObject();
