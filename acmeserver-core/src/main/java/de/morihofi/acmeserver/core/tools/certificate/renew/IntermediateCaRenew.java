@@ -17,7 +17,7 @@
 package de.morihofi.acmeserver.core.tools.certificate.renew;
 
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
-import de.morihofi.acmeserver.core.tools.certificate.generator.CertificateAuthorityGenerator;
+import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import lombok.extern.slf4j.Slf4j;
@@ -38,12 +38,16 @@ public class IntermediateCaRenew {
 
 
         // Generate a new certificate
-        X509Certificate renewedCertificate = CertificateAuthorityGenerator.createIntermediateCaCertificate(
-                serverInstance,
-                provisionerKeyPair,
-                provisioner.getCertificateConfig(),
-                provisioner.getFullCrlUrl(serverInstance),
-                provisioner.getFullOcspUrl(serverInstance)
+        X509Certificate renewedCertificate = X509Generator.generate(
+                X509Generator.Request.builder()
+                        .type(X509Generator.Type.INTERMEDIATE_CA)
+                        .certificateConfig(provisioner.getCertificateConfig())
+                        .issuerKeyPair(serverInstance.getCryptoStoreManager().getCerificateAuthorityKeyPair(serverInstance.getRootCa()))
+                        .issuerCertificate(serverInstance.getCryptoStoreManager().getCerificateAuthorityX509Certificate(serverInstance.getRootCa()))
+                        .ownKeyPair(provisionerKeyPair)
+                        .crlDistributionUrl(provisioner.getFullCrlUrl(serverInstance))
+                        .ocspServiceEndpoint(provisioner.getFullOcspUrl(serverInstance))
+                        .build()
         );
 
         KeyStore ks = serverInstance.getCryptoStoreManager().getKeyStore();

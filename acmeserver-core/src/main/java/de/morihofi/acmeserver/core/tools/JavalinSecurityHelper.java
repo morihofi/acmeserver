@@ -20,7 +20,7 @@ import de.morihofi.acmeserver.cryptography.certificate.X509CertificateTools;
 import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
-import de.morihofi.acmeserver.core.tools.certificate.generator.ServerCertificateGenerator;
+import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewManager;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
@@ -201,17 +201,17 @@ public class JavalinSecurityHelper {
                     )
             );
 
-            X509Certificate acmeAPICertificate = ServerCertificateGenerator.createServerCertificate(
-                    rootCaKeyPair,
-                    intermediateCertificate,
-                    acmeAPIKeyPair.getPublic().getEncoded(),
-                    new Identifier[]{
-                            new Identifier(Identifier.IDENTIFIER_TYPE.DNS, appConfig.getServer().getDnsName())
-                    },
-                    startDate,
-                    endDate,
-                    null,
-                    serverInstance
+            X509Certificate acmeAPICertificate = X509Generator.generate(
+                    X509Generator.Request.builder()
+                            .type(X509Generator.Type.SERVER)
+                            .issuerKeyPair(rootCaKeyPair)
+                            .issuerCertificate(intermediateCertificate)
+                            .serverPublicKeyBytes(acmeAPIKeyPair.getPublic().getEncoded())
+                            .identifier(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, appConfig.getServer().getDnsName()))
+                            .startDate(startDate)
+                            .endDate(endDate)
+                            .serverInstance(serverInstance)
+                            .build()
             );
 
             X509Certificate[] chain = new X509Certificate[]{
