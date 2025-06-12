@@ -1,4 +1,5 @@
 package de.morihofi.acmeserver.core.api.acme.api.endpoints.order;
+import de.morihofi.acmeserver.types.events.EventBus;
 
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
@@ -44,6 +45,7 @@ class OrderCertEndpointTest {
         @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
         @Override public de.morihofi.acmeserver.types.runtime.BuildMetadata getBuildMetadata() { return null; }
         @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
+            @Override public EventBus getEventBus() { return new EventBus(); }
     }
 
     private static CertificateConfig cfg(String cn) {

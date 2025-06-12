@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.events.ProvisionerCreatedEvent;
 
 import java.io.IOException;
@@ -44,7 +44,7 @@ public class CaInitHelper {
     /**
      * Initializes the Certificate Authority (CA) by generating or loading the CA certificate and key pair.
      */
-    public static RootCa initializeCA(@NonNull HibernateUtil h, ICryptoStoreManager cryptoStoreManager) throws NoSuchAlgorithmException, CertificateException, IOException, OperatorCreationException,
+    public static RootCa initializeCA(@NonNull HibernateUtil h, ICryptoStoreManager cryptoStoreManager, EventBus eventBus) throws NoSuchAlgorithmException, CertificateException, IOException, OperatorCreationException,
             NoSuchProviderException, KeyStoreException, UnrecoverableKeyException {
         try (Session session = h.getSessionFactory().openSession()) {
 
@@ -98,7 +98,7 @@ public class CaInitHelper {
 
             Transaction transaction = session.beginTransaction();
             if (session.createQuery("FROM AcmeProvisioner", AcmeProvisioner.class).list().isEmpty()) {
-                createDefaultProvisioner(session, cryptoStoreManager, rootCaEntity, caKeyPair, caCertificate);
+                createDefaultProvisioner(session, cryptoStoreManager, rootCaEntity, caKeyPair, caCertificate, eventBus);
             }
             transaction.commit();
 
@@ -108,7 +108,8 @@ public class CaInitHelper {
     }
 
     private static void createDefaultProvisioner(Session session, ICryptoStoreManager cryptoStoreManager,
-                                                 RootCa rootCa, KeyPair caKeyPair, X509Certificate caCertificate)
+                                                 RootCa rootCa, KeyPair caKeyPair, X509Certificate caCertificate,
+                                                 EventBus eventBus)
             throws NoSuchAlgorithmException, CertificateException, KeyStoreException, OperatorCreationException, IOException, NoSuchProviderException {
 
         log.info("Creating default provisioner");
@@ -154,6 +155,6 @@ public class CaInitHelper {
         provisioner.setAcmeProvisionerDomainNameRestriction(restr);
 
         session.persist(provisioner);
-        GlobalEventBus.publish(new ProvisionerCreatedEvent(provisioner));
+        eventBus.publish(new ProvisionerCreatedEvent(provisioner));
     }
 }

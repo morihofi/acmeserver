@@ -37,7 +37,7 @@ import java.util.Locale;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.events.ServerShutdownEvent;
 
 @Slf4j
@@ -49,10 +49,12 @@ public class HTTPAccessLogger {
     private final BlockingQueue<String> logQueue = new LinkedBlockingQueue<>();
     private final Thread logWriterThread;
     private final Path logFileDirectory;
+    private final EventBus eventBus;
 
     private volatile boolean running = true;
 
-    public HTTPAccessLogger(Config appConfig) throws IOException {
+    public HTTPAccessLogger(Config appConfig, EventBus eventBus) throws IOException {
+        this.eventBus = eventBus;
 
         String loggingDirectory = appConfig.getServer().getLoggingDirectory();
 
@@ -70,7 +72,7 @@ public class HTTPAccessLogger {
             logWriterThread.start();
 
             // Subscribe to global shutdown event
-            GlobalEventBus.subscribe(ServerShutdownEvent.class, event -> {
+            eventBus.subscribe(ServerShutdownEvent.class, event -> {
                 log.info("Shutting down HTTP Access Logger ...");
                 this.stop();
             });

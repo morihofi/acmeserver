@@ -35,7 +35,7 @@ import de.morihofi.acmeserver.cryptography.pem.PemUtil;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.regex.EmailValidator;
 import de.morihofi.acmeserver.core.helper.http.HttpHeaderUtil;
-import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.events.AcmeAccountCreatedEvent;
 import io.javalin.http.Context;
 
@@ -134,7 +134,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
             session.persist(account);
             transaction.commit();
             log.info("New ACME account created with account id {}", accountId);
-            GlobalEventBus.publish(new AcmeAccountCreatedEvent(account));
+            getServerInstance().getEventBus().publish(new AcmeAccountCreatedEvent(account));
         } catch (Exception e) {
             log.error("Unable to create new ACME account", e);
             throw new ACMEServerInternalException(e.getMessage());

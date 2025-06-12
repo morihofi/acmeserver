@@ -34,4 +34,4 @@ sequenceDiagram
     API->>EventBus: AcmeNonceRedeemedEvent
 ```
 
-Each event is dispatched to all registered listeners via `GlobalEventBus`.
+Each event is dispatched to all registered listeners via the server instance's `EventBus`.

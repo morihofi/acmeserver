@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.utils.event;
+package de.morihofi.acmeserver.types.events;
 
 import de.morihofi.acmeserver.types.events.AbstractEvent;
 import java.util.List;

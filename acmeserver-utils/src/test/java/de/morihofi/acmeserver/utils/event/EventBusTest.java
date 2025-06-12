@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.utils.event;
 
 import de.morihofi.acmeserver.types.events.AbstractEvent;
+import de.morihofi.acmeserver.types.events.EventBus;
+import de.morihofi.acmeserver.types.events.EventSubscriber;
 import de.morihofi.acmeserver.types.events.ServerShutdownEvent;
 import de.morihofi.acmeserver.types.events.ServerStartedEvent;
 import de.morihofi.acmeserver.types.events.AcmeAccountCreatedEvent;
@@ -10,7 +12,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class GlobalEventBusTest {
+class EventBusTest {
 
     static class DummySubscriber implements EventSubscriber {
         int count;
@@ -30,25 +32,26 @@ class GlobalEventBusTest {
 
     @Test
     void testRegisterAndPublish() {
+        EventBus bus = new EventBus();
         DummySubscriber sub = new DummySubscriber();
-        GlobalEventBus.register(sub);
+        bus.register(sub);
 
         ServerStartedEvent start = new ServerStartedEvent(null);
-        GlobalEventBus.publish(start);
+        bus.publish(start);
         assertEquals(1, sub.count);
         assertEquals(start, sub.last);
 
         ServerShutdownEvent shut = new ServerShutdownEvent(null);
-        GlobalEventBus.publish(shut);
+        bus.publish(shut);
         assertEquals(2, sub.count);
         assertEquals(shut, sub.last);
 
         // Event not handled should be ignored
-        GlobalEventBus.publish(new AcmeAccountCreatedEvent(null));
+        bus.publish(new AcmeAccountCreatedEvent(null));
         assertEquals(2, sub.count);
 
-        GlobalEventBus.unregister(sub);
-        GlobalEventBus.publish(new ServerStartedEvent(null));
+        bus.unregister(sub);
+        bus.publish(new ServerStartedEvent(null));
         assertEquals(2, sub.count);
     }
 }

@@ -6,6 +6,7 @@ import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import lombok.NonNull;
 import org.hibernate.Session;
+import de.morihofi.acmeserver.types.events.EventBus;
 
 public interface IServerInstance {
     /**
@@ -73,4 +74,12 @@ public interface IServerInstance {
      */
     @NonNull
     INetworkClient getNetworkClient();
+
+    /**
+     * Access to the event bus associated with this server instance.
+     *
+     * @return event bus for publishing and subscribing to events
+     */
+    @NonNull
+    EventBus getEventBus();
 }

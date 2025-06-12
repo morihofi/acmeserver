@@ -21,7 +21,7 @@ import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.cryptography.keystore.KeyStoreUtil;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.utils.lambda.TriFunction;
-import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.events.ProvisionerCertificateRenewedEvent;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +49,7 @@ public class CertificateRenewManager {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final ICryptoStoreManager cryptoStoreManager;
+    private final EventBus eventBus;
     private final Map<String, RenewEntry> renewMap = Collections.synchronizedMap(new HashMap<>());
 
     /**
@@ -56,8 +57,9 @@ public class CertificateRenewManager {
      *
      * @param cryptoStoreManager The CryptoStoreManager instance used for key and certificate management.
      */
-    public CertificateRenewManager(ICryptoStoreManager cryptoStoreManager) {
+    public CertificateRenewManager(ICryptoStoreManager cryptoStoreManager, EventBus eventBus) {
         this.cryptoStoreManager = cryptoStoreManager;
+        this.eventBus = eventBus;
     }
 
     /**
@@ -155,7 +157,7 @@ public class CertificateRenewManager {
                             newCertificateData.certificateChain()
                     );
                     cryptoStoreManager.saveKeystore();
-                    GlobalEventBus.publish(new ProvisionerCertificateRenewedEvent(provisioner));
+                    eventBus.publish(new ProvisionerCertificateRenewedEvent(provisioner));
 
                     if (renewEntry.triggerAfterRegeneration != null) {
                         log.info("Running post configuration runnable");

@@ -22,6 +22,7 @@ import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.INonceManager;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
+import de.morihofi.acmeserver.types.events.EventBus;
 import okhttp3.OkHttpClient;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -137,8 +138,9 @@ class KeyChangeEndpointTest {
         sc.setDnsName("example.com");
         cfg.setServer(sc);
 
-        HibernateUtil hu = new HibernateUtil(cfg, true);
-        NonceManager nm = new NonceManager(hu, true);
+        EventBus bus = new EventBus();
+        HibernateUtil hu = new HibernateUtil(cfg, true, bus);
+        NonceManager nm = new NonceManager(hu, true, bus);
 
         // create basic provisioner and root CA
         try (Session s = hu.getSessionFactory().openSession()) {
@@ -173,6 +175,7 @@ class KeyChangeEndpointTest {
             @Override public RootCa getRootCa() { return new RootCa(); }
             @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
             @Override public INetworkClient getNetworkClient() { return new DummyNetworkClient(); }
+            @Override public EventBus getEventBus() { return new EventBus(); }
         };
     }
 

@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.utils.event;
+package de.morihofi.acmeserver.types.events;
 
 /**
  * Functional interface for handling events.

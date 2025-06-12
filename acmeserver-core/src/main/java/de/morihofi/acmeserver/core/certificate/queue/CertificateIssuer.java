@@ -29,7 +29,7 @@ import de.morihofi.acmeserver.cryptography.pem.PemUtil;
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.utils.network.dns.CAAValidator;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMECaaException;
-import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.events.BeforeAcmeCertificateCreatedEvent;
 import de.morihofi.acmeserver.types.events.AcmeCertificateCreatedEvent;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -108,7 +108,7 @@ public class CertificateIssuer {
             }
         }
 
-        GlobalEventBus.publish(new BeforeAcmeCertificateCreatedEvent(order));
+        serverInstance.getEventBus().publish(new BeforeAcmeCertificateCreatedEvent(order));
 
         /*
             We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using
@@ -154,7 +154,7 @@ public class CertificateIssuer {
         session.merge(order);
 
         transaction.commit();
-        GlobalEventBus.publish(new AcmeCertificateCreatedEvent(order, acmeGeneratedCertificate));
+        serverInstance.getEventBus().publish(new AcmeCertificateCreatedEvent(order, acmeGeneratedCertificate));
 
         log.info("Stored certificate successful");
     }

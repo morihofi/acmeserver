@@ -33,7 +33,7 @@ import de.morihofi.acmeserver.types.exception.exceptions.ACMEResourceNotFoundExc
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.datetime.DateTools;
 import de.morihofi.acmeserver.core.helper.http.HttpHeaderUtil;
-import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.events.BeforeChallengeEvent;
 import de.morihofi.acmeserver.types.events.AfterChallengeEvent;
 import de.morihofi.acmeserver.types.api.acme.challenge.AcmeChallengeType;
@@ -99,7 +99,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         AcmeOrderIdentifierChallenge.markChallenge(AcmeStatus.PROCESSING, challengeId, getServerInstance());
 
         AcmeChallengeType typeEnum = "http-01".equals(challengeType) ? AcmeChallengeType.HTTP_01 : AcmeChallengeType.DNS_01;
-        GlobalEventBus.publish(new BeforeChallengeEvent(typeEnum, challengeId));
+        getServerInstance().getEventBus().publish(new BeforeChallengeEvent(typeEnum, challengeId));
 
         ChallengeResult result = switch (challengeType) {
             case "http-01" -> HTTPChallenge.check(
@@ -131,7 +131,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEConnectionErrorException(result.errorReason());
         }
 
-        GlobalEventBus.publish(new AfterChallengeEvent(typeEnum, challengeId, result.successful()));
+        getServerInstance().getEventBus().publish(new AfterChallengeEvent(typeEnum, challengeId, result.successful()));
 
         // Reload identifier, e.g., host has validated
         identifierChallenge = AcmeOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getServerInstance());

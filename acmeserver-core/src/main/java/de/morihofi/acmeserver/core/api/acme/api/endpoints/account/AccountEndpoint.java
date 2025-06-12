@@ -27,7 +27,7 @@ import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEInvalidContactException;
-import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.events.AcmeAccountDeactivatedEvent;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.regex.EmailValidator;
@@ -119,7 +119,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
 
             transaction.commit();
             if (account.isDeactivated()) {
-                GlobalEventBus.publish(new AcmeAccountDeactivatedEvent(account));
+                getServerInstance().getEventBus().publish(new AcmeAccountDeactivatedEvent(account));
             }
         }
 

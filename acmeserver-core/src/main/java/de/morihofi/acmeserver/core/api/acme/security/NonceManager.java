@@ -22,7 +22,7 @@ import de.morihofi.acmeserver.core.database.HibernateUtil;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEBadNonceException;
 import de.morihofi.acmeserver.types.intf.INonceManager;
-import de.morihofi.acmeserver.utils.event.GlobalEventBus;
+import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.events.AcmeNonceRedeemedEvent;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +45,9 @@ public class NonceManager implements INonceManager {
     */
     private final HibernateUtil hibernateUtil;
 
+    /** Event bus for publishing nonce events. */
+    private final EventBus eventBus;
+
     /**
      * Debug mode flag. If true, nonce protection is disabled for debugging purposes.
      */
@@ -56,9 +59,10 @@ public class NonceManager implements INonceManager {
      * @param hibernateUtil The Hibernate utility for managing database operations.
      * @param debug         The debug mode flag.
      */
-    public NonceManager(HibernateUtil hibernateUtil, boolean debug) {
+    public NonceManager(HibernateUtil hibernateUtil, boolean debug, EventBus eventBus) {
         this.hibernateUtil = hibernateUtil;
         this.debug = debug;
+        this.eventBus = eventBus;
     }
 
 
@@ -115,7 +119,7 @@ public class NonceManager implements INonceManager {
 
             // Apply
             transaction.commit();
-            GlobalEventBus.publish(new AcmeNonceRedeemedEvent(nonce));
+            eventBus.publish(new AcmeNonceRedeemedEvent(nonce));
 
             return false;
 
