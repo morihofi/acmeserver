@@ -151,6 +151,51 @@ public class AcmeOrder implements Serializable {
     }
 
     /**
+     * Retrieves the revocation information for a specific certificate serial
+     * number. If the certificate is revoked, a {@link RevokedCertificate}
+     * instance containing the revocation date and reason is returned. Otherwise
+     * {@code null} is returned.
+     *
+     * @param serialNumber    Serial number of the certificate.
+     * @param provisionerName Name of the provisioner issuing the certificate.
+     * @param serverInstance  Server instance for database access.
+     * @return Revocation data or {@code null} if the certificate is not revoked
+     *         or could not be found.
+     */
+    public static RevokedCertificate getRevokedCertificate(BigInteger serialNumber,
+                                                           String provisionerName,
+                                                           IServerInstance serverInstance) {
+        RevokedCertificate rc = null;
+
+        try (Session session = serverInstance.getDatabaseSession()) {
+            Transaction transaction = session.beginTransaction();
+
+            Query<AcmeOrder> query = session.createQuery(
+                    "FROM AcmeOrder a WHERE a.certificateSerialNumber = :serialNumber "
+                            + "AND a.account.acmeProvisioner.name = :provisionerName",
+                    AcmeOrder.class);
+            query.setParameter("serialNumber", serialNumber);
+            query.setParameter("provisionerName", provisionerName);
+            AcmeOrder result = query.setMaxResults(1).uniqueResult();
+
+            if (result != null
+                    && result.getRevokeStatusCode() != null
+                    && result.getRevokeTimestamp() != null) {
+                rc = new RevokedCertificate(
+                        result.getCertificateSerialNumber(),
+                        result.getRevokeTimestamp(),
+                        result.getRevokeStatusCode());
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            log.error("Unable to get revoked certificate for serial number {}", serialNumber, e);
+        }
+
+        return rc;
+    }
+
+    /**
      * Revokes an ACME (Automated Certificate Management Environment) certificate associated with an ACME identifier.
      *
      * @param order          The ACME order for which the certificate is to be revoked.

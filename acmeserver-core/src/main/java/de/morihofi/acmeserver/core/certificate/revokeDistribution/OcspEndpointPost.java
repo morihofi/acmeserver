@@ -18,6 +18,7 @@ package de.morihofi.acmeserver.core.certificate.revokeDistribution;
 
 
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.cryptography.ocsp.OcspHelper;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.javalin.http.Context;
