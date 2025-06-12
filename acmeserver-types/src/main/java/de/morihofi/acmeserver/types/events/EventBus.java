@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.types.events;
 
-import de.morihofi.acmeserver.types.events.AbstractEvent;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,6 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * their own set of listeners and are typically owned by an
  * {@code IServerInstance}.
  */
+@Slf4j
 public class EventBus {
 
     private final Map<Class<?>, List<EventListener<?>>> listeners = new ConcurrentHashMap<>();
@@ -23,6 +25,7 @@ public class EventBus {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void register(EventSubscriber subscriber) {
         for (Class<? extends AbstractEvent> type : subscriber.canHandle()) {
+            log.debug("Registering subscriber {} for event type {}", subscriber.getClass().getName(), type.getName());
             subscribe((Class) type, (EventListener) subscriber);
         }
     }
@@ -35,6 +38,7 @@ public class EventBus {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void unregister(EventSubscriber subscriber) {
         for (Class<? extends AbstractEvent> type : subscriber.canHandle()) {
+            log.debug("Unregistering subscriber {} from event type {}", subscriber.getClass().getName(), type.getName());
             unsubscribe((Class) type, (EventListener) subscriber);
         }
     }
@@ -47,6 +51,7 @@ public class EventBus {
      * @param <T>       type of the event
      */
     public <T> void subscribe(Class<T> eventType, EventListener<? super T> listener) {
+        log.debug("Subscribing listener {} to event type {}", listener.getClass().getName(), eventType.getName());
         listeners.computeIfAbsent(eventType, k -> new CopyOnWriteArrayList<>()).add(listener);
     }
 
@@ -58,6 +63,7 @@ public class EventBus {
      * @param <T>       type of the event
      */
     public <T> void unsubscribe(Class<T> eventType, EventListener<? super T> listener) {
+        log.debug("Unsubscribing listener {} from event type {}", listener.getClass().getName(), eventType.getName());
         List<EventListener<?>> list = listeners.get(eventType);
         if (list != null) {
             list.remove(listener);
@@ -73,9 +79,14 @@ public class EventBus {
     @SuppressWarnings("unchecked")
     public <T> void publish(T event) {
         List<EventListener<?>> list = listeners.get(event.getClass());
+        log.debug("Publishing event of type {} to {} listener(s)", event.getClass().getName(), list != null ? list.size() : 0);
         if (list != null) {
             for (EventListener<?> l : list) {
-                ((EventListener<T>) l).onEvent(event);
+                try {
+                    ((EventListener<T>) l).onEvent(event);
+                } catch (Exception e) {
+                    log.error("Error while handling event {} in listener {}", event.getClass().getName(), l.getClass().getName(), e);
+                }
             }
         }
     }
