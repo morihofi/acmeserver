@@ -6,7 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Event fired before a certificate for an ACME order is generated.
+ * Triggered right before the certificate for an ACME order is generated. This
+ * allows subscribers to prepare any external systems that need to be aware of
+ * upcoming certificate creation.
  */
 @AllArgsConstructor
 @Getter

@@ -4,7 +4,9 @@ import de.morihofi.acmeserver.types.events.AbstractEvent;
 import java.util.List;
 
 /**
- * Listener capable of handling multiple event types.
+ * Listener capable of handling multiple event types. Implementations return a
+ * list of event classes from {@link #canHandle()} indicating which events they
+ * want to receive.
  */
 public interface EventSubscriber extends EventListener<AbstractEvent> {
     /**

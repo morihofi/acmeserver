@@ -6,7 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Event fired before a challenge is processed.
+ * Emitted directly before a domain ownership challenge is validated. It
+ * includes the challenge method and identifier so subscribers can prepare
+ * resources or log the attempt.
  */
 @AllArgsConstructor
 @Getter

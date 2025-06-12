@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Event fired before processing an ACME API request.
+ * Event fired before processing an ACME API request. The event provides the
+ * request path and HTTP method so listeners can perform logging or additional
+ * security checks.
  */
 @AllArgsConstructor
 @Getter

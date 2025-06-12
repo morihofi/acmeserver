@@ -8,7 +8,9 @@ import lombok.Getter;
 import java.security.cert.X509Certificate;
 
 /**
- * Event fired after a certificate for an ACME order was created.
+ * Published once a certificate for an ACME order has been generated and stored.
+ * The corresponding order and the resulting {@link java.security.cert.X509Certificate}
+ * are provided for logging or integration with other systems.
  */
 @AllArgsConstructor
 @Getter

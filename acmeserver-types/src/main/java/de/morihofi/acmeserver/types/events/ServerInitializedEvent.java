@@ -6,7 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Event fired when the server configuration and dependencies are initialized.
+ * Emitted after the server instance has been created and configuration loaded
+ * but before the HTTP server starts accepting requests.
  */
 @AllArgsConstructor
 @Getter

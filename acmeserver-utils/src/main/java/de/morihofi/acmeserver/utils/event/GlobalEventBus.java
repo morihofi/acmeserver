@@ -7,7 +7,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Simple thread-safe event bus implementation for global events.
+ * Simple thread-safe event bus implementation for global events. It dispatches
+ * events to all listeners registered for a given class. Events are delivered in
+ * the order they are published. The bus is used across modules to decouple
+ * components.
  */
 public final class GlobalEventBus {
 

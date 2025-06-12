@@ -6,7 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Event fired after a provisioner's intermediate certificate was renewed.
+ * Dispatched after a provisioner's intermediate certificate has been renewed
+ * and stored back in the KeyStore. Listeners may reload cached certificates
+ * or inform administrators that new credentials are in place.
  */
 @AllArgsConstructor
 @Getter

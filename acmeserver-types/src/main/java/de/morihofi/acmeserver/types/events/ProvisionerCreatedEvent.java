@@ -6,7 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Event fired when a new ACME provisioner is created.
+ * Published whenever a new ACME provisioner is created during initialization or
+ * via management interfaces. Useful for automation that must react to newly
+ * available provisioners.
  */
 @AllArgsConstructor
 @Getter

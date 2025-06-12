@@ -6,7 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Event fired when the server is shutting down.
+ * Published when the runtime shutdown hook is executed. Use this to cleanly
+ * close resources before the JVM exits.
  */
 @AllArgsConstructor
 @Getter

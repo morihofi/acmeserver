@@ -6,7 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Event fired when an ACME provisioner is removed.
+ * Fired when an existing ACME provisioner is removed from the system. This
+ * allows cleanup of resources that were tied to that provisioner.
  */
 @AllArgsConstructor
 @Getter

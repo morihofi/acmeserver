@@ -6,7 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Event fired after a challenge was processed.
+ * Fired after the ownership challenge has been processed. Contains the result
+ * indicating whether validation succeeded.
  */
 @AllArgsConstructor
 @Getter

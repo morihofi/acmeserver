@@ -6,7 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Event fired when a new ACME order is created.
+ * Event fired once a new ACME order has been persisted. The {@link AcmeOrder}
+ * entity can be used by listeners to trigger further processing or notifications.
  */
 @AllArgsConstructor
 @Getter
