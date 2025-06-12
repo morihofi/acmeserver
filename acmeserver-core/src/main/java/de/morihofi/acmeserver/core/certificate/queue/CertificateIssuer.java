@@ -27,6 +27,8 @@ import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.base64.Base64Tools;
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;
 import de.morihofi.acmeserver.core.tools.certificate.generator.ServerCertificateGenerator;
+import de.morihofi.acmeserver.utils.network.dns.CAAValidator;
+import de.morihofi.acmeserver.types.exception.exceptions.ACMECaaException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -87,6 +89,21 @@ public class CertificateIssuer {
 
         Set<Identifier> csrIdentifiers = CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
         AcmeProvisioner provisioner = order.getAccount().getAcmeProvisioner();
+
+        // Perform CAA checks for each DNS identifier
+        String caDomain = serverInstance.getAppConfig().getServer().getDnsName();
+        for (Identifier id : csrIdentifiers) {
+            if (id.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.DNS) {
+                boolean allowed = CAAValidator.isIssuanceAllowed(
+                        id.getValue(),
+                        caDomain,
+                        serverInstance.getAppConfig().getNetwork().getDnsConfig(),
+                        serverInstance.getNetworkClient());
+                if (!allowed) {
+                    throw new ACMECaaException("CAA forbids issuance for domain " + id.getValue());
+                }
+            }
+        }
 
         /*
             We just use the DNS Domain Names (Subject Alternative Name) and the public key of the CSR. We're not using
