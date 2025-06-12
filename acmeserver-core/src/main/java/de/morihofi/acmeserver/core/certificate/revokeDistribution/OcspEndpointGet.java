@@ -31,6 +31,8 @@ import org.bouncycastle.cert.ocsp.Req;
 
 
 import java.math.BigInteger;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
@@ -66,7 +68,13 @@ public class OcspEndpointGet implements Handler {
         if (ocspRequestEncoded.isEmpty()) {
             throw new IllegalArgumentException("No OCSP request provided");
         }
-        byte[] ocspRequestBytes = Base64.getDecoder().decode(ocspRequestEncoded);
+        String ocspRequestDecoded = URLDecoder.decode(ocspRequestEncoded, StandardCharsets.UTF_8);
+        byte[] ocspRequestBytes;
+        try {
+            ocspRequestBytes = Base64.getDecoder().decode(ocspRequestDecoded);
+        } catch (IllegalArgumentException ex) {
+            ocspRequestBytes = Base64.getUrlDecoder().decode(ocspRequestDecoded);
+        }
 
         OCSPReq ocspRequest = new OCSPReq(ocspRequestBytes);
 
