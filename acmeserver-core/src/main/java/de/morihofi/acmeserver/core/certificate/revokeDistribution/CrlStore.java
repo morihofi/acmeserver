@@ -3,7 +3,7 @@ package de.morihofi.acmeserver.core.certificate.revokeDistribution;
 import de.morihofi.acmeserver.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
-import de.morihofi.acmeserver.core.tools.certificate.generator.CertificateRevokationListGenerator;
+import de.morihofi.acmeserver.cryptography.revoke.CrlGenerator;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import lombok.Getter;
@@ -40,8 +40,13 @@ public class CrlStore {
             // Get the list of revoked certificates from the database
             List<RevokedCertificate> revokedCertificates = AcmeOrder.getRevokedCertificates(provisioner.getName(), serverInstance);
             // Generate a new CRL
-            X509CRL crl = CertificateRevokationListGenerator.generateCRL(revokedCertificates, provisioner.getIntermediateCaCertificate(csm),
-                    provisioner.getIntermediateCaKeyPair(csm).getPrivate(), updateMinutes);
+            X509CRL crl = CrlGenerator.generate(
+                    CrlGenerator.Request.builder()
+                            .revokedCertificates(revokedCertificates)
+                            .caCert(provisioner.getIntermediateCaCertificate(csm))
+                            .caPrivateKey(provisioner.getIntermediateCaKeyPair(csm).getPrivate())
+                            .updateMinutes(updateMinutes)
+                            .build());
 
             // Update cache
             entryMap.put(provisioner.getName(), new CrlEntry(LocalTime.now(), crl));
