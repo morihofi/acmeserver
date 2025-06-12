@@ -29,6 +29,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import de.morihofi.acmeserver.types.events.EventBus;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,7 +42,7 @@ import java.nio.file.Path;
 public class ServerInstance implements IServerInstance {
 
 
-    public ServerInstance(@NonNull Config appConfig, @NonNull Path appConfigPath, boolean debug, @NonNull CryptoStoreManager cryptoStoreManager, @NonNull INetworkClient networkClient, @NonNull HibernateUtil hibernateUtil, @NonNull INonceManager nonceManager, @NonNull RootCa rootCa, @NonNull BuildMetadata buildMetadata) {
+    public ServerInstance(@NonNull Config appConfig, @NonNull Path appConfigPath, boolean debug, @NonNull CryptoStoreManager cryptoStoreManager, @NonNull INetworkClient networkClient, @NonNull HibernateUtil hibernateUtil, @NonNull INonceManager nonceManager, @NonNull RootCa rootCa, @NonNull BuildMetadata buildMetadata, @NonNull EventBus eventBus) {
         this.appConfig = appConfig;
         this.appConfigPath = appConfigPath;
         this.debug = debug;
@@ -51,6 +52,7 @@ public class ServerInstance implements IServerInstance {
         this.nonceManager = nonceManager;
         this.rootCa = rootCa;
         this.buildMetadata = buildMetadata;
+        this.eventBus = eventBus;
 
         // Clear sensitive passwords from in memory config to avoid accidental exposure
         this.appConfig.getDatabase().setPassword(null);
@@ -105,6 +107,9 @@ public class ServerInstance implements IServerInstance {
     @NonNull
     private final BuildMetadata buildMetadata;
 
+    @NonNull
+    private final EventBus eventBus;
+
     /**
      * Retrieves the server URL constructed from the application's configuration. This method combines the DNS name and HTTPS port specified
      * in the app configuration to form the complete server URL.
@@ -128,6 +133,11 @@ public class ServerInstance implements IServerInstance {
 
         return getHibernateUtil().getSessionFactory().openSession();
     }
+    @Override
+    public EventBus getEventBus() {
+        return eventBus;
+    }
+
 
 
 }

@@ -36,6 +36,8 @@ import de.morihofi.acmeserver.utils.datetime.DateTools;
 import de.morihofi.acmeserver.utils.regex.DomainValidator;
 import de.morihofi.acmeserver.utils.regex.IpValidator;
 import io.javalin.http.Context;
+import de.morihofi.acmeserver.types.events.EventBus;
+import de.morihofi.acmeserver.types.events.NewAcmeOrderEvent;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -209,6 +211,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             }
 
             transaction.commit();
+            getServerInstance().getEventBus().publish(new NewAcmeOrderEvent(order));
         }
 
         // FIXME Send E-Mail/Notification if order was created

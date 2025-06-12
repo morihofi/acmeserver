@@ -1,4 +1,5 @@
 package de.morihofi.acmeserver.core.certificate.revokeDistribution;
+import de.morihofi.acmeserver.types.events.EventBus;
 
 import com.google.common.jimfs.Jimfs;
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
@@ -22,6 +23,7 @@ import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
+import de.morihofi.acmeserver.types.events.EventBus;
 import org.hibernate.Transaction;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -90,7 +92,8 @@ class OcspHelperTest {
         db.setPassword("");
         cfg.setDatabase(db);
 
-        hu = new HibernateUtil(cfg, true);
+        EventBus bus = new EventBus();
+        hu = new HibernateUtil(cfg, true, bus);
 
         RootCa root = new RootCa();
         root.setCertificateConfig(cfg("root"));
@@ -125,6 +128,7 @@ class OcspHelperTest {
             @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return root; }
             @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
             @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
+            @Override public EventBus getEventBus() { return bus; }
         };
     }
 

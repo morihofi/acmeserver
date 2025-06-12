@@ -1,4 +1,5 @@
 package de.morihofi.acmeserver.core.api.acme.api.endpoints.order;
+import de.morihofi.acmeserver.types.events.EventBus;
 
 import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
@@ -25,6 +26,7 @@ class OrderInfoEndpointTest {
         @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
         @Override public de.morihofi.acmeserver.types.runtime.BuildMetadata getBuildMetadata() { return null; }
         @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
+            @Override public EventBus getEventBus() { return new EventBus(); }
     }
 
     @Test

@@ -508,3 +508,7 @@ further versions. **
   /* ... */
 }
 ```
+
+## Event Flow
+
+Developers can subscribe to lifecycle and ACME events to integrate additional features. The order in which events occur is illustrated in [developer/EventFlow.md](developer/EventFlow.md).

@@ -44,6 +44,9 @@ import de.morihofi.acmeserver.core.helper.http.HttpHeaderUtil;
 import de.morihofi.acmeserver.core.tools.network.logging.HTTPAccessLogger;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
+import de.morihofi.acmeserver.types.events.EventBus;
+import de.morihofi.acmeserver.types.events.BeforeAcmeApiRequestEvent;
+import de.morihofi.acmeserver.types.events.AcmeExceptionEvent;
 import io.javalin.Javalin;
 import io.javalin.http.HandlerType;
 import io.javalin.http.staticfiles.Location;
@@ -94,8 +97,8 @@ public class WebServer {
      */
     public WebServer(IServerInstance serverInstance) throws IOException {
         this.serverInstance = serverInstance;
-        this.httpAccessLogger = new HTTPAccessLogger(serverInstance.getAppConfig());
-        this.certificateRenewManager = new CertificateRenewManager(serverInstance.getCryptoStoreManager());
+        this.httpAccessLogger = new HTTPAccessLogger(serverInstance.getAppConfig(), serverInstance.getEventBus());
+        this.certificateRenewManager = new CertificateRenewManager(serverInstance.getCryptoStoreManager(), serverInstance.getEventBus());
     }
 
     /**
@@ -141,6 +144,7 @@ public class WebServer {
             ctx.json(exception.getErrorResponse());
             log.error("ACME Exception thrown {} : {} ({})", exception.getClass().getSimpleName(), exception.getErrorResponse().getDetail(),
                     exception.getErrorResponse().getType());
+            serverInstance.getEventBus().publish(new AcmeExceptionEvent(exception));
         });
 
         // Global routes
@@ -151,6 +155,8 @@ public class WebServer {
         app.before("/acme/{provisioner}/*", context -> {
             // Disable caching for all ACME routes
             context.header("Cache-Control", "public, max-age=0, no-cache");
+
+            serverInstance.getEventBus().publish(new BeforeAcmeApiRequestEvent(context.path(), context.method().toString()));
 
             AcmeProvisioner provisioner = AbstractAcmeEndpoint.getProvisionerFromJavalin(serverInstance, context);
 

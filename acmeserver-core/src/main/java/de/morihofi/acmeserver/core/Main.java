@@ -35,6 +35,10 @@ import de.morihofi.acmeserver.utils.cli.CLIArgument;
 import de.morihofi.acmeserver.utils.meta.BuildMetadataImpl;
 import de.morihofi.acmeserver.utils.network.http.NetworkClient;
 import de.morihofi.acmeserver.utils.path.AppDirectoryHelper;
+import de.morihofi.acmeserver.types.events.EventBus;
+import de.morihofi.acmeserver.types.events.ServerInitializedEvent;
+import de.morihofi.acmeserver.types.events.ServerStartedEvent;
+import de.morihofi.acmeserver.types.events.ServerShutdownEvent;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -151,12 +155,17 @@ public class Main {
 
 
         Config config = loadServerConfiguration();
-        serverInstance = getServerInstance(config, debug, CONFIG_PATH);
+        EventBus eventBus = new EventBus();
+        serverInstance = getServerInstance(config, debug, CONFIG_PATH, eventBus);
+        eventBus.publish(new ServerInitializedEvent(serverInstance));
 
 
         WebServer ws = new WebServer(serverInstance);
         try {
             ws.startServer();
+            eventBus.publish(new ServerStartedEvent(serverInstance));
+            Runtime.getRuntime().addShutdownHook(new Thread(() ->
+                    eventBus.publish(new ServerShutdownEvent(serverInstance))));
         } catch (Exception ex) {
             log.error("Server startup failed", ex);
             System.exit(1);
@@ -165,7 +174,7 @@ public class Main {
     }
 
 
-    public static IServerInstance getServerInstance(Config config, boolean debug, Path configPath) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvalidAlgorithmParameterException, OperatorCreationException, UnrecoverableKeyException {
+    public static IServerInstance getServerInstance(Config config, boolean debug, Path configPath, EventBus eventBus) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvalidAlgorithmParameterException, OperatorCreationException, UnrecoverableKeyException {
         if (Objects.equals(System.getenv("DEBUG"), "TRUE")) {
             debug = true;
             log.info("Debug mode activated by DEBUG environment variable set to TRUE");
@@ -191,11 +200,11 @@ public class Main {
         };
 
         log.info("Initializing database ...");
-        HibernateUtil hibernateUtil = new HibernateUtil(config, debug);
+        HibernateUtil hibernateUtil = new HibernateUtil(config, debug, eventBus);
         hibernateUtil.initDatabase();
 
         log.info("Initializing certificate authorities ...");
-        RootCa root = CaInitHelper.initializeCA(hibernateUtil, cryptoStoreManager);
+        RootCa root = CaInitHelper.initializeCA(hibernateUtil, cryptoStoreManager, eventBus);
 
         log.info("Creating new server instance ...");
         return new ServerInstance(
@@ -205,9 +214,10 @@ public class Main {
                 cryptoStoreManager,
                 new NetworkClient(config.getNetwork()),
                 hibernateUtil,
-                new NonceManager(hibernateUtil, debug),
+                new NonceManager(hibernateUtil, debug, eventBus),
                 root,
-                BuildMetadataImpl.getInstance()
+                BuildMetadataImpl.getInstance(),
+                eventBus
         );
     }
 

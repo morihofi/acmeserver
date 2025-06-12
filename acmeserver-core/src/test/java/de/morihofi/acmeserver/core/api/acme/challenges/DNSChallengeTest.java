@@ -1,4 +1,5 @@
 package de.morihofi.acmeserver.core.api.acme.challenges;
+import de.morihofi.acmeserver.types.events.EventBus;
 
 import de.morihofi.acmeserver.cryptography.acme.AcmeTokenCryptography;
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;
@@ -62,6 +63,7 @@ class DNSChallengeTest {
         @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
         @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
         @Override public INetworkClient getNetworkClient() { return net; }
+            @Override public EventBus getEventBus() { return new EventBus(); }
     }
 
     @Test

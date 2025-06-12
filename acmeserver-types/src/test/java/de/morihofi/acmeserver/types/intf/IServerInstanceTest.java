@@ -4,6 +4,7 @@ import de.morihofi.acmeserver.types.database.entities.RootCa;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
+import de.morihofi.acmeserver.types.events.EventBus;
 import org.hibernate.Session;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,9 @@ class IServerInstanceTest {
 
         @Override
         public INetworkClient getNetworkClient() { return null; }
+
+        @Override
+        public EventBus getEventBus() { return null; }
     }
 
     @Test

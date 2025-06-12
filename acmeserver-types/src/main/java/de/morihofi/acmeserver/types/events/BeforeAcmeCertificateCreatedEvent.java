@@ -1,0 +1,17 @@
+package de.morihofi.acmeserver.types.events;
+import de.morihofi.acmeserver.types.events.AbstractEvent;
+
+import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+/**
+ * Triggered right before the certificate for an ACME order is generated. This
+ * allows subscribers to prepare any external systems that need to be aware of
+ * upcoming certificate creation.
+ */
+@AllArgsConstructor
+@Getter
+public class BeforeAcmeCertificateCreatedEvent extends AbstractEvent {
+    private final AcmeOrder order;
+}

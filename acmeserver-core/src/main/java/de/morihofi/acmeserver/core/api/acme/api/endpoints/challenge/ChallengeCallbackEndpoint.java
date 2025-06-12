@@ -33,6 +33,10 @@ import de.morihofi.acmeserver.types.exception.exceptions.ACMEResourceNotFoundExc
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.datetime.DateTools;
 import de.morihofi.acmeserver.core.helper.http.HttpHeaderUtil;
+import de.morihofi.acmeserver.types.events.EventBus;
+import de.morihofi.acmeserver.types.events.BeforeChallengeEvent;
+import de.morihofi.acmeserver.types.events.AfterChallengeEvent;
+import de.morihofi.acmeserver.types.api.acme.challenge.AcmeChallengeType;
 import io.javalin.http.Context;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -94,6 +98,9 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         // move challenge into processing state before performing validation
         AcmeOrderIdentifierChallenge.markChallenge(AcmeStatus.PROCESSING, challengeId, getServerInstance());
 
+        AcmeChallengeType typeEnum = "http-01".equals(challengeType) ? AcmeChallengeType.HTTP_01 : AcmeChallengeType.DNS_01;
+        getServerInstance().getEventBus().publish(new BeforeChallengeEvent(typeEnum, challengeId));
+
         ChallengeResult result = switch (challengeType) {
             case "http-01" -> HTTPChallenge.check(
                     identifierChallenge.getAuthorizationToken(),
@@ -123,6 +130,8 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
             log.error("Throwing API error: Host verification failed with method {}", challengeType);
             throw new ACMEConnectionErrorException(result.errorReason());
         }
+
+        getServerInstance().getEventBus().publish(new AfterChallengeEvent(typeEnum, challengeId, result.successful()));
 
         // Reload identifier, e.g., host has validated
         identifierChallenge = AcmeOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getServerInstance());

@@ -6,6 +6,7 @@ import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.config.DatabaseConfig;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.types.events.EventBus;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -33,13 +34,14 @@ class CaInitHelperTest {
         db.setPassword("");
         cfg.setDatabase(db);
 
-        HibernateUtil hu = new HibernateUtil(cfg, true);
+        EventBus bus = new EventBus();
+        HibernateUtil hu = new HibernateUtil(cfg, true, bus);
 
         Path ks = Files.createTempDirectory("ks").resolve("store.p12");
         CryptoStoreManager mgr = new CryptoStoreManager(new PKCS12KeyStoreConfig(ks, "pw".toCharArray()));
 
-        RootCa first = CaInitHelper.initializeCA(hu, mgr);
-        RootCa second = CaInitHelper.initializeCA(hu, mgr);
+        RootCa first = CaInitHelper.initializeCA(hu, mgr, bus);
+        RootCa second = CaInitHelper.initializeCA(hu, mgr, bus);
 
         assertEquals(first.getInternalUuid(), second.getInternalUuid());
         assertTrue(mgr.getKeyStore().containsAlias(first.getInternalUuid()));
@@ -55,12 +57,13 @@ class CaInitHelperTest {
         db.setPassword("");
         cfg.setDatabase(db);
 
-        HibernateUtil hu = new HibernateUtil(cfg, true);
+        EventBus bus = new EventBus();
+        HibernateUtil hu = new HibernateUtil(cfg, true, bus);
 
         Path ks = Files.createTempDirectory("ks").resolve("store2.p12");
         CryptoStoreManager mgr = new CryptoStoreManager(new PKCS12KeyStoreConfig(ks, "pw".toCharArray()));
 
-        RootCa root = CaInitHelper.initializeCA(hu, mgr);
+        RootCa root = CaInitHelper.initializeCA(hu, mgr, bus);
 
         try (var s = hu.getSessionFactory().openSession()) {
             long count = s.createQuery("SELECT count(p) FROM AcmeProvisioner p", Long.class).uniqueResult();

@@ -1,4 +1,5 @@
 package de.morihofi.acmeserver.core.api.acme.challenges;
+import de.morihofi.acmeserver.types.events.EventBus;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -51,6 +52,7 @@ class HTTPChallengeTest {
         @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
         @Override public BuildMetadata getBuildMetadata() { return meta; }
         @Override public INetworkClient getNetworkClient() { return net; }
+            @Override public EventBus getEventBus() { return new EventBus(); }
     }
 
     private HttpServer server;
