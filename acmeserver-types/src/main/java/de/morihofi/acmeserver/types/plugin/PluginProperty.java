@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
 import java.util.Base64;
 
 /**
@@ -30,12 +31,15 @@ public class PluginProperty {
                 .build();
     }
 
-    /** Creates a numeric property using {@code Double.toString}. */
+    /**
+     * Creates a numeric property. The number is stored as a string using
+     * {@link BigDecimal} to preserve precision.
+     */
     public static PluginProperty ofNumber(String key, Number v) {
         return PluginProperty.builder()
                 .key(key)
                 .type(PluginPropertyType.NUMBER)
-                .value(Double.toString(v.doubleValue()))
+                .value(new BigDecimal(v.toString()).toPlainString())
                 .build();
     }
 
@@ -62,9 +66,13 @@ public class PluginProperty {
         return Boolean.parseBoolean(value);
     }
 
-    /** Returns the property value interpreted as a double. */
-    public double asNumber() {
-        return Double.parseDouble(value);
+    /**
+     * Returns the property value interpreted as a {@link BigDecimal}.
+     *
+     * @return numeric value as {@code BigDecimal}
+     */
+    public BigDecimal asNumber() {
+        return new BigDecimal(value);
     }
 
     /** Returns the property value interpreted as a string. */
