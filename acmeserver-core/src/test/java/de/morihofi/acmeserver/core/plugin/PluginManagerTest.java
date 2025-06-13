@@ -94,6 +94,9 @@ class PluginManagerTest {
         PluginManager pm = new PluginManager(si);
         pm.loadPlugins();
 
+        assertEquals(1, pm.getPlugins().size());
+        assertEquals("testplugin", pm.getPlugins().get(0).getPluginId());
+
         si.getEventBus().publish(new ServerStartedEvent(si));
 
         Class<?> pluginClass = pm.getLoader().getNewInitializedClassInstance("testplugin.TestPlugin");
@@ -125,6 +128,7 @@ class PluginManagerTest {
         createPluginJar(jar, 2);
         pm = new PluginManager(si);
         pm.loadPlugins();
+        assertEquals(1, pm.getPlugins().size());
         props = store.load();
         assertEquals(2, props.getVersion());
         assertTrue(props.getProperties().containsKey("updated"));

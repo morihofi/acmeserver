@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,6 +20,8 @@ import java.util.Map;
 public class PluginManager {
     private final IServerInstance serverInstance;
     private final JarPluginLoader loader;
+    /** List of successfully initialized plugins. */
+    private final List<IServerPlugin> plugins = new ArrayList<>();
 
     /**
      * Creates a new plugin manager bound to the given server instance.
@@ -56,6 +61,7 @@ public class PluginManager {
 
                 plugin.initialize(serverInstance, props.getProperties());
                 store.save(props);
+                plugins.add(plugin);
                 log.info("Initialized plugin {}", className);
             } catch (NoClassDefFoundError e) {
                 log.warn("Dependencies missing for plugin {}", className, e);
@@ -64,6 +70,13 @@ public class PluginManager {
                 log.warn("Failed to load plugin {}", className, e);
             }
         }
+    }
+
+    /**
+     * Returns all successfully initialized plugins.
+     */
+    public List<IServerPlugin> getPlugins() {
+        return Collections.unmodifiableList(plugins);
     }
 
     JarPluginLoader getLoader() {
