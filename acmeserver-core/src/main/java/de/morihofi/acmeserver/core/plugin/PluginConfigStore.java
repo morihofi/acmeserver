@@ -24,9 +24,14 @@ public class PluginConfigStore {
         this.file = file;
     }
 
-    /** Loads properties from the configured file. */
+    /**
+     * Loads properties from the configured file.
+     *
+     * @return loaded properties or an empty instance if the file is missing
+     * @throws PluginConfigException if the file cannot be read
+     */
     @NonNull
-    public PluginProperties load() {
+    public PluginProperties load() throws PluginConfigException {
         if (!Files.exists(file)) {
             return new PluginProperties();
         }
@@ -34,20 +39,19 @@ public class PluginConfigStore {
             PluginProperties props = gson.fromJson(r, PluginProperties.class);
             return props == null ? new PluginProperties() : props;
         } catch (IOException e) {
-            log.warn("Failed reading plugin properties {}", file, e);
-            return new PluginProperties();
+            throw new PluginConfigException("Failed reading plugin properties " + file, e);
         }
     }
 
     /** Saves the given properties to disk. */
-    public void save(@NonNull PluginProperties props) {
+    public void save(@NonNull PluginProperties props) throws PluginConfigException {
         try {
             Files.createDirectories(file.getParent());
             try (Writer w = Files.newBufferedWriter(file)) {
                 gson.toJson(props, w);
             }
         } catch (IOException e) {
-            log.warn("Failed writing plugin properties {}", file, e);
+            throw new PluginConfigException("Failed writing plugin properties " + file, e);
         }
     }
 }

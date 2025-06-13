@@ -4,6 +4,7 @@ import de.morihofi.acmeserver.core.Main;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.intf.IServerPlugin;
 import de.morihofi.acmeserver.types.plugin.PluginProperties;
+import de.morihofi.acmeserver.core.plugin.PluginConfigException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
@@ -62,6 +63,8 @@ public class PluginManager {
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException | ClassNotFoundException e) {
                 log.warn("Failed to load plugin {}", className, e);
+            } catch (PluginConfigException e) {
+                log.warn("Failed to access configuration for plugin {}", className, e);
             }
         }
     }
