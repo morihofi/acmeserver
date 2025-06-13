@@ -9,6 +9,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Stream;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -77,13 +78,13 @@ public class JarPluginLoader {
     }
 
     private static List<Path> getPluginDirs(Path pluginsDir) throws IOException {
-        try (var stream = Files.list(pluginsDir)) {
+        try (Stream<Path> stream = Files.list(pluginsDir)) {
             return stream.filter(Files::isDirectory).toList();
         }
     }
 
     private static List<URL> getJarUrls(Path pluginDir) throws IOException {
-        try (var stream = Files.list(pluginDir)) {
+        try (Stream<Path> stream = Files.list(pluginDir)) {
             return stream.filter(p -> p.toString().endsWith(".jar"))
                     .map(p -> {
                         try {
