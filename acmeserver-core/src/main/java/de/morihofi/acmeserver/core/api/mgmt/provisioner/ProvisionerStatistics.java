@@ -37,7 +37,7 @@ public class ProvisionerStatistics {
                 "SELECT cast(o.created as date), COUNT(o) " +
                         "FROM AcmeOrder o " +
                         "WHERE o.certificatePem IS NOT NULL " +
-                        (provisionerName != null ? "AND o.account.provisioner = :provisionerName " : "") +
+                        (provisionerName != null ? "AND o.account.acmeProvisioner.name = :provisionerName " : "") +
                         "GROUP BY cast(o.created as date)",
                 Object[].class
         );
@@ -66,7 +66,7 @@ public class ProvisionerStatistics {
      */
     public static long countACMEAccountsByProvisioner(Session session, String provisionerName) {
         Long count = session.createQuery(
-                        "SELECT COUNT(a) FROM AcmeAccount a WHERE a.provisioner = :provisionerName", Long.class)
+                        "SELECT COUNT(a) FROM AcmeAccount a WHERE a.acmeProvisioner.name = :provisionerName", Long.class)
                 .setParameter("provisionerName", provisionerName)
                 .uniqueResult();
         return count != null ? count : 0;
@@ -81,7 +81,7 @@ public class ProvisionerStatistics {
      */
     public static long countIssuedCertificatesByProvisioner(Session session, String provisionerName) {
         Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM AcmeOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NOT NULL",
+                        "SELECT COUNT(o) FROM AcmeOrder o WHERE o.account.acmeProvisioner.name = :provisionerName AND o.certificatePem IS NOT NULL",
                         Long.class)
                 .setParameter("provisionerName", provisionerName)
                 .uniqueResult();
@@ -97,7 +97,7 @@ public class ProvisionerStatistics {
      */
     public static long countRevokedCertificatesByProvisioner(Session session, String provisionerName) {
         Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM AcmeOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NOT NULL"
+                        "SELECT COUNT(o) FROM AcmeOrder o WHERE o.account.acmeProvisioner.name = :provisionerName AND o.certificatePem IS NOT NULL"
                                 + " AND o.revokeStatusCode IS NOT NULL AND o.revokeTimestamp IS NOT NULL",
                         Long.class)
                 .setParameter("provisionerName", provisionerName)
@@ -114,7 +114,7 @@ public class ProvisionerStatistics {
      */
     public static long countCertificatesWaitingForIssueByProvisioner(Session session, String provisionerName) {
         Long count = session.createQuery(
-                        "SELECT COUNT(o) FROM AcmeOrder o WHERE o.account.provisioner = :provisionerName AND o.certificatePem IS NULL AND"
+                        "SELECT COUNT(o) FROM AcmeOrder o WHERE o.account.acmeProvisioner.name = :provisionerName AND o.certificatePem IS NULL AND" 
                                 + " o.certificateCSR IS NOT NULL",
                         Long.class)
                 .setParameter("provisionerName", provisionerName)

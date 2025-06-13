@@ -126,8 +126,8 @@ public class AcmeOrder implements Serializable {
 
             // Certificates are revoked when they have a statusCode and a timestamp
             Query<AcmeOrder> query = session.createQuery(
-                    "FROM AcmeOrder a WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL AND a.account.provisioner = "
-                            + ":provisionerName",
+                    "FROM AcmeOrder a WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL "
+                            + "AND a.account.acmeProvisioner.name = :provisionerName",
                     AcmeOrder.class);
             query.setParameter("provisionerName", provisionerName);
             List<AcmeOrder> result = query.getResultList();
