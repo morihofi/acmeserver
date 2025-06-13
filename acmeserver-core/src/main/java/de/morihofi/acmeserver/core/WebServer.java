@@ -34,6 +34,7 @@ import de.morihofi.acmeserver.core.certificate.revokeDistribution.CRLScheduler;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.OcspEndpointGet;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.OcspEndpointPost;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.CrlUpdateSubscriber;
+import de.morihofi.acmeserver.core.certificate.transparency.AcmeCertificateTransparencySubscriber;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.exception.ACMEException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEMalformedException;
@@ -216,6 +217,7 @@ public class WebServer {
         log.info("Starting the CRL generation Scheduler");
         CRLScheduler.startScheduler(serverInstance);
         serverInstance.getEventBus().register(new CrlUpdateSubscriber(serverInstance));
+        serverInstance.getEventBus().register(new AcmeCertificateTransparencySubscriber(serverInstance));
 
         // Register and initialize provisioner certificate watcher
         ProvisionerRenewSubscriber provisionerWatcher =

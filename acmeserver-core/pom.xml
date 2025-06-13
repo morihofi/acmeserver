@@ -145,6 +145,12 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>de.morihofi.acmeserver</groupId>
+            <artifactId>acmeserver-certificatetransparency</artifactId>
+            <version>3.0.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>

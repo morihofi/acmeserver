@@ -182,6 +182,15 @@
         "proxy",
         "dnsConfig"
       ]
+    },
+    "certificateTransparency": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "logServer": { "type": "string" },
+        "submitPreCertificate": { "type": "boolean" }
+      },
+      "required": [ "enabled", "logServer", "submitPreCertificate" ]
     }
   },
   "required": [

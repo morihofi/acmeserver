@@ -16,32 +16,19 @@
 
 package de.morihofi.acmeserver.types.config;
 
-import com.google.gson.annotations.SerializedName;
-import de.morihofi.acmeserver.types.config.keyStoreHelpers.KeyStoreParams;
-import de.morihofi.acmeserver.types.config.network.NetworkConfig;
-import de.morihofi.acmeserver.types.config.CertificateTransparencyConfig;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Data;
 
 import java.io.Serializable;
 
 /**
- * Represents a configuration for this ACME Server instance.
+ * Configuration for Certificate Transparency log submission.
  */
 @Data
-@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-public class Config implements Serializable {
-    @SerializedName("$schema")
-    private String jsonSchema;
-
-    private ServerConfig server;
-
-    private KeyStoreParams keyStore;
-
-    private DatabaseConfig database;
-
-    private NetworkConfig network = new NetworkConfig();
-
-    private CertificateTransparencyConfig certificateTransparency = new CertificateTransparencyConfig();
-
+public class CertificateTransparencyConfig implements Serializable {
+    /** Enable submission to a CT log. */
+    private boolean enabled = false;
+    /** Base URL of the CT log server. */
+    private String logServer = "http://ctlog:6105";
+    /** Use add-pre-chain endpoint when submitting. */
+    private boolean submitPreCertificate = false;
 }

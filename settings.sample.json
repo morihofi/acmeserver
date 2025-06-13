@@ -49,5 +49,10 @@
       "dohEnabled": false,
       "dohEndpoint": "https://cloudflare-dns.com/dns-query"
     }
+  },
+  "certificateTransparency": {
+    "enabled": false,
+    "logServer": "http://tessera:6105",
+    "submitPreCertificate": false
   }
 }

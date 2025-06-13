@@ -15,6 +15,7 @@
         <module>acmeserver-parent</module>
         <module>acmeserver-types</module>
         <module>acmeserver-cryptography</module>
+        <module>acmeserver-certificatetransparency</module>
     </modules>
 
     <licenses>

@@ -509,6 +509,27 @@ further versions. **
 }
 ```
 
+## Certificate Transparency
+
+ACME Server can optionally submit issued certificates to a Certificate Transparency (CT) log.
+Configure the log connection in the `certificateTransparency` section.
+
+```json
+{
+  /* ... */
+  "certificateTransparency": {
+    "enabled": false,
+    "logServer": "http://tessera:6105",
+    "submitPreCertificate": false
+  }
+  /* ... */
+}
+```
+
+- `enabled`: Enable submission to the CT log.
+- `logServer`: Base URL of the CT log server.
+- `submitPreCertificate`: Use the `/ct/v1/add-pre-chain` endpoint instead of `/ct/v1/add-chain`.
+
 ## Event Flow
 
 Developers can subscribe to lifecycle and ACME events to integrate additional features. The order in which events occur is illustrated in [developer/EventFlow.md](developer/EventFlow.md).
