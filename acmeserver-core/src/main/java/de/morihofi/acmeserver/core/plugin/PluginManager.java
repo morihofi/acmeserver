@@ -4,6 +4,7 @@ import de.morihofi.acmeserver.core.Main;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.intf.IServerPlugin;
 import de.morihofi.acmeserver.types.plugin.PluginProperties;
+import de.morihofi.acmeserver.types.plugin.PluginInfo;
 import de.morihofi.acmeserver.core.plugin.PluginConfigException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -80,6 +81,11 @@ public class PluginManager {
      */
     public List<IServerPlugin> getPlugins() {
         return Collections.unmodifiableList(plugins);
+    }
+
+    /** Returns metadata for a loaded plugin if available. */
+    public PluginInfo getPluginInfo(IServerPlugin plugin) {
+        return loader.getPluginInfo(plugin.getClass().getName());
     }
 
     JarPluginLoader getLoader() {

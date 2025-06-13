@@ -85,8 +85,8 @@ class PluginManagerTest {
             jarOut.write(Files.readAllBytes(classFile));
             jarOut.closeEntry();
 
-            jarOut.putNextEntry(new JarEntry("META-INF/acmeserver-plugin"));
-            jarOut.write("testplugin.TestPlugin\n".getBytes());
+            jarOut.putNextEntry(new JarEntry("META-INF/acmeserver-plugin.json"));
+            jarOut.write("{\"pluginClass\":\"testplugin.TestPlugin\"}".getBytes());
             jarOut.closeEntry();
         }
     }

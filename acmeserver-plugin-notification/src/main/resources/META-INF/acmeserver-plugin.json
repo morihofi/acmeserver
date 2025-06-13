@@ -1,0 +1,6 @@
+{
+  "pluginClass": "de.morihofi.acmeserver.plugin.notification.NotificationPlugin",
+  "author": "Moritz Hofmann <info@morihofi.de>",
+  "description": "Posts messages to a WebHook on events. Gets triggered on all events, however it is user-configurable.",
+  "version": "${project.version}"
+}
