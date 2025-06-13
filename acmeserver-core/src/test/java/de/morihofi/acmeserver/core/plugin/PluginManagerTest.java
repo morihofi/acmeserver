@@ -11,6 +11,7 @@ import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.plugin.PluginProperties;
 import de.morihofi.acmeserver.core.plugin.PluginConfigStore;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +26,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+import java.util.Comparator;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -42,6 +45,8 @@ class PluginManagerTest {
         @Override public INetworkClient getNetworkClient() { return null; }
         @Override public EventBus getEventBus() { return bus; }
     }
+
+    private Path pluginDir;
 
     private static void createPluginJar(Path jarPath, long version) throws IOException {
         Path srcDir = Files.createTempDirectory("plugin-src");
@@ -82,10 +87,30 @@ class PluginManagerTest {
         }
     }
 
+    private static void deleteDirectory(Path dir) throws IOException {
+        if (dir == null || !Files.exists(dir)) {
+            return;
+        }
+        try (Stream<Path> walk = Files.walk(dir)) {
+            walk.sorted(Comparator.reverseOrder()).forEach(path -> {
+                try {
+                    Files.deleteIfExists(path);
+                } catch (IOException ignored) {
+                    // ignore cleanup errors
+                }
+            });
+        }
+    }
+
+    @AfterEach
+    void cleanup() throws IOException {
+        deleteDirectory(pluginDir);
+    }
+
     @Test
     @DisplayName("plugin registers subscriber via event bus")
     void testPluginLoad() throws Exception {
-        Path pluginDir = Main.resolveDataPluginsDir().resolve("testplugin");
+        pluginDir = Main.resolveDataPluginsDir().resolve("testplugin");
         Files.createDirectories(pluginDir);
         Path jar = pluginDir.resolve("testplugin.jar");
         createPluginJar(jar, 1);
@@ -106,7 +131,7 @@ class PluginManagerTest {
     @Test
     @DisplayName("plugin properties persisted and updated on version change")
     void testPropertyUpdate() throws Exception {
-        Path pluginDir = Main.resolveDataPluginsDir().resolve("testplugin");
+        pluginDir = Main.resolveDataPluginsDir().resolve("testplugin");
         Files.createDirectories(pluginDir);
         Path jar = pluginDir.resolve("testplugin.jar");
 
