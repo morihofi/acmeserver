@@ -26,6 +26,7 @@ import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.objects.Finalize
 import de.morihofi.acmeserver.core.api.acme.api.objects.ACMERequestBody;
 
 import de.morihofi.acmeserver.core.certificate.queue.CertificateIssuer;
+import de.morihofi.acmeserver.types.events.AcmeCertificateIssuanceRequestedEvent;
 import de.morihofi.acmeserver.types.database.entities.*;
 import de.morihofi.acmeserver.types.database.enums.AcmeOrderState;
 import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
@@ -134,11 +135,9 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
                 transaction.commit();
 
                 if (Main.getServerOptions().contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
-                    // Use async certificate issuing
-
+                    // Use async certificate issuing via event bus
                     log.info("Saved CSR for order {} in database", order.getOrderId());
-
-                    // Set response, that our certificate is processing in separate thread
+                    getServerInstance().getEventBus().publish(new AcmeCertificateIssuanceRequestedEvent(order));
                     response.setStatus(AcmeStatus.PROCESSING.getRfcName());
                 } else {
 
