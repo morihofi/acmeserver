@@ -82,6 +82,39 @@ class PluginManagerTest {
         }
     }
 
+    private static void createFailPluginJar(Path jarPath, long version) throws IOException {
+        Path srcDir = Files.createTempDirectory("plugin-src");
+        Path pkgDir = srcDir.resolve("failplugin");
+        Files.createDirectories(pkgDir);
+        Path javaFile = pkgDir.resolve("FailPlugin.java");
+        String src = "package failplugin;" +
+                "import de.morihofi.acmeserver.types.intf.*;" +
+                "import de.morihofi.acmeserver.types.plugin.*;" +
+                "public class FailPlugin implements IServerPlugin {" +
+                " public void initialize(IServerInstance si, java.util.Map<String,PluginProperty> props){throw new RuntimeException();}" +
+                " public String getPluginId(){return \"failplugin\";}" +
+                " public long getPluginVersion(){return " + version + ";}" +
+                " public void propertyUpdate(long pv, java.util.Map<String,PluginProperty> props){props.put(\"fail\", PluginProperty.ofBoolean(\"fail\", true));}" +
+                "}";
+        Files.writeString(javaFile, src, StandardOpenOption.CREATE);
+
+        Path classesDir = Files.createTempDirectory("plugin-classes");
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        try (StandardJavaFileManager fm = compiler.getStandardFileManager(null, null, null)) {
+            fm.setLocation(javax.tools.StandardLocation.CLASS_OUTPUT, List.of(classesDir.toFile()));
+            fm.setLocation(javax.tools.StandardLocation.CLASS_PATH,
+                    List.of(new File("../acmeserver-types/target/classes")));
+            compiler.getTask(null, fm, null, null, null, fm.getJavaFileObjects(javaFile.toFile())).call();
+        }
+
+        try (JarOutputStream jarOut = new JarOutputStream(Files.newOutputStream(jarPath))) {
+            Path classFile = classesDir.resolve("failplugin/FailPlugin.class");
+            jarOut.putNextEntry(new JarEntry("failplugin/FailPlugin.class"));
+            jarOut.write(Files.readAllBytes(classFile));
+            jarOut.closeEntry();
+        }
+    }
+
     @Test
     @DisplayName("plugin registers subscriber via event bus")
     void testPluginLoad() throws Exception {
@@ -128,6 +161,27 @@ class PluginManagerTest {
         props = store.load();
         assertEquals(2, props.getVersion());
         assertTrue(props.getProperties().containsKey("updated"));
+
+        Files.deleteIfExists(jar);
+        Files.deleteIfExists(pluginDir.resolve("config.json"));
+    }
+
+    @Test
+    @DisplayName("property updates persist when initialization fails")
+    void testPropertyUpdateOnInitFail() throws Exception {
+        Path pluginDir = Main.resolveDataPluginsDir().resolve("failplugin");
+        Files.createDirectories(pluginDir);
+        Path jar = pluginDir.resolve("failplugin.jar");
+        createFailPluginJar(jar, 1);
+
+        DummyServerInstance si = new DummyServerInstance();
+        PluginManager pm = new PluginManager(si);
+        assertThrows(RuntimeException.class, pm::loadPlugins);
+
+        PluginConfigStore store = new PluginConfigStore(pluginDir.resolve("config.json"));
+        PluginProperties props = store.load();
+        assertEquals(1, props.getVersion());
+        assertTrue(props.getProperties().containsKey("fail"));
 
         Files.deleteIfExists(jar);
         Files.deleteIfExists(pluginDir.resolve("config.json"));

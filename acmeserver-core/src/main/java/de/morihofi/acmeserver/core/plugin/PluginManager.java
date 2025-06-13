@@ -34,6 +34,8 @@ public class PluginManager {
     public void loadPlugins() {
         for (Map.Entry<String, ClassLoader> entry : loader.getRegisteredPluginClasses().entrySet()) {
             String className = entry.getKey();
+            PluginConfigStore store = null;
+            PluginProperties props = null;
             try {
                 Class<?> cls = loader.getNewInitializedClassInstance(className);
                 if (!IServerPlugin.class.isAssignableFrom(cls)) {
@@ -46,22 +48,25 @@ public class PluginManager {
                 }
 
                 Path pluginRoot = loader.getPluginRoot(className);
-                PluginConfigStore store = new PluginConfigStore(
+                store = new PluginConfigStore(
                         pluginRoot.resolve("config.json"));
-                PluginProperties props = store.load();
+                props = store.load();
                 if (plugin.getPluginVersion() != props.getVersion()) {
                     plugin.propertyUpdate(props.getVersion(), props.getProperties());
                     props.setVersion(plugin.getPluginVersion());
                 }
 
                 plugin.initialize(serverInstance, props.getProperties());
-                store.save(props);
                 log.info("Initialized plugin {}", className);
             } catch (NoClassDefFoundError e) {
                 log.warn("Dependencies missing for plugin {}", className, e);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException | ClassNotFoundException e) {
                 log.warn("Failed to load plugin {}", className, e);
+            } finally {
+                if (store != null && props != null) {
+                    store.save(props);
+                }
             }
         }
     }
