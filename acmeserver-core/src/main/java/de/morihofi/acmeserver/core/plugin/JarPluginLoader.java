@@ -18,6 +18,9 @@ import java.util.jar.JarInputStream;
 @Slf4j
 public class JarPluginLoader {
 
+    /** Path inside JAR pointing to the plugin descriptor listing plugin classes. */
+    private static final String PLUGIN_DESCRIPTOR = "META-INF/acmeserver-plugin";
+
     private final Map<String, ClassLoader> registeredClasses;
     private final Map<ClassLoader, Path> loaderRoots;
 
@@ -28,7 +31,8 @@ public class JarPluginLoader {
     }
 
     /**
-     * Scans the plugin directory and loads all classes found in JARs.
+     * Scans the plugin directory and loads plugin classes referenced in
+     * {@value #PLUGIN_DESCRIPTOR} descriptors contained in plugin JARs.
      *
      * @return loader instance containing the registered classes
      */
@@ -94,22 +98,26 @@ public class JarPluginLoader {
         }
     }
 
-    private static void loadClassesFromJar(URL jarUrl, URLClassLoader classLoader, Map<String, ClassLoader> registered) {
+    private static void loadClassesFromJar(URL jarUrl, URLClassLoader classLoader,
+                                           Map<String, ClassLoader> registered) {
         try (JarInputStream jarInputStream = new JarInputStream(jarUrl.openStream())) {
-            processJarEntries(jarInputStream, classLoader, registered, jarUrl);
+            JarEntry entry;
+            while ((entry = jarInputStream.getNextJarEntry()) != null) {
+                if (PLUGIN_DESCRIPTOR.equals(entry.getName())) {
+                    try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(jarInputStream))) {
+                        reader.lines()
+                                .map(String::trim)
+                                .filter(l -> !l.isEmpty() && !l.startsWith("#"))
+                                .forEach(className -> {
+                                    registered.put(className, classLoader);
+                                    log.info("Registered class (from {}) : {}", jarUrl.getFile(), className);
+                                });
+                    }
+                    break;
+                }
+            }
         } catch (IOException e) {
             log.warn("Failed to process JAR file: {}", jarUrl, e);
-        }
-    }
-
-    private static void processJarEntries(JarInputStream jarInputStream, URLClassLoader classLoader, Map<String, ClassLoader> registered, URL jarUrl) throws IOException {
-        JarEntry entry;
-        while ((entry = jarInputStream.getNextJarEntry()) != null) {
-            if (entry.getName().endsWith(".class")) {
-                String className = entry.getName().replace("/", ".").substring(0, entry.getName().length() - 6);
-                registered.put(className, classLoader);
-                log.info("Registered class (from {}) : {}", jarUrl.getFile(), className);
-            }
         }
     }
 
