@@ -33,15 +33,15 @@ public interface IServerPlugin {
      * @return plugin version
      */
     @NonNull
-    String getPluginVersion();
+    long getPluginVersion();
 
     /**
      * Invoked when the plugin version changed and configuration must be migrated.
      *
-     * @param previousVersion previously stored version or {@code null} if first run
+     * @param previousVersion previously stored version or {@code 0} if first run
      * @param properties      modifiable property map for this plugin
      */
-    default void propertyUpdate(String previousVersion, @NonNull Map<String, PluginProperty> properties) {
+    default void propertyUpdate(long previousVersion, @NonNull Map<String, PluginProperty> properties) {
         // default no-op
     }
 

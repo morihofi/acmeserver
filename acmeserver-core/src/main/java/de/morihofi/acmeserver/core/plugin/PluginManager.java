@@ -7,6 +7,7 @@ import de.morihofi.acmeserver.types.plugin.PluginProperties;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -44,10 +45,11 @@ public class PluginManager {
                     continue;
                 }
 
+                Path pluginRoot = loader.getPluginRoot(className);
                 PluginConfigStore store = new PluginConfigStore(
-                        Main.resolveDataPluginsDir().resolve(plugin.getPluginId() + ".json"));
+                        pluginRoot.resolve("config.json"));
                 PluginProperties props = store.load();
-                if (!plugin.getPluginVersion().equals(props.getVersion())) {
+                if (plugin.getPluginVersion() != props.getVersion()) {
                     plugin.propertyUpdate(props.getVersion(), props.getProperties());
                     props.setVersion(plugin.getPluginVersion());
                 }

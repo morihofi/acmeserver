@@ -43,7 +43,7 @@ class PluginManagerTest {
         @Override public EventBus getEventBus() { return bus; }
     }
 
-    private static void createPluginJar(Path jarPath, String version) throws IOException {
+    private static void createPluginJar(Path jarPath, long version) throws IOException {
         Path srcDir = Files.createTempDirectory("plugin-src");
         Path pkgDir = srcDir.resolve("testplugin");
         Files.createDirectories(pkgDir);
@@ -58,9 +58,9 @@ class PluginManagerTest {
                 " public java.util.List<Class<? extends AbstractEvent>> canHandle(){return java.util.List.of(ServerStartedEvent.class);}" +
                 " public void onEvent(AbstractEvent e){if(e instanceof ServerStartedEvent) triggered=true;}" +
                 " public String getPluginId(){return \"testplugin\";}" +
-                " public String getPluginVersion(){return \"" + version + "\";}" +
-                " public void propertyUpdate(String pv, java.util.Map<String,PluginProperty> props){" +
-                "  if(pv==null){props.put(\"fresh\", PluginProperty.ofBoolean(\"fresh\", true));}" +
+                " public long getPluginVersion(){return " + version + ";}" +
+                " public void propertyUpdate(long pv, java.util.Map<String,PluginProperty> props){" +
+                "  if(pv==0){props.put(\"fresh\", PluginProperty.ofBoolean(\"fresh\", true));}" +
                 "  else{props.put(\"updated\", PluginProperty.ofBoolean(\"updated\", true));}}" +
                 "}";
         Files.writeString(javaFile, src, StandardOpenOption.CREATE);
@@ -85,10 +85,10 @@ class PluginManagerTest {
     @Test
     @DisplayName("plugin registers subscriber via event bus")
     void testPluginLoad() throws Exception {
-        Path pluginDir = Main.resolveDataPluginsDir();
+        Path pluginDir = Main.resolveDataPluginsDir().resolve("testplugin");
         Files.createDirectories(pluginDir);
         Path jar = pluginDir.resolve("testplugin.jar");
-        createPluginJar(jar, "1");
+        createPluginJar(jar, 1);
 
         DummyServerInstance si = new DummyServerInstance();
         PluginManager pm = new PluginManager(si);
@@ -106,30 +106,30 @@ class PluginManagerTest {
     @Test
     @DisplayName("plugin properties persisted and updated on version change")
     void testPropertyUpdate() throws Exception {
-        Path pluginDir = Main.resolveDataPluginsDir();
+        Path pluginDir = Main.resolveDataPluginsDir().resolve("testplugin");
         Files.createDirectories(pluginDir);
         Path jar = pluginDir.resolve("testplugin.jar");
 
         // initial load
-        createPluginJar(jar, "1");
+        createPluginJar(jar, 1);
         DummyServerInstance si = new DummyServerInstance();
         PluginManager pm = new PluginManager(si);
         pm.loadPlugins();
 
-        PluginConfigStore store = new PluginConfigStore(pluginDir.resolve("testplugin.json"));
+        PluginConfigStore store = new PluginConfigStore(pluginDir.resolve("config.json"));
         PluginProperties props = store.load();
-        assertEquals("1", props.getVersion());
+        assertEquals(1, props.getVersion());
         assertTrue(props.getProperties().containsKey("fresh"));
 
         // upgrade
-        createPluginJar(jar, "2");
+        createPluginJar(jar, 2);
         pm = new PluginManager(si);
         pm.loadPlugins();
         props = store.load();
-        assertEquals("2", props.getVersion());
+        assertEquals(2, props.getVersion());
         assertTrue(props.getProperties().containsKey("updated"));
 
         Files.deleteIfExists(jar);
-        Files.deleteIfExists(pluginDir.resolve("testplugin.json"));
+        Files.deleteIfExists(pluginDir.resolve("config.json"));
     }
 }

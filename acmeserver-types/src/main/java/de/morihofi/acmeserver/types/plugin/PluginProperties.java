@@ -16,8 +16,11 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PluginProperties {
-    /** Version of the plugin when properties were last saved. */
-    private String version;
+    /**
+     * Numeric version of the plugin when properties were last saved. Version
+     * {@code 0} indicates that the plugin has not been initialized yet.
+     */
+    private long version;
     /** Map of property key to property definition. */
     @Builder.Default
     private Map<String, PluginProperty> properties = new HashMap<>();
