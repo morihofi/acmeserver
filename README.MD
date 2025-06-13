@@ -111,8 +111,9 @@ CA.
 
 Place third-party plugins under `serverdata/plugins/<pluginId>` where `<pluginId>` is the unique plugin identifier. The
 directory may contain the plugin JAR and any dependency JARs. Each plugin must depend on the `acmeserver-types` module
-and implement the `IServerPlugin` interface. A `config.json` file is stored in the same directory and contains the
-versioned properties for that plugin. These properties are passed to the plugin on initialization and can be migrated
+and implement the `IServerPlugin` interface. Each plugin JAR must include a descriptor file located at
+`META-INF/acmeserver-plugin` listing the fully qualified plugin class names to load. A `config.json` file is stored in
+the same directory and contains the versioned properties for that plugin. These properties are passed to the plugin on initialization and can be migrated
 using `propertyUpdate` when the plugin version changes.
 
 ## 🧪 Note for Unit Testing
