@@ -1,7 +1,9 @@
 package de.morihofi.acmeserver.core.plugin;
 
+import de.morihofi.acmeserver.core.Main;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.intf.IServerPlugin;
+import de.morihofi.acmeserver.types.plugin.PluginProperties;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
@@ -41,7 +43,17 @@ public class PluginManager {
                     log.warn("Skipping plugin {} due to missing dependencies", className);
                     continue;
                 }
-                plugin.initialize(serverInstance);
+
+                PluginConfigStore store = new PluginConfigStore(
+                        Main.resolveDataPluginsDir().resolve(plugin.getPluginId() + ".json"));
+                PluginProperties props = store.load();
+                if (!plugin.getPluginVersion().equals(props.getVersion())) {
+                    plugin.propertyUpdate(props.getVersion(), props.getProperties());
+                    props.setVersion(plugin.getPluginVersion());
+                }
+
+                plugin.initialize(serverInstance, props.getProperties());
+                store.save(props);
                 log.info("Initialized plugin {}", className);
             } catch (NoClassDefFoundError e) {
                 log.warn("Dependencies missing for plugin {}", className, e);

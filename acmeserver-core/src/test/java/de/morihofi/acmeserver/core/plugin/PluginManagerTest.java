@@ -9,6 +9,8 @@ import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.types.config.Config;
+import de.morihofi.acmeserver.types.plugin.PluginProperties;
+import de.morihofi.acmeserver.core.plugin.PluginConfigStore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +43,7 @@ class PluginManagerTest {
         @Override public EventBus getEventBus() { return bus; }
     }
 
-    private static void createPluginJar(Path jarPath) throws IOException {
+    private static void createPluginJar(Path jarPath, String version) throws IOException {
         Path srcDir = Files.createTempDirectory("plugin-src");
         Path pkgDir = srcDir.resolve("testplugin");
         Files.createDirectories(pkgDir);
@@ -49,11 +51,17 @@ class PluginManagerTest {
         String src = "package testplugin;" +
                 "import de.morihofi.acmeserver.types.intf.*;" +
                 "import de.morihofi.acmeserver.types.events.*;" +
+                "import de.morihofi.acmeserver.types.plugin.*;" +
                 "public class TestPlugin implements IServerPlugin, EventSubscriber {" +
                 " public static boolean triggered=false;" +
-                " public void initialize(IServerInstance si){si.getEventBus().register(this);}" +
+                " public void initialize(IServerInstance si, java.util.Map<String,PluginProperty> props){si.getEventBus().register(this);}" +
                 " public java.util.List<Class<? extends AbstractEvent>> canHandle(){return java.util.List.of(ServerStartedEvent.class);}" +
                 " public void onEvent(AbstractEvent e){if(e instanceof ServerStartedEvent) triggered=true;}" +
+                " public String getPluginId(){return \"testplugin\";}" +
+                " public String getPluginVersion(){return \"" + version + "\";}" +
+                " public void propertyUpdate(String pv, java.util.Map<String,PluginProperty> props){" +
+                "  if(pv==null){props.put(\"fresh\", PluginProperty.ofBoolean(\"fresh\", true));}" +
+                "  else{props.put(\"updated\", PluginProperty.ofBoolean(\"updated\", true));}}" +
                 "}";
         Files.writeString(javaFile, src, StandardOpenOption.CREATE);
 
@@ -80,7 +88,7 @@ class PluginManagerTest {
         Path pluginDir = Main.resolveDataPluginsDir();
         Files.createDirectories(pluginDir);
         Path jar = pluginDir.resolve("testplugin.jar");
-        createPluginJar(jar);
+        createPluginJar(jar, "1");
 
         DummyServerInstance si = new DummyServerInstance();
         PluginManager pm = new PluginManager(si);
@@ -93,5 +101,35 @@ class PluginManagerTest {
         assertTrue(triggered);
 
         Files.deleteIfExists(jar);
+    }
+
+    @Test
+    @DisplayName("plugin properties persisted and updated on version change")
+    void testPropertyUpdate() throws Exception {
+        Path pluginDir = Main.resolveDataPluginsDir();
+        Files.createDirectories(pluginDir);
+        Path jar = pluginDir.resolve("testplugin.jar");
+
+        // initial load
+        createPluginJar(jar, "1");
+        DummyServerInstance si = new DummyServerInstance();
+        PluginManager pm = new PluginManager(si);
+        pm.loadPlugins();
+
+        PluginConfigStore store = new PluginConfigStore(pluginDir.resolve("testplugin.json"));
+        PluginProperties props = store.load();
+        assertEquals("1", props.getVersion());
+        assertTrue(props.getProperties().containsKey("fresh"));
+
+        // upgrade
+        createPluginJar(jar, "2");
+        pm = new PluginManager(si);
+        pm.loadPlugins();
+        props = store.load();
+        assertEquals("2", props.getVersion());
+        assertTrue(props.getProperties().containsKey("updated"));
+
+        Files.deleteIfExists(jar);
+        Files.deleteIfExists(pluginDir.resolve("testplugin.json"));
     }
 }

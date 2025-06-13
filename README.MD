@@ -111,7 +111,9 @@ CA.
 
 Place third-party plugin JARs in `serverdata/plugins`. Each plugin should depend on the `acmeserver-types` module and
 implement the `IServerPlugin` interface. Plugins are discovered and initialized automatically on startup allowing them
-to register event subscribers or extend server functionality.
+to register event subscribers or extend server functionality. A JSON configuration file is created for each plugin
+next to its JAR. Properties are scoped by plugin ID and version and can be migrated via `propertyUpdate` when the
+plugin version changes.
 
 ## 🧪 Note for Unit Testing
 
