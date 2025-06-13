@@ -28,11 +28,12 @@ import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.FinalizeOrderEnd
 import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.core.api.acme.api.endpoints.order.OrderInfoEndpoint;
 import de.morihofi.acmeserver.core.api.acme.api.endpoints.KeyChangeEndpoint;
-import de.morihofi.acmeserver.core.certificate.queue.CertificateIssuer;
+import de.morihofi.acmeserver.core.certificate.queue.CertificateIssuanceSubscriber;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.CRLEndpoint;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.CRLScheduler;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.OcspEndpointGet;
 import de.morihofi.acmeserver.core.certificate.revokeDistribution.OcspEndpointPost;
+import de.morihofi.acmeserver.core.certificate.revokeDistribution.CrlUpdateSubscriber;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.exception.ACMEException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEMalformedException;
@@ -214,6 +215,7 @@ public class WebServer {
 
         log.info("Starting the CRL generation Scheduler");
         CRLScheduler.startScheduler(serverInstance);
+        serverInstance.getEventBus().register(new CrlUpdateSubscriber(serverInstance));
 
         // Register and initialize provisioner certificate watcher
         ProvisionerRenewSubscriber provisionerWatcher =
@@ -225,8 +227,10 @@ public class WebServer {
         certificateRenewScheduler.startScheduler();
 
         if (Main.getServerOptions().contains(Main.SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING)) {
-            log.info("Starting Certificate Issuer");
-            CertificateIssuer.startThread(serverInstance);
+            log.info("Registering async certificate issuance subscriber");
+            CertificateIssuanceSubscriber sub = new CertificateIssuanceSubscriber(serverInstance);
+            serverInstance.getEventBus().register(sub);
+            sub.initialize();
         }
 
         app.start();

@@ -29,10 +29,8 @@ import de.morihofi.acmeserver.cryptography.pem.PemUtil;
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.utils.network.dns.CAAValidator;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMECaaException;
-import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.events.BeforeAcmeCertificateCreatedEvent;
 import de.morihofi.acmeserver.types.events.AcmeCertificateCreatedEvent;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -49,37 +47,11 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.Set;
 
 @Slf4j
 public class CertificateIssuer {
 
-    private static Thread certificateQueueIssueThread = null;
-
-    public static synchronized void startThread(@NonNull IServerInstance serverInstance) {
-        log.info("Starting certificate issuing thread...");
-        if (certificateQueueIssueThread == null) {
-            certificateQueueIssueThread = new Thread(new CertificateIssuingTask(serverInstance), "Certificate Issuing Thread");
-            certificateQueueIssueThread.setDaemon(
-                    false); // Continue running until explicitly stopped, so only exit when all certificates are issued
-            certificateQueueIssueThread.start();
-        } else {
-            log.info("Certificate issuing thread is already running.");
-        }
-    }
-
-    public static void shutdown() throws InterruptedException {
-        if (!certificateQueueIssueThread.isInterrupted()) {
-            log.info("Stopping {}", certificateQueueIssueThread.getName());
-            certificateQueueIssueThread.interrupt();
-            while (certificateQueueIssueThread.isAlive()) {
-                log.info("Waiting for {} to exiting", certificateQueueIssueThread.getName());
-                Thread.sleep(1000);
-            }
-            log.info("{} has been stopped", certificateQueueIssueThread.getName());
-        }
-    }
 
     public static void generateCertificateForOrder(@NonNull AcmeOrder order, @NonNull ICryptoStoreManager cryptoStoreManager, @NonNull Session session, @NonNull IServerInstance serverInstance) throws
             IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException,
@@ -159,39 +131,5 @@ public class CertificateIssuer {
         log.info("Stored certificate successful");
     }
 
-    private record CertificateIssuingTask(@NonNull IServerInstance serverInstance) implements Runnable {
-
-        @SuppressFBWarnings("REC_CATCH_EXCEPTION")
-        @Override
-        public void run() {
-            log.info("Certificate issuing thread started!");
-
-            while (!Thread.currentThread().isInterrupted()) {
-                log.trace("Looking for certificates to be issued in the database");
-
-                List<AcmeOrder> waitingOrders = AcmeOrder.getAllAcmeOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE, serverInstance);
-
-                if (!waitingOrders.isEmpty()) {
-
-                    try (Session session = serverInstance().getDatabaseSession()) {
-                        AcmeOrder order = waitingOrders.getFirst();
-                        generateCertificateForOrder(order, serverInstance.getCryptoStoreManager(), session, serverInstance);
-                    } catch (Exception ex) {
-                        log.error("Error generating and/or store certificate", ex);
-                    }
-                } else {
-
-                    // Waiting for new CSRs and try in a few seconds again
-                    try {
-
-                        Thread.sleep(20 * 1000); // Sleep 20 seconds
-                    } catch (InterruptedException e) {
-                        log.warn("Thread sleep is interrupted");
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            }
-            log.info("Certificate issuing thread is stopping gracefully.");
-        }
-    }
+    // utility class only
 }

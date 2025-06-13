@@ -29,8 +29,10 @@ sequenceDiagram
     API->>EventBus: NewAcmeOrderEvent
     API->>EventBus: BeforeChallengeEvent
     API->>EventBus: AfterChallengeEvent
+    API->>EventBus: AcmeCertificateIssuanceRequestedEvent
     API->>EventBus: BeforeAcmeCertificateCreatedEvent
     API->>EventBus: AcmeCertificateCreatedEvent
+    API->>EventBus: AcmeCertificateRevokedEvent
     API->>EventBus: AcmeNonceRedeemedEvent
 ```
 

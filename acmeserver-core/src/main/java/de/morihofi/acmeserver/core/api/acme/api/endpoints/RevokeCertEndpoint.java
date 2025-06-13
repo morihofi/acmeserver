@@ -27,6 +27,7 @@ import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
 import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
+import de.morihofi.acmeserver.types.events.AcmeCertificateRevokedEvent;
 import de.morihofi.acmeserver.types.exception.exceptions.*;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import io.javalin.http.Context;
@@ -198,6 +199,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
         // Revoke it
         AcmeOrder.revokeCertificate(order, reason, getServerInstance());
+        getServerInstance().getEventBus().publish(new AcmeCertificateRevokedEvent(order));
 
         ctx.status(HttpURLConnection.HTTP_OK);
         ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));

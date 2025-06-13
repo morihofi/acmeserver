@@ -31,7 +31,8 @@ public class CRLScheduler {
 
     //FIXME: Add trigger for update crl on provisioner removal/add
 
-    private static final int UPDATE_MINUTES = 720; // 12 hours
+    /** Update interval in minutes used for scheduled CRL generation. */
+    public static final int UPDATE_MINUTES = 720; // 12 hours
 
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
