@@ -107,6 +107,12 @@ Enable debug mode by set environment variable `DEBUG` to `TRUE` or start ACME Se
 Do not use this in production as it disables some security mechanisms (e.g. nonce check) and can lead to misuse of your
 CA.
 
+## 🔌 Plugins
+
+Place third-party plugin JARs in `serverdata/plugins`. Each plugin should depend on the `acmeserver-types` module and
+implement the `IServerPlugin` interface. Plugins are discovered and initialized automatically on startup allowing them
+to register event subscribers or extend server functionality.
+
 ## 🧪 Note for Unit Testing
 
 To be able to run the Unit Test, please make sure, that port `80` (default HTTP Port) is not in use

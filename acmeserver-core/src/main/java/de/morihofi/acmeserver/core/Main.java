@@ -39,6 +39,7 @@ import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.events.ServerInitializedEvent;
 import de.morihofi.acmeserver.types.events.ServerStartedEvent;
 import de.morihofi.acmeserver.types.events.ServerShutdownEvent;
+import de.morihofi.acmeserver.core.plugin.PluginManager;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -73,6 +74,15 @@ public class Main {
      * Path to the configuration file.
      */
     public static final Path CONFIG_PATH = FILES_DIR.resolve("settings.json");
+
+    /**
+     * Returns the directory used for external plugin JARs.
+     *
+     * @return path to the plugin directory within {@link #FILES_DIR}
+     */
+    public static Path resolveDataPluginsDir() {
+        return FILES_DIR.resolve("plugins");
+    }
 
     /**
      * Set of server options.
@@ -158,6 +168,11 @@ public class Main {
         EventBus eventBus = new EventBus();
         serverInstance = getServerInstance(config, debug, CONFIG_PATH, eventBus);
         eventBus.publish(new ServerInitializedEvent(serverInstance));
+
+        // Load plugins before starting the web server so they can register
+        // their event subscribers.
+        PluginManager pluginManager = new PluginManager(serverInstance);
+        pluginManager.loadPlugins();
 
 
         WebServer ws = new WebServer(serverInstance);
