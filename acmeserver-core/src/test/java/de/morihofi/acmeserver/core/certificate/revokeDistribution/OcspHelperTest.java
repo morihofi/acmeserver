@@ -139,6 +139,8 @@ class OcspHelperTest {
             @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
             @NotNull
             @Override public EventBus getEventBus() { return bus; }
+            @NotNull
+            @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
         };
     }
 

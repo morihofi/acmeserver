@@ -2,7 +2,6 @@ package de.morihofi.acmeserver.core.api.acme.api.endpoints;
 
 import de.morihofi.acmeserver.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.acme.api.endpoints.KeyChangeEndpoint;
-import de.morihofi.acmeserver.core.NonceManager;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;
 import com.google.gson.Gson;
@@ -37,8 +36,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEUnauthorizedException;
-
-import javax.naming.Context;
+import de.morihofi.acmeserver.server.common.intf.Endpoint;
+import de.morihofi.acmeserver.server.common.intf.HandlerContext;
+import de.morihofi.acmeserver.server.common.intf.Router;
+import de.morihofi.acmeserver.types.httpserver.HandlerType;
 import java.net.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,7 +65,6 @@ class KeyChangeEndpointTest {
         @Override public Proxy getProxy() { return Proxy.NO_PROXY; }
     }
 
-    /*
     static IServerInstance createServerInstance(String dbName, Path tempDir) throws Exception {
         Config cfg = new Config();
         DatabaseConfig db = new DatabaseConfig();
@@ -78,7 +78,7 @@ class KeyChangeEndpointTest {
 
         EventBus bus = new EventBus();
         HibernateUtil hu = new HibernateUtil(cfg, true, bus);
-        NonceManager nm = new NonceManager(hu, true, bus);
+        INonceManager nm = decoded -> {};
 
         // create basic provisioner and root CA
         try (Session s = hu.getSessionFactory().openSession()) {
@@ -122,11 +122,33 @@ class KeyChangeEndpointTest {
             @NotNull
             @Override public INetworkClient getNetworkClient() { return new DummyNetworkClient(); }
             @NotNull
-            @Override public EventBus getEventBus() { return new EventBus(); }
+        @Override public EventBus getEventBus() { return new EventBus(); }
+        @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
         };
     }
-*/
-    /*
+
+    static class DummyRequest implements de.morihofi.acmeserver.server.common.intf.Request {
+        private final String path;
+        private final String method;
+        private final String body;
+        DummyRequest(String path, String method, String body) { this.path = path; this.method = method; this.body = body; }
+        @Override public String getPath() { return path; }
+        @Override public String getMethod() { return method; }
+        @Override public String getHeader(String name) { return null; }
+        @Override public String getBody() { return body; }
+        @Override public String getIP() { return "127.0.0.1"; }
+        @Override public String getQueryParam(String name) { return null; }
+        @Override public byte[] getBodyBytes() { return body.getBytes(); }
+    }
+
+    static class DummyResponse extends de.morihofi.acmeserver.server.common.intf.Response {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        @Override public void setHeader(String name, String value) { }
+        @Override public String getHeader(String name) { return null; }
+        @Override public void setBodyBytes(byte[] data) { try { out.write(data); } catch (java.io.IOException ignored) {} }
+        @Override public java.util.Map<String, String> getHeaders() { return java.util.Collections.emptyMap(); }
+        @Override public java.io.OutputStream getOutputStream() { return out; }
+    }
     @Test
     @DisplayName("Constructor creates instance")
     void testConstructor() throws Exception {
@@ -193,7 +215,11 @@ class KeyChangeEndpointTest {
             }
 
             String body = buildRequest(si, prov, accountId, oldKey, newKey, true);
-            Context ctx = new DummyContext(body);
+            DummyRequest req = new DummyRequest("/acme/default/key-change", "POST", body);
+            DummyResponse resp = new DummyResponse();
+            Router router = new Router();
+            router.addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/key-change", new KeyChangeEndpoint(si)));
+            HandlerContext ctx = new HandlerContext(req, resp, router);
             KeyChangeEndpoint endpoint = new KeyChangeEndpoint(si);
 
             assertDoesNotThrow(() -> endpoint.handle(ctx));
@@ -233,7 +259,11 @@ class KeyChangeEndpointTest {
             }
 
             String body = buildRequest(si, prov, accountId, oldKey, newKey, false);
-            Context ctx = new DummyContext(body);
+            DummyRequest req = new DummyRequest("/acme/default/key-change", "POST", body);
+            DummyResponse resp = new DummyResponse();
+            Router router = new Router();
+            router.addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/key-change", new KeyChangeEndpoint(si)));
+            HandlerContext ctx = new HandlerContext(req, resp, router);
             KeyChangeEndpoint endpoint = new KeyChangeEndpoint(si);
 
             assertThrows(ACMEUnauthorizedException.class, () -> endpoint.handle(ctx));
@@ -241,6 +271,4 @@ class KeyChangeEndpointTest {
             // ignore cleanup
         }
     }
-
-     */
 }

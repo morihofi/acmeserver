@@ -3,6 +3,9 @@ package de.morihofi.acmeserver.core.certificate.revokeDistribution;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.database.entities.*;
+import de.morihofi.acmeserver.acme.revokeDistribution.CrlUpdateSubscriber;
+import de.morihofi.acmeserver.acme.revokeDistribution.CRLScheduler;
+import de.morihofi.acmeserver.acme.revokeDistribution.CrlStore;
 import de.morihofi.acmeserver.types.events.AcmeCertificateRevokedEvent;
 import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
@@ -44,6 +47,8 @@ class CrlUpdateSubscriberTest {
 
         @NotNull
         @Override public EventBus getEventBus(){return bus;}
+        @NotNull
+        @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags(){return java.util.Collections.emptySet();}
     }
 
     @Test

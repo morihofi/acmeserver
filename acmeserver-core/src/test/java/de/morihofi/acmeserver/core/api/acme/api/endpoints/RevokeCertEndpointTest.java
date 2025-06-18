@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import de.morihofi.acmeserver.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
+import de.morihofi.acmeserver.server.common.intf.Router;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -56,7 +57,24 @@ class RevokeCertEndpointTest {
         String[] parts = jws.getCompactSerialization().split("\\.");
         String body = String.format("{\"protected\":\"%s\",\"payload\":\"%s\",\"signature\":\"%s\"}", parts[0], parts[1], parts[2]);
 
-        // HandlerContext ctx = new DummyContext(body);
-        // assertDoesNotThrow(() -> SignatureCheck.checkSignature(ctx, kp.getPublic(), new Gson()));
+        class DummyRequest implements de.morihofi.acmeserver.server.common.intf.Request {
+            @Override public String getPath() { return "/"; }
+            @Override public String getMethod() { return "POST"; }
+            @Override public String getHeader(String name) { return null; }
+            @Override public String getBody() { return body; }
+            @Override public String getIP() { return "127.0.0.1"; }
+            @Override public String getQueryParam(String name) { return null; }
+            @Override public byte[] getBodyBytes() { return body.getBytes(); }
+        }
+        class DummyResponse extends de.morihofi.acmeserver.server.common.intf.Response {
+            @Override public void setHeader(String name, String value) { }
+            @Override public String getHeader(String name) { return null; }
+            @Override public void setBodyBytes(byte[] data) { }
+            @Override public java.util.Map<String, String> getHeaders() { return java.util.Collections.emptyMap(); }
+            @Override public java.io.OutputStream getOutputStream() { return new java.io.ByteArrayOutputStream(); }
+        }
+
+        HandlerContext ctx = new HandlerContext(new DummyRequest(), new DummyResponse(), new Router());
+        assertDoesNotThrow(() -> SignatureCheck.checkSignature(ctx, kp.getPublic(), new Gson()));
     }
 }

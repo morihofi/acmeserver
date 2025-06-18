@@ -16,6 +16,8 @@ import de.morihofi.acmeserver.types.intf.network.dns.IDoHClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.utils.base64.Base64Tools;
 import de.morihofi.acmeserver.utils.network.dns.DNSLookup;
+import de.morihofi.acmeserver.acme.challenges.DNSChallenge;
+import de.morihofi.acmeserver.acme.challenges.ChallengeResult;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,6 +30,8 @@ import org.xbill.DNS.Record;
 import org.xbill.DNS.TXTRecord;
 import org.xbill.DNS.Type;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.Security;
@@ -39,7 +43,6 @@ class DNSChallengeTest {
     static void addProvider() {
         Security.addProvider(new BouncyCastleProvider());
     }
-/*
     static class DummyServerInstance implements IServerInstance {
         private final INetworkClient net = new INetworkClient() {
             @Override public okhttp3.OkHttpClient getOkHttpClient() { return new okhttp3.OkHttpClient(); }
@@ -70,8 +73,10 @@ class DNSChallengeTest {
         @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
         @NotNull
         @Override public INetworkClient getNetworkClient() { return net; }
-            @NotNull
-            @Override public EventBus getEventBus() { return new EventBus(); }
+        @NotNull
+        @Override public EventBus getEventBus() { return new EventBus(); }
+        @NotNull
+        @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
     }
 
 
@@ -125,7 +130,5 @@ class DNSChallengeTest {
             assertFalse(result.successful());
         }
     }
-
- */
 }
 

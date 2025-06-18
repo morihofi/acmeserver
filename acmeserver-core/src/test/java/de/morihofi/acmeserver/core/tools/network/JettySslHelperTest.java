@@ -61,7 +61,7 @@ class JettySslHelperTest {
         X509Certificate cert = selfSigned(kp);
         ks.setKeyEntry("alias", kp.getPrivate(), "".toCharArray(), new java.security.cert.Certificate[]{cert});
 
-        server = JettySslHelper.getSslJetty(8443, 0, ks, "alias", null, false, null);
+        server = JettySslHelper.getSslJetty(8443, 0, ks, "alias", new Server(), false, null);
         assertEquals(1, server.getConnectors().length);
     }
 }

@@ -6,6 +6,8 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;
 import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
+import de.morihofi.acmeserver.acme.challenges.HTTPChallenge;
+import de.morihofi.acmeserver.acme.challenges.ChallengeResult;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.INonceManager;
@@ -33,7 +35,6 @@ class HTTPChallengeTest {
     static void addProvider() {
         Security.addProvider(new BouncyCastleProvider());
     }
-/*
     static class DummyNetworkClient implements INetworkClient {
         private final OkHttpClient client = new OkHttpClient();
         @Override public OkHttpClient getOkHttpClient() { return client; }
@@ -61,8 +62,10 @@ class HTTPChallengeTest {
         @Override public BuildMetadata getBuildMetadata() { return meta; }
         @NotNull
         @Override public INetworkClient getNetworkClient() { return net; }
-            @NotNull
-            @Override public EventBus getEventBus() { return new EventBus(); }
+        @NotNull
+        @Override public EventBus getEventBus() { return new EventBus(); }
+        @NotNull
+        @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
     }
 
     private HttpServer server;
@@ -127,7 +130,5 @@ class HTTPChallengeTest {
         assertFalse(result.successful());
         assertNotNull(result.errorReason());
     }
-
- */
 }
 

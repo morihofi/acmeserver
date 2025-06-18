@@ -4,6 +4,7 @@ import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifier;
+import de.morihofi.acmeserver.acme.api.endpoints.order.OrderInfoEndpoint;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEResourceNotFoundException;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +37,9 @@ class OrderInfoEndpointTest {
         @NotNull
         @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
             @NotNull
-            @Override public EventBus getEventBus() { return new EventBus(); }
+        @Override public EventBus getEventBus() { return new EventBus(); }
+        @NotNull
+        @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
     }
 
     @Test
@@ -47,15 +50,29 @@ class OrderInfoEndpointTest {
         Timestamp expires = Timestamp.from(Instant.now().plusSeconds(3600));
         order.setExpires(expires);
 
-        assertEquals(expires, endpoint.getOrderExpiration(order));
+        java.lang.reflect.Method m;
+        try {
+            m = OrderInfoEndpoint.class.getDeclaredMethod("getOrderExpiration", AcmeOrder.class);
+            m.setAccessible(true);
+            assertEquals(expires, m.invoke(endpoint, order));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
     @DisplayName("verifyIdentifiersPresent throws when list empty")
     void testVerifyIdentifiersPresentThrows() {
         OrderInfoEndpoint endpoint = new OrderInfoEndpoint(new DummyServerInstance());
-        assertThrows(ACMEResourceNotFoundException.class,
-                () -> endpoint.verifyIdentifiersPresent("test", List.of()));
+        java.lang.reflect.Method m;
+        try {
+            m = OrderInfoEndpoint.class.getDeclaredMethod("verifyIdentifiersPresent", String.class, List.class);
+            m.setAccessible(true);
+            java.lang.reflect.InvocationTargetException ex = assertThrows(java.lang.reflect.InvocationTargetException.class, () -> m.invoke(endpoint, "test", List.of()));
+            assertTrue(ex.getCause() instanceof ACMEResourceNotFoundException);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
@@ -63,6 +80,13 @@ class OrderInfoEndpointTest {
     void testVerifyIdentifiersPresentOk() {
         OrderInfoEndpoint endpoint = new OrderInfoEndpoint(new DummyServerInstance());
         AcmeOrderIdentifier id = new AcmeOrderIdentifier("dns", "example.com");
-        assertDoesNotThrow(() -> endpoint.verifyIdentifiersPresent("test", List.of(id)));
+        java.lang.reflect.Method m;
+        try {
+            m = OrderInfoEndpoint.class.getDeclaredMethod("verifyIdentifiersPresent", String.class, List.class);
+            m.setAccessible(true);
+            assertDoesNotThrow(() -> m.invoke(endpoint, "test", List.of(id)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

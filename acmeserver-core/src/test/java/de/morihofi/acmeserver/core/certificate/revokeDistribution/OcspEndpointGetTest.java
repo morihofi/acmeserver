@@ -18,6 +18,7 @@ import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
+import de.morihofi.acmeserver.acme.revokeDistribution.OcspEndpointGet;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
 import org.hibernate.Transaction;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
@@ -34,11 +35,18 @@ import org.junit.jupiter.api.*;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import io.javalin.http.Context;
-import jakarta.servlet.ServletOutputStream;
+import de.morihofi.acmeserver.server.common.intf.Endpoint;
+import de.morihofi.acmeserver.server.common.intf.HandlerContext;
+import de.morihofi.acmeserver.server.common.intf.Request;
+import de.morihofi.acmeserver.server.common.intf.Response;
+import de.morihofi.acmeserver.server.common.intf.Router;
+import de.morihofi.acmeserver.types.httpserver.HandlerType;
+
 
 import java.math.BigInteger;
 import java.net.URLEncoder;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -62,41 +70,28 @@ class OcspEndpointGetTest {
         return new CertificateConfig(meta, exp, null);
     }
 
-    static class DummyContext implements Context {
-        private final String ocsp;
-        byte[] result;
-        DummyContext(String ocsp) { this.ocsp = ocsp; }
-        @Override public String pathParam(String s) { return "ocspRequest".equals(s) ? ocsp : "provisioner".equals(s) ? "test" : null; }
-        @Override public java.util.Map<String, String> pathParamMap() { return Collections.emptyMap(); }
-        @Override public Context result(byte[] bytes) { this.result = bytes; return this; }
-        @Override public Context result(java.io.InputStream inputStream) { return this; }
-        @Override public java.io.InputStream resultInputStream() { return null; }
-        @Override public ServletOutputStream outputStream() { return null; }
-        @Override public io.javalin.http.HandlerType handlerType() { return null; }
-        @Override public String matchedPath() { return null; }
-        @Override public String endpointHandlerPath() { return null; }
-        @Override public <T> T appData(io.javalin.config.Key<T> key) { return null; }
-        @Override public io.javalin.json.JsonMapper jsonMapper() { return null; }
-        @Override public <T> T with(Class<? extends io.javalin.plugin.ContextPlugin<?, T>> plugin) { return null; }
-        @Override public boolean strictContentTypes() { return false; }
-        @Override public String body() { return null; }
-        @Override public byte[] bodyAsBytes() { return new byte[0]; }
-        @Override public <T> T bodyAsClass(java.lang.Class<T> aClass) { return null; }
-        @Override public <T> T bodyAsClass(java.lang.reflect.Type type) { return null; }
-        @Override public <T> T bodyStreamAsClass(java.lang.reflect.Type type) { return null; }
-        @Override public java.io.InputStream bodyInputStream() { return null; }
-        @Override public <T> io.javalin.validation.BodyValidator<T> bodyValidator(java.lang.Class<T> aClass) { return null; }
-        @Override public jakarta.servlet.http.HttpServletRequest req() { return null; }
-        @Override public jakarta.servlet.http.HttpServletResponse res() { return null; }
-        @Override public Context minSizeForCompression(int i) { return this; }
-        @Override public void future(java.util.function.Supplier<? extends java.util.concurrent.CompletableFuture<?>> supplier) {}
-        @Override public void redirect(String s, io.javalin.http.HttpStatus httpStatus) {}
-        @Override public void writeJsonStream(java.util.stream.Stream<?> stream) {}
-        @Override public Context skipRemainingHandlers() { return this; }
-        @Override public java.util.Set<io.javalin.security.RouteRole> routeRoles() { return Collections.emptySet(); }
-        @Override public Context contentType(String contentType) { return this; }
-        @Override public Context status(io.javalin.http.HttpStatus status) { return this; }
-        @Override public io.javalin.http.HttpStatus status() { return null; }
+    static class DummyRequest implements Request {
+        private final String path;
+        private final String method;
+        DummyRequest(String path, String method) { this.path = path; this.method = method; }
+        @Override public String getPath() { return path; }
+        @Override public String getMethod() { return method; }
+        @Override public String getHeader(String name) { return null; }
+        @Override public String getBody() { return null; }
+        @Override public String getIP() { return "127.0.0.1"; }
+        @Override public String getQueryParam(String name) { return null; }
+        @Override public byte[] getBodyBytes() { return new byte[0]; }
+    }
+
+    static class DummyResponse extends Response {
+        java.util.Map<String, String> headers = new java.util.HashMap<>();
+        ByteArrayOutputStream body = new ByteArrayOutputStream();
+        @Override public void setHeader(String name, String value) { headers.put(name, value); }
+        @Override public String getHeader(String name) { return headers.get(name); }
+        @Override public void setBodyBytes(byte[] data) { try { body.reset(); body.write(data); } catch (java.io.IOException ignored) {} }
+        @Override public java.util.Map<String, String> getHeaders() { return headers; }
+        @Override public OutputStream getOutputStream() { return body; }
+        byte[] bodyBytes() { return body.toByteArray(); }
     }
 
     private OcspEndpointGet endpoint;
@@ -183,6 +178,8 @@ class OcspEndpointGetTest {
             @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
             @NotNull
             @Override public EventBus getEventBus() { return bus; }
+            @NotNull
+            @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
         };
 
         endpoint = new OcspEndpointGet(si);
@@ -207,14 +204,19 @@ class OcspEndpointGetTest {
         String b64 = java.util.Base64.getEncoder().encodeToString(req.getEncoded());
         String encoded = URLEncoder.encode(b64, StandardCharsets.UTF_8);
 
-        DummyContext ctx = new DummyContext(encoded);
+        Router router = new Router();
+        router.addHandler(new Endpoint(HandlerType.GET, "/acme/{provisioner}/ocsp/{ocspRequest}", endpoint));
+        DummyRequest request = new DummyRequest("/acme/test/ocsp/" + encoded, "GET");
+        DummyResponse respObj = new DummyResponse();
+        HandlerContext ctx = new HandlerContext(request, respObj, router);
         try (MockedStatic<AcmeProvisioner> mock = Mockito.mockStatic(AcmeProvisioner.class)) {
             mock.when(() -> AcmeProvisioner.getForName(si, "test")).thenReturn(prov);
             endpoint.handle(ctx);
         }
 
-        assertNotNull(ctx.result);
-        OCSPResp resp = new OCSPResp(ctx.result);
+        byte[] body = respObj.bodyBytes();
+        assertNotNull(body);
+        OCSPResp resp = new OCSPResp(body);
         assertEquals(OCSPResp.SUCCESSFUL, resp.getStatus());
     }
 }

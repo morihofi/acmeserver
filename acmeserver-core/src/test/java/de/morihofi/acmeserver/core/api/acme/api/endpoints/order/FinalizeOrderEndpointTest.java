@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver.core.api.acme.api.endpoints.order;
 import de.morihofi.acmeserver.types.events.EventBus;
+import de.morihofi.acmeserver.acme.api.endpoints.order.FinalizeOrderEndpoint;
 
 import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifier;
 import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifierChallenge;
@@ -16,7 +17,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FinalizeOrderEndpointTest {
-/*
     static class DummyServerInstance implements IServerInstance {
         @NotNull
         @Override public String getServerURL() { return ""; }
@@ -34,8 +34,10 @@ class FinalizeOrderEndpointTest {
         @Override public de.morihofi.acmeserver.types.runtime.BuildMetadata getBuildMetadata() { return null; }
         @NotNull
         @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
-            @NotNull
-            @Override public EventBus getEventBus() { return new EventBus(); }
+        @NotNull
+        @Override public EventBus getEventBus() { return new EventBus(); }
+        @NotNull
+        @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
     }
 
     private static AcmeOrderIdentifierChallenge challengeWithStatus(AcmeOrderIdentifier id, AcmeStatus status) {
@@ -54,8 +56,16 @@ class FinalizeOrderEndpointTest {
         id1.setChallenges(List.of(challengeWithStatus(id1, AcmeStatus.VALID)));
         id2.setChallenges(List.of(challengeWithStatus(id2, AcmeStatus.PENDING)));
 
-        assertThrows(ACMEUnauthorizedException.class,
-                () -> endpoint.verifyAuthorizationsComplete(List.of(id1, id2)));
+        java.lang.reflect.Method m;
+        try {
+            m = FinalizeOrderEndpoint.class.getDeclaredMethod("verifyAuthorizationsComplete", List.class);
+            m.setAccessible(true);
+            java.lang.reflect.InvocationTargetException ex = assertThrows(java.lang.reflect.InvocationTargetException.class,
+                    () -> m.invoke(endpoint, List.of(id1, id2)));
+            assertTrue(ex.getCause() instanceof ACMEUnauthorizedException);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
@@ -67,8 +77,13 @@ class FinalizeOrderEndpointTest {
         id1.setChallenges(List.of(challengeWithStatus(id1, AcmeStatus.VALID)));
         id2.setChallenges(List.of(challengeWithStatus(id2, AcmeStatus.VALID)));
 
-        assertDoesNotThrow(() -> endpoint.verifyAuthorizationsComplete(List.of(id1, id2)));
+        java.lang.reflect.Method m;
+        try {
+            m = FinalizeOrderEndpoint.class.getDeclaredMethod("verifyAuthorizationsComplete", List.class);
+            m.setAccessible(true);
+            assertDoesNotThrow(() -> m.invoke(endpoint, List.of(id1, id2)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
-
- */
 }
