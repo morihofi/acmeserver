@@ -14,6 +14,7 @@ import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,14 +37,23 @@ class ProvisionerRenewSubscriberTest {
         DummyServerInstance(CryptoStoreManager mgr, EventBus bus) {
             this.mgr = mgr; this.bus = bus;
         }
+        @NotNull
         @Override public String getServerURL() { return ""; }
+        @NotNull
         @Override public org.hibernate.Session getDatabaseSession() { return null; }
+        @NotNull
         @Override public ICryptoStoreManager getCryptoStoreManager() { return mgr; }
+        @NotNull
         @Override public Config getAppConfig() { return new Config(); }
+        @NotNull
         @Override public INonceManager getNonceManager() { return null; }
+        @NotNull
         @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
+        @NotNull
         @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
+        @NotNull
         @Override public INetworkClient getNetworkClient() { return null; }
+        @NotNull
         @Override public EventBus getEventBus() { return bus; }
     }
 

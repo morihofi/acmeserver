@@ -14,11 +14,12 @@ import de.morihofi.acmeserver.core.Main;
 import de.morihofi.acmeserver.core.api.mgmt.serverInfo.objects.MetadataInfoResponse;
 import de.morihofi.acmeserver.core.api.mgmt.serverInfo.objects.ProvisionerResponse;
 import de.morihofi.acmeserver.core.api.mgmt.serverInfo.objects.ServerInfoResponse;
+import de.morihofi.acmeserver.server.common.intf.Handler;
+import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
+
 import lombok.NonNull;
 
 
@@ -84,7 +85,7 @@ public class ApiServerInfoEndpoint implements Handler {
      * @param ctx The Javalin context.
      */
     @Override
-    public void handle(@NonNull Context ctx) {
+    public void handle(@NonNull HandlerContext ctx) {
         ctx.header("Content-Type", "application/json");
 
         ServerInfoResponse responseData = getServerInfoResponse();

@@ -28,9 +28,9 @@ import de.morihofi.acmeserver.utils.datetime.DateTools;
 import de.morihofi.acmeserver.core.tools.network.JettySslHelper;
 import de.morihofi.acmeserver.utils.network.ssl.mozillasslconfig.MozillaSslConfigHelper;
 import de.morihofi.acmeserver.types.config.Config;
-import io.javalin.Javalin;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.eclipse.jetty.server.Server;
 
 import java.io.IOException;
 import java.security.*;
@@ -55,12 +55,12 @@ public class JavalinSecurityHelper {
      * sets up a watcher to monitor certificate expiration. This watcher is configured to renew the certificate automatically before it
      * expires and reload the certificate in the Jetty server without requiring a restart of the application.</p>
      *
-     * @param app      the Javalin application instance to be configured.
+     * @param jetty      the Jetty instance to be configured.
      * @param instance server instance
      * @throws Exception if there is an error in generating the ACME API client certificate, updating the Jetty server SSL configuration, or
      *                   during automatic certificate renewal.
      */
-    public static void initSecureApi(Javalin app, IServerInstance instance,
+    public static void initSecureApi(Server jetty, IServerInstance instance,
                                      CertificateRenewScheduler certificateRenewManager) throws Exception {
 
         ICryptoStoreManager cryptoStoreManager = instance.getCryptoStoreManager();
@@ -131,7 +131,7 @@ public class JavalinSecurityHelper {
          * libraries and Bouncy Castle JSSE, which is platform independent.
          */
 
-        JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, app.jettyServer(),
+        JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, jetty,
                 enableSniCheck, mozillaSSlConfig);
 
         log.info("Registering ACME API certificate expiration watcher");
@@ -144,7 +144,7 @@ public class JavalinSecurityHelper {
                     try {
                         log.info("Certificate renewed successfully, now reloading ACME API certificate");
                         JettySslHelper.updateSslJetty(httpsPort, httpPort, keyStore, CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI,
-                                app.jettyServer(), enableSniCheck, mozillaSSlConfig);
+                                jetty, enableSniCheck, mozillaSSlConfig);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -222,7 +222,7 @@ public class JavalinSecurityHelper {
 
             return new CertificateRenewScheduler.CertificateData(chain, acmeAPIKeyPair);
         } else {
-            return new CertificateRenewScheduler.CertificateData(null, null);
+            return null;
         }
     }
 }

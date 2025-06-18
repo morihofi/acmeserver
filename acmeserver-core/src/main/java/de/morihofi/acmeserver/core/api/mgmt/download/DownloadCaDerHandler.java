@@ -16,9 +16,10 @@
 
 package de.morihofi.acmeserver.core.api.mgmt.download;
 
+import de.morihofi.acmeserver.server.common.intf.Handler;
+import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
+
 import lombok.NonNull;
 
 public class DownloadCaDerHandler implements Handler {
@@ -29,10 +30,11 @@ public class DownloadCaDerHandler implements Handler {
     }
 
     @Override
-    public void handle(@NonNull Context ctx) throws Exception {
+    public void handle(@NonNull HandlerContext ctx) throws Exception {
         ctx.header("Content-Type", "application/x-x509-ca-cert");
 
-        byte[] der = serverInstance.getCryptoStoreManager().getCerificateAuthorityX509Certificate(serverInstance.getRootCa())
+        byte[] der = serverInstance.getCryptoStoreManager()
+                .getCerificateAuthorityX509Certificate(serverInstance.getRootCa())
                 .getEncoded();
 
         ctx.result(der);

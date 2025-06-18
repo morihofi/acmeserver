@@ -18,10 +18,11 @@ package de.morihofi.acmeserver.core.api.mgmt.provisioner.byname;
 
 import de.morihofi.acmeserver.core.api.mgmt.provisioner.byname.responses.ProvisionerByNameInfoResponse;
 
+import de.morihofi.acmeserver.server.common.intf.Handler;
+import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
+
 import lombok.NonNull;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -67,7 +68,7 @@ public class ProvisionerByNameInfoHandler implements Handler {
      * @throws Exception If an error occurs while processing the request.
      */
     @Override
-    public void handle(@NonNull Context context) throws Exception {
+    public void handle(@NonNull HandlerContext context) throws Exception {
         String provisionerName = context.pathParam("provisionerName");
 
         AcmeProvisioner provisioner = AcmeProvisioner.getForName(serverInstance, provisionerName);

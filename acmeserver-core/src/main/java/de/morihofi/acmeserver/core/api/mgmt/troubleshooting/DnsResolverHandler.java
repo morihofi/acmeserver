@@ -17,10 +17,10 @@ package de.morihofi.acmeserver.core.api.mgmt.troubleshooting;
 
 import de.morihofi.acmeserver.core.api.mgmt.troubleshooting.objects.DnsResolverRequest;
 import de.morihofi.acmeserver.core.api.mgmt.troubleshooting.objects.DnsResolverResponse;
+import de.morihofi.acmeserver.server.common.intf.Handler;
+import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.network.dns.DNSLookup;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
 
 import lombok.NonNull;
 import org.xbill.DNS.A6Record;
@@ -88,8 +88,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DnsResolverHandler implements Handler {
+
     @Override
-    public void handle(@NonNull Context context) throws Exception {
+    public void handle(@NonNull HandlerContext context) throws Exception {
         DnsResolverRequest request = context.bodyAsClass(DnsResolverRequest.class);
 
         DnsResolverResponse response = new DnsResolverResponse();

@@ -6,6 +6,7 @@ import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifier;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEResourceNotFoundException;
 import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,14 +19,23 @@ import static org.junit.jupiter.api.Assertions.*;
 class OrderInfoEndpointTest {
 
     static class DummyServerInstance implements IServerInstance {
+        @NotNull
         @Override public String getServerURL() { return ""; }
+        @NotNull
         @Override public Session getDatabaseSession() { return null; }
+        @NotNull
         @Override public de.morihofi.acmeserver.types.intf.ICryptoStoreManager getCryptoStoreManager() { return null; }
+        @NotNull
         @Override public de.morihofi.acmeserver.types.config.Config getAppConfig() { return null; }
+        @NotNull
         @Override public de.morihofi.acmeserver.types.intf.INonceManager getNonceManager() { return null; }
+        @NotNull
         @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
+        @NotNull
         @Override public de.morihofi.acmeserver.types.runtime.BuildMetadata getBuildMetadata() { return null; }
+        @NotNull
         @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
+            @NotNull
             @Override public EventBus getEventBus() { return new EventBus(); }
     }
 

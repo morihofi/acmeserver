@@ -18,7 +18,6 @@ package de.morihofi.acmeserver.core.tools.network;
 
 import de.morihofi.acmeserver.types.exception.ServerStartupException;
 import de.morihofi.acmeserver.utils.network.ssl.mozillasslconfig.MozillaSslConfigHelper;
-import io.javalin.jetty.JettyServer;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.eclipse.jetty.server.Connector;
@@ -97,28 +96,27 @@ public class JettySslHelper {
     /**
      * Creates a Jetty Server instance configured for both secure (HTTPS) and non-secure (HTTP) communication.
      *
-     * @param httpsPort   The port number for secure HTTPS communication.
-     * @param httpPort    The port number for non-secure HTTP communication.
-     * @param keyStore    The KeyStore containing the SSL certificate and private key.
-     * @param alias       The alias of the certificate in the KeyStore.
-     * @param jettyServer Jetty server wrapper of Javalin
+     * @param httpsPort The port number for secure HTTPS communication.
+     * @param httpPort  The port number for non-secure HTTP communication.
+     * @param keyStore  The KeyStore containing the SSL certificate and private key.
+     * @param alias     The alias of the certificate in the KeyStore.
+     * @param server    Jetty server wrapper of Javalin
      * @return A Jetty Server instance configured for both secure and non-secure communication.
      * @throws Exception If an error occurs while creating or configuring the Jetty Server.
      */
-    public static Server getSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String alias, JettyServer jettyServer,
+    public static Server getSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String alias, Server server,
                                      boolean enableSniCheck, MozillaSslConfigHelper.BasicConfiguration mozillaConfig)
             throws Exception {
 
         SSLContext sslContext = createSSLContext(keyStore, alias, "");
 
-        Server server = jettyServer != null ? jettyServer.server() : new Server();
         return configureServer(server, sslContext, httpsPort, httpPort, enableSniCheck, mozillaConfig);
     }
 
-    public static void updateSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String keystoreAliasAcmeapi, JettyServer jettyServer,
-            boolean enableSniCheck, MozillaSslConfigHelper.BasicConfiguration mozillaConfig) throws Exception {
+    public static void updateSslJetty(int httpsPort, int httpPort, KeyStore keyStore, String keystoreAliasAcmeapi, Server jettyServer,
+                                      boolean enableSniCheck, MozillaSslConfigHelper.BasicConfiguration mozillaConfig) throws Exception {
         SSLContext ctx = createSSLContext(keyStore, keystoreAliasAcmeapi, "");
-        configureServer(jettyServer.server(), ctx, httpsPort, httpPort, enableSniCheck, mozillaConfig);
+        configureServer(jettyServer, ctx, httpsPort, httpPort, enableSniCheck, mozillaConfig);
     }
 
     /**
@@ -130,11 +128,10 @@ public class JettySslHelper {
      * @param jettyServer Jetty server wrapper of Javalin
      * @return A configured Jetty Server instance.
      */
-    public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext, JettyServer jettyServer, boolean enableSniCheck,
-            MozillaSslConfigHelper.BasicConfiguration mozillaConfig) throws Exception {
+    public static Server getSslJetty(int httpsPort, int httpPort, SSLContext sslContext, Server jettyServer, boolean enableSniCheck,
+                                     MozillaSslConfigHelper.BasicConfiguration mozillaConfig) throws Exception {
 
-        Server server = jettyServer != null ? jettyServer.server() : new Server();
-        return configureServer(server, sslContext, httpsPort, httpPort, enableSniCheck, mozillaConfig);
+        return configureServer(jettyServer, sslContext, httpsPort, httpPort, enableSniCheck, mozillaConfig);
     }
 
     private static Server configureServer(Server server, SSLContext sslContext, int httpsPort, int httpPort,

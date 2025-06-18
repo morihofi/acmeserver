@@ -17,9 +17,9 @@
 package de.morihofi.acmeserver.core.api.mgmt.download;
 
 import de.morihofi.acmeserver.core.tools.fileformats.archive.cab.CabFile;
+import de.morihofi.acmeserver.server.common.intf.Handler;
+import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
 
 import lombok.NonNull;
 import org.w3c.dom.Document;
@@ -58,7 +58,7 @@ public class DownloadCaCabHandler implements Handler {
     }
 
     @Override
-    public void handle(@NonNull Context ctx) throws Exception {
+    public void handle(@NonNull HandlerContext ctx) throws Exception {
         ctx.header("Content-Type", "application/vnd.ms-cab-compressed");
 
         String xml = createXmlWithCertificate(
@@ -73,7 +73,7 @@ public class DownloadCaCabHandler implements Handler {
     }
 
     private String getFingerprint(X509Certificate certificate) throws Exception {
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        MessageDigest md = MessageDigest.getInstance("SHA-1"); // This is needed for Windows Mobile
         byte[] certBytes = certificate.getEncoded();
         byte[] fingerprintBytes = md.digest(certBytes);
         return toHex(fingerprintBytes);

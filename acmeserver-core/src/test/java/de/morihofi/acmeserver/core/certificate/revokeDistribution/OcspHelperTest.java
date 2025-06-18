@@ -30,6 +30,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 
 import java.math.BigInteger;
@@ -120,14 +121,23 @@ class OcspHelperTest {
         }
 
         si = new IServerInstance() {
+            @NotNull
             @Override public String getServerURL() { return "https://example.com"; }
+            @NotNull
             @Override public Session getDatabaseSession() { return hu.getSessionFactory().openSession(); }
+            @NotNull
             @Override public ICryptoStoreManager getCryptoStoreManager() { return csm; }
+            @NotNull
             @Override public de.morihofi.acmeserver.types.config.Config getAppConfig() { return cfg; }
+            @NotNull
             @Override public de.morihofi.acmeserver.types.intf.INonceManager getNonceManager() { return null; }
+            @NotNull
             @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return root; }
+            @NotNull
             @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
+            @NotNull
             @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
+            @NotNull
             @Override public EventBus getEventBus() { return bus; }
         };
     }

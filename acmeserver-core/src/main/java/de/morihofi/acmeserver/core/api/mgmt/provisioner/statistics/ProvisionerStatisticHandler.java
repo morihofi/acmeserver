@@ -12,10 +12,11 @@ package de.morihofi.acmeserver.core.api.mgmt.provisioner.statistics;
 import de.morihofi.acmeserver.core.api.mgmt.provisioner.statistics.responses.ProvisionerStatisticResponse;
 
 import de.morihofi.acmeserver.core.api.mgmt.provisioner.ProvisionerStatistics;
+import de.morihofi.acmeserver.server.common.intf.Handler;
+import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
+
 import lombok.NonNull;
 import org.hibernate.Session;
 
@@ -49,11 +50,11 @@ public class ProvisionerStatisticHandler implements Handler {
     /**
      * Handles the HTTP request to retrieve statistics of all available provisioners.
      *
-     * @param context The Javalin {@link Context} of the HTTP request.
+     * @param context The {@link HandlerContext} of the HTTP request.
      * @throws Exception If an error occurs while retrieving the statistics.
      */
     @Override
-    public void handle(@NonNull Context context) throws Exception {
+    public void handle(@NonNull HandlerContext context) throws Exception {
         List<ProvisionerStatisticResponse> statisticItemsOfProvisioner = new ArrayList<>();
 
         try (Session session = serverInstance.getDatabaseSession()) {

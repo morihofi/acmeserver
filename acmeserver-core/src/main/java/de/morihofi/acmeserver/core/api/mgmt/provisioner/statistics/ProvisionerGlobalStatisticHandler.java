@@ -17,9 +17,10 @@ package de.morihofi.acmeserver.core.api.mgmt.provisioner.statistics;
 
 import de.morihofi.acmeserver.core.api.mgmt.provisioner.statistics.responses.ProvisionerStatisticResponse;
 import de.morihofi.acmeserver.core.api.mgmt.provisioner.ProvisionerStatistics;
+import de.morihofi.acmeserver.server.common.intf.Handler;
+import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
+
 import lombok.NonNull;
 import org.hibernate.Session;
 
@@ -54,7 +55,7 @@ public class ProvisionerGlobalStatisticHandler implements Handler {
      * @throws Exception If an error occurs while processing the request.
      */
     @Override
-    public void handle(@NonNull Context context) throws Exception {
+    public void handle(@NonNull HandlerContext context) throws Exception {
         ProvisionerStatisticResponse globalStats = new ProvisionerStatisticResponse();
         globalStats.setName(null);
 

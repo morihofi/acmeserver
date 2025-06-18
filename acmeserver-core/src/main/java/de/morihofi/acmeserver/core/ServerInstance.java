@@ -24,6 +24,7 @@ import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.database.entities.RootCa;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
+import de.morihofi.acmeserver.types.server.StartupFlag;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Getter;
 import lombok.NonNull;
@@ -34,6 +35,8 @@ import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Represents the server instance that holds various configurations and utilities required for the operation of the server.
@@ -42,7 +45,7 @@ import java.nio.file.Path;
 public class ServerInstance implements IServerInstance {
 
 
-    public ServerInstance(@NonNull Config appConfig, @NonNull Path appConfigPath, boolean debug, @NonNull CryptoStoreManager cryptoStoreManager, @NonNull INetworkClient networkClient, @NonNull HibernateUtil hibernateUtil, @NonNull INonceManager nonceManager, @NonNull RootCa rootCa, @NonNull BuildMetadata buildMetadata, @NonNull EventBus eventBus) {
+    public ServerInstance(@NonNull Config appConfig, @NonNull Path appConfigPath, boolean debug, @NonNull CryptoStoreManager cryptoStoreManager, @NonNull INetworkClient networkClient, @NonNull HibernateUtil hibernateUtil, @NonNull INonceManager nonceManager, @NonNull RootCa rootCa, @NonNull BuildMetadata buildMetadata, @NonNull EventBus eventBus, @NonNull Set<StartupFlag> startupFlags) {
         this.appConfig = appConfig;
         this.appConfigPath = appConfigPath;
         this.debug = debug;
@@ -53,6 +56,7 @@ public class ServerInstance implements IServerInstance {
         this.rootCa = rootCa;
         this.buildMetadata = buildMetadata;
         this.eventBus = eventBus;
+        this.startupFlags = startupFlags;
 
         // Clear sensitive passwords from in memory config to avoid accidental exposure
         this.appConfig.getDatabase().setPassword(null);
@@ -110,12 +114,16 @@ public class ServerInstance implements IServerInstance {
     @NonNull
     private final EventBus eventBus;
 
+    @NonNull
+    private final Set<StartupFlag> startupFlags;
+
     /**
      * Retrieves the server URL constructed from the application's configuration. This method combines the DNS name and HTTPS port specified
      * in the app configuration to form the complete server URL.
      *
      * @return a String representing the full HTTPS URL of the server
      */
+    @NotNull
     @NonNull
     public String getServerURL() {
         return "https://" + this.getAppConfig().getServer().getDnsName() + (this.getAppConfig().getServer().getPorts().getHttps() != 443 ? ":"
@@ -133,10 +141,12 @@ public class ServerInstance implements IServerInstance {
 
         return getHibernateUtil().getSessionFactory().openSession();
     }
+    @NotNull
     @Override
     public EventBus getEventBus() {
         return eventBus;
     }
+
 
 
 

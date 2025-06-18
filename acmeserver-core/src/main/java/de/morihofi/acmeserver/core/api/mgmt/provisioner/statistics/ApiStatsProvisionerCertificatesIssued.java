@@ -17,9 +17,10 @@
 package de.morihofi.acmeserver.core.api.mgmt.provisioner.statistics;
 
 import de.morihofi.acmeserver.core.api.mgmt.provisioner.ProvisionerStatistics;
+import de.morihofi.acmeserver.server.common.intf.Handler;
+import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
+
 import lombok.NonNull;
 import org.hibernate.Session;
 
@@ -53,7 +54,7 @@ public class ApiStatsProvisionerCertificatesIssued implements Handler {
      * @param context The context of the request.
      */
     @Override
-    public void handle(@NonNull Context context) {
+    public void handle(@NonNull HandlerContext context) {
         context.contentType("application/json");
 
         String provisionerName = context.queryParam("provisioner");

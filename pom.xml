@@ -15,6 +15,8 @@
         <module>acmeserver-parent</module>
         <module>acmeserver-types</module>
         <module>acmeserver-cryptography</module>
+        <module>acmeserver-httpserver-intf</module>
+        <module>acmeserver-acme</module>
     </modules>
 
     <licenses>

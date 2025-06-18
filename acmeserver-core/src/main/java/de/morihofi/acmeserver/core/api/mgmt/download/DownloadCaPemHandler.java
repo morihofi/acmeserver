@@ -17,9 +17,10 @@
 package de.morihofi.acmeserver.core.api.mgmt.download;
 
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;
+import de.morihofi.acmeserver.server.common.intf.Handler;
+import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
+
 import lombok.NonNull;
 
 
@@ -44,7 +45,7 @@ public class DownloadCaPemHandler implements Handler {
      * @throws Exception thrown when there was an error processing the request
      */
     @Override
-    public void handle(@NonNull Context ctx) throws Exception {
+    public void handle(@NonNull HandlerContext ctx) throws Exception {
         ctx.header("Content-Type", "application/x-x509-ca-cert");
 
         String pem = PemUtil.certificateToPEM(

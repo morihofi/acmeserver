@@ -18,8 +18,8 @@ package de.morihofi.acmeserver.core;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import de.morihofi.acmeserver.core.api.acme.security.NonceManager;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
+import de.morihofi.acmeserver.core.web.WebServer;
 import de.morihofi.acmeserver.types.database.entities.RootCa;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS11KeyStoreConfig;
@@ -31,6 +31,7 @@ import de.morihofi.acmeserver.types.config.keyStoreHelpers.KeyStoreParams;
 import de.morihofi.acmeserver.types.config.keyStoreHelpers.PKCS11KeyStoreParams;
 import de.morihofi.acmeserver.types.config.keyStoreHelpers.PKCS12KeyStoreParams;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
+import de.morihofi.acmeserver.types.server.StartupFlag;
 import de.morihofi.acmeserver.utils.cli.CLIArgument;
 import de.morihofi.acmeserver.utils.meta.BuildMetadataImpl;
 import de.morihofi.acmeserver.utils.network.http.NetworkClient;
@@ -77,7 +78,7 @@ public class Main {
     /**
      * Set of server options.
      */
-    private static final Set<SERVER_OPTION> serverOptions = new HashSet<>();
+    private static final Set<StartupFlag> startupFlags = new HashSet<>();
 
     /**
      * Gson instance for configuration deserialization.
@@ -100,14 +101,7 @@ public class Main {
      */
     private static IServerInstance serverInstance;
 
-    /**
-     * Returns the set of server options.
-     *
-     * @return an unmodifiable set of server options.
-     */
-    public static Set<SERVER_OPTION> getServerOptions() {
-        return Collections.unmodifiableSet(serverOptions);
-    }
+
 
     /**
      * Main application startup method.
@@ -148,7 +142,7 @@ public class Main {
              * Following are options that change the behavior of the server
              */
             if (cliArgument.getParameterName().equals("option-use-async-certificate-issuing")) {
-                serverOptions.add(SERVER_OPTION.USE_ASYNC_CERTIFICATE_ISSUING);
+                startupFlags.add(StartupFlag.USE_ASYNC_CERTIFICATE_ISSUING);
                 log.info("Enabled async certificate issuing");
             }
         }
@@ -214,10 +208,11 @@ public class Main {
                 cryptoStoreManager,
                 new NetworkClient(config.getNetwork()),
                 hibernateUtil,
-                new NonceManager(hibernateUtil, debug, eventBus),
+                new NonceManager(serverInstance),
                 root,
                 BuildMetadataImpl.getInstance(),
-                eventBus
+                eventBus,
+                startupFlags
         );
     }
 
@@ -262,13 +257,5 @@ public class Main {
         }
     }
 
-    /**
-     * Custom flag enum that change behaviour of the server
-     */
-    public enum SERVER_OPTION {
-        /**
-         * Enables the async certificate issuing, that is currently a buggy in certbot.
-         */
-        USE_ASYNC_CERTIFICATE_ISSUING
-    }
+
 }

@@ -11,6 +11,7 @@ import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -21,11 +22,28 @@ class CrlUpdateSubscriberTest {
     static class DummyServer implements IServerInstance {
         private final CryptoStoreManager mgr; private final EventBus bus;
         DummyServer(CryptoStoreManager mgr, EventBus bus){this.mgr=mgr;this.bus=bus;}
-        @Override public String getServerURL(){return "";}@Override public Session getDatabaseSession(){return null;}
-        @Override public ICryptoStoreManager getCryptoStoreManager(){return mgr;}@Override public Config getAppConfig(){return new Config();}
-        @Override public INonceManager getNonceManager(){return null;}@Override public RootCa getRootCa(){return null;}
+        @NotNull
+        @Override public String getServerURL(){return "";}
+
+        @NotNull
+        @Override public Session getDatabaseSession(){return null;}
+        @NotNull
+        @Override public ICryptoStoreManager getCryptoStoreManager(){return mgr;}
+
+        @NotNull
+        @Override public Config getAppConfig(){return new Config();}
+        @NotNull
+        @Override public INonceManager getNonceManager(){return null;}
+
+        @NotNull
+        @Override public RootCa getRootCa(){return null;}
+        @NotNull
         @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
-        @Override public INetworkClient getNetworkClient(){return null;}@Override public EventBus getEventBus(){return bus;}
+        @NotNull
+        @Override public INetworkClient getNetworkClient(){return null;}
+
+        @NotNull
+        @Override public EventBus getEventBus(){return bus;}
     }
 
     @Test

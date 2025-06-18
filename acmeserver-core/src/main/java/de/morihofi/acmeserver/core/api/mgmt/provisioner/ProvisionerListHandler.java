@@ -14,10 +14,11 @@ package de.morihofi.acmeserver.core.api.mgmt.provisioner;
 
 import de.morihofi.acmeserver.core.api.mgmt.provisioner.statistics.responses.ProvisionerListEntryResponse;
 
+import de.morihofi.acmeserver.server.common.intf.Handler;
+import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
+
 import lombok.NonNull;
 
 
@@ -50,14 +51,11 @@ public class ProvisionerListHandler implements Handler {
     /**
      * Handles the request to list all available provisioners.
      *
-     * <p>This method processes the request, retrieves the list of provisioners from the {@link ProvisionerManager},
-     * and constructs a list of {@link ProvisionerListEntryResponse} objects. The response is then returned as JSON.</p>
-     *
      * @param context The Javalin context for the request.
      * @throws Exception If an error occurs while processing the request.
      */
     @Override
-    public void handle(@NonNull Context context) throws Exception {
+    public void handle(@NonNull HandlerContext context) throws Exception {
 
         List<ProvisionerListEntryResponse> provisionerResponse = new ArrayList<>();
 

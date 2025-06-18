@@ -9,9 +9,6 @@ import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisionerDomainNameRestriction;
 import de.morihofi.acmeserver.types.database.entities.ProvisionerMeta;
 import de.morihofi.acmeserver.types.database.entities.RootCa;
-import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
-import de.morihofi.acmeserver.types.database.entities.RsaCertificateAlgorithm;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.config.DatabaseConfig;
 import de.morihofi.acmeserver.types.database.entities.CertificateConfig;
@@ -22,7 +19,6 @@ import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
-import de.morihofi.acmeserver.types.events.EventBus;
 import org.hibernate.Transaction;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.ocsp.CertificateID;
@@ -33,6 +29,7 @@ import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -168,14 +165,23 @@ class OcspEndpointGetTest {
         }
 
         si = new IServerInstance() {
+            @NotNull
             @Override public String getServerURL() { return "https://example.com"; }
+            @NotNull
             @Override public Session getDatabaseSession() { return hu.getSessionFactory().openSession(); }
+            @NotNull
             @Override public ICryptoStoreManager getCryptoStoreManager() { return csm; }
+            @NotNull
             @Override public de.morihofi.acmeserver.types.config.Config getAppConfig() { return cfg; }
+            @NotNull
             @Override public de.morihofi.acmeserver.types.intf.INonceManager getNonceManager() { return null; }
+            @NotNull
             @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return root; }
+            @NotNull
             @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
+            @NotNull
             @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
+            @NotNull
             @Override public EventBus getEventBus() { return bus; }
         };
 
