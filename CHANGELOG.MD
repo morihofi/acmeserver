@@ -78,5 +78,13 @@
   - Many internal refactors
   - CAB File generation should work now
 
+## 3.0.0
+- Overall
+  - Modular design
+  - fixed multiple security issues
+- Webserver
+  - Direct Jetty usage instead of Javalin for allowing more flexibility and extension
+- More Coming soon
+
 ### Known Bugs:
  - GetHttpsForFree has currently issues with nonces not sent properly.
