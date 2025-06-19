@@ -194,7 +194,7 @@ public class WebServer implements EventSubscriber {
                 case "old" -> MozillaSslConfigHelper.CONFIGURATION.OLD;
                 default -> throw new IllegalStateException(
                         "Unexpected value: " + serverInstance.getAppConfig().getServer().getMozillaSslConfig().getConfiguration()
-                                + " must be one of modern, intermediate or old");
+                                + " must be one of modern, intermediate or old (must be specified in lowercase, this is case sensitive)");
             };
 
             if(configuration.equals(MozillaSslConfigHelper.CONFIGURATION.OLD)){
