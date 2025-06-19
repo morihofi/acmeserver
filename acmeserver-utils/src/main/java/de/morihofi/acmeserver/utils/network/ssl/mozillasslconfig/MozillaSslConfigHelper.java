@@ -11,7 +11,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
+import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
@@ -34,7 +34,6 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MozillaSslConfigHelper {
 
-    private static final OkHttpClient HTTP_CLIENT = new OkHttpClient(); // TODO: migrate to network client class
     private static final Gson GSON = new Gson();
 
     private static final String RESOURCE_PREFIX = "/mozillaSslConfig/";
@@ -47,8 +46,9 @@ public class MozillaSslConfigHelper {
      * @return a BasicConfiguration object containing the guidelines.
      * @throws IOException if an I/O error occurs.
      */
-    public static BasicConfiguration getLatestConfigurationGuidelines(@NonNull CONFIGURATION configuration) throws IOException {
-        return getConfigurationGuidelinesForVersion("latest", configuration);
+    public static BasicConfiguration getLatestConfigurationGuidelines(@NonNull CONFIGURATION configuration,
+                                                                     @NonNull INetworkClient networkClient) throws IOException {
+        return getConfigurationGuidelinesForVersion("latest", configuration, networkClient);
     }
 
     /**
@@ -59,13 +59,15 @@ public class MozillaSslConfigHelper {
      * @return a BasicConfiguration object containing the guidelines.
      * @throws IOException if an I/O error occurs.
      */
-    public static BasicConfiguration getConfigurationGuidelinesForVersion(@NonNull String version, @NonNull CONFIGURATION configuration) throws IOException {
+    public static BasicConfiguration getConfigurationGuidelinesForVersion(@NonNull String version,
+                                                                         @NonNull CONFIGURATION configuration,
+                                                                         @NonNull INetworkClient networkClient) throws IOException {
         // 1) try bundled resources
         String guidelineJson = readGuidelineFromClasspath(version);
 
         // 2) fall back to the remote endpoint
         if (guidelineJson == null) {
-            guidelineJson = readGuidelineFromWeb(version);
+            guidelineJson = readGuidelineFromWeb(version, networkClient);
         }
 
         // 3) parse and map the JSON to our DTO
@@ -94,10 +96,11 @@ public class MozillaSslConfigHelper {
      * @throws IOException if an I/O error occurs while fetching the data.
      */
     @NonNull
-    private static String readGuidelineFromWeb(@NonNull String version) throws IOException {
+    private static String readGuidelineFromWeb(@NonNull String version,
+                                               @NonNull INetworkClient networkClient) throws IOException {
         Request request = new Request.Builder().url("https://ssl-config.mozilla.org/guidelines/" + version + ".json").build();
 
-        try (Response response = HTTP_CLIENT.newCall(request).execute()) {
+        try (Response response = networkClient.getOkHttpClient().newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 throw new IOException("Request to ssl-config.mozilla.org failed with HTTP " + response.code());
             }

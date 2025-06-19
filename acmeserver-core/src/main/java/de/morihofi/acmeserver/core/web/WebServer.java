@@ -258,7 +258,8 @@ public class WebServer implements EventSubscriber {
                                     .getServer()
                                     .getMozillaSslConfig()
                                     .getVersion(),
-                            configuration
+                            configuration,
+                            serverInstance.getNetworkClient()
                     ),
                     newSslContextFactory,
                     secureRequestCustomizer
