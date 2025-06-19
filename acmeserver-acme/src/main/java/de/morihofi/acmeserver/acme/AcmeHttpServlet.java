@@ -51,50 +51,50 @@ public class AcmeHttpServlet extends RoutableHttpServlet {
             }
         });
 
-
         // ACME Directory
-        registerGetRoute("/acme/{provisioner}/directory", new DirectoryEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.GET, "/acme/{provisioner}/directory", new DirectoryEndpoint(serverInstance)));
 
         // CRL distribution
-        registerGetRoute("/acme/crl/{provisioner}/certs-revoked.crl", new CRLEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.GET, "/acme/crl/{provisioner}/certs-revoked.crl", new CRLEndpoint(serverInstance)));
 
         // OCSP (Online Certificate Status Protocol) endpoints
-        registerPostRoute("/acme/{provisioner}/ocsp", new OcspEndpointPost(serverInstance));
-        registerGetRoute("/acme/{provisioner}/ocsp/{ocspRequest}", new OcspEndpointGet(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/ocsp", new OcspEndpointPost(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.GET, "/acme/{provisioner}/ocsp/{ocspRequest}", new OcspEndpointGet(serverInstance)));
 
         // New account
-        registerPostRoute("/acme/{provisioner}/acme/new-acct", new NewAccountEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/new-acct", new NewAccountEndpoint(serverInstance)));
 
         // Key Change Endpoint (Account key rollover)
-        registerPostRoute("/acme/{provisioner}/acme/key-change", new KeyChangeEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/key-change", new KeyChangeEndpoint(serverInstance)));
 
         // New Nonce
-        registerHeadRoute("/acme/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance));
-        registerGetRoute("/acme/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.HEAD, "/acme/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.GET, "/acme/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance)));
 
         // Account Update
-        registerPostRoute("/acme/{provisioner}/acme/acct/{id}", new AccountEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/acct/{id}", new AccountEndpoint(serverInstance)));
 
         // Create new Order
-        registerPostRoute("/acme/{provisioner}/acme/new-order", new NewOrderEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/new-order", new NewOrderEndpoint(serverInstance)));
 
         // Challenge / Ownership verification
-        registerPostRoute("/acme/{provisioner}/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(serverInstance)));
 
         // Challenge Callback
-        registerPostRoute("/acme/{provisioner}/acme/chall/{challengeId}/{challengeType}", new ChallengeCallbackEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/chall/{challengeId}/{challengeType}", new ChallengeCallbackEndpoint(serverInstance)));
 
         // Finalize endpoint
-        registerPostRoute("/acme/{provisioner}/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(serverInstance)));
 
         // Order info Endpoint
-        registerPostRoute("/acme/{provisioner}/acme/order/{orderId}", new OrderInfoEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}", new OrderInfoEndpoint(serverInstance)));
 
         // Get Order Certificate
-        registerPostRoute("/acme/{provisioner}/acme/order/{orderId}/cert", new OrderCertEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}/cert", new OrderCertEndpoint(serverInstance)));
 
         // Revoke certificate
-        registerPostRoute("/acme/{provisioner}/acme/revoke-cert", new RevokeCertEndpoint(serverInstance));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/revoke-cert", new RevokeCertEndpoint(serverInstance)));
+
 
 
         getRouter().addBeforeHandler("/acme", new AcmeBeforeHandler());
