@@ -198,6 +198,27 @@ public class Router {
     }
 
     /**
+     * Checks if any handler is registered for a specific path.
+     * @param path The path to check for registered handlers.
+     * @return {@code true} if any handler is registered for the path, {@code false} otherwise.
+     */
+    public boolean isAnyHandlerRegisteredForPath(String path) {
+        for (HandlerType type : HandlerType.values()) {
+            if (staticHandlers.getOrDefault(type, Collections.emptyMap()).containsKey(path)) {
+                return true; // Static handler found
+            }
+
+            List<VariableEndpoint> varEndpoints = variableHandlers.getOrDefault(type, Collections.emptyList());
+            for (VariableEndpoint variableEndpoint : varEndpoints) {
+                if (variableEndpoint.match(path) != null) {
+                    return true; // Variable handler found
+                }
+            }
+        }
+        return false; // No handlers registered for the path
+    }
+
+    /**
      * Represents a variable-based endpoint with dynamic path matching.
      */
     private static class VariableEndpoint {
