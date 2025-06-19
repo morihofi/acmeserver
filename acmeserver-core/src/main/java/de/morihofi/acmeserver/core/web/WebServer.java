@@ -197,6 +197,15 @@ public class WebServer implements EventSubscriber {
                                 + " must be one of modern, intermediate or old");
             };
 
+            if(configuration.equals(MozillaSslConfigHelper.CONFIGURATION.OLD)){
+                // This is needed to be able to turn on TLS 1.0, TLS 1.1 and TLS 1.2
+                Security.setProperty("jdk.tls.disabledAlgorithms", "");
+                Security.setProperty("jdk.certpath.disabledAlgorithms", "");
+            }
+
+            System.setProperty("jdk.tls.allowLegacyResumption",
+                    String.valueOf(serverInstance.getAppConfig().getServer().getSslServerConfig().isAllowLegacyResumption()));
+
             JettySslHelper.applyMozillaTlsConfig(
                     MozillaSslConfigHelper.getConfigurationGuidelinesForVersion(
                             serverInstance.getAppConfig()
