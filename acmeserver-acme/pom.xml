@@ -47,15 +47,15 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>de.morihofi.acmeserver</groupId>
+            <artifactId>acmeserver-cryptography</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.bitbucket.b_c</groupId>
             <artifactId>jose4j</artifactId>
         </dependency>
-        <dependency>
-            <groupId>de.morihofi.acmeserver</groupId>
-            <artifactId>acmeserver-cryptography</artifactId>
-            <version>3.0.0</version>
-            <scope>compile</scope>
-        </dependency>
+
     </dependencies>
 
 </project>
