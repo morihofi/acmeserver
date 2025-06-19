@@ -24,21 +24,32 @@ import de.morihofi.acmeserver.cryptography.certificate.queue.CertificateIssuance
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.ProvisionerRenewSubscriber;
+import de.morihofi.acmeserver.types.events.AbstractEvent;
+import de.morihofi.acmeserver.types.events.AcmeTlsCertificateHotReloadEvent;
+import de.morihofi.acmeserver.types.events.EventSubscriber;
 import de.morihofi.acmeserver.types.server.StartupFlag;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
+import de.morihofi.acmeserver.utils.network.ssl.mozillasslconfig.MozillaSslConfigHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.util.thread.VirtualThreadPool;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
+import javax.net.ssl.SSLContext;
 import java.lang.management.ManagementFactory;
+import java.security.Security;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Web Server for the Website, API and ACME Service
  */
 @Slf4j
-public class WebServer {
+public class WebServer implements EventSubscriber {
     /**
      * Scheduler for automatically renewing certificates.
      */
@@ -49,19 +60,28 @@ public class WebServer {
      */
     private final IServerInstance serverInstance;
 
-    private final Server server = new Server();
-    private ServerConnector sslConnector;
+    private final Server server;
 
+    private ServerConnector sslConnector = null;
 
     /**
      * Constructor for WebServer.
      *
      * @param serverInstance The instance of IServerInstance providing access to server-related configurations and utilities.
-     * @throws IOException if an I/O error occurs during initialization.
      */
-    public WebServer(IServerInstance serverInstance) throws IOException {
+    public WebServer(IServerInstance serverInstance) {
         this.serverInstance = serverInstance;
         this.certificateRenewScheduler = new CertificateRenewScheduler(serverInstance.getCryptoStoreManager(), serverInstance.getEventBus());
+
+        log.info("Registering WebServer as event listener for TLS Certificate Renew Events");
+        serverInstance.getEventBus().register(this);
+
+
+        VirtualThreadPool virtualExecutor = new VirtualThreadPool();
+        virtualExecutor.setMaxThreads(128);
+        virtualExecutor.setName("WebServer-ThreadPool");
+
+        this.server = new Server(virtualExecutor);
     }
 
     /**
@@ -72,53 +92,25 @@ public class WebServer {
     public void startServer() throws Exception {
         log.info("Starting ACME API WebServer");
 
-
-        if (serverInstance.getAppConfig().getServer().getPorts().getHttps() > 0) {
-            /*
-            log.info("HTTPS support is ENABLED");
-            SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-            sslContextFactory.setSniRequired(serverInstance.getAppConfig().getServer().getSslServerConfig().isEnableSniCheck());
-            sslContextFactory.setSslContext(getWebServerConfig().getSslConfig().getSslContext());
-
-            // TODO: Implement client auth
-            //sslContextFactory.setNeedClientAuth(getWebServerConfig().getSslConfig().isRequireClientAuth());
-
-            HttpConfiguration httpsConfig = new HttpConfiguration();
-            SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
-            secureRequestCustomizer.setSniHostCheck(serverInstance.getAppConfig().getServer().getSslServerConfig().isEnableSniCheck());
-            httpsConfig.addCustomizer(secureRequestCustomizer);
-
-
-            if (serverInstance.getAppConfig().getServer().getMozillaSslConfig() != null) {
-                log.info("Applying Mozilla SSL configuration");
-                JettySslHelper.configureMozillaSsl(sslContextFactory, secureRequestCustomizer, serverInstance.getAppConfig().getServer().getMozillaSslConfig());
-            }
-
-            sslConnector = new ServerConnector(
-                    server,
-                    new SslConnectionFactory(sslContextFactory, "http/1.1"),
-                    new HttpConnectionFactory()
-            );
-            sslConnector.setPort(serverInstance.getAppConfig().getServer().getPorts().getHttps());
-
-            server.addConnector(sslConnector);
-
-             */
-        }else{
-            log.error("HTTPS support is DISABLED");
-            throw new IllegalArgumentException("HTTPS support cannot be disabled");
-        }
+        HttpConfiguration httpConfig = getHttpConfiguration();
 
         if (serverInstance.getAppConfig().getServer().getPorts().getHttp() > 0) {
-            log.info("HTTP support is ENABLED");
             // HTTP Configuration
             ServerConnector httpConnector = new ServerConnector(server);
             httpConnector.setPort(serverInstance.getAppConfig().getServer().getPorts().getHttp());
 
             server.addConnector(httpConnector);
-        } else {
-            log.info("HTTP support is DISABLED");
+            log.info("HTTP is configured on port {}", serverInstance.getAppConfig().getServer().getPorts().getHttp());
         }
+
+        if (serverInstance.getAppConfig().getServer().getPorts().getHttps() > 0) {
+            // HTTPS Configuration
+            loadOrReloadTlsCertificate();
+        } else {
+            log.error("HTTPS support is DISABLED");
+            throw new IllegalArgumentException("HTTPS support cannot be disabled");
+        }
+
 
         // Configure our servlet
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -126,7 +118,7 @@ public class WebServer {
         server.setHandler(context);
 
         // Add ACME API Servlet
-        context.addServlet(new ServletHolder(new AcmeHttpServlet(serverInstance)), "/acme/*"); // MUST be mounted at /acme/
+        context.addServlet(new ServletHolder(new AcmeHttpServlet(serverInstance)), AcmeHttpServlet.PATH_MOUNT);
 
         // Start Jetty
         server.start();
@@ -151,98 +143,110 @@ public class WebServer {
             sub.initialize();
         }
 
-        log.info("\u2705 Configure Routes completed. Ready for incoming requests");
+        log.info("\u2705 Ready for incoming requests");
         Main.startupTime = (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000L; // in seconds
         log.info("Startup took {} seconds", Main.startupTime);
     }
 
-    /**
-     * Retrieves or initializes provisioners based on configuration and generates ACME Web API client certificates when required.
-     *
-     * @param cryptoStoreManager    Instance of {@link CryptoStoreManager} for accessing KeyStores
-     * @return A list of provisioners.
-     * @throws Exception If an error occurs during provisioning or certificate generation.
-     */
-    /*private List<AcmeProvisioner> getProvisioners(CryptoStoreManager cryptoStoreManager) throws Exception {
-
-        List<AcmeProvisioner> provisioners = new ArrayList<>();
-
-        for (AcmeProvisioner config : AcmeProvisioner.getAllProvisioners(serverInstance)) {
-            String provisionerName = config.getName();
-
-            if (!ConfigCheck.isValidProvisionerName(provisionerName)) {
-                throw new IllegalArgumentException("Invalid provisioner name in config. Can only contain a-z, numbers, \"-\" and \"_\"");
-            }
-            final String IntermediateKeyAlias = CryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(provisionerName);
-
-            KeyPair intermediateKeyPair = null;
-            X509Certificate intermediateCertificate;
-            final AcmeProvisioner provisioner = AcmeProvisioner.getForName(serverInstance, config.getName());
-
-            // Check if root ca does exist
-            assert cryptoStoreManager.getKeyStore().containsAlias(serverInstance.getRootCaAlias());
-
-            if (!cryptoStoreManager.getKeyStore().containsAlias(IntermediateKeyAlias)) {
-
-                // *****************************************
-                // Create Intermediate Certificate
-
-                if (config.getIntermediate().getAlgorithm() instanceof RSAAlgorithmParams rsaParams) {
-                    log.info("Using RSA algorithm");
-                    log.info("Generating RSA {} bit Key Pair for Intermediate CA", rsaParams.getKeySize());
-                    intermediateKeyPair = KeyPairGenerator.generateRSAKeyPair(rsaParams.getKeySize(),
-                            cryptoStoreManager.getKeyStore().getProvider().getName());
-                }
-                if (config.getIntermediate().getAlgorithm() instanceof EcdsaAlgorithmParams ecdsaAlgorithmParams) {
-                    log.info("Using ECDSA algorithm (Elliptic curves)");
-
-                    log.info("Generating ECDSA Key Pair using curve {} for Intermediate CA", ecdsaAlgorithmParams.getCurveName());
-                    intermediateKeyPair = KeyPairGenerator.generateEcdsaKeyPair(ecdsaAlgorithmParams.getCurveName(),
-                            cryptoStoreManager.getKeyStore().getProvider().getName());
-                }
-                if (intermediateKeyPair == null) {
-                    throw new IllegalArgumentException("Unknown algorithm " + config.getIntermediate().getAlgorithm()
-                            + " used for intermediate certificate in provisioner " + provisionerName);
-                }
-
-                log.info("Generating Intermediate CA");
-                intermediateCertificate = X509Generator.generate(
-                        X509Generator.Request.builder()
-                                .type(X509Generator.Type.INTERMEDIATE_CA)
-                                .certificateConfig(provisioner.getCertificateConfig())
-                                .ownKeyPair(intermediateKeyPair)
-                                .issuerKeyPair(cryptoStoreManager.getCerificateAuthorityKeyPair(serverInstance.getRootCa()))
-                                .issuerCertificate((X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(serverInstance.getRootCaAlias()))
-                                .crlDistributionUrl(provisioner.getFullCrlUrl(serverInstance))
-                                .ocspServiceEndpoint(provisioner.getFullOcspUrl(serverInstance))
-                                .build()
-                );
-                log.info("Storing generated Intermedia CA");
-                X509Certificate[] chain = new X509Certificate[]{intermediateCertificate,
-                        (X509Certificate) cryptoStoreManager.getKeyStore().getCertificate(serverInstance.getRootCaAlias())};
-                cryptoStoreManager.getKeyStore().setKeyEntry(
-                        IntermediateKeyAlias,
-                        intermediateKeyPair.getPrivate(),
-                        "".toCharArray(),
-                        chain
-                );
-                log.info("Saving KeyStore");
-                cryptoStoreManager.saveKeystore();
-            }
-
-
-            // Initialize the CertificateRenewWatcher for this provisioner
-            certificateRenewScheduler.registerNewCertificateRenewWatcher(IntermediateKeyAlias, provisioner,
-                    (givenProvisioner, x509Certificate, keyPair) -> {
-                        return IntermediateCaRenew.renewIntermediateCertificate(keyPair, givenProvisioner,
-                                serverInstance, IntermediateKeyAlias);
-            });
-
-            provisioners.add(provisioner);
-        }
-        return provisioners;
+    private HttpConfiguration getHttpConfiguration() {
+        HttpConfiguration httpConfig = new HttpConfiguration();
+        httpConfig.setSendServerVersion(false); // Do not send server version in HTTP headers
+        return httpConfig;
     }
-*/
+
+    private SslContextFactory.Server getSslContextFactory() {
+        SslContextFactory.Server factory = new SslContextFactory.Server();
+        factory.setKeyStore(serverInstance.getCryptoStoreManager().getKeyStore());
+        factory.setKeyStorePassword("");
+        factory.setKeyManagerPassword("");
+        factory.setCertAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI);
+        factory.setProvider(BouncyCastleJsseProvider.PROVIDER_NAME);
+        factory.setProtocol("TLS");
+        factory.setKeyManagerFactoryAlgorithm("PKIX");
+
+        return factory;
+    }
+
+    /**
+     * Configures TLS for the server using the provided CryptoStoreManager.
+     * This method sets up the SSL context factory and initializes the SSL connector.
+     */
+    private void loadOrReloadTlsCertificate() throws Exception {
+        log.info("Loading or reloading TLS certificate...");
+
+        SslContextFactory.Server newSslContextFactory = getSslContextFactory();
+
+        HttpConfiguration httpConfig = getHttpConfiguration();
+        SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
+        secureRequestCustomizer.setSniHostCheck(serverInstance.getAppConfig().getServer().getSslServerConfig().isEnableSniCheck());
+
+        if(serverInstance.getAppConfig().getServer().getMozillaSslConfig().isEnabled()){
+            // This is needed to be able to turn on TLS 1.0, TLS 1.1 and TLS 1.2
+            Security.setProperty("jdk.tls.disabledAlgorithms", "");
+            Security.setProperty("jdk.certpath.disabledAlgorithms", "");
+
+            System.setProperty("jdk.tls.allowLegacyResumption",
+                    String.valueOf(serverInstance.getAppConfig().getServer().getSslServerConfig().isAllowLegacyResumption()));
+
+            MozillaSslConfigHelper.CONFIGURATION configuration = switch (serverInstance.getAppConfig().getServer().getMozillaSslConfig().getConfiguration()) {
+                case "modern" -> MozillaSslConfigHelper.CONFIGURATION.MODERN;
+                case "intermediate" -> MozillaSslConfigHelper.CONFIGURATION.INTERMEDIATE;
+                case "old" -> MozillaSslConfigHelper.CONFIGURATION.OLD;
+                default -> throw new IllegalStateException(
+                        "Unexpected value: " + serverInstance.getAppConfig().getServer().getMozillaSslConfig().getConfiguration()
+                                + " must be one of modern, intermediate or old");
+            };
+
+            JettySslHelper.applyMozillaTlsConfig(
+                    MozillaSslConfigHelper.getConfigurationGuidelinesForVersion(
+                            serverInstance.getAppConfig()
+                                    .getServer()
+                                    .getMozillaSslConfig()
+                                    .getVersion(),
+                            configuration
+                    ),
+                    newSslContextFactory,
+                    secureRequestCustomizer
+            );
 
 
+        }
+
+        httpConfig.addCustomizer(secureRequestCustomizer);
+
+        // Create new Connector with the new SSLContext
+        ServerConnector newSslConnector = new ServerConnector(server, newSslContextFactory, new HttpConnectionFactory(httpConfig));
+        newSslConnector.setPort(serverInstance.getAppConfig().getServer().getPorts().getHttps());
+
+        // Bestehenden SSL-Connector stoppen und entfernen
+        if (this.sslConnector != null) {
+            log.info("Stopping existing TLS connector...");
+            this.sslConnector.stop();
+            server.removeConnector(this.sslConnector);
+        }
+
+        // Neuen Connector übernehmen und starten
+        this.sslConnector = newSslConnector;
+        server.addConnector(this.sslConnector);
+        this.sslConnector.start();
+
+        log.info("TLS certificate reloaded and SSL connector reinitialized.");
+    }
+
+    @Override
+    public List<Class<? extends AbstractEvent>> canHandle() {
+        return List.of(AcmeTlsCertificateHotReloadEvent.class);
+    }
+
+    @Override
+    public void onEvent(AbstractEvent event) {
+        if (event instanceof AcmeTlsCertificateHotReloadEvent) {
+            log.info("Reconfiguring TLS due to event: {}", event.getClass().getSimpleName());
+            try {
+                loadOrReloadTlsCertificate();
+            } catch (Exception e) {
+                log.error("Failed to reconfigure TLS", e);
+            }
+        }
+    }
 }

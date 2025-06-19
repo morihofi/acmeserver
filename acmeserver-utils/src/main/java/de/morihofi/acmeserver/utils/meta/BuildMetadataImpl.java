@@ -4,7 +4,6 @@ import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Contract;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +42,6 @@ public class BuildMetadataImpl {
      * @param fileName           the name of the file to load.
      * @param propertiesConsumer the consumer to process the loaded properties.
      */
-    @Contract(pure = true)
     private static void loadMetadata(@NonNull String fileName, @NonNull Consumer<Properties> propertiesConsumer) {
         try (InputStream is = MethodHandles.lookup().lookupClass().getResourceAsStream(fileName)) {
             if (is != null) {

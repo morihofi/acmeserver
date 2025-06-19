@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AcmeHttpServlet extends RoutableHttpServlet {
 
+    public static final String PATH_MOUNT = "/acme/*";
     private final IServerInstance serverInstance;
 
     public AcmeHttpServlet(IServerInstance serverInstance) {

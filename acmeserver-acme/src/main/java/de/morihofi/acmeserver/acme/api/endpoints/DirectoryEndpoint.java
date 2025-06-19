@@ -44,7 +44,6 @@ public class DirectoryEndpoint implements Handler {
     public void handle(@NonNull HandlerContext ctx) {
         AcmeProvisioner provisioner = AbstractAcmeEndpoint.getProvisionerFromJavalin(serverInstance, ctx);
 
-
         // Response is JSON
         ctx.header("Content-Type", "application/json");
 
@@ -56,10 +55,10 @@ public class DirectoryEndpoint implements Handler {
         {
             String website = "about:blank";
             String tos = "about:blank";
-            if(provisioner.getMeta().getWebsite() != null){
+            if(provisioner.getMeta().getWebsite() != null && !provisioner.getMeta().getWebsite().isEmpty()){
                 website = provisioner.getMeta().getWebsite().trim();
             }
-            if(provisioner.getMeta().getTos() != null){
+            if(provisioner.getMeta().getTos() != null && !provisioner.getMeta().getTos().isEmpty()){
                 tos = provisioner.getMeta().getTos().trim();
             }
 
