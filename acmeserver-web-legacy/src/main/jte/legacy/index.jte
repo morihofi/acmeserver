@@ -17,7 +17,7 @@
 <div id="wrapper">
     <h1>Root Certificate Authorities</h1>
     <p>
-        Download the root certificate authorities for your platform. If you are unsure which one to use, please refer to the documentation of your operating system, application or device. <br />
+        Download the root certificate authorities for your platform. If you are unsure which one to use, please refer to the documentation of your operating system, application or device.
         However, we try to provide the most common ones here with a recommendation for your current platform.
     </p>
 
