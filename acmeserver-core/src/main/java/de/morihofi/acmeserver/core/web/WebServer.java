@@ -274,17 +274,21 @@ public class WebServer implements EventSubscriber {
         ServerConnector newSslConnector = new ServerConnector(server, newSslContextFactory, new HttpConnectionFactory(httpConfig));
         newSslConnector.setPort(serverInstance.getAppConfig().getServer().getPorts().getHttps());
 
-        // Bestehenden SSL-Connector stoppen und entfernen
+        // Stop current SSL connector
         if (this.sslConnector != null) {
             log.info("Stopping existing TLS connector...");
-            this.sslConnector.stop();
+            if (server.isStarted()) {
+                this.sslConnector.stop();
+            }
             server.removeConnector(this.sslConnector);
         }
 
-        // Neuen Connector übernehmen und starten
+        // Apply new connector and start
         this.sslConnector = newSslConnector;
         server.addConnector(this.sslConnector);
-        this.sslConnector.start();
+        if (server.isStarted()) {
+            this.sslConnector.start();
+        }
 
         log.info("TLS certificate reloaded and SSL connector reinitialized.");
     }
