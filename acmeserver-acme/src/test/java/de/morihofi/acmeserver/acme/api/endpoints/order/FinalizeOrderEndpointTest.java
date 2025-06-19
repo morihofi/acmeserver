@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.core.api.acme.api.endpoints.order;
+package de.morihofi.acmeserver.acme.api.endpoints.order;
 import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.acme.api.endpoints.order.FinalizeOrderEndpoint;
 

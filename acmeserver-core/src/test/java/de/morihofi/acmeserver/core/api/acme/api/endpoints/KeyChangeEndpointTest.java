@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.core.api.acme.api.endpoints;
+package de.morihofi.acmeserver.acme.api.endpoints;
 
 import de.morihofi.acmeserver.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.acme.api.endpoints.KeyChangeEndpoint;

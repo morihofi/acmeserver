@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.core.api.acme.challenges;
+package de.morihofi.acmeserver.acme.challenges;
 import de.morihofi.acmeserver.types.events.EventBus;
 
 import com.sun.net.httpserver.HttpExchange;

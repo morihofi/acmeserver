@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.core.api.acme.api.endpoints.authz;
+package de.morihofi.acmeserver.acme.api.endpoints.authz;
 import de.morihofi.acmeserver.acme.api.endpoints.authz.AuthzOwnershipEndpoint;
 import de.morihofi.acmeserver.types.events.EventBus;
 

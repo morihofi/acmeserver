@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.core.api.acme.api.endpoints;
+package de.morihofi.acmeserver.acme.api.endpoints;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

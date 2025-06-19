@@ -79,12 +79,12 @@ class JettyCertificateHelperTest {
         Config app = si.getAppConfig();
         app.getServer().setDnsName("example.com");
 
-        CertificateRenewScheduler.CertificateData data = JettyCertificateHelper.generateAcmeApiClientCertificate(si, app);
+        CertificateRenewScheduler.CertificateData data = JettyCertificateHelper.generateAcmeApiClientCertificate(si);
         assertNotNull(data);
 
         csm.getKeyStore().setKeyEntry(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, data.keyPair().getPrivate(), "".toCharArray(), data.certificateChain());
         csm.saveKeystore();
 
-        assertNull(JettyCertificateHelper.generateAcmeApiClientCertificate(si, app));
+        assertNull(JettyCertificateHelper.generateAcmeApiClientCertificate(si));
     }
 }
