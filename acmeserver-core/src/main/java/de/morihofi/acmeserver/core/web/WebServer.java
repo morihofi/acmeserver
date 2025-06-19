@@ -87,8 +87,7 @@ public class WebServer implements EventSubscriber {
         certificateRenewScheduler.registerNewCertificateRenewWatcher(
                 CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI,
                 null,
-                (p, cert, kp) -> JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance,
-                        serverInstance.getAppConfig()),
+                (p, cert, kp) -> JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance),
                 () -> {
                     try {
                         loadOrReloadTlsCertificate();
@@ -122,8 +121,7 @@ public class WebServer implements EventSubscriber {
             // HTTPS Configuration
             // Ensure certificate exists or is valid
             CertificateRenewScheduler.CertificateData data =
-                    JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance,
-                            serverInstance.getAppConfig());
+                    JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance);
             if (data != null) {
                 serverInstance.getCryptoStoreManager().getKeyStore().setKeyEntry(
                         CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI,
