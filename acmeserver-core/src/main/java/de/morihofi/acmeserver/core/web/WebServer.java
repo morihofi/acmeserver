@@ -32,6 +32,7 @@ import de.morihofi.acmeserver.types.events.EventSubscriber;
 import de.morihofi.acmeserver.types.server.StartupFlag;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.network.ssl.mozillasslconfig.MozillaSslConfigHelper;
+import jakarta.servlet.http.HttpServlet;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
@@ -65,6 +66,7 @@ public class WebServer implements EventSubscriber {
     private final Server server;
 
     private ServerConnector sslConnector = null;
+
 
     /**
      * Constructor for WebServer.
@@ -146,9 +148,10 @@ public class WebServer implements EventSubscriber {
         server.setHandler(context);
 
         // Add ACME API Servlet
-        context.addServlet(new ServletHolder(new AcmeHttpServlet(serverInstance)), AcmeHttpServlet.PATH_MOUNT);
+        addProtectedServlet(context, new AcmeHttpServlet(serverInstance), AcmeHttpServlet.PATH_MOUNT);
         // Add GetHttpsForFree Servlet
-        context.addServlet(new ServletHolder(new GetHttpsForFreeServlet()), GetHttpsForFreeServlet.PATH_MOUNT);
+        addProtectedServlet(context, new GetHttpsForFreeServlet(), GetHttpsForFreeServlet.PATH_MOUNT);
+
 
         // Start Jetty
         server.start();
@@ -176,6 +179,19 @@ public class WebServer implements EventSubscriber {
         log.info("\u2705 Ready for incoming requests");
         Main.startupTime = (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000L; // in seconds
         log.info("Startup took {} seconds", Main.startupTime);
+    }
+
+    /**
+     * Adds the protected servlet to the given context. Protected servlets cannot be unloaded or removed.
+     * The functionality will be added in the future to allow for dynamic servlet management for plugins etc.
+     * At the moment this is just a wrapper.
+     *
+     * @param context   The ServletContextHandler to which the servlet will be added.
+     * @param servlet   The HttpServlet instance to be added.
+     * @param mountPath The path at which the servlet will be mounted.
+     */
+    private void addProtectedServlet(ServletContextHandler context, HttpServlet servlet, String mountPath) {
+        context.addServlet(new ServletHolder(servlet), mountPath);
     }
 
     private HttpConfiguration getHttpConfiguration() {
@@ -210,7 +226,7 @@ public class WebServer implements EventSubscriber {
         SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
         secureRequestCustomizer.setSniHostCheck(serverInstance.getAppConfig().getServer().getSslServerConfig().isEnableSniCheck());
 
-        if(serverInstance.getAppConfig().getServer().getMozillaSslConfig().isEnabled()){
+        if (serverInstance.getAppConfig().getServer().getMozillaSslConfig().isEnabled()) {
             // This is needed to be able to turn on TLS 1.0, TLS 1.1 and TLS 1.2
             Security.setProperty("jdk.tls.disabledAlgorithms", "");
             Security.setProperty("jdk.certpath.disabledAlgorithms", "");
@@ -227,7 +243,7 @@ public class WebServer implements EventSubscriber {
                                 + " must be one of modern, intermediate or old (must be specified in lowercase, this is case sensitive)");
             };
 
-            if(configuration.equals(MozillaSslConfigHelper.CONFIGURATION.OLD)){
+            if (configuration.equals(MozillaSslConfigHelper.CONFIGURATION.OLD)) {
                 // This is needed to be able to turn on TLS 1.0, TLS 1.1 and TLS 1.2
                 Security.setProperty("jdk.tls.disabledAlgorithms", "");
                 Security.setProperty("jdk.certpath.disabledAlgorithms", "");
