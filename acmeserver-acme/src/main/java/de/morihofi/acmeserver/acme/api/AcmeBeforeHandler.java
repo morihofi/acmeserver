@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.acme;
+package de.morihofi.acmeserver.acme.api;
 
 import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;

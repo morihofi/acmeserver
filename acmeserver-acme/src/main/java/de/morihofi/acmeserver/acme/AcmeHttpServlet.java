@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver.acme;
 
+import de.morihofi.acmeserver.acme.api.AcmeBeforeHandler;
 import de.morihofi.acmeserver.acme.api.endpoints.*;
 import de.morihofi.acmeserver.acme.api.endpoints.account.AccountEndpoint;
 import de.morihofi.acmeserver.acme.api.endpoints.account.NewAccountEndpoint;

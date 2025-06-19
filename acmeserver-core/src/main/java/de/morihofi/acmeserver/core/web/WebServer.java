@@ -17,6 +17,7 @@
 package de.morihofi.acmeserver.core.web;
 
 import de.morihofi.acmeserver.acme.AcmeHttpServlet;
+import de.morihofi.acmeserver.acme.GetHttpsForFreeServlet;
 import de.morihofi.acmeserver.acme.revocation.CRLScheduler;
 import de.morihofi.acmeserver.acme.revocation.CrlUpdateSubscriber;
 import de.morihofi.acmeserver.core.Main;
@@ -146,6 +147,8 @@ public class WebServer implements EventSubscriber {
 
         // Add ACME API Servlet
         context.addServlet(new ServletHolder(new AcmeHttpServlet(serverInstance)), AcmeHttpServlet.PATH_MOUNT);
+        // Add GetHttpsForFree Servlet
+        context.addServlet(new ServletHolder(new GetHttpsForFreeServlet()), GetHttpsForFreeServlet.PATH_MOUNT);
 
         // Start Jetty
         server.start();
