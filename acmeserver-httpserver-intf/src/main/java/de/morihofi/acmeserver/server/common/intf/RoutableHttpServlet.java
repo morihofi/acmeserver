@@ -18,7 +18,6 @@ public abstract class RoutableHttpServlet extends HttpServlet {
     @Getter(AccessLevel.PROTECTED)
     private final Router router = new Router();
 
-
     @Getter
     @Setter
     private AbstractExceptionHandler exceptionHandler = new AbstractExceptionHandler() {

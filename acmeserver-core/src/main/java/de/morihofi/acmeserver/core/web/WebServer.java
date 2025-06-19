@@ -18,6 +18,7 @@ package de.morihofi.acmeserver.core.web;
 
 import de.morihofi.acmeserver.acme.AcmeHttpServlet;
 import de.morihofi.acmeserver.acme.GetHttpsForFreeServlet;
+import de.morihofi.acmeserver.ui.frontend.legacy.LegacyWebUiServlet;
 import de.morihofi.acmeserver.acme.revocation.CRLScheduler;
 import de.morihofi.acmeserver.acme.revocation.CrlUpdateSubscriber;
 import de.morihofi.acmeserver.core.Main;
@@ -25,7 +26,6 @@ import de.morihofi.acmeserver.cryptography.certificate.queue.CertificateIssuance
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.ProvisionerRenewSubscriber;
-import de.morihofi.acmeserver.core.web.JettyCertificateHelper;
 import de.morihofi.acmeserver.types.events.AbstractEvent;
 import de.morihofi.acmeserver.types.events.AcmeTlsCertificateHotReloadEvent;
 import de.morihofi.acmeserver.types.events.EventSubscriber;
@@ -40,13 +40,10 @@ import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.VirtualThreadPool;
-import org.jetbrains.annotations.NotNull;
 
-import javax.net.ssl.SSLContext;
 import java.lang.management.ManagementFactory;
 import java.security.Security;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Web Server for the Website, API and ACME Service
@@ -151,6 +148,8 @@ public class WebServer implements EventSubscriber {
         addProtectedServlet(context, new AcmeHttpServlet(serverInstance), AcmeHttpServlet.PATH_MOUNT);
         // Add GetHttpsForFree Servlet
         addProtectedServlet(context, new GetHttpsForFreeServlet(), GetHttpsForFreeServlet.PATH_MOUNT);
+        // Add Legacy CA download page
+        addProtectedServlet(context, new LegacyWebUiServlet(serverInstance), LegacyWebUiServlet.PATH_MOUNT);
 
 
         // Start Jetty

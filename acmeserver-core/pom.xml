@@ -144,14 +144,12 @@
         <dependency>
             <groupId>de.morihofi.acmeserver</groupId>
             <artifactId>acmeserver-utils</artifactId>
-            <version>3.0.0</version>
-            <scope>compile</scope>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>de.morihofi.acmeserver</groupId>
             <artifactId>acmeserver-cryptography</artifactId>
-            <version>3.0.0</version>
-            <scope>compile</scope>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -172,8 +170,12 @@
         <dependency>
             <groupId>de.morihofi.acmeserver</groupId>
             <artifactId>acmeserver-acme</artifactId>
-            <version>3.0.0</version>
-            <scope>compile</scope>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>de.morihofi.acmeserver</groupId>
+            <artifactId>acmeserver-web-legacy</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

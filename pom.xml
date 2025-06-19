@@ -17,6 +17,7 @@
         <module>acmeserver-cryptography</module>
         <module>acmeserver-httpserver-intf</module>
         <module>acmeserver-acme</module>
+        <module>acmeserver-web-legacy</module>
     </modules>
 
     <licenses>
