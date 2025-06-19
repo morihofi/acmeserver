@@ -175,6 +175,8 @@ public class WebServer implements EventSubscriber {
             sub.initialize();
         }
 
+        // TODO: Show listening at ports and check if really ready
+
         log.info("\u2705 Ready for incoming requests");
         Main.startupTime = (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000L; // in seconds
         log.info("Startup took {} seconds", Main.startupTime);
