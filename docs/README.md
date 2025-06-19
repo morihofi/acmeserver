@@ -168,7 +168,7 @@ below:
 
   "keyStore": {
     "type": "pkcs12",
-    "password": "test",
+    "password": "CHANGE_ME",
     "location": "./serverdata/acme-keystore.p12"
   }
 
@@ -176,6 +176,7 @@ below:
 }
 
 ```
+> **Warning:** `CHANGE_ME` is a placeholder. Using default passwords puts your keystore at risk. Replace it with a strong secret.
 
 #### PKCS#11 (HSM based)
 
@@ -198,13 +199,14 @@ x86 and x64.
 
   "keyStore": {
     "type": "pkcs11",
-    "password": "test",
+    "password": "CHANGE_ME",
     "libraryLocation": "/usr/local/lib/softhsm/libsofthsm2.so"
   }
 
   /* ... */
 }
 ```
+> **Warning:** `CHANGE_ME` is a placeholder. Using default passwords puts your keystore at risk. Replace it with a strong secret.
 
 ### Database
 
@@ -233,11 +235,12 @@ If you're just searching the JDBC URL you have to use, try googling `jdbc dbms_n
   "database": {
     "jdbcUrl": "jdbc:...",
     "user": "root",
-    "password": "123456"
+    "password": "CHANGE_ME"
   }
   /* ... */
 }
 ```
+> **Warning:** Replace the placeholder password before deployment. Default credentials leave your database vulnerable.
 
 ### Root CA
 

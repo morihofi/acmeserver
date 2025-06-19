@@ -19,13 +19,13 @@
   },
   "keyStore": {
     "type": "pkcs12",
-    "password": "test",
+    "password": "CHANGE_ME",
     "location": "./serverdata/test.p12"
   },
   "database": {
     "jdbcUrl": "jdbc:h2:./serverdata/acme;DB_CLOSE_DELAY=-1",
     "user": "root",
-    "password": ""
+    "password": "CHANGE_ME"
   },
   "network": {
     "proxy": {
