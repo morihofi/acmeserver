@@ -16,8 +16,11 @@
 
 package de.morihofi.acmeserver.core.web;
 
+import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.exception.ServerStartupException;
+import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.network.ssl.mozillasslconfig.MozillaSslConfigHelper;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.eclipse.jetty.server.Connector;
@@ -73,5 +76,26 @@ public class JettySslHelper {
         factory.setIncludeProtocols(cfg.protocols().toArray(new String[0]));
         customizer.setStsMaxAge(cfg.hstsMinAge());
         customizer.setStsIncludeSubDomains(false);
+    }
+
+    /**
+     * @see #getMozSslConfigVariant(Config)
+     */
+    @NonNull
+    public static MozillaSslConfigHelper.CONFIGURATION getMozSslConfigVariant(IServerInstance serverInstance) {
+        return getMozSslConfigVariant(serverInstance.getAppConfig());
+    }
+
+
+    @NonNull
+    public static MozillaSslConfigHelper.CONFIGURATION getMozSslConfigVariant(Config cfg) {
+        return switch (cfg.getServer().getMozillaSslConfig().getConfiguration()) {
+            case "modern" -> MozillaSslConfigHelper.CONFIGURATION.MODERN;
+            case "intermediate" -> MozillaSslConfigHelper.CONFIGURATION.INTERMEDIATE;
+            case "old" -> MozillaSslConfigHelper.CONFIGURATION.OLD;
+            default -> throw new IllegalStateException(
+                    "Unexpected value: " + cfg.getServer().getMozillaSslConfig().getConfiguration()
+                            + " must be one of modern, intermediate or old (must be specified in lowercase, this is case sensitive)");
+        };
     }
 }

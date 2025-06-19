@@ -96,24 +96,7 @@ public class AcmeHttpServlet extends RoutableHttpServlet {
         // Revoke certificate
         getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/revoke-cert", new RevokeCertEndpoint(serverInstance)));
 
-
-
         getRouter().addBeforeHandler("/acme", new AcmeBeforeHandler());
 
-
     }
-
-    private void registerHeadRoute(@NonNull String path, @NonNull Handler handler) {
-        getRouter().addHandler(new Endpoint(HandlerType.HEAD, path, handler));
-    }
-
-    private void registerGetRoute(@NonNull String path, @NonNull Handler handler) {
-        getRouter().addHandler(new Endpoint(HandlerType.GET, path, handler));
-    }
-
-    private void registerPostRoute(@NonNull String path, @NonNull Handler handler) {
-        getRouter().addHandler(new Endpoint(HandlerType.POST, path, handler));
-    }
-
-
 }

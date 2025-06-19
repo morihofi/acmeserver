@@ -39,6 +39,7 @@ import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.VirtualThreadPool;
 
 import java.lang.management.ManagementFactory;
@@ -78,11 +79,15 @@ public class WebServer implements EventSubscriber {
         serverInstance.getEventBus().register(this);
 
 
-        VirtualThreadPool virtualExecutor = new VirtualThreadPool();
-        virtualExecutor.setMaxThreads(128);
-        virtualExecutor.setName("WebServer-ThreadPool");
+        //VirtualThreadPool virtualExecutor = new VirtualThreadPool();
+        //virtualExecutor.setMaxThreads(128);
+        //virtualExecutor.setName("WebServer-ThreadPool");
 
-        this.server = new Server(virtualExecutor);
+
+        QueuedThreadPool threadPool = new QueuedThreadPool();
+        threadPool.setName("WebServer-ThreadPool");
+
+        this.server = new Server(threadPool);
 
         certificateRenewScheduler.registerNewCertificateRenewWatcher(
                 CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI,
@@ -228,70 +233,48 @@ public class WebServer implements EventSubscriber {
         secureRequestCustomizer.setSniHostCheck(serverInstance.getAppConfig().getServer().getSslServerConfig().isEnableSniCheck());
 
         if (serverInstance.getAppConfig().getServer().getMozillaSslConfig().isEnabled()) {
-            // This is needed to be able to turn on TLS 1.0, TLS 1.1 and TLS 1.2
-            Security.setProperty("jdk.tls.disabledAlgorithms", "");
-            Security.setProperty("jdk.certpath.disabledAlgorithms", "");
-
-            System.setProperty("jdk.tls.allowLegacyResumption",
-                    String.valueOf(serverInstance.getAppConfig().getServer().getSslServerConfig().isAllowLegacyResumption()));
-
-            MozillaSslConfigHelper.CONFIGURATION configuration = switch (serverInstance.getAppConfig().getServer().getMozillaSslConfig().getConfiguration()) {
-                case "modern" -> MozillaSslConfigHelper.CONFIGURATION.MODERN;
-                case "intermediate" -> MozillaSslConfigHelper.CONFIGURATION.INTERMEDIATE;
-                case "old" -> MozillaSslConfigHelper.CONFIGURATION.OLD;
-                default -> throw new IllegalStateException(
-                        "Unexpected value: " + serverInstance.getAppConfig().getServer().getMozillaSslConfig().getConfiguration()
-                                + " must be one of modern, intermediate or old (must be specified in lowercase, this is case sensitive)");
-            };
-
-            if (configuration.equals(MozillaSslConfigHelper.CONFIGURATION.OLD)) {
-                // This is needed to be able to turn on TLS 1.0, TLS 1.1 and TLS 1.2
-                Security.setProperty("jdk.tls.disabledAlgorithms", "");
-                Security.setProperty("jdk.certpath.disabledAlgorithms", "");
-            }
-
-            System.setProperty("jdk.tls.allowLegacyResumption",
-                    String.valueOf(serverInstance.getAppConfig().getServer().getSslServerConfig().isAllowLegacyResumption()));
-
             JettySslHelper.applyMozillaTlsConfig(
                     MozillaSslConfigHelper.getConfigurationGuidelinesForVersion(
                             serverInstance.getAppConfig()
                                     .getServer()
                                     .getMozillaSslConfig()
                                     .getVersion(),
-                            configuration,
+                            JettySslHelper.getMozSslConfigVariant(serverInstance),
                             serverInstance.getNetworkClient()
                     ),
                     newSslContextFactory,
                     secureRequestCustomizer
             );
 
-
+            httpConfig.addCustomizer(secureRequestCustomizer);
         }
 
         httpConfig.addCustomizer(secureRequestCustomizer);
 
-        // Create new Connector with the new SSLContext
-        ServerConnector newSslConnector = new ServerConnector(server, newSslContextFactory, new HttpConnectionFactory(httpConfig));
-        newSslConnector.setPort(serverInstance.getAppConfig().getServer().getPorts().getHttps());
+        if (this.sslConnector == null) {
+            // Create connector for the first time
+            ServerConnector newSslConnector = new ServerConnector(server, newSslContextFactory, new HttpConnectionFactory(httpConfig));
+            newSslConnector.setPort(serverInstance.getAppConfig().getServer().getPorts().getHttps());
 
-        // Stop current SSL connector
-        if (this.sslConnector != null) {
-            log.info("Stopping existing TLS connector...");
-            if (server.isStarted()) {
-                this.sslConnector.stop();
+            this.sslConnector = newSslConnector;
+            server.addConnector(this.sslConnector);
+            if (server.isRunning()) {
+                this.sslConnector.start();
             }
-            server.removeConnector(this.sslConnector);
+            log.info("TLS connector initialized.");
+        } else {
+            // Reload existing connector without recreation
+            log.info("Reloading existing TLS connector with updated certificate...");
+            SslConnectionFactory sslConnectionFactory = this.sslConnector.getConnectionFactory(SslConnectionFactory.class);
+            SslContextFactory.Server currentFactory = sslConnectionFactory.getSslContextFactory();
+            currentFactory.reload(factory -> {
+                factory.setKeyStore(newSslContextFactory.getKeyStore());
+                factory.setKeyStorePassword(newSslContextFactory.getKeyStorePassword());
+                factory.setKeyManagerPassword(newSslContextFactory.getKeyManagerPassword());
+                factory.setCertAlias(newSslContextFactory.getCertAlias());
+            });
+            log.info("TLS certificate reloaded.");
         }
-
-        // Apply new connector and start
-        this.sslConnector = newSslConnector;
-        server.addConnector(this.sslConnector);
-        if (server.isStarted()) {
-            this.sslConnector.start();
-        }
-
-        log.info("TLS certificate reloaded and SSL connector reinitialized.");
     }
 
     @Override

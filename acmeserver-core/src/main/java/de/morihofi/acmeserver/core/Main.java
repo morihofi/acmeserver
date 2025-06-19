@@ -19,6 +19,7 @@ package de.morihofi.acmeserver.core;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
+import de.morihofi.acmeserver.core.web.JettySslHelper;
 import de.morihofi.acmeserver.core.web.WebServer;
 import de.morihofi.acmeserver.types.database.entities.RootCa;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
@@ -35,16 +36,19 @@ import de.morihofi.acmeserver.types.server.StartupFlag;
 import de.morihofi.acmeserver.utils.cli.CLIArgument;
 import de.morihofi.acmeserver.utils.meta.BuildMetadataImpl;
 import de.morihofi.acmeserver.utils.network.http.NetworkClient;
+import de.morihofi.acmeserver.utils.network.ssl.mozillasslconfig.MozillaSslConfigHelper;
 import de.morihofi.acmeserver.utils.path.AppDirectoryHelper;
 import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.events.ServerInitializedEvent;
 import de.morihofi.acmeserver.types.events.ServerStartedEvent;
 import de.morihofi.acmeserver.types.events.ServerShutdownEvent;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.IOException;
@@ -115,12 +119,7 @@ public class Main {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
 
-        // Register Bouncy Castle Provider
-        log.info("Register Bouncy Castle Security Provider");
-        Security.addProvider(new BouncyCastleProvider());
 
-        log.info("Register Bouncy Castle JSSE Security Provider");
-        Security.addProvider(new BouncyCastleJsseProvider());
 
         log.info("Initializing directories");
         ensureFilesDirectoryExists();
@@ -148,7 +147,38 @@ public class Main {
         }
 
 
+
+        
+
+        
+        
+        log.info("Loading configuration ...");
         Config config = loadServerConfiguration();
+
+        // Do some stuff that's need to be done before Bouncy Castle providers are installed
+        // Just to be sure that it is applied correctly.
+        {
+            MozillaSslConfigHelper.CONFIGURATION configuration = JettySslHelper.getMozSslConfigVariant(config);
+
+            if (configuration.equals(MozillaSslConfigHelper.CONFIGURATION.OLD)) {
+                // This is needed to be able to turn on TLS 1.0, TLS 1.1 and TLS 1.2
+                // For this to work in IE8 you need to disable SSLv1, SSLv2 and SSLv3 and leave only TLSv1 enabled
+                // otherwise you'll get "Failed to read record: Unsupported UNKNOWN(128)". This is due to
+                // missing SSL support (not TLS!) in Bouncy Castle. BC supports TLSv1 and higher
+                Security.setProperty("jdk.tls.disabledAlgorithms", "SSLv2Hello, SSLv3, RC4, MD5");
+                //Security.setProperty("jdk.certpath.disabledAlgorithms", "SSLv2Hello, SSLv3, DTLSv1.0, RC4, DES, MD5withRSA, DH keySize < 1024, RSA keySize < 1024, EC keySize < 224, anon, NULL");
+            }
+            System.setProperty("jdk.tls.allowLegacyResumption",
+                    String.valueOf(config.getServer().getSslServerConfig().isAllowLegacyResumption()));
+        }
+
+        // Register Bouncy Castle Provider
+        log.info("Register Bouncy Castle Security Provider");
+        Security.addProvider(new BouncyCastleProvider());
+        log.info("Register Bouncy Castle JSSE Security Provider");
+        Security.addProvider(new BouncyCastleJsseProvider());
+
+        // ... and continue building the server instance
         EventBus eventBus = new EventBus();
         serverInstance = getServerInstance(config, debug, CONFIG_PATH, eventBus);
         eventBus.publish(new ServerInitializedEvent(serverInstance));
@@ -166,6 +196,8 @@ public class Main {
         }
 
     }
+
+
 
 
     public static IServerInstance getServerInstance(Config config, boolean debug, Path configPath, EventBus eventBus) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvalidAlgorithmParameterException, OperatorCreationException, UnrecoverableKeyException {
