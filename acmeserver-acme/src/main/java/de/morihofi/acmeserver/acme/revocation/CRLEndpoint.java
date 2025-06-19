@@ -14,7 +14,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.acme.revokeDistribution;
+package de.morihofi.acmeserver.acme.revocation;
 import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.intf.IServerInstance;

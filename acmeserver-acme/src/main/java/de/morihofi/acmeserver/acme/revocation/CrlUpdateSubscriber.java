@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.acme.revokeDistribution;
+package de.morihofi.acmeserver.acme.revocation;
 
 import de.morihofi.acmeserver.types.events.*;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;

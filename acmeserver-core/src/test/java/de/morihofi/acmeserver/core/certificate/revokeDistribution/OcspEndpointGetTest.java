@@ -18,7 +18,7 @@ import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
-import de.morihofi.acmeserver.acme.revokeDistribution.OcspEndpointGet;
+import de.morihofi.acmeserver.acme.revocation.OcspEndpointGet;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
 import org.hibernate.Transaction;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;

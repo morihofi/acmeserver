@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.acme.revokeDistribution;
+package de.morihofi.acmeserver.acme.revocation;
 
 import de.morihofi.acmeserver.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
@@ -6,9 +6,7 @@ import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.cryptography.revoke.CrlGenerator;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.CertificateStatus;

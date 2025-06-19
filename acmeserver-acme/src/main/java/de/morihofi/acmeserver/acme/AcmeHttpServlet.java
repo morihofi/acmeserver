@@ -8,9 +8,9 @@ import de.morihofi.acmeserver.acme.api.endpoints.challenge.ChallengeCallbackEndp
 import de.morihofi.acmeserver.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.acme.api.endpoints.order.OrderInfoEndpoint;
-import de.morihofi.acmeserver.acme.revokeDistribution.CRLEndpoint;
-import de.morihofi.acmeserver.acme.revokeDistribution.OcspEndpointGet;
-import de.morihofi.acmeserver.acme.revokeDistribution.OcspEndpointPost;
+import de.morihofi.acmeserver.acme.revocation.CRLEndpoint;
+import de.morihofi.acmeserver.acme.revocation.OcspEndpointGet;
+import de.morihofi.acmeserver.acme.revocation.OcspEndpointPost;
 import de.morihofi.acmeserver.server.common.intf.Endpoint;
 import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
@@ -21,16 +21,8 @@ import de.morihofi.acmeserver.types.events.AcmeExceptionEvent;
 import de.morihofi.acmeserver.types.exception.ACMEException;
 import de.morihofi.acmeserver.types.httpserver.HandlerType;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Servlet routing ACME requests to registered sub servlets.

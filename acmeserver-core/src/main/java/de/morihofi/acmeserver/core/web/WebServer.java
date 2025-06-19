@@ -17,8 +17,8 @@
 package de.morihofi.acmeserver.core.web;
 
 import de.morihofi.acmeserver.acme.AcmeHttpServlet;
-import de.morihofi.acmeserver.acme.revokeDistribution.CRLScheduler;
-import de.morihofi.acmeserver.acme.revokeDistribution.CrlUpdateSubscriber;
+import de.morihofi.acmeserver.acme.revocation.CRLScheduler;
+import de.morihofi.acmeserver.acme.revocation.CrlUpdateSubscriber;
 import de.morihofi.acmeserver.core.Main;
 import de.morihofi.acmeserver.cryptography.certificate.queue.CertificateIssuanceSubscriber;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
@@ -30,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
