@@ -24,6 +24,7 @@ import de.morihofi.acmeserver.cryptography.certificate.queue.CertificateIssuance
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.ProvisionerRenewSubscriber;
+import de.morihofi.acmeserver.core.web.JettyCertificateHelper;
 import de.morihofi.acmeserver.types.events.AbstractEvent;
 import de.morihofi.acmeserver.types.events.AcmeTlsCertificateHotReloadEvent;
 import de.morihofi.acmeserver.types.events.EventSubscriber;
@@ -82,6 +83,20 @@ public class WebServer implements EventSubscriber {
         virtualExecutor.setName("WebServer-ThreadPool");
 
         this.server = new Server(virtualExecutor);
+
+        certificateRenewScheduler.registerNewCertificateRenewWatcher(
+                CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI,
+                null,
+                (p, cert, kp) -> JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance,
+                        serverInstance.getAppConfig()),
+                () -> {
+                    try {
+                        loadOrReloadTlsCertificate();
+                    } catch (Exception e) {
+                        log.error("Failed to reload TLS certificate after renewal", e);
+                    }
+                }
+        );
     }
 
     /**
@@ -105,6 +120,20 @@ public class WebServer implements EventSubscriber {
 
         if (serverInstance.getAppConfig().getServer().getPorts().getHttps() > 0) {
             // HTTPS Configuration
+            // Ensure certificate exists or is valid
+            CertificateRenewScheduler.CertificateData data =
+                    JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance,
+                            serverInstance.getAppConfig());
+            if (data != null) {
+                serverInstance.getCryptoStoreManager().getKeyStore().setKeyEntry(
+                        CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI,
+                        data.keyPair().getPrivate(),
+                        "".toCharArray(),
+                        data.certificateChain()
+                );
+                serverInstance.getCryptoStoreManager().saveKeystore();
+            }
+
             loadOrReloadTlsCertificate();
         } else {
             log.error("HTTPS support is DISABLED");

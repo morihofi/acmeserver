@@ -42,8 +42,7 @@ public class JettyCertificateHelper {
     /**
      * Generates an ACME API client certificate for the ACME Web Server API, if it doesn't already exist in the key store.
      *
-     * @param serverInstance The s used for managing certificates and keys.
-     * @param appConfig      The application configuration containing settings for the ACME API and certificates.
+     * @param serverInstance Reference to the server instance containing the crypto store manager and configuration.
      * @throws CertificateException      If there is an issue with certificate handling.
      * @throws IOException               If an I/O error occurs.
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
@@ -52,8 +51,7 @@ public class JettyCertificateHelper {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws UnrecoverableKeyException If a keystore key cannot be recovered.
      */
-    private static CertificateRenewScheduler.CertificateData generateAcmeApiClientCertificate(IServerInstance serverInstance,
-                                                                                            Config appConfig) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
+    public static CertificateRenewScheduler.CertificateData generateAcmeApiClientCertificate(IServerInstance serverInstance) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
             OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
 
         ICryptoStoreManager cryptoStoreManager = serverInstance.getCryptoStoreManager();
@@ -94,7 +92,7 @@ public class JettyCertificateHelper {
                             .issuerKeyPair(rootCaKeyPair)
                             .issuerCertificate(intermediateCertificate)
                             .serverPublicKeyBytes(acmeAPIKeyPair.getPublic().getEncoded())
-                            .identifier(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, appConfig.getServer().getDnsName()))
+                            .identifier(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, serverInstance.getAppConfig().getServer().getDnsName()))
                             .startDate(startDate)
                             .endDate(endDate)
                             .serverInstance(serverInstance)
