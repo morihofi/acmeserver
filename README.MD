@@ -7,23 +7,18 @@
 
 ## 📃 About
 
-This is an implementation of an Automatic Certificate Management Environment (ACME) Server, fully written in Java
+This is an implementation of an Homelab PKI Server, that includes an Automatic Certificate Management Environment (ACME) Server, fully written in Java without native dependencies.
+If Java runs on your server, then ACME Server should too.
 
 - Java 21 and up
 - Any JDBC (and Hibernate compatible) database. Currently, H2, MariaDB and PostgreSQL drivers are in classpath
-- Proxy support for HTTP Challenge
 
 ## Notice
 Debian packages are no longer supported. Please use Docker/Podman instead. This reduces us maintaining multiple platforms.
 
+## ⚠ 3.x Breaking Changes ahead
 
-
-## ⚠ Breaking Changes from Version 1.x to Version 2.x
-
-- Provisioner directory is now in /acme/provisionername/directory
-- Database scheme has been complete rebuilt, please clean database before use
-- Due to move of provisioner directory, the URLs to OCSP and CRL have also been moved, please regenerate your
-  certificateConfig certificates by delete the corresponding entries in the keystore
+Version 3.x is not compatible with 2.x or 1.x versions. There were too much changes to be able to support an automatic upgrade. Please import your existing CA (Certificate and private Key) if you want it to use it in the future.
 
 ## 📒 Disclaimer
 
@@ -36,39 +31,47 @@ Documentation is now located [here](docs/README.md). In the same directory are a
 Server.
 
 ## ✨ Features
-
-- Self-hosted ACME Server for use with your own CA
-- Download CA support
-    - Download in standard formats like CRT, PEM, DER
-    - [CAB file CA export](http://web.archive.org/web/20060427213220/http://blogs.msdn.com/windowsmobile/archive/2006/01/28/making_a_root_cert_cab_file.aspx)
-      for install on legacy Windows Mobile based devices (e.g. older embedded devices, old PDAs, ...)
-- Support for PKCS#12 (.p12) KeyStore and PKCS#11 Hardware Security Modules (HSM)
-- Revokation support for certificates (using JWK and Account Key method)
-- ACME Account deactivation
-- Mostly ACME RFC compliant in its behaviour
-- Multiple provisioners support with own certificateConfig CA
-    - Set expiration and key algorithm for each certificateConfig
-    - Set expiration for each issued certificate in provisioner
-    - Each provisioner has its own CRL (Certificate Revokation List)
-    - Set a domain naming restriction for each provisioner (e.g. domain must end with ".example.com")
-    - Enable wildcard support individually for each provisioner (e.g. *.example.com)
-- Built-in OCSP (Online Certificate Status Protocol) server
-- Signature check of client's requests
-- Support for multiple identifiers in one order (multiple domains)
-- Nonce validation (Replay protection)
-- Supported challenges:
+- Self-hosted PKI solution for use with your own CA
+- ACME:
+  - Revocation support for certificates (using JWK and Account Key method)
+  - Mostly ACME RFC compliant in its behaviour
+  - Multiple provisioners support with own certificateConfig CA
+  - Set expiration and key algorithm for each certificateConfig
+  - Set expiration for each issued certificate in provisioner
+  - Each provisioner has its own CRL (Certificate Revocation List)
+  - Set a domain naming restriction for each provisioner (e.g. domain must end with ".example.com")
+  - Enable wildcard support individually for each provisioner (e.g. `*.example.com`)
+  - ACME Account deactivation
+  - Signature check of client's requests
+  - Support for multiple identifiers in one order (multiple domains)
+  - Nonce validation (Replay protection, Nonce = Number only Once)
+  - Supported challenges:
     - HTTP-01
     - DNS-01
-- Statistics
+  - Support for ACME account key rollover
+  - CAA-Lookup (see [RFC 6844](https://datatracker.ietf.org/doc/html/rfc6844))
+  - ACME only available over HTTPS, blocks HTTP requests for security reasons
+  - Proxy support for HTTP Challenge, e.g. over Tor for Onion Domains
+- Download CA support
+  - Download in standard formats like CRT, PEM, DER
+  - [CAB file CA export](http://web.archive.org/web/20060427213220/http://blogs.msdn.com/windowsmobile/archive/2006/01/28/making_a_root_cert_cab_file.aspx)
+    for install on legacy Windows Mobile based devices (e.g. older embedded devices, old PDAs, ...)
+  - Includes JavaScript-less UI for downloading Root-CAs (at `/legacy`-Route)
+- Support for PKCS#12 (.p12) KeyStore and PKCS#11 Hardware Security Modules (HSM)
+- Built-in OCSP (Online Certificate Status Protocol, see [RFC 6960](https://datatracker.ietf.org/doc/html/rfc6960)) server
+- Built-in Timestamp Server at `/tsa`-Route (see [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161))
 - API and WebUI TLS Security can be automatically configured
   using [Mozilla's SSL Config Guidelines](https://ssl-config.mozilla.org/),
   see [Wiki](https://wiki.mozilla.org/Security/Server_Side_TLS) here (JSON configuration from 4.0 until 5.7 (latest at
   writing this) are included, if specified version not available it will try to fetch these from the Mozilla server.
-  Note: Version before 5.1 might be a bit buggy)
-- Support for ACME account key rollover
-- CAA-Lookup (see [RFC 6844](https://datatracker.ietf.org/doc/html/rfc6844))
+  Note: Version before 5.1 might be a bit buggy). This is useful for homelab use with older legacy devices
+
+
 
 ## Features in the future
+- Modern Management UI
+- better Statistics
+- ... many more I just cant imagine right now
 
 ## ✅ Testing status
 

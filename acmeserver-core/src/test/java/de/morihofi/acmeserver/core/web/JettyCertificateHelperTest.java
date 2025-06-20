@@ -42,6 +42,7 @@ class JettyCertificateHelperTest {
         @NonNull @Override public Config getAppConfig(){Config c=new Config();c.setServer(new ServerConfig());return c;}
         @NonNull @Override public INonceManager getNonceManager(){return null;}
         @NonNull @Override public RootCa getRootCa(){return rootCa;}
+        @NonNull @Override public de.morihofi.acmeserver.types.database.entities.TsaAuthority getTsaAuthority(){return null;}
         @NonNull @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
         @NonNull @Override public INetworkClient getNetworkClient(){return null;}
         @NonNull @Override public EventBus getEventBus(){return new EventBus();}

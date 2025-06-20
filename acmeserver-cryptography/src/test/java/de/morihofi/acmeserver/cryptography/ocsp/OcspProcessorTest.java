@@ -1,12 +1,10 @@
+package de.morihofi.acmeserver.cryptography.ocsp;
+
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
 import de.morihofi.acmeserver.cryptography.ocsp.OcspProcessor;
 import de.morihofi.acmeserver.types.config.Config;
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
-import de.morihofi.acmeserver.types.database.entities.CertificateConfig;
-import de.morihofi.acmeserver.types.database.entities.CertificateExpiration;
-import de.morihofi.acmeserver.types.database.entities.CertificateMetadata;
+import de.morihofi.acmeserver.types.database.entities.*;
 import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
@@ -46,23 +44,91 @@ class OcspProcessorTest {
     }
 
     static class DummyServer implements IServerInstance {
-        @NonNull @Override public String getServerURL() { return ""; }
-        @NonNull @Override public Session getDatabaseSession() { return null; }
-        @NonNull @Override public ICryptoStoreManager getCryptoStoreManager() { return Mockito.mock(ICryptoStoreManager.class); }
-        @NonNull @Override public Config getAppConfig() { return new Config(); }
-        @NonNull @Override public INonceManager getNonceManager() { return null; }
-        @NonNull @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
-        @NonNull @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
-        @NonNull @Override public INetworkClient getNetworkClient() { return null; }
-        @NonNull @Override public EventBus getEventBus() { return new EventBus(); }
-        @NonNull @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags(){return java.util.Collections.emptySet();}
+        @NonNull
+        @Override
+        public String getServerURL() {
+            return "";
+        }
+
+        @NonNull
+        @Override
+        public Session getDatabaseSession() {
+            return null;
+        }
+
+        @NonNull
+        @Override
+        public ICryptoStoreManager getCryptoStoreManager() {
+            return Mockito.mock(ICryptoStoreManager.class);
+        }
+
+        @NonNull
+        @Override
+        public Config getAppConfig() {
+            return new Config();
+        }
+
+        @NonNull
+        @Override
+        public INonceManager getNonceManager() {
+            return null;
+        }
+
+        @NonNull
+        @Override
+        public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() {
+            return null;
+        }
+
+        @Override
+        public @NonNull TsaAuthority getTsaAuthority() {
+            return null;
+        }
+
+        @NonNull
+        @Override
+        public BuildMetadata getBuildMetadata() {
+            return BuildMetadata.builder().build();
+        }
+
+        @NonNull
+        @Override
+        public INetworkClient getNetworkClient() {
+            return null;
+        }
+
+        @NonNull
+        @Override
+        public EventBus getEventBus() {
+            return new EventBus();
+        }
+
+        @NonNull
+        @Override
+        public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() {
+            return java.util.Collections.emptySet();
+        }
     }
 
     static class DummyProvisioner extends AcmeProvisioner {
-        private final KeyPair kp; private final X509Certificate cert;
-        DummyProvisioner(String name, KeyPair kp, X509Certificate cert) { this.kp = kp; this.cert = cert; setName(name); }
-        @Override public X509Certificate getIntermediateCaCertificate(@NonNull ICryptoStoreManager csm){ return cert; }
-        @Override public KeyPair getIntermediateCaKeyPair(@NonNull ICryptoStoreManager csm){ return kp; }
+        private final KeyPair kp;
+        private final X509Certificate cert;
+
+        DummyProvisioner(String name, KeyPair kp, X509Certificate cert) {
+            this.kp = kp;
+            this.cert = cert;
+            setName(name);
+        }
+
+        @Override
+        public X509Certificate getIntermediateCaCertificate(@NonNull ICryptoStoreManager csm) {
+            return cert;
+        }
+
+        @Override
+        public KeyPair getIntermediateCaKeyPair(@NonNull ICryptoStoreManager csm) {
+            return kp;
+        }
     }
 
     @Test

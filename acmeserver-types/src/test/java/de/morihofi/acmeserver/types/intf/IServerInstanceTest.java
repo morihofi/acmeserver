@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.types.intf;
 
 import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.types.database.entities.TsaAuthority;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
@@ -47,6 +48,9 @@ class IServerInstanceTest {
         @NonNull
         @Override
         public RootCa getRootCa() { return rootCa; }
+
+        @Override
+        public TsaAuthority getTsaAuthority() { return null; }
 
         @NonNull
         @Override

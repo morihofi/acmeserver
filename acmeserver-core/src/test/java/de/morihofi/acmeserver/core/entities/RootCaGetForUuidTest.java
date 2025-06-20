@@ -32,6 +32,7 @@ class RootCaGetForUuidTest {
         @Override public Config getAppConfig(){return cfg;}
         @Override public INonceManager getNonceManager(){return null;}
         @Override public RootCa getRootCa(){return ca;}
+        @Override public de.morihofi.acmeserver.types.database.entities.TsaAuthority getTsaAuthority(){return null;}
         @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
         @Override public INetworkClient getNetworkClient(){return null;}
         @Override public EventBus getEventBus(){return new EventBus();}

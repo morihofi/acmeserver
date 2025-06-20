@@ -63,6 +63,11 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     public static final String KEYSTORE_ALIASPREFIX_INTERMEDIATECA = "intermediateCA_";
 
     /**
+     * Prefix for aliases of timestamp authority certificates in the keystore.
+     */
+    public static final String KEYSTORE_ALIASPREFIX_TSA = "tsa_";
+
+    /**
      * Returns the key store alias for a provisioner intermediate certificate authority.
      * The alias is constructed by appending the provisioner's name to the predefined prefix.
      * The return value is not null, but it is possible that the alias does not exist in the keystore.
@@ -77,6 +82,11 @@ public class CryptoStoreManager implements ICryptoStoreManager {
         }
 
         return KEYSTORE_ALIASPREFIX_INTERMEDIATECA + provisioner;
+    }
+
+    @NonNull
+    public String getKeyStoreAliasForTimestampAuthority(@NonNull String uuid) {
+        return KEYSTORE_ALIASPREFIX_TSA + uuid;
     }
 
     /**

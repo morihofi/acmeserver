@@ -60,7 +60,8 @@ public class X509Generator {
     public enum Type {
         ROOT_CA,
         INTERMEDIATE_CA,
-        SERVER
+        SERVER,
+        TIMESTAMPING
     }
 
     /**
@@ -109,6 +110,7 @@ public class X509Generator {
             case ROOT_CA -> generateRootCa(req);
             case INTERMEDIATE_CA -> generateIntermediateCa(req);
             case SERVER -> generateServer(req);
+            case TIMESTAMPING -> generateTimestampAuthority(req);
         };
     }
 
@@ -137,6 +139,8 @@ public class X509Generator {
         builder.addExtension(Extension.keyUsage, true,
                 new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment |
                         KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.keyCertSign | KeyUsage.cRLSign));
+        builder.addExtension(Extension.extendedKeyUsage, false,
+                new ExtendedKeyUsage(KeyPurposeId.anyExtendedKeyUsage));
 
         ContentSigner signer = new JcaContentSignerBuilder(
                 KeyHelper.getSignatureAlgorithmBasedOnKeyType(req.getOwnKeyPair().getPrivate()))
@@ -222,6 +226,39 @@ public class X509Generator {
                     req.getProvisioner().getFullCrlUrl(req.getServerInstance()),
                     req.getProvisioner().getFullOcspUrl(req.getServerInstance()));
         }
+
+        ContentSigner signer = new JcaContentSignerBuilder(
+                KeyHelper.getSignatureAlgorithmBasedOnKeyType(req.getIssuerKeyPair().getPrivate()))
+                .build(req.getIssuerKeyPair().getPrivate());
+
+        return toCertificate(builder, signer);
+    }
+
+    private static X509Certificate generateTimestampAuthority(Request req)
+            throws CertificateException, OperatorCreationException, CertIOException {
+
+        Objects.requireNonNull(req.getIssuerKeyPair(), "issuerKeyPair (ROOT key) is required");
+        Objects.requireNonNull(req.getIssuerCertificate(), "issuerCertificate (ROOT cert) is required");
+        Objects.requireNonNull(req.getOwnKeyPair(), "ownKeyPair is required");
+        Objects.requireNonNull(req.getCertificateConfig(), "certificateConfig is required");
+
+        Date[] validity = calculateValidity(req.getCertificateConfig());
+        X500Name issuer = X509CertificateTools.getX500NameFromX509Certificate(req.getIssuerCertificate());
+        X500Name subject = toX500(req.getCertificateConfig().getMetadata(),
+                "A common name is required in timestamping authority. Please change it in your settings.");
+
+        X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
+                issuer,
+                RandomGenerator.generateRandomId(),
+                validity[0], validity[1],
+                subject,
+                SubjectPublicKeyInfo.getInstance(req.getOwnKeyPair().getPublic().getEncoded()));
+
+        builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
+        builder.addExtension(Extension.keyUsage, true,
+                new KeyUsage(KeyUsage.digitalSignature));
+        builder.addExtension(Extension.extendedKeyUsage, true,
+                new ExtendedKeyUsage(KeyPurposeId.id_kp_timeStamping));
 
         ContentSigner signer = new JcaContentSignerBuilder(
                 KeyHelper.getSignatureAlgorithmBasedOnKeyType(req.getIssuerKeyPair().getPrivate()))

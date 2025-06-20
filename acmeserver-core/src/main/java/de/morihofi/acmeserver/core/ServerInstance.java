@@ -23,6 +23,7 @@ import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.types.database.entities.TsaAuthority;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.server.StartupFlag;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -42,7 +43,16 @@ import java.util.Set;
 public class ServerInstance implements IServerInstance {
 
 
-    public ServerInstance(@NonNull Config appConfig, @NonNull Path appConfigPath, boolean debug, @NonNull CryptoStoreManager cryptoStoreManager, @NonNull INetworkClient networkClient, @NonNull HibernateUtil hibernateUtil, @NonNull INonceManager nonceManager, @NonNull RootCa rootCa, @NonNull BuildMetadata buildMetadata, @NonNull EventBus eventBus, @NonNull Set<StartupFlag> startupFlags) {
+    public ServerInstance(@NonNull Config appConfig, @NonNull Path appConfigPath, boolean debug,
+                          @NonNull CryptoStoreManager cryptoStoreManager,
+                          @NonNull INetworkClient networkClient,
+                          @NonNull HibernateUtil hibernateUtil,
+                          @NonNull INonceManager nonceManager,
+                          @NonNull RootCa rootCa,
+                          @NonNull TsaAuthority tsaAuthority,
+                          @NonNull BuildMetadata buildMetadata,
+                          @NonNull EventBus eventBus,
+                          @NonNull Set<StartupFlag> startupFlags) {
         this.appConfig = appConfig;
         this.appConfigPath = appConfigPath;
         this.debug = debug;
@@ -51,6 +61,7 @@ public class ServerInstance implements IServerInstance {
         this.hibernateUtil = hibernateUtil;
         this.nonceManager = nonceManager;
         this.rootCa = rootCa;
+        this.tsaAuthority = tsaAuthority;
         this.buildMetadata = buildMetadata;
         this.eventBus = eventBus;
         this.startupFlags = startupFlags;
@@ -104,6 +115,10 @@ public class ServerInstance implements IServerInstance {
     @Setter
     @NonNull
     private RootCa rootCa;
+
+    @Setter
+    @NonNull
+    private TsaAuthority tsaAuthority;
 
     @NonNull
     private final BuildMetadata buildMetadata;
