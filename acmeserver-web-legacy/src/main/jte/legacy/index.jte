@@ -47,7 +47,7 @@
                 <td>
                     <img src="static/download.png" alt="Download" width="16" height="16">
                     <a href="${ca.getPemPath()}">PEM</a>
-                    @if (isAndroid || isWindowsDesktop)
+                    @if (isAndroid)
                         <span class="recommend">
                         <img src="static/info.png" alt="★" width="16" height="16"> Recommended for your platform
                     </span>
@@ -56,6 +56,11 @@
 
                     <img src="static/download.png" alt="Download" width="16" height="16">
                     <a href="${ca.getDerPath()}">DER</a>
+                    @if (isWindowsDesktop)
+                        <span class="recommend">
+                        <img src="static/info.png" alt="★" width="16" height="16"> Recommended for your platform
+                    </span>
+                    @endif
                     <br>
 
                     <img src="static/download.png" alt="Download" width="16" height="16">
