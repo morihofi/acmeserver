@@ -24,8 +24,10 @@ import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -60,7 +62,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
     public static AcmeProvisioner getProvisionerFromJavalin(IServerInstance serverInstance, @NonNull HandlerContext ctx) {
         String pName = ctx.pathParam("provisioner");
         AcmeProvisioner provisioner = AcmeProvisioner.getForName(serverInstance, pName);
-        if(provisioner == null){
+        if (provisioner == null) {
             throw new IllegalArgumentException("Specified Provisioner " + pName + " does not exist");
         }
 
@@ -86,6 +88,13 @@ public abstract class AbstractAcmeEndpoint implements Handler {
      */
     @Override
     public void handle(@NonNull HandlerContext ctx) throws Exception {
+        HttpServletRequest req = ctx.request().getHttpServletRequest();
+
+        // We want to make sure, that all the certificate requests are use done using HTTPS
+        if(!req.isSecure()){
+            throw new ACMEMalformedException("Requests must be sent over HTTPS for the ACME API");
+        }
+
         ACMERequestBody acmeRequestBody = gson.fromJson(ctx.body(), ACMERequestBody.class);
         handleRequest(ctx, getProvisioner(ctx), gson, acmeRequestBody);
     }

@@ -35,7 +35,7 @@ import de.morihofi.acmeserver.utils.regex.EmailValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -69,7 +69,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
      * @throws Exception If an error occurs while handling the request.
      */
     @Override
-    public void handleRequest(@NotNull HandlerContext ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = ctx.pathParam("id");
 
         ACMEAccountRequestPayload acmeAccountRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);

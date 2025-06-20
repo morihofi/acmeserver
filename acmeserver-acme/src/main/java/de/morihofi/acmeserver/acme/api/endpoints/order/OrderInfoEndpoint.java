@@ -33,7 +33,7 @@ import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.datetime.DateTools;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
      * @param acmeRequestBody The body of the ACME request.
      */
     @Override
-    public void handleRequest(@NotNull HandlerContext ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) {
+    public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) {
         String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/json");
@@ -124,7 +124,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
      * @param order The ACME order.
      * @return The expiration {@link Date} of the order.
      */
-    Date getOrderExpiration(@NotNull AcmeOrder order) {
+    Date getOrderExpiration(@NonNull AcmeOrder order) {
         return order.getExpires();
     }
 
@@ -135,7 +135,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
      * @param identifiers The list of identifiers associated with the order.
      * @throws ACMEResourceNotFoundException if no identifiers are present.
      */
-    void verifyIdentifiersPresent(@NotNull String orderId, @NotNull List<AcmeOrderIdentifier> identifiers) {
+    void verifyIdentifiersPresent(@NonNull String orderId, @NonNull List<AcmeOrderIdentifier> identifiers) {
         if (identifiers.isEmpty()) {
             log.error("Throwing API error: For the requested order {} was no identifier found", orderId);
             throw new ACMEResourceNotFoundException("For the requested order id was no identifier found");

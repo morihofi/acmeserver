@@ -58,6 +58,11 @@ class RevokeCertEndpointTest {
         String body = String.format("{\"protected\":\"%s\",\"payload\":\"%s\",\"signature\":\"%s\"}", parts[0], parts[1], parts[2]);
 
         class DummyRequest implements de.morihofi.acmeserver.server.common.intf.Request {
+            @Override
+            public HttpServletRequest getHttpServletRequest() {
+                return null;
+            }
+
             @Override public String getPath() { return "/"; }
             @Override public String getMethod() { return "POST"; }
             @Override public String getHeader(String name) { return null; }

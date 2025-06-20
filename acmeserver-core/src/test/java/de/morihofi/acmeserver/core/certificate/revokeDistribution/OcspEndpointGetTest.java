@@ -20,6 +20,7 @@ import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.acme.revocation.OcspEndpointGet;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.hibernate.Transaction;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.ocsp.CertificateID;
@@ -30,7 +31,7 @@ import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hibernate.Session;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.*;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -74,6 +75,12 @@ class OcspEndpointGetTest {
         private final String path;
         private final String method;
         DummyRequest(String path, String method) { this.path = path; this.method = method; }
+
+        @Override
+        public HttpServletRequest getHttpServletRequest() {
+            return null;
+        }
+
         @Override public String getPath() { return path; }
         @Override public String getMethod() { return method; }
         @Override public String getHeader(String name) { return null; }
@@ -160,25 +167,25 @@ class OcspEndpointGetTest {
         }
 
         si = new IServerInstance() {
-            @NotNull
+            @NonNull
             @Override public String getServerURL() { return "https://example.com"; }
-            @NotNull
+            @NonNull
             @Override public Session getDatabaseSession() { return hu.getSessionFactory().openSession(); }
-            @NotNull
+            @NonNull
             @Override public ICryptoStoreManager getCryptoStoreManager() { return csm; }
-            @NotNull
+            @NonNull
             @Override public de.morihofi.acmeserver.types.config.Config getAppConfig() { return cfg; }
-            @NotNull
+            @NonNull
             @Override public de.morihofi.acmeserver.types.intf.INonceManager getNonceManager() { return null; }
-            @NotNull
+            @NonNull
             @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return root; }
-            @NotNull
+            @NonNull
             @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
-            @NotNull
+            @NonNull
             @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }
-            @NotNull
+            @NonNull
             @Override public EventBus getEventBus() { return bus; }
-            @NotNull
+            @NonNull
             @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
         };
 

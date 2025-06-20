@@ -5,6 +5,7 @@ import de.morihofi.acmeserver.server.common.intf.handler.common.AnyCORSBeforeHan
 import de.morihofi.acmeserver.server.common.intf.Request;
 import de.morihofi.acmeserver.server.common.intf.Response;
 import de.morihofi.acmeserver.server.common.intf.Router;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,6 +23,11 @@ class AnyCORSBeforeHandlerTest {
     void addsCorsHeaders(){
         DummyResponse resp = new DummyResponse();
         Request req = new Request() {
+            @Override
+            public HttpServletRequest getHttpServletRequest() {
+                return null;
+            }
+
             @Override public String getPath(){return "/";}
             @Override public String getMethod(){return "GET";}
             @Override public String getHeader(String name){return null;}

@@ -34,7 +34,7 @@ import de.morihofi.acmeserver.utils.datetime.DateTools;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -79,7 +79,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
      * @throws Exception If an error occurs while handling the request.
      */
     @Override
-    public void handleRequest(@NotNull HandlerContext ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
         String authorizationId = ctx.pathParam("authorizationId");
 
         ctx.header("Content-Type", "application/json");
@@ -179,7 +179,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
      * @param identifier The ACME order identifier.
      * @return The expiration {@link Date} of the authorization.
      */
-    Date getAuthorizationExpiration(@NotNull AcmeOrderIdentifier identifier) {
+    Date getAuthorizationExpiration(@NonNull AcmeOrderIdentifier identifier) {
         return identifier.getOrder().getExpires();
     }
 

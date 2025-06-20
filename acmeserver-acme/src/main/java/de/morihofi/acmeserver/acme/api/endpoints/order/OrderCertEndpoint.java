@@ -27,7 +27,7 @@ import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.io.IOException;
 import java.security.KeyStore;
@@ -65,7 +65,7 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
      * @throws Exception If an error occurs while processing the request.
      */
     @Override
-    public void handleRequest(@NotNull HandlerContext ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/pem-certificate-chain");

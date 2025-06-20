@@ -3,7 +3,7 @@ package de.morihofi.acmeserver.ui.frontend.legacy.util;
 import de.morihofi.acmeserver.utils.conversion.HexConverter;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.security.MessageDigest;
 import java.security.cert.CertificateEncodingException;
@@ -24,9 +24,9 @@ public final class CertificateUtil {
      * @return fingerprint as hexadecimal string
      * @throws CertificateEncodingException if the certificate cannot be encoded
      */
-    @NotNull
-    public static String getFingerprint(@NotNull X509Certificate certificate,
-                                         @NotNull String algorithm)
+    @NonNull
+    public static String getFingerprint(@NonNull X509Certificate certificate,
+                                         @NonNull String algorithm)
             throws CertificateEncodingException {
         try {
             MessageDigest md = MessageDigest.getInstance(algorithm);

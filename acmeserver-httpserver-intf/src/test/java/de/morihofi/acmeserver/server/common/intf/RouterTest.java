@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.server.common.intf;
 
 import de.morihofi.acmeserver.server.common.intf.*;
 import de.morihofi.acmeserver.types.httpserver.HandlerType;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,10 @@ class RouterTest {
     private HandlerContext dummyContext(String path){
         return new HandlerContext(
                 new Request() {
+                    @Override
+                    public HttpServletRequest getHttpServletRequest() {
+                        return null;
+                    }
                     @Override public String getPath() { return path; }
                     @Override public String getMethod() { return "GET"; }
                     @Override public String getHeader(String name) { return null; }

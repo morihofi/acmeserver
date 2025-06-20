@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.server.common.intf;
 
 import de.morihofi.acmeserver.server.common.intf.*;
 import de.morihofi.acmeserver.types.httpserver.HandlerType;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,12 @@ class HandlerContextTest {
         Map<String,String> query = new HashMap<>();
         Map<String,String> headers = new HashMap<>();
         byte[] body = new byte[0];
+
+        @Override
+        public HttpServletRequest getHttpServletRequest() {
+            return null;
+        }
+
         @Override public String getPath(){return path;}
         @Override public String getMethod(){return method;}
         @Override public String getHeader(String name){return headers.get(name);}    

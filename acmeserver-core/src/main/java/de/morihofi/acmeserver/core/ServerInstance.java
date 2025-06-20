@@ -28,14 +28,11 @@ import de.morihofi.acmeserver.types.server.StartupFlag;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import de.morihofi.acmeserver.types.events.EventBus;
 import org.hibernate.Session;
-import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -123,7 +120,6 @@ public class ServerInstance implements IServerInstance {
      *
      * @return a String representing the full HTTPS URL of the server
      */
-    @NotNull
     @NonNull
     public String getServerURL() {
         return "https://" + this.getAppConfig().getServer().getDnsName() + (this.getAppConfig().getServer().getPorts().getHttps() != 443 ? ":"
@@ -131,7 +127,7 @@ public class ServerInstance implements IServerInstance {
     }
 
 
-    @NotNull
+    @NonNull
     @Override
     @SuppressFBWarnings("NP_NONNULL_RETURN_VIOLATION") // Suppress false positive for non-null return value
     public Session getDatabaseSession() {
@@ -141,7 +137,7 @@ public class ServerInstance implements IServerInstance {
 
         return getHibernateUtil().getSessionFactory().openSession();
     }
-    @NotNull
+    @NonNull
     @Override
     public EventBus getEventBus() {
         return eventBus;

@@ -11,6 +11,11 @@ public class HttpRequestWrapper implements Request {
     private final HttpServletRequest request;
 
     @Override
+    public HttpServletRequest getHttpServletRequest() {
+        return request;
+    }
+
+    @Override
     public String getPath() {
         return request.getRequestURI();
     }

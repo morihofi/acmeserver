@@ -13,10 +13,10 @@ import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
 import de.morihofi.acmeserver.types.exception.exceptions.*;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.jetbrains.annotations.NotNull;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.lang.JoseException;
@@ -33,7 +33,7 @@ public class KeyChangeEndpoint extends AbstractAcmeEndpoint {
     }
 
     @Override
-    public void handleRequest(@NotNull HandlerContext ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
         JsonObject outerProtected;
         try {
             outerProtected = JsonParser.parseString(acmeRequestBody.getDecodedProtected()).getAsJsonObject();

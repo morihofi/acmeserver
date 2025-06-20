@@ -15,7 +15,7 @@ import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import okhttp3.OkHttpClient;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
@@ -46,25 +46,25 @@ class HTTPChallengeTest {
     static class DummyServerInstance implements IServerInstance {
         private final INetworkClient net = new DummyNetworkClient();
         private final BuildMetadata meta = BuildMetadata.builder().buildVersion("test").gitCommit("abc").build();
-        @NotNull
+        @NonNull
         @Override public String getServerURL() { return ""; }
-        @NotNull
+        @NonNull
         @Override public org.hibernate.Session getDatabaseSession() { return null; }
-        @NotNull
+        @NonNull
         @Override public ICryptoStoreManager getCryptoStoreManager() { return null; }
-        @NotNull
+        @NonNull
         @Override public de.morihofi.acmeserver.types.config.Config getAppConfig() { return null; }
-        @NotNull
+        @NonNull
         @Override public INonceManager getNonceManager() { return null; }
-        @NotNull
+        @NonNull
         @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
-        @NotNull
+        @NonNull
         @Override public BuildMetadata getBuildMetadata() { return meta; }
-        @NotNull
+        @NonNull
         @Override public INetworkClient getNetworkClient() { return net; }
-        @NotNull
+        @NonNull
         @Override public EventBus getEventBus() { return new EventBus(); }
-        @NotNull
+        @NonNull
         @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
     }
 

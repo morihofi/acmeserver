@@ -6,6 +6,7 @@ import de.morihofi.acmeserver.server.common.intf.handler.common.OptionsHandler;
 import de.morihofi.acmeserver.server.common.intf.Response;
 import de.morihofi.acmeserver.server.common.intf.Request;
 import de.morihofi.acmeserver.server.common.intf.HttpStatusCode;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,6 +25,11 @@ class OptionsHandlerTest {
         Router router = new Router();
         DummyResponse resp = new DummyResponse();
         Request req = new Request() {
+            @Override
+            public HttpServletRequest getHttpServletRequest() {
+                return null;
+            }
+
             @Override public String getPath(){return "/path";}
             @Override public String getMethod(){return "OPTIONS";}
             @Override public String getHeader(String name){return null;}

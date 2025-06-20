@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.acme.api.endpoints;
+package de.morihofi.acmeserver.core.api.acme.api.endpoints;
 
 import de.morihofi.acmeserver.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.acmeserver.acme.api.endpoints.KeyChangeEndpoint;
@@ -23,10 +23,11 @@ import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.INonceManager;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.types.events.EventBus;
+import jakarta.servlet.http.HttpServletRequest;
 import okhttp3.OkHttpClient;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwk.JsonWebKey;
@@ -105,23 +106,23 @@ class KeyChangeEndpointTest {
         }
 
         return new IServerInstance() {
-            @NotNull
+            @NonNull
             @Override public String getServerURL() { return "https://example.com"; }
-            @NotNull
+            @NonNull
             @Override public Session getDatabaseSession() { return hu.getSessionFactory().openSession(); }
-            @NotNull
+            @NonNull
             @Override public ICryptoStoreManager getCryptoStoreManager() { return null; }
-            @NotNull
+            @NonNull
             @Override public Config getAppConfig() { return cfg; }
-            @NotNull
+            @NonNull
             @Override public INonceManager getNonceManager() { return nm; }
-            @NotNull
+            @NonNull
             @Override public RootCa getRootCa() { return new RootCa(); }
-            @NotNull
+            @NonNull
             @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
-            @NotNull
+            @NonNull
             @Override public INetworkClient getNetworkClient() { return new DummyNetworkClient(); }
-            @NotNull
+            @NonNull
         @Override public EventBus getEventBus() { return new EventBus(); }
         @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
         };
@@ -132,6 +133,12 @@ class KeyChangeEndpointTest {
         private final String method;
         private final String body;
         DummyRequest(String path, String method, String body) { this.path = path; this.method = method; this.body = body; }
+
+        @Override
+        public HttpServletRequest getHttpServletRequest() {
+            return null;
+        }
+
         @Override public String getPath() { return path; }
         @Override public String getMethod() { return method; }
         @Override public String getHeader(String name) { return null; }

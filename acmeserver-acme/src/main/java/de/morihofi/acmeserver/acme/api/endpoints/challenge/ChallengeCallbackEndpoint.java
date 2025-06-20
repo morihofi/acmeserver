@@ -38,7 +38,7 @@ import de.morihofi.acmeserver.types.events.AfterChallengeEvent;
 import de.morihofi.acmeserver.types.api.acme.challenge.AcmeChallengeType;
 import de.morihofi.acmeserver.utils.http.HttpHeaderUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 /**
  * A handler endpoint for processing challenge callbacks.
@@ -56,7 +56,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
     }
 
     @Override
-    public void handleRequest(@NotNull HandlerContext ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
         String challengeId = ctx.pathParam("challengeId");
         String challengeType = ctx.pathParam("challengeType"); // dns-01 or http-01
 

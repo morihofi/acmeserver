@@ -14,7 +14,7 @@ import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,25 +37,25 @@ class ProvisionerRenewSubscriberTest {
         DummyServerInstance(CryptoStoreManager mgr, EventBus bus) {
             this.mgr = mgr; this.bus = bus;
         }
-        @NotNull
+        @NonNull
         @Override public String getServerURL() { return ""; }
-        @NotNull
+        @NonNull
         @Override public org.hibernate.Session getDatabaseSession() { return null; }
-        @NotNull
+        @NonNull
         @Override public ICryptoStoreManager getCryptoStoreManager() { return mgr; }
-        @NotNull
+        @NonNull
         @Override public Config getAppConfig() { return new Config(); }
-        @NotNull
+        @NonNull
         @Override public INonceManager getNonceManager() { return null; }
-        @NotNull
+        @NonNull
         @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
-        @NotNull
+        @NonNull
         @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
-        @NotNull
+        @NonNull
         @Override public INetworkClient getNetworkClient() { return null; }
-        @NotNull
+        @NonNull
         @Override public EventBus getEventBus() { return bus; }
-        @NotNull
+        @NonNull
         @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
     }
 

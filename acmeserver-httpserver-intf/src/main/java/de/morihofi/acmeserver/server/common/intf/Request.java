@@ -1,5 +1,7 @@
 package de.morihofi.acmeserver.server.common.intf;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.io.IOException;
 
 /**
@@ -8,6 +10,16 @@ import java.io.IOException;
  * IP address, and query parameters.
  */
 public interface Request {
+
+
+    /**
+     * Returns the underlying {@link HttpServletRequest} object associated with this request.
+     * <p>
+     * This allows access to low-level servlet API methods and attributes not exposed through this interface.
+     *
+     * @return the original {@code HttpServletRequest} object representing the client's request
+     */
+    HttpServletRequest getHttpServletRequest();
 
     /**
      * Retrieves the path of the HTTP request.

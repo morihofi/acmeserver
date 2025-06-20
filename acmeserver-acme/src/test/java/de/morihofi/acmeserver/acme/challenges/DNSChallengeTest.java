@@ -19,7 +19,7 @@ import de.morihofi.acmeserver.utils.network.dns.DNSLookup;
 import de.morihofi.acmeserver.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.acme.challenges.ChallengeResult;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,25 +57,25 @@ class DNSChallengeTest {
             nc.setDnsConfig(new DNSConfig());
             cfg.setNetwork(nc);
         }
-        @NotNull
+        @NonNull
         @Override public String getServerURL() { return ""; }
-        @NotNull
+        @NonNull
         @Override public org.hibernate.Session getDatabaseSession() { return null; }
-        @NotNull
+        @NonNull
         @Override public ICryptoStoreManager getCryptoStoreManager() { return null; }
-        @NotNull
+        @NonNull
         @Override public Config getAppConfig() { return cfg; }
-        @NotNull
+        @NonNull
         @Override public INonceManager getNonceManager() { return null; }
-        @NotNull
+        @NonNull
         @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
-        @NotNull
+        @NonNull
         @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
-        @NotNull
+        @NonNull
         @Override public INetworkClient getNetworkClient() { return net; }
-        @NotNull
+        @NonNull
         @Override public EventBus getEventBus() { return new EventBus(); }
-        @NotNull
+        @NonNull
         @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
     }
 

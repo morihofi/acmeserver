@@ -34,7 +34,7 @@ import de.morihofi.acmeserver.types.intf.IServerInstance;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.lang.JoseException;
@@ -71,7 +71,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
 
     @Override
-    public void handleRequest(@NotNull HandlerContext ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
 
         // Payload is Base64 Encoded, so we get the decoded one
         JsonObject reqBodyPayloadObj = JsonParser.parseString(acmeRequestBody.getDecodedPayload()).getAsJsonObject();

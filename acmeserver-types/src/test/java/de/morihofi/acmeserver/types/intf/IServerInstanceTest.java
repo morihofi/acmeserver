@@ -8,11 +8,8 @@ import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.server.StartupFlag;
 import lombok.NonNull;
 import org.hibernate.Session;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,39 +24,39 @@ class IServerInstanceTest {
             this.rootCa.setInternalUuid(alias);
         }
 
-        @NotNull
+        @NonNull
         @Override
         public String getServerURL() { return ""; }
 
-        @NotNull
+        @NonNull
         @Override
         public Session getDatabaseSession() { return null; }
 
-        @NotNull
+        @NonNull
         @Override
         public ICryptoStoreManager getCryptoStoreManager() { return null; }
 
-        @NotNull
+        @NonNull
         @Override
         public Config getAppConfig() { return null; }
 
-        @NotNull
+        @NonNull
         @Override
         public INonceManager getNonceManager() { return null; }
 
-        @NotNull
+        @NonNull
         @Override
         public RootCa getRootCa() { return rootCa; }
 
-        @NotNull
+        @NonNull
         @Override
         public BuildMetadata getBuildMetadata() { return null; }
 
-        @NotNull
+        @NonNull
         @Override
         public INetworkClient getNetworkClient() { return null; }
 
-        @NotNull
+        @NonNull
         @Override
         public EventBus getEventBus() { return null; }
 

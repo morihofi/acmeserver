@@ -16,7 +16,7 @@ import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,16 +36,16 @@ class JettyCertificateHelperTest {
         private final CryptoStoreManager mgr;
         private final RootCa rootCa;
         DummyServer(CryptoStoreManager mgr, RootCa rootCa){this.mgr=mgr;this.rootCa=rootCa;}
-        @NotNull @Override public String getServerURL(){return "";}
-        @NotNull @Override public org.hibernate.Session getDatabaseSession(){return null;}
-        @NotNull @Override public ICryptoStoreManager getCryptoStoreManager(){return mgr;}
-        @NotNull @Override public Config getAppConfig(){Config c=new Config();c.setServer(new ServerConfig());return c;}
-        @NotNull @Override public INonceManager getNonceManager(){return null;}
-        @NotNull @Override public RootCa getRootCa(){return rootCa;}
-        @NotNull @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
-        @NotNull @Override public INetworkClient getNetworkClient(){return null;}
-        @NotNull @Override public EventBus getEventBus(){return new EventBus();}
-        @NotNull @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags(){return Collections.emptySet();}
+        @NonNull @Override public String getServerURL(){return "";}
+        @NonNull @Override public org.hibernate.Session getDatabaseSession(){return null;}
+        @NonNull @Override public ICryptoStoreManager getCryptoStoreManager(){return mgr;}
+        @NonNull @Override public Config getAppConfig(){Config c=new Config();c.setServer(new ServerConfig());return c;}
+        @NonNull @Override public INonceManager getNonceManager(){return null;}
+        @NonNull @Override public RootCa getRootCa(){return rootCa;}
+        @NonNull @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
+        @NonNull @Override public INetworkClient getNetworkClient(){return null;}
+        @NonNull @Override public EventBus getEventBus(){return new EventBus();}
+        @NonNull @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags(){return Collections.emptySet();}
     }
 
     @BeforeAll

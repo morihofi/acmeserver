@@ -42,7 +42,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -58,7 +58,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         super(serverInstance);
     }
 
-    void verifyAuthorizationsComplete(@NotNull List<AcmeOrderIdentifier> identifiers) throws ACMEUnauthorizedException {
+    void verifyAuthorizationsComplete(@NonNull List<AcmeOrderIdentifier> identifiers) throws ACMEUnauthorizedException {
         boolean allValid = identifiers.stream()
                 .allMatch(id -> id.getChallengeStatus() == AcmeStatus.VALID);
         if (!allValid) {
@@ -68,7 +68,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
-    public void handleRequest(@NotNull HandlerContext ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
         AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getServerInstance());

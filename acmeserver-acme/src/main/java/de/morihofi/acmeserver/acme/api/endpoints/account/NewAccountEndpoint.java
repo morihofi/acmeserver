@@ -41,7 +41,7 @@ import de.morihofi.acmeserver.types.events.AcmeAccountCreatedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.lang.JoseException;
@@ -74,7 +74,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
      * @throws Exception If an error occurs while handling the request.
      */
     @Override
-    public void handleRequest(@NotNull HandlerContext ctx, @NotNull AcmeProvisioner provisioner, @NotNull Gson gson, @NotNull ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
         // Check nonce
         getServerInstance().getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
