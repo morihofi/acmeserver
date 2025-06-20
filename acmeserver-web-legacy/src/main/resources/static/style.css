@@ -74,3 +74,10 @@ h1 {
     text-align: left;
     font-size: 13px;
 }
+
+.warning {
+    border: 1px solid #ffa502;
+    background: #fff3cd;
+    padding: 10px;
+    margin-bottom: 15px;
+}

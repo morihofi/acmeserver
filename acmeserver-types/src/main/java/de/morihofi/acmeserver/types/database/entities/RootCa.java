@@ -46,4 +46,14 @@ public class RootCa implements Serializable {
         provisioners = s.createQuery("FROM RootCa", RootCa.class).list();
         return provisioners.toArray(new RootCa[0]);
     }
+
+    public static RootCa getForUuid(@NonNull IServerInstance si, @NonNull String uuid) {
+        RootCa ca;
+        try (Session s = si.getDatabaseSession()) {
+            ca = s.createQuery("FROM RootCa r WHERE r.internalUuid = :uuid", RootCa.class)
+                    .setParameter("uuid", uuid)
+                    .uniqueResult();
+        }
+        return ca;
+    }
 }

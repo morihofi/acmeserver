@@ -19,6 +19,7 @@ package de.morihofi.acmeserver.core.web;
 import de.morihofi.acmeserver.acme.AcmeHttpServlet;
 import de.morihofi.acmeserver.acme.GetHttpsForFreeServlet;
 import de.morihofi.acmeserver.ui.frontend.legacy.LegacyWebUiServlet;
+import de.morihofi.acmeserver.core.web.RootCaDownloadServlet;
 import de.morihofi.acmeserver.acme.revocation.CRLScheduler;
 import de.morihofi.acmeserver.acme.revocation.CrlUpdateSubscriber;
 import de.morihofi.acmeserver.core.Main;
@@ -155,6 +156,8 @@ public class WebServer implements EventSubscriber {
         addProtectedServlet(context, new GetHttpsForFreeServlet(), GetHttpsForFreeServlet.PATH_MOUNT);
         // Add Legacy CA download page
         addProtectedServlet(context, new LegacyWebUiServlet(serverInstance), LegacyWebUiServlet.PATH_MOUNT);
+        // Add root CA download servlet
+        addProtectedServlet(context, new RootCaDownloadServlet(serverInstance), RootCaDownloadServlet.PATH_MOUNT);
 
 
         // Start Jetty

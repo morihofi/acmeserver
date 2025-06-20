@@ -10,16 +10,12 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-    <title>Certificate Authority Downloads</title>
+    <title>Certificate Authorities</title>
     <link rel="stylesheet" type="text/css" href="static/style.css">
 </head>
 <body>
 <div id="wrapper">
     <h1>Root Certificate Authorities</h1>
-    <p>
-        Download the root certificate authorities for your platform. If you are unsure which one to use, please refer to the documentation of your operating system, application or device.
-        However, we try to provide the most common ones here with a recommendation for your current platform.
-    </p>
 
     <table class="ca-table">
         <thead>

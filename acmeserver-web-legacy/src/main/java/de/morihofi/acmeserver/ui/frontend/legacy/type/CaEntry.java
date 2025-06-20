@@ -11,4 +11,5 @@ public class CaEntry {
     private String cabPath;
     private String id;
     private boolean primary;
+    private boolean ecdsa;
 }

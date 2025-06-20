@@ -27,6 +27,7 @@ public class LegacyWebUiServlet extends AbstractJteRouterServlet {
         routes.put("/", this::handleIndex);
         routes.put("/about", this::handleAbout);
         routes.put("/ca-list", this::handleCaList);
+        routes.put("/ca", this::handleCaDetails);
     }
 
     @Override
@@ -63,18 +64,52 @@ public class LegacyWebUiServlet extends AbstractJteRouterServlet {
         }
     }
 
+    private void handleCaDetails(HttpServletRequest req, HttpServletResponse resp) {
+        String id = req.getParameter("id");
+        if (id == null || id.isEmpty()) {
+            try {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            } catch (IOException ignored) {
+            }
+            return;
+        }
+        try {
+            RootCa ca = RootCa.getForUuid(serverInstance, id);
+            if (ca == null) {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+            CaEntry entry = new CaEntry();
+            entry.setId(ca.getInternalUuid());
+            entry.setName(ca.getCertificateConfig().getMetadata().getCommonName());
+            entry.setDescription("Root Certificate");
+            entry.setPemPath("/dl/rootca/" + ca.getInternalUuid() + ".pem");
+            entry.setDerPath("/dl/rootca/" + ca.getInternalUuid() + ".der");
+            entry.setCabPath("/dl/rootca/" + ca.getInternalUuid() + ".cab");
+            entry.setEcdsa(ca.getCertificateConfig().getCertificateAlgorithm() instanceof de.morihofi.acmeserver.types.database.entities.EcdsaCertificateAlgorithm);
+
+            Map<String, Object> params = getBaseParams(req);
+            params.put("ca", entry);
+            render(resp, "legacy/ca-details.jte", params);
+        } catch (IOException e) {
+            log.error("Error rendering CA details", e);
+        }
+    }
+
     private List<CaEntry> getRootCertList() {
         List<CaEntry> caList = new ArrayList<>();
         try (Session s = serverInstance.getDatabaseSession()) {
             RootCa[] allRoots = RootCa.getAllRoots(s);
             for (RootCa rootCa : allRoots) {
                 CaEntry entry = new CaEntry();
-                entry.setName(rootCa.getInternalUuid());
-                entry.setDescription("Placeholder description"); // z.B. rootCa.getCommonName()
+                entry.setId(rootCa.getInternalUuid());
+                entry.setName(rootCa.getCertificateConfig().getMetadata().getCommonName());
+                entry.setDescription("Root Certificate");
                 entry.setPrimary(false); //TODO: Implement logic to determine if this is the primary CA
-                entry.setPemPath("/dl/certs/root/" + rootCa.getInternalUuid() + ".pem");
-                entry.setDerPath("/dl/certs/root/" + rootCa.getInternalUuid() + ".der");
-                entry.setCabPath("/dl/certs/root/" + rootCa.getInternalUuid() + ".cab");
+                entry.setPemPath("/dl/rootca/" + rootCa.getInternalUuid() + ".pem");
+                entry.setDerPath("/dl/rootca/" + rootCa.getInternalUuid() + ".der");
+                entry.setCabPath("/dl/rootca/" + rootCa.getInternalUuid() + ".cab");
+                entry.setEcdsa(rootCa.getCertificateConfig().getCertificateAlgorithm() instanceof de.morihofi.acmeserver.types.database.entities.EcdsaCertificateAlgorithm);
                 caList.add(entry);
             }
         }
