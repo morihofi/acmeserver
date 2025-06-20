@@ -1,0 +1,129 @@
+body {
+    background: #c8d6e5;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 12px;
+    color: #000;
+    margin: 0;
+    padding: 0;
+}
+
+#wrapper {
+    width: 760px;
+    margin: 20px auto;
+    background: #ffffff;
+    border: 1px solid #7a9eb1;
+    padding: 15px;
+    box-shadow: 2px 2px 5px #888; /* IE8 ignores that */
+    position: relative;
+}
+
+h1 {
+    color: #003366;
+    font-size: 18px;
+    padding: 10px 10px 10px 0px;
+    margin: 0 0 12px 0;
+    border-bottom: 2px solid #7a9eb1;
+}
+
+
+.ca-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #f6f9fc;
+}
+
+.ca-entry {
+    border-bottom: 1px solid #ccc;
+}
+
+.ca-entry td {
+    padding: 8px;
+    vertical-align: top;
+}
+
+.ca-entry.primary {
+    background: #e0f0ff;
+    border-left: 4px solid #005ca9;
+    font-weight: bold;
+}
+
+.recommend {
+    color: #006600;
+    font-weight: bold;
+    font-size: 11px;
+    margin-left: 6px;
+}
+
+#footer {
+    margin-top: 30px;
+    font-size: 10px;
+    text-align: center;
+    color: #444;
+    border-top: 1px solid #aaa;
+    padding-top: 10px;
+}
+
+.ca-header th {
+    background: #e3efff;
+    background: -webkit-gradient(linear, left top, left bottom, from(#f0f6ff), to(#bdd8f3));
+    background: -moz-linear-gradient(top, #f0f6ff, #bdd8f3);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f0f6ff', endColorstr='#bdd8f3');
+    padding: 8px;
+    border-bottom: 2px solid #7a9eb1;
+    color: #003366;
+    font-weight: bold;
+    text-align: left;
+    font-size: 13px;
+}
+
+.warning {
+    border: 1px solid #ffa502;
+    background: #fff3cd;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+
+/* Menü exakt in die rechte obere Ecke des Wrappers setzen */
+#top-menu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 8px;             /* Abstand zum Wrapper-Rand */
+    font: 14px/1.2 Arial, Helvetica, sans-serif;
+}
+
+#top-menu table { border-collapse: collapse; }
+#top-menu td     { padding: 0 4px; white-space: nowrap; }
+#top-menu a      { text-decoration: none; color: #0066cc; }
+
+.back-link {
+    margin-bottom: 15px;
+    display: block;
+}
+
+.detail-table,
+.download-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #f6f9fc;
+    margin-bottom: 15px;
+}
+
+.detail-table th,
+.detail-table td,
+.download-table td {
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+    text-align: left;
+    vertical-align: top;
+}
+
+/* core reset – works in IE6-9 and modern browsers */
+a img {
+    border: 0;          /* kills the link frame */
+    outline: none;      /* removes keyboard-focus halo in IE8 */
+}
+
+/* belt-and-braces – not strictly needed, but harmless */
+img { border: 0; }

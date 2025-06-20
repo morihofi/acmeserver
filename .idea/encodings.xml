@@ -19,6 +19,8 @@
     <file url="file://$PROJECT_DIR$/acmeserver-types/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-utils/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-utils/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/acmeserver-web-legacy/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/acmeserver-web-legacy/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>
