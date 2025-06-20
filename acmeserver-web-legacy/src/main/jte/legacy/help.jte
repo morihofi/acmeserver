@@ -27,6 +27,15 @@
     <p>Google Chrome and Microsoft Edge use the Windows certificate store,
         so once you have imported the certificate in Internet Explorer it is available for these browsers as well.</p>
 
+    <h2>Windows Mobile</h2>
+    <p>Use the provided <strong>CAB</strong> package to install the certificate on Windows&nbsp;Mobile based devices.</p>
+    <ol>
+        <li>Download the CAB file from the certificate authority list using either your PC or the device itself.</li>
+        <li>If you downloaded it from your PC, copy the CAB file to your device, for example using ActiveSync or a memory card.</li>
+        <li>Open the file explorer on the device and tap the CAB file.</li>
+        <li>Confirm the installation when prompted. The certificate is placed in the root store automatically.</li>
+    </ol>
+
     @template.legacy.components.footer()
 </div>
 </body>
