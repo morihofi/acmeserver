@@ -144,12 +144,6 @@ public class Main {
             }
         }
 
-
-
-        
-
-        
-        
         log.info("Loading configuration ...");
         Config config = loadServerConfiguration();
 

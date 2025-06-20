@@ -43,7 +43,7 @@ import java.util.Base64;
 @Slf4j
 public class OcspEndpointGet implements Handler {
 
-    private final IServerInstance serverInstance;
+    final IServerInstance serverInstance;
 
     /**
      * Constructor for OcspEndpointGet class. Processes GET Requests Creates an instance with specified Provisioner and CRL generator.

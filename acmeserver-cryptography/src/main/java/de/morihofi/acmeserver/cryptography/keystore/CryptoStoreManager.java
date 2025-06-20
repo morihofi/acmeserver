@@ -93,7 +93,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * The loaded key store instance for cryptographic operations.
      */
     @Getter
-    private KeyStore keyStore;
+    private final KeyStore keyStore;
 
 
     /**

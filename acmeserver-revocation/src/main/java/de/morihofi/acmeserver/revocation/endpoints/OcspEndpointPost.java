@@ -42,7 +42,7 @@ public class OcspEndpointPost implements Handler {
     /**
      * Instance for accessing the current provisioner
      */
-    private final IServerInstance serverInstance;
+    final IServerInstance serverInstance;
     /**
      * Constructor for OcspEndpointPost class. Processes POST Requests. Initializes an instance with a specified Provisioner and CRL
      * generator.

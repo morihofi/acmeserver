@@ -46,7 +46,7 @@ public class HibernateUtil {
     private final boolean debug;
     private final EventBus eventBus;
 
-    public HibernateUtil(@NonNull Config appConfig, boolean debug, EventBus eventBus) throws IOException {
+    public HibernateUtil(@NonNull Config appConfig, boolean debug, EventBus eventBus) {
         this.appConfig = appConfig;
         this.debug = debug;
         this.eventBus = eventBus;
@@ -56,7 +56,7 @@ public class HibernateUtil {
     /**
      * Initializes the database connection and Hibernate configuration. This method should be called once during application startup.
      */
-    public void initDatabase() throws IOException {
+    public void initDatabase() {
         if (sessionFactory == null) {
 
             DatabaseConfig databaseConfig = appConfig.getDatabase();
