@@ -15,6 +15,8 @@
 </head>
 <body>
 <div id="wrapper">
+    @template.legacy.components.menu()
+
     <h1>Root Certificate Authorities</h1>
     <p>
         Download the root certificate authorities for your platform. If you are unsure which one to use, please refer to the documentation of your operating system, application or device.
@@ -71,7 +73,7 @@
 
 
 
-    <div id="footer">Powered by <a href="https://github.com/morihofi/acmeserver">morihofi's ACME Server</a> | Icons by Gnome Icon Theme 2.18.0</div>
+    @template.legacy.components.footer()
 </div>
 </body>
 </html>

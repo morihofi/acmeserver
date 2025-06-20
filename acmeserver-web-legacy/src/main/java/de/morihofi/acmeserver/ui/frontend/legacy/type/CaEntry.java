@@ -12,4 +12,12 @@ public class CaEntry {
     private String id;
     private boolean primary;
     private boolean ecdsa;
+
+    private String commonName;
+    private String organisation;
+    private String organisationalUnit;
+    private String countryCode;
+    private String sha1Fingerprint;
+    private String sha256Fingerprint;
+    private String algorithmDetail;
 }

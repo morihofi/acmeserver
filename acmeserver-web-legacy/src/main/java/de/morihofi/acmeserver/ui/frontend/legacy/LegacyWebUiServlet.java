@@ -26,6 +26,7 @@ public class LegacyWebUiServlet extends AbstractJteRouterServlet {
     protected void registerRoutes(Map<String, BiConsumer<HttpServletRequest, HttpServletResponse>> routes) {
         routes.put("/", this::handleIndex);
         routes.put("/about", this::handleAbout);
+        routes.put("/help", this::handleHelp);
         routes.put("/ca-list", this::handleCaList);
         routes.put("/ca", this::handleCaDetails);
     }
@@ -51,6 +52,15 @@ public class LegacyWebUiServlet extends AbstractJteRouterServlet {
             render(resp, "legacy/about.jte", params);
         } catch (IOException e) {
             log.error("Error rendering about page", e);
+        }
+    }
+
+    private void handleHelp(HttpServletRequest req, HttpServletResponse resp) {
+        try {
+            Map<String, Object> params = getBaseParams(req);
+            render(resp, "legacy/help.jte", params);
+        } catch (IOException e) {
+            log.error("Error rendering help page", e);
         }
     }
 
@@ -87,6 +97,24 @@ public class LegacyWebUiServlet extends AbstractJteRouterServlet {
             entry.setDerPath("/dl/rootca/" + ca.getInternalUuid() + ".der");
             entry.setCabPath("/dl/rootca/" + ca.getInternalUuid() + ".cab");
             entry.setEcdsa(ca.getCertificateConfig().getCertificateAlgorithm() instanceof de.morihofi.acmeserver.types.database.entities.EcdsaCertificateAlgorithm);
+            entry.setCommonName(ca.getCertificateConfig().getMetadata().getCommonName());
+            entry.setOrganisation(ca.getCertificateConfig().getMetadata().getOrganisation());
+            entry.setOrganisationalUnit(ca.getCertificateConfig().getMetadata().getOrganisationalUnit());
+            entry.setCountryCode(ca.getCertificateConfig().getMetadata().getCountryCode());
+
+            if (ca.getCertificateConfig().getCertificateAlgorithm() instanceof de.morihofi.acmeserver.types.database.entities.RsaCertificateAlgorithm rsaAlg) {
+                entry.setAlgorithmDetail("RSA " + rsaAlg.getKeySize() + " bit");
+            } else if (ca.getCertificateConfig().getCertificateAlgorithm() instanceof de.morihofi.acmeserver.types.database.entities.EcdsaCertificateAlgorithm ecdsaAlg) {
+                entry.setAlgorithmDetail("ECDSA " + ecdsaAlg.getCurveName());
+            }
+
+            try {
+                java.security.cert.X509Certificate cert = serverInstance.getCryptoStoreManager().getCerificateAuthorityX509Certificate(ca);
+                entry.setSha1Fingerprint(de.morihofi.acmeserver.ui.frontend.legacy.util.CertificateUtil.getFingerprint(cert, "SHA-1"));
+                entry.setSha256Fingerprint(de.morihofi.acmeserver.ui.frontend.legacy.util.CertificateUtil.getFingerprint(cert, "SHA-256"));
+            } catch (Exception ex) {
+                log.error("Could not read certificate", ex);
+            }
 
             Map<String, Object> params = getBaseParams(req);
             params.put("ca", entry);
