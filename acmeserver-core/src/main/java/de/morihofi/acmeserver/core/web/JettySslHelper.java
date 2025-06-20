@@ -61,13 +61,13 @@ public class JettySslHelper {
     }
 
     public static void applyMozillaTlsConfig(MozillaSslConfigHelper.BasicConfiguration cfg,
-                                              SslContextFactory.Server factory,
-                                              SecureRequestCustomizer customizer) {
+                                             SslContextFactory.Server factory,
+                                             SecureRequestCustomizer customizer) {
         if (cfg == null) {
             return;
         }
 
-        log.info("Configuring TLS using Mozilla configuration");
+        log.info("Configuring TLS using Mozilla configuration with support for at least {}", String.join(", ", cfg.oldestClients()));
         factory.setExcludeProtocols();
         factory.setExcludeCipherSuites();
         factory.setRenegotiationAllowed(false);
