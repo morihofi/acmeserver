@@ -19,9 +19,9 @@ package de.morihofi.acmeserver.core.web;
 import de.morihofi.acmeserver.acme.AcmeHttpServlet;
 import de.morihofi.acmeserver.acme.GetHttpsForFreeServlet;
 import de.morihofi.acmeserver.ui.frontend.legacy.LegacyWebUiServlet;
-import de.morihofi.acmeserver.core.web.RootCaDownloadServlet;
-import de.morihofi.acmeserver.acme.revocation.CRLScheduler;
-import de.morihofi.acmeserver.acme.revocation.CrlUpdateSubscriber;
+import de.morihofi.acmeserver.revocation.crl.CrlScheduler;
+import de.morihofi.acmeserver.revocation.crl.CrlUpdateSubscriber;
+import de.morihofi.acmeserver.revocation.RevocationHttpServlet;
 import de.morihofi.acmeserver.core.Main;
 import de.morihofi.acmeserver.cryptography.certificate.queue.CertificateIssuanceSubscriber;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
@@ -41,10 +41,8 @@ import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.util.thread.VirtualThreadPool;
 
 import java.lang.management.ManagementFactory;
-import java.security.Security;
 import java.util.List;
 
 /**
@@ -78,12 +76,6 @@ public class WebServer implements EventSubscriber {
 
         log.info("Registering WebServer as event listener for TLS Certificate Renew Events");
         serverInstance.getEventBus().register(this);
-
-
-        //VirtualThreadPool virtualExecutor = new VirtualThreadPool();
-        //virtualExecutor.setMaxThreads(128);
-        //virtualExecutor.setName("WebServer-ThreadPool");
-
 
         QueuedThreadPool threadPool = new QueuedThreadPool();
         threadPool.setName("WebServer-ThreadPool");
@@ -158,13 +150,15 @@ public class WebServer implements EventSubscriber {
         addProtectedServlet(context, new LegacyWebUiServlet(serverInstance), LegacyWebUiServlet.PATH_MOUNT);
         // Add root CA download servlet
         addProtectedServlet(context, new RootCaDownloadServlet(serverInstance), RootCaDownloadServlet.PATH_MOUNT);
+        // Add revocation servlet
+        addProtectedServlet(context, new RevocationHttpServlet(serverInstance), RevocationHttpServlet.PATH_MOUNT);
 
 
         // Start Jetty
         server.start();
 
         log.info("Starting the CRL generation Scheduler");
-        CRLScheduler.startScheduler(serverInstance);
+        CrlScheduler.startScheduler(serverInstance);
         serverInstance.getEventBus().register(new CrlUpdateSubscriber(serverInstance));
 
         // Register and initialize provisioner certificate watcher

@@ -24,8 +24,6 @@ import org.mockito.Mockito;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.security.Security;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 

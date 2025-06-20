@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.cryptography.revoke;
+package de.morihofi.acmeserver.cryptography.crl;
 
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;

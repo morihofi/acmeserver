@@ -14,10 +14,11 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.acme.revocation;
+package de.morihofi.acmeserver.revocation.endpoints;
 import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
+import de.morihofi.acmeserver.revocation.crl.CrlStore;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import lombok.NonNull;

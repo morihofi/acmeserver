@@ -14,7 +14,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.acme.revocation;
+package de.morihofi.acmeserver.revocation.crl;
 
 
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
@@ -27,7 +27,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class CRLScheduler {
+public class CrlScheduler {
 
     //FIXME: Add trigger for update crl on provisioner removal/add
 

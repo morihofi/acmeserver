@@ -14,15 +14,16 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.acme.revocation;
+package de.morihofi.acmeserver.revocation.endpoints;
 
 
 import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
-import de.morihofi.acmeserver.cryptography.ocsp.OcspHelper;
+import de.morihofi.acmeserver.cryptography.ocsp.OcspProcessor;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -32,41 +33,51 @@ import org.bouncycastle.cert.ocsp.Req;
 
 
 import java.math.BigInteger;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
- * Handler for OCSP Requests using POST Method
+ * Handler for OCSP Requests using GET Method
  */
 @Slf4j
-public class OcspEndpointPost implements Handler {
+public class OcspEndpointGet implements Handler {
+
+    private final IServerInstance serverInstance;
 
     /**
-     * Instance for accessing the current provisioner
-     */
-    private final IServerInstance serverInstance;
-    /**
-     * Constructor for OcspEndpointPost class. Processes POST Requests. Initializes an instance with a specified Provisioner and CRL
-     * generator.
-     *
-     * @param serverInstance the server instance object to be used with this endpoint
+     * Constructor for OcspEndpointGet class. Processes GET Requests Creates an instance with specified Provisioner and CRL generator.
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public OcspEndpointPost(IServerInstance serverInstance) {
+    public OcspEndpointGet(IServerInstance serverInstance) {
         this.serverInstance = serverInstance;
     }
 
     /**
-     * Handles an HTTP request for OCSP (Online Certificate Status Protocol) by processing the provided OCSP request, checking the
-     * revocation status for the specified certificate serial number, and sending the corresponding OCSP response.
+     * Handles OCSP (Online Certificate Status Protocol) requests. This method decodes the OCSP request encoded in the URL path parameter,
+     * extracts the certificate serial number, and generates an OCSP response. It then sends the OCSP response back to the client.
      *
-     * @param context The Context object representing the HTTP request and response.
-     * @throws Exception if there is an issue with handling the HTTP request or processing the OCSP request.
+     * @param ctx the Context object representing the HTTP request and response
+     * @throws Exception if there's an error in processing the OCSP request or in generating the response. This includes cases like invalid
+     *                   input, empty request, or issues with request parsing.
      */
     @Override
-    public void handle(@NonNull HandlerContext context) throws Exception {
-        String provisionerName = context.pathParam("provisioner");
-        AcmeProvisioner provisioner = AcmeProvisioner.getForName(serverInstance, provisionerName);
+    public void handle(@NonNull HandlerContext ctx) throws Exception {
+        String provisionerName = ctx.pathParam("provisioner");
 
-        byte[] ocspRequestBytes = context.bodyAsBytes();
+
+        String ocspRequestEncoded = ctx.pathParam("ocspRequest");
+        if (ocspRequestEncoded.isEmpty()) {
+            throw new IllegalArgumentException("No OCSP request provided");
+        }
+        String ocspRequestDecoded = URLDecoder.decode(ocspRequestEncoded, StandardCharsets.UTF_8);
+        byte[] ocspRequestBytes;
+        try {
+            ocspRequestBytes = Base64.getDecoder().decode(ocspRequestDecoded);
+        } catch (IllegalArgumentException ex) {
+            ocspRequestBytes = Base64.getUrlDecoder().decode(ocspRequestDecoded);
+        }
+
         OCSPReq ocspRequest = new OCSPReq(ocspRequestBytes);
 
         // Get serial number from request
@@ -79,10 +90,10 @@ public class OcspEndpointPost implements Handler {
         log.info("Checking revocation status for serial number {}", serialNumber);
 
         // Processing the request and creating the OCSP response
-        OCSPResp ocspResponse = OcspHelper.processOCSPRequest(serialNumber, provisioner, serverInstance);
+        OCSPResp ocspResponse = OcspProcessor.processOCSPRequest(serialNumber, AcmeProvisioner.getForName(serverInstance, provisionerName), serverInstance);
 
         // Sending the OCSP response
-        context.contentType("application/ocsp-response");
-        context.result(ocspResponse.getEncoded());
+        ctx.contentType("application/ocsp-response");
+        ctx.result(ocspResponse.getEncoded());
     }
 }

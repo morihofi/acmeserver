@@ -91,7 +91,7 @@ public class AcmeProvisioner implements Serializable {
      */
     @NonNull
     public String getCrlPath() {
-        return "/acme/crl/" + getName() + "/certs-revoked.crl";
+        return "/revocation/" + getName() + "/crl/certs-revoked.crl";
     }
 
     /**
@@ -103,7 +103,7 @@ public class AcmeProvisioner implements Serializable {
      */
     @NonNull
     public String getOcspPath() {
-        return "/acme/" + getName() + "/ocsp";
+        return "/revocation/" + getName() + "/ocsp";
     }
 
     /**

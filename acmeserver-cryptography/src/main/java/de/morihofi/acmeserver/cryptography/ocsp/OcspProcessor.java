@@ -47,7 +47,7 @@ import java.util.Date;
  * OCSP Utility class
  */
 @Slf4j
-public class OcspHelper {
+public class OcspProcessor {
 
     /**
      * Processes an OCSP (Online Certificate Status Protocol) request for a given

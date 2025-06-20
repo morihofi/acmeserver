@@ -9,9 +9,6 @@ import de.morihofi.acmeserver.acme.api.endpoints.challenge.ChallengeCallbackEndp
 import de.morihofi.acmeserver.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.acme.api.endpoints.order.OrderInfoEndpoint;
-import de.morihofi.acmeserver.acme.revocation.CRLEndpoint;
-import de.morihofi.acmeserver.acme.revocation.OcspEndpointGet;
-import de.morihofi.acmeserver.acme.revocation.OcspEndpointPost;
 import de.morihofi.acmeserver.server.common.intf.Endpoint;
 import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
@@ -54,13 +51,6 @@ public class AcmeHttpServlet extends RoutableHttpServlet {
 
         // ACME Directory
         getRouter().addHandler(new Endpoint(HandlerType.GET, "/acme/{provisioner}/directory", new DirectoryEndpoint(serverInstance)));
-
-        // CRL distribution
-        getRouter().addHandler(new Endpoint(HandlerType.GET, "/acme/crl/{provisioner}/certs-revoked.crl", new CRLEndpoint(serverInstance)));
-
-        // OCSP (Online Certificate Status Protocol) endpoints
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/ocsp", new OcspEndpointPost(serverInstance)));
-        getRouter().addHandler(new Endpoint(HandlerType.GET, "/acme/{provisioner}/ocsp/{ocspRequest}", new OcspEndpointGet(serverInstance)));
 
         // New account
         getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/new-acct", new NewAccountEndpoint(serverInstance)));

@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.cryptography.revoke;
+package de.morihofi.acmeserver.cryptography.crl;
 
 import de.morihofi.acmeserver.cryptography.keys.KeyHelper;
 import de.morihofi.acmeserver.types.cryptography.revoke.RevokedCertificate;

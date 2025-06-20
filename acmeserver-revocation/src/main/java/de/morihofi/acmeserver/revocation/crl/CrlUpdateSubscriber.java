@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.acme.revocation;
+package de.morihofi.acmeserver.revocation.crl;
 
 import de.morihofi.acmeserver.types.events.*;
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.Arrays;
 
 /**
  * Subscriber that regenerates the CRL when a certificate gets revoked.
@@ -19,14 +18,14 @@ public class CrlUpdateSubscriber implements EventSubscriber {
 
     @Override
     public List<Class<? extends AbstractEvent>> canHandle() {
-        return Arrays.asList(AcmeCertificateRevokedEvent.class);
+        return List.of(AcmeCertificateRevokedEvent.class);
     }
 
     @Override
     public void onEvent(AbstractEvent event) {
         if (event instanceof AcmeCertificateRevokedEvent ev) {
             AcmeProvisioner prov = ev.getOrder().getAccount().getAcmeProvisioner();
-            CrlStore.updateCachedCRL(CRLScheduler.UPDATE_MINUTES, prov, serverInstance);
+            CrlStore.updateCachedCRL(CrlScheduler.UPDATE_MINUTES, prov, serverInstance);
         }
     }
 }

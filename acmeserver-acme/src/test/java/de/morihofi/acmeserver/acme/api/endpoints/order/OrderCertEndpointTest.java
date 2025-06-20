@@ -8,7 +8,6 @@ import de.morihofi.acmeserver.cryptography.pem.PemUtil;
 import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
 import de.morihofi.acmeserver.types.database.entities.*;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
-import de.morihofi.acmeserver.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hibernate.Session;

@@ -17,5 +17,5 @@ open module acmeserver.cryptography {
     exports de.morihofi.acmeserver.cryptography.ocsp;
     exports de.morihofi.acmeserver.cryptography.pem;
     exports de.morihofi.acmeserver.cryptography.randomness;
-    exports de.morihofi.acmeserver.cryptography.revoke;
+    exports de.morihofi.acmeserver.cryptography.crl;
 }
