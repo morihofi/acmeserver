@@ -34,7 +34,7 @@
     <h2>Important note for Internet&nbsp;Explorer users</h2>
 
     <p>
-        <strong>This page cannot be opened with Internet&nbsp;Explorer (especially IE 8).</strong>
+        <strong>Help, this page cannot be opened with Internet&nbsp;Explorer using HTTPS (especially IE 8).</strong>
         The browser’s built-in cryptography does not satisfy current TLS requirements,
         and Internet Explorer is officially considered legacy software. Be aware that Internet Explorer is not
         officially supported!
