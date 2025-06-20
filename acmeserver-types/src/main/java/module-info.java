@@ -12,6 +12,7 @@ open module acmeserver.types {
     exports de.morihofi.acmeserver.types.exception.exceptions;
     exports de.morihofi.acmeserver.types.events;
     exports de.morihofi.acmeserver.types.config;
+    exports de.morihofi.acmeserver.types.server;
 
     requires com.github.spotbugs.annotations;
     requires com.google.gson;
