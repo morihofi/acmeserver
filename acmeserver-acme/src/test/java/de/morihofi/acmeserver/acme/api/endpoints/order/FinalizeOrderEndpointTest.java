@@ -31,6 +31,8 @@ class FinalizeOrderEndpointTest {
         @NonNull
         @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
         @NonNull
+        @Override public de.morihofi.acmeserver.types.database.entities.TsaAuthority getTsaAuthority() { return null; }
+        @NonNull
         @Override public de.morihofi.acmeserver.types.runtime.BuildMetadata getBuildMetadata() { return null; }
         @NonNull
         @Override public de.morihofi.acmeserver.types.intf.network.INetworkClient getNetworkClient() { return null; }

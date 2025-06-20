@@ -20,7 +20,17 @@ public interface ICryptoStoreManager {
      * @return the generated alias for the provisioner's intermediate CA
      * @throws IllegalArgumentException if the provisioner name is invalid
      */
-    String getKeyStoreAliasForProvisionerIntermediate(String name);
+    @NonNull
+    String getKeyStoreAliasForProvisionerIntermediate(@NonNull String name);
+
+    /**
+     * Returns the key store alias for a timestamp authority certificate.
+     *
+     * @param uuid internal UUID of the TSA
+     * @return keystore alias for the TSA certificate
+     */
+    @NonNull
+    String getKeyStoreAliasForTimestampAuthority(@NonNull String uuid);
 
     /**
      * The loaded keystore instance for cryptographic operations.

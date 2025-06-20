@@ -59,6 +59,8 @@ class HTTPChallengeTest {
         @NonNull
         @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
         @NonNull
+        @Override public de.morihofi.acmeserver.types.database.entities.TsaAuthority getTsaAuthority() { return null; }
+        @NonNull
         @Override public BuildMetadata getBuildMetadata() { return meta; }
         @NonNull
         @Override public INetworkClient getNetworkClient() { return net; }

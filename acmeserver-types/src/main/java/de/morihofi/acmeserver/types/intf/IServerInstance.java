@@ -2,6 +2,7 @@ package de.morihofi.acmeserver.types.intf;
 
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.types.database.entities.TsaAuthority;
 import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.types.server.StartupFlag;
@@ -56,6 +57,12 @@ public interface IServerInstance {
      */
     @NonNull
     RootCa getRootCa();
+
+    /**
+     * Get the Timestamp Authority for this server instance
+     */
+    @NonNull
+    TsaAuthority getTsaAuthority();
 
     /**
      * Convenience method returning the keystore alias for the active root CA.

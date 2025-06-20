@@ -22,10 +22,12 @@ import de.morihofi.acmeserver.core.database.HibernateUtil;
 import de.morihofi.acmeserver.core.web.JettySslHelper;
 import de.morihofi.acmeserver.core.web.WebServer;
 import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.types.database.entities.TsaAuthority;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.core.helper.cert.CaInitHelper;
+import de.morihofi.acmeserver.core.helper.tsa.TsaInitHelper;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.config.helper.KeyStoreParamsDeserializer;
 import de.morihofi.acmeserver.types.config.keyStoreHelpers.KeyStoreParams;
@@ -223,6 +225,7 @@ public class Main {
 
         log.info("Initializing certificate authorities ...");
         RootCa root = CaInitHelper.initializeCA(hibernateUtil, cryptoStoreManager, eventBus);
+        TsaAuthority tsa = TsaInitHelper.initializeTsa(hibernateUtil, cryptoStoreManager, root, eventBus);
 
         log.info("Creating new server instance ...");
         return new ServerInstance(
@@ -234,6 +237,7 @@ public class Main {
                 hibernateUtil,
                 new NonceManager(serverInstance),
                 root,
+                tsa,
                 BuildMetadataImpl.getInstance(),
                 eventBus,
                 startupFlags

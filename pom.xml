@@ -19,6 +19,7 @@
         <module>acmeserver-httpserver-intf</module>
         <module>acmeserver-acme</module>
         <module>acmeserver-web-legacy</module>
+        <module>acmeserver-tsa</module>
     </modules>
 
     <licenses>

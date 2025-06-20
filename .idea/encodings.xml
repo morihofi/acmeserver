@@ -17,6 +17,8 @@
     <file url="file://$PROJECT_DIR$/acmeserver-plugin-notification/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-revocation/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-revocation/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/acmeserver-tsa/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/acmeserver-tsa/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-types/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-types/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-utils/src/main/java" charset="UTF-8" />

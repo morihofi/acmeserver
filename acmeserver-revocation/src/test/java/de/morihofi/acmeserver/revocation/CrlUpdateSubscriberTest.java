@@ -41,6 +41,8 @@ class CrlUpdateSubscriberTest {
         @NonNull
         @Override public RootCa getRootCa(){return null;}
         @NonNull
+        @Override public de.morihofi.acmeserver.types.database.entities.TsaAuthority getTsaAuthority(){return null;}
+        @NonNull
         @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
         @NonNull
         @Override public INetworkClient getNetworkClient(){return null;}

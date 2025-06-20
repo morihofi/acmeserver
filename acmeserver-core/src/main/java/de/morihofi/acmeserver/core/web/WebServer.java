@@ -27,6 +27,10 @@ import de.morihofi.acmeserver.cryptography.certificate.queue.CertificateIssuance
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.ProvisionerRenewSubscriber;
+import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.TsaRenewSubscriber;
+import de.morihofi.acmeserver.tsa.TimeStampServlet;
+import de.morihofi.acmeserver.cryptography.tsa.TimeStampAuthority;
+import de.morihofi.acmeserver.cryptography.keystore.KeyStoreUtil;
 import de.morihofi.acmeserver.types.events.AbstractEvent;
 import de.morihofi.acmeserver.types.events.AcmeTlsCertificateHotReloadEvent;
 import de.morihofi.acmeserver.types.events.EventSubscriber;
@@ -41,8 +45,12 @@ import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.util.thread.VirtualThreadPool;
 
 import java.lang.management.ManagementFactory;
+import java.security.KeyPair;
+import java.security.Security;
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 /**
@@ -150,6 +158,23 @@ public class WebServer implements EventSubscriber {
         addProtectedServlet(context, new LegacyWebUiServlet(serverInstance), LegacyWebUiServlet.PATH_MOUNT);
         // Add root CA download servlet
         addProtectedServlet(context, new RootCaDownloadServlet(serverInstance), RootCaDownloadServlet.PATH_MOUNT);
+
+        // Add timestamping servlet
+        String tsaAlias = serverInstance.getCryptoStoreManager()
+                .getKeyStoreAliasForTimestampAuthority(serverInstance.getTsaAuthority().getInternalUuid());
+        KeyPair tsaKey = KeyStoreUtil.getKeyPair(
+                tsaAlias, serverInstance.getCryptoStoreManager().getKeyStore());
+        X509Certificate tsaCert = (X509Certificate) serverInstance
+                .getCryptoStoreManager().getKeyStore().getCertificate(tsaAlias);
+
+        TimeStampAuthority auth = new TimeStampAuthority(
+                tsaKey.getPrivate(),
+                tsaCert,
+                java.util.List.of(tsaCert,
+                        serverInstance.getCryptoStoreManager().getCerificateAuthorityX509Certificate(serverInstance.getRootCa())),
+                "1.3.6.1.4.1.13762.3");
+        addProtectedServlet(context, new TimeStampServlet(auth), TimeStampServlet.PATH_MOUNT);
+
         // Add revocation servlet
         addProtectedServlet(context, new RevocationHttpServlet(serverInstance), RevocationHttpServlet.PATH_MOUNT);
 
@@ -166,6 +191,11 @@ public class WebServer implements EventSubscriber {
                 new ProvisionerRenewSubscriber(serverInstance, certificateRenewScheduler);
         serverInstance.getEventBus().register(provisionerWatcher);
         provisionerWatcher.initialize();
+
+        // Register and initialize TSA Certificate watcher
+        TsaRenewSubscriber tsaWatcher = new TsaRenewSubscriber(serverInstance, certificateRenewScheduler);
+        serverInstance.getEventBus().register(tsaWatcher);
+        tsaWatcher.initialize();
 
         log.info("Starting the certificate renew watcher");
         certificateRenewScheduler.startScheduler();
