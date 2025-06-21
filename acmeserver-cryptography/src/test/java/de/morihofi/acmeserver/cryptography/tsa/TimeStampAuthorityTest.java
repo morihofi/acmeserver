@@ -15,6 +15,7 @@ import org.bouncycastle.tsp.TSPAlgorithms;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -53,15 +55,29 @@ class TimeStampAuthorityTest {
     }
 
     @Test
-    @DisplayName("generate creates valid token")
+    @DisplayName("generate creates valid token for algorithms")
     void testGenerate() throws Exception {
         KeyPair kp = de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator.generateRSAKeyPair(1024, BouncyCastleProvider.PROVIDER_NAME);
         X509Certificate cert = createCert(kp);
         TimeStampAuthority auth = new TimeStampAuthority(kp.getPrivate(), cert, List.of(cert), "1.3.6.1.4.1.13762.3");
-        byte[] data = MessageDigest.getInstance("SHA-256").digest("hi".getBytes());
-        TimeStampRequest req = new TimeStampRequestGenerator().generate(TSPAlgorithms.SHA256, data);
-        byte[] respBytes = auth.generate(req);
-        TimeStampResponse resp = new TimeStampResponse(respBytes);
-        assertArrayEquals(data, resp.getTimeStampToken().getTimeStampInfo().getMessageImprintDigest());
+
+        java.util.Map<ASN1ObjectIdentifier, String> algs = Map.of(
+                TSPAlgorithms.MD5, "MD5",
+                TSPAlgorithms.RIPEMD160, "RIPEMD160",
+                TSPAlgorithms.SHA1, "SHA-1",
+                TSPAlgorithms.SHA224, "SHA-224",
+                TSPAlgorithms.SHA256, "SHA-256",
+                TSPAlgorithms.SHA384, "SHA-384",
+                TSPAlgorithms.SHA512, "SHA-512"
+        );
+
+        for (var entry : algs.entrySet()) {
+            byte[] data = MessageDigest.getInstance(entry.getValue()).digest("hi".getBytes());
+            TimeStampRequest req = new TimeStampRequestGenerator().generate(entry.getKey(), data);
+            byte[] respBytes = auth.generate(req);
+            TimeStampResponse resp = new TimeStampResponse(respBytes);
+            assertEquals(entry.getKey(), resp.getTimeStampToken().getTimeStampInfo().getHashAlgorithm().getAlgorithm());
+            assertArrayEquals(data, resp.getTimeStampToken().getTimeStampInfo().getMessageImprintDigest());
+        }
     }
 }

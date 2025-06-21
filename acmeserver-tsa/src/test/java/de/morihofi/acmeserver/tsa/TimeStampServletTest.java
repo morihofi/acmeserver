@@ -66,8 +66,8 @@ class TimeStampServletTest {
         tester.addServlet(servlet.getClass(), TimeStampServlet.PATH_MOUNT).setServlet(servlet);
         tester.start();
         try {
-            byte[] data = MessageDigest.getInstance("SHA-256").digest("hi".getBytes());
-            byte[] reqBytes = new TimeStampRequestGenerator().generate(TSPAlgorithms.SHA256, data).getEncoded();
+            byte[] data = MessageDigest.getInstance("SHA-512").digest("hi".getBytes());
+            byte[] reqBytes = new TimeStampRequestGenerator().generate(TSPAlgorithms.SHA512, data).getEncoded();
 
             HttpTester.Request request = HttpTester.newRequest();
             request.setMethod("POST");
@@ -81,6 +81,7 @@ class TimeStampServletTest {
             assertEquals(200, response.getStatus());
             assertEquals("application/timestamp-reply", response.get("Content-Type"));
             TimeStampResponse tsResp = new TimeStampResponse(response.getContentBytes());
+            assertEquals(TSPAlgorithms.SHA512, tsResp.getTimeStampToken().getTimeStampInfo().getHashAlgorithm().getAlgorithm());
             assertArrayEquals(data, tsResp.getTimeStampToken().getTimeStampInfo().getMessageImprintDigest());
         } finally {
             tester.stop();
