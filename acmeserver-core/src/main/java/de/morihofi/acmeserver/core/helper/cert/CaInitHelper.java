@@ -64,11 +64,9 @@ public class CaInitHelper {
 
                 rootCaEntity = new RootCa();
                 rootCaEntity.setCertificateConfig(new CertificateConfig(
-                        new CertificateMetadata(
-                                "ACME Server Default Root CA",
-                                "",
-                                "",
-                                ""),
+                        CertificateMetadata.builder()
+                                .commonName("ACME Server Default Root CA")
+                                .build(),
                         new CertificateExpiration(0, 0, 20),
                         new RsaCertificateAlgorithm(keySize)
                 ));
@@ -118,11 +116,9 @@ public class CaInitHelper {
         KeyPair intermediateKeyPair = KeyPairGenerator.generateRSAKeyPair(keySize, cryptoStoreManager.getKeyStore().getProvider().getName());
 
         CertificateConfig intConfig = new CertificateConfig(
-                new CertificateMetadata(
-                        "ACME Server Default Intermediate",
-                        "",
-                        "",
-                        ""),
+                CertificateMetadata.builder()
+                        .commonName("ACME Server Default Intermediate")
+                        .build(),
                 new CertificateExpiration(0, 0, 5),
                 new RsaCertificateAlgorithm(keySize)
         );

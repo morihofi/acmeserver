@@ -25,7 +25,11 @@ class CodeSigningCertificateTest {
     }
 
     private static CertificateConfig cfg(String cn) {
-        CertificateMetadata meta = new CertificateMetadata(cn, "Org", null, "DE");
+        CertificateMetadata meta = CertificateMetadata.builder()
+                .commonName(cn)
+                .organisation("Org")
+                .countryCode("DE")
+                .build();
         CertificateExpiration exp = new CertificateExpiration(0, 0, 1);
         return new CertificateConfig(meta, exp, null);
     }

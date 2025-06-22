@@ -54,7 +54,12 @@ class RootCaGetForUuidTest {
 
         RootCa ca = new RootCa();
         ca.setInternalUuid("abc");
-        ca.setCertificateConfig(new CertificateConfig(new CertificateMetadata("root","","",""), null, new RsaCertificateAlgorithm(1024)));
+        ca.setCertificateConfig(new CertificateConfig(
+                CertificateMetadata.builder()
+                        .commonName("root")
+                        .build(),
+                null,
+                new RsaCertificateAlgorithm(1024)));
 
         try (Session s = hu.getSessionFactory().openSession()) {
             var tx = s.beginTransaction();

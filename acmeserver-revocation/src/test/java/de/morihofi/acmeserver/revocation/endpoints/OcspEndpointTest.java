@@ -82,7 +82,13 @@ class OcspEndpointTest {
         X509Certificate cert = de.morihofi.acmeserver.cryptography.certificate.X509Generator.generate(
                 de.morihofi.acmeserver.cryptography.certificate.X509Generator.Request.builder()
                         .type(de.morihofi.acmeserver.cryptography.certificate.X509Generator.Type.ROOT_CA)
-                        .certificateConfig(new CertificateConfig(new CertificateMetadata("CA","Org",null,"DE"), new CertificateExpiration(0,0,1), null))
+                        .certificateConfig(new CertificateConfig(
+                                CertificateMetadata.builder()
+                                        .commonName("CA")
+                                        .organisation("Org")
+                                        .countryCode("DE")
+                                        .build(),
+                                new CertificateExpiration(0,0,1), null))
                         .ownKeyPair(kp)
                         .build());
         OCSPReq ocspReq = createReq(BigInteger.ONE, cert);
@@ -115,7 +121,13 @@ class OcspEndpointTest {
         X509Certificate cert = de.morihofi.acmeserver.cryptography.certificate.X509Generator.generate(
                 de.morihofi.acmeserver.cryptography.certificate.X509Generator.Request.builder()
                         .type(de.morihofi.acmeserver.cryptography.certificate.X509Generator.Type.ROOT_CA)
-                        .certificateConfig(new CertificateConfig(new CertificateMetadata("CA","Org",null,"DE"), new CertificateExpiration(0,0,1), null))
+                        .certificateConfig(new CertificateConfig(
+                                CertificateMetadata.builder()
+                                        .commonName("CA")
+                                        .organisation("Org")
+                                        .countryCode("DE")
+                                        .build(),
+                                new CertificateExpiration(0,0,1), null))
                         .ownKeyPair(kp)
                         .build());
         OCSPReq ocspReq = createReq(BigInteger.ONE, cert);

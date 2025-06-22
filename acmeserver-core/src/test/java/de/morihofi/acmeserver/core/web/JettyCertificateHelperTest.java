@@ -61,7 +61,9 @@ class JettyCertificateHelperTest {
         Path ksPath = fs.getPath("store.p12");
         CryptoStoreManager csm = new CryptoStoreManager(new PKCS12KeyStoreConfig(ksPath, "pw".toCharArray()));
 
-        CertificateMetadata meta = new CertificateMetadata("root", "", "", "");
+        CertificateMetadata meta = CertificateMetadata.builder()
+                .commonName("root")
+                .build();
         CertificateConfig cfg = new CertificateConfig(meta, new CertificateExpiration(0,0,1), new RsaCertificateAlgorithm(1024));
         RootCa root = new RootCa();
         root.setInternalUuid("root");

@@ -35,7 +35,9 @@ public class TsaInitHelper {
                 KeyPair kp = KeyPairGenerator.generateRSAKeyPair(2048, csm.getKeyStore().getProvider().getName());
                 tsa = new TsaAuthority();
                 tsa.setCertificateConfig(new CertificateConfig(
-                        new CertificateMetadata("ACME Default TSA", "", "", ""),
+                        CertificateMetadata.builder()
+                                .commonName("ACME Default TSA")
+                                .build(),
                         new CertificateExpiration(0,0,3),
                         new RsaCertificateAlgorithm(4096)
                 ));

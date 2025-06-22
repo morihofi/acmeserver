@@ -25,7 +25,10 @@ class CertificateUtilTest {
     }
 
     private static X509Certificate generateCert() throws Exception {
-        CertificateMetadata meta = new CertificateMetadata("Test", "", "", "DE");
+        CertificateMetadata meta = CertificateMetadata.builder()
+                .commonName("Test")
+                .countryCode("DE")
+                .build();
         CertificateConfig cfg = new CertificateConfig(meta, new CertificateExpiration(0,0,1), new RsaCertificateAlgorithm(1024));
         KeyPair kp = KeyPairGenerator.generateRSAKeyPair(1024, BouncyCastleProvider.PROVIDER_NAME);
         return X509Generator.generate(X509Generator.Request.builder()

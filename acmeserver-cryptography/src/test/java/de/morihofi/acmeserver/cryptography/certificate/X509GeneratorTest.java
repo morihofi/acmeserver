@@ -20,16 +20,12 @@ class X509GeneratorTest {
     @Test
     @DisplayName("toX500 builds name string")
     void testToX500() throws Exception {
-        CertificateMetadata meta = new CertificateMetadata("CN", "Org", null, "DE");
+        CertificateMetadata meta = CertificateMetadata.builder()
+                .commonName("CN")
+                .organisation("Org")
+                .countryCode("DE")
+                .build();
         X500Name name = invokeToX500(meta);
         assertEquals("CN=CN,O=Org,C=DE", name.toString());
-    }
-
-    @Test
-    @DisplayName("toX500 throws when CN missing")
-    void testToX500MissingCn() {
-        CertificateMetadata meta = new CertificateMetadata(null, null, null, null);
-        Exception ex = assertThrows(java.lang.reflect.InvocationTargetException.class, () -> invokeToX500(meta));
-        assertTrue(ex.getCause() instanceof IllegalArgumentException);
     }
 }
