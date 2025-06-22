@@ -148,7 +148,7 @@ public class X509Generator {
                 KeyHelper.getSignatureAlgorithmBasedOnKeyType(req.getOwnKeyPair().getPrivate()))
                 .build(req.getOwnKeyPair().getPrivate());
 
-        return toCertificate(builder, signer);
+        return toCertificate(builder, signer, req.getOwnKeyPair());
     }
 
     private static X509Certificate generateIntermediateCa(Request req)
@@ -156,6 +156,7 @@ public class X509Generator {
 
         Objects.requireNonNull(req.getIssuerKeyPair(), "issuerKeyPair (ROOT key) is required for INTERMEDIATE generation");
         Objects.requireNonNull(req.getIssuerCertificate(), "issuerCertificate (ROOT cert) is required for INTERMEDIATE generation");
+        validateIssuerForIntermediate(req.getIssuerCertificate());
         Objects.requireNonNull(req.getOwnKeyPair(), "ownKeyPair (INTERMEDIATE key) is required");
         Objects.requireNonNull(req.getCertificateConfig(), "certificateConfig is required");
 
@@ -183,7 +184,7 @@ public class X509Generator {
                 KeyHelper.getSignatureAlgorithmBasedOnKeyType(req.getIssuerKeyPair().getPrivate()))
                 .build(req.getIssuerKeyPair().getPrivate());
 
-        return toCertificate(builder, signer);
+        return toCertificate(builder, signer, req.getIssuerKeyPair());
     }
 
     private static X509Certificate generateServer(Request req)
@@ -191,6 +192,7 @@ public class X509Generator {
 
         Objects.requireNonNull(req.getIssuerKeyPair(), "issuerKeyPair (INTERMEDIATE key) is required");
         Objects.requireNonNull(req.getIssuerCertificate(), "issuerCertificate (INTERMEDIATE cert) is required");
+        validateIssuerIsCa(req.getIssuerCertificate());
         Objects.requireNonNull(req.getServerPublicKeyBytes(), "serverPublicKeyBytes is required");
         Objects.requireNonNull(req.getIdentifiers(), "identifiers is required");
         Objects.requireNonNull(req.getStartDate(), "startDate is required");
@@ -233,7 +235,7 @@ public class X509Generator {
                 KeyHelper.getSignatureAlgorithmBasedOnKeyType(req.getIssuerKeyPair().getPrivate()))
                 .build(req.getIssuerKeyPair().getPrivate());
 
-        return toCertificate(builder, signer);
+        return toCertificate(builder, signer, req.getIssuerKeyPair());
     }
 
     private static X509Certificate generateTimestampAuthority(Request req)
@@ -241,6 +243,7 @@ public class X509Generator {
 
         Objects.requireNonNull(req.getIssuerKeyPair(), "issuerKeyPair (ROOT key) is required");
         Objects.requireNonNull(req.getIssuerCertificate(), "issuerCertificate (ROOT cert) is required");
+        validateIssuerIsCa(req.getIssuerCertificate());
         Objects.requireNonNull(req.getOwnKeyPair(), "ownKeyPair is required");
         Objects.requireNonNull(req.getCertificateConfig(), "certificateConfig is required");
 
@@ -266,7 +269,7 @@ public class X509Generator {
                 KeyHelper.getSignatureAlgorithmBasedOnKeyType(req.getIssuerKeyPair().getPrivate()))
                 .build(req.getIssuerKeyPair().getPrivate());
 
-        return toCertificate(builder, signer);
+        return toCertificate(builder, signer, req.getIssuerKeyPair());
     }
 
     private static X509Certificate generateCodeSigning(Request req)
@@ -274,6 +277,7 @@ public class X509Generator {
 
         Objects.requireNonNull(req.getIssuerKeyPair(), "issuerKeyPair (ROOT key) is required");
         Objects.requireNonNull(req.getIssuerCertificate(), "issuerCertificate (ROOT cert) is required");
+        validateIssuerIsCa(req.getIssuerCertificate());
         Objects.requireNonNull(req.getOwnKeyPair(), "ownKeyPair is required");
         Objects.requireNonNull(req.getCertificateConfig(), "certificateConfig is required");
 
@@ -299,12 +303,27 @@ public class X509Generator {
                 KeyHelper.getSignatureAlgorithmBasedOnKeyType(req.getIssuerKeyPair().getPrivate()))
                 .build(req.getIssuerKeyPair().getPrivate());
 
-        return toCertificate(builder, signer);
+        return toCertificate(builder, signer, req.getIssuerKeyPair());
     }
 
     // -------------------------------------------------------------------------------------------------
     // Helper methods
     // -------------------------------------------------------------------------------------------------
+
+    private static void validateIssuerIsCa(X509Certificate issuer) {
+        if (issuer.getBasicConstraints() < 0) {
+            throw new IllegalArgumentException("issuerCertificate is not a CA certificate");
+        }
+    }
+
+    private static void validateIssuerForIntermediate(X509Certificate issuer) {
+        validateIssuerIsCa(issuer);
+        int pathLen = issuer.getBasicConstraints();
+        if (pathLen < 1) {
+            throw new IllegalArgumentException(
+                    "issuerCertificate path length constraint prohibits issuing an intermediate certificate");
+        }
+    }
 
     private static Date[] calculateValidity(CertificateConfig config) {
         Calendar cal = Calendar.getInstance();
@@ -315,12 +334,20 @@ public class X509Generator {
         return new Date[]{start, cal.getTime()};
     }
 
-    private static X509Certificate toCertificate(X509v3CertificateBuilder builder, ContentSigner signer)
+    private static X509Certificate toCertificate(X509v3CertificateBuilder builder,
+                                                 ContentSigner signer,
+                                                 KeyPair signerKey)
             throws CertificateException {
         X509CertificateHolder holder = builder.build(signer);
-        return new JcaX509CertificateConverter()
+        X509Certificate cert = new JcaX509CertificateConverter()
                 .setProvider(BouncyCastleProvider.PROVIDER_NAME)
                 .getCertificate(holder);
+        try {
+            cert.verify(signerKey.getPublic());
+        } catch (Exception e) {
+            throw new CertificateException("Generated certificate verification failed", e);
+        }
+        return cert;
     }
 
     private static void addCrlAndOcsp(X509v3CertificateBuilder builder,
