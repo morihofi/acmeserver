@@ -61,7 +61,8 @@ public class X509Generator {
         ROOT_CA,
         INTERMEDIATE_CA,
         SERVER,
-        TIMESTAMPING
+        TIMESTAMPING,
+        CODE_SIGNING
     }
 
     /**
@@ -111,6 +112,7 @@ public class X509Generator {
             case INTERMEDIATE_CA -> generateIntermediateCa(req);
             case SERVER -> generateServer(req);
             case TIMESTAMPING -> generateTimestampAuthority(req);
+            case CODE_SIGNING -> generateCodeSigning(req);
         };
     }
 
@@ -259,6 +261,39 @@ public class X509Generator {
                 new KeyUsage(KeyUsage.digitalSignature));
         builder.addExtension(Extension.extendedKeyUsage, true,
                 new ExtendedKeyUsage(KeyPurposeId.id_kp_timeStamping));
+
+        ContentSigner signer = new JcaContentSignerBuilder(
+                KeyHelper.getSignatureAlgorithmBasedOnKeyType(req.getIssuerKeyPair().getPrivate()))
+                .build(req.getIssuerKeyPair().getPrivate());
+
+        return toCertificate(builder, signer);
+    }
+
+    private static X509Certificate generateCodeSigning(Request req)
+            throws CertificateException, OperatorCreationException, CertIOException {
+
+        Objects.requireNonNull(req.getIssuerKeyPair(), "issuerKeyPair (ROOT key) is required");
+        Objects.requireNonNull(req.getIssuerCertificate(), "issuerCertificate (ROOT cert) is required");
+        Objects.requireNonNull(req.getOwnKeyPair(), "ownKeyPair is required");
+        Objects.requireNonNull(req.getCertificateConfig(), "certificateConfig is required");
+
+        Date[] validity = calculateValidity(req.getCertificateConfig());
+        X500Name issuer = X509CertificateTools.getX500NameFromX509Certificate(req.getIssuerCertificate());
+        X500Name subject = toX500(req.getCertificateConfig().getMetadata(),
+                "A common name is required in code signing certificate. Please change it in your settings.");
+
+        X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
+                issuer,
+                RandomGenerator.generateRandomId(),
+                validity[0], validity[1],
+                subject,
+                SubjectPublicKeyInfo.getInstance(req.getOwnKeyPair().getPublic().getEncoded()));
+
+        builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
+        builder.addExtension(Extension.keyUsage, true,
+                new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation));
+        builder.addExtension(Extension.extendedKeyUsage, true,
+                new ExtendedKeyUsage(KeyPurposeId.id_kp_codeSigning));
 
         ContentSigner signer = new JcaContentSignerBuilder(
                 KeyHelper.getSignatureAlgorithmBasedOnKeyType(req.getIssuerKeyPair().getPrivate()))
