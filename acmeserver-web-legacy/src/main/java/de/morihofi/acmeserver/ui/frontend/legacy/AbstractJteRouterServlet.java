@@ -45,7 +45,10 @@ public abstract class AbstractJteRouterServlet extends HttpServlet {
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String path = req.getPathInfo();
-        if (path == null || path.isEmpty()) path = "/";
+        if (path == null || path.isEmpty()) {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
 
         if (path.startsWith("/static/")) {
             serveStatic(path, resp);
