@@ -52,7 +52,12 @@ public class TsaInitHelper {
                                 .build()
                 );
 
-                csm.addTimestampAuthority(cert, kp, tsa.getInternalUuid());
+                X509Certificate[] chain = new X509Certificate[]{
+                        cert,
+                        csm.getCerificateAuthorityX509Certificate(root)
+                };
+
+                csm.addTimestampAuthority(chain, kp, tsa.getInternalUuid());
 
                 s.persist(tsa);
                 tx.commit();

@@ -30,7 +30,6 @@ import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.ProvisionerRe
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.TsaRenewSubscriber;
 import de.morihofi.acmeserver.tsa.TimeStampServlet;
 import de.morihofi.acmeserver.cryptography.tsa.TimeStampAuthority;
-import de.morihofi.acmeserver.cryptography.keystore.KeyStoreUtil;
 import de.morihofi.acmeserver.types.events.AbstractEvent;
 import de.morihofi.acmeserver.types.events.AcmeTlsCertificateHotReloadEvent;
 import de.morihofi.acmeserver.types.events.EventSubscriber;
@@ -45,11 +44,9 @@ import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.util.thread.VirtualThreadPool;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.security.KeyPair;
-import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -91,7 +88,7 @@ public class WebServer implements EventSubscriber {
         this.server = new Server(threadPool);
 
         certificateRenewScheduler.registerNewCertificateRenewWatcher(
-                CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI,
+                CryptoStoreManager.KEYSTORE_ALIASPREFIX_SERVER,
                 null,
                 (p, cert, kp) -> JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance),
                 () -> {
@@ -133,7 +130,7 @@ public class WebServer implements EventSubscriber {
                 serverInstance.getCryptoStoreManager().addServerCertificate(
                         data.certificateChain(),
                         data.keyPair(),
-                        CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI
+                        "main"
                 );
             }
 
@@ -229,9 +226,9 @@ public class WebServer implements EventSubscriber {
         return httpConfig;
     }
 
-    private SslContextFactory.Server getSslContextFactory() {
+    private SslContextFactory.Server getSslContextFactory() throws IOException {
         SslContextFactory.Server factory = new SslContextFactory.Server();
-        factory.setSslContext(serverInstance.getCryptoStoreManager().getSslContextForServer(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI));
+        factory.setSslContext(serverInstance.getCryptoStoreManager().getSslContextForServer("main"));
         factory.setProvider(BouncyCastleJsseProvider.PROVIDER_NAME);
         factory.setProtocol("TLS");
         factory.setKeyManagerFactoryAlgorithm("PKIX");

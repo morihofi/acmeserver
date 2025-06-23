@@ -21,14 +21,15 @@ import de.morihofi.acmeserver.types.cryptography.keystore.IKeyStoreConfig;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
-import de.morihofi.acmeserver.utils.regex.ConfigCheck;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,7 +38,6 @@ import java.nio.file.Files;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -52,7 +52,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     /**
      * Alias for the ACME API certificate in the keystore.
      */
-    public static final String KEYSTORE_ALIAS_ACMEAPI = "serverAcmeApi";
+    public static final String KEYSTORE_ALIASPREFIX_SERVER = "server_";
 
     /**
      * Prefix for aliases of intermediate certificate authorities in the keystore.
@@ -109,9 +109,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * @throws NoSuchMethodException     If a required method is not found.
      * @throws NoSuchProviderException   If a cryptographic provider is not found.
      */
-    public CryptoStoreManager(@NonNull IKeyStoreConfig keyStoreConfig) throws CertificateException, IOException, NoSuchAlgorithmException,
-            KeyStoreException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException,
-            NoSuchMethodException, NoSuchProviderException {
+    public CryptoStoreManager(@NonNull IKeyStoreConfig keyStoreConfig) throws CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, NoSuchProviderException {
         this.keyStoreConfig = keyStoreConfig;
 
         switch (keyStoreConfig) {
@@ -120,11 +118,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
                 log.info("Using PKCS#11 KeyStore with native library at {} with slot {}", libraryLocation, pkcs11Config.getSlot());
                 this.keyStorePassword = pkcs11Config.getPassword().clone();
 
-                keyStore = PKCS11KeyStoreLoader.loadPKCS11Keystore(
-                        keyStorePassword,
-                        pkcs11Config.getSlot(),
-                        libraryLocation
-                );
+                keyStore = PKCS11KeyStoreLoader.loadPKCS11Keystore(keyStorePassword, pkcs11Config.getSlot(), libraryLocation);
             }
             case PKCS12KeyStoreConfig pkcs12Config -> {
                 log.info("Using PKCS#12 KeyStore at {}", pkcs12Config.getPath().toAbsolutePath().toString());
@@ -147,6 +141,16 @@ public class CryptoStoreManager implements ICryptoStoreManager {
 
         // we cannot wipe the password here, because we won't be able to save it later
 
+    }
+
+    /**
+     * Returns the underlying {@link KeyStore} instance. Mainly intended for unit testing.
+     *
+     * @return the loaded key store
+     */
+    @NonNull
+    public KeyStore getKeyStore() {
+        return keyStore;
     }
 
 
@@ -191,8 +195,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
     @NonNull
-    public KeyPair getIntermediateCerificateAuthorityKeyPair(@NonNull String uuid) throws UnrecoverableKeyException, KeyStoreException,
-            NoSuchAlgorithmException {
+    public KeyPair getIntermediateCerificateAuthorityKeyPair(@NonNull String uuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid, keyStore);
     }
 
@@ -231,10 +234,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
 
     @Override
     public X509Certificate[] getFullIntermediateCertificateChain(String internalUuid) throws KeyStoreException {
-        return Stream.of(keyStore.getCertificateChain(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid))
-                .filter(c -> c instanceof X509Certificate)
-                .map(c -> (X509Certificate) c)
-                .toArray(X509Certificate[]::new);
+        return Stream.of(keyStore.getCertificateChain(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid)).filter(c -> c instanceof X509Certificate).map(c -> (X509Certificate) c).toArray(X509Certificate[]::new);
     }
 
     @Override
@@ -243,52 +243,55 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     }
 
     @Override
-    public SSLContext getSslContextForServer(String uuid) {
-        return null; //TODO: implement SSLContext creation for server
+    public SSLContext getSslContextForServer(String uuid) throws IOException {
+        try {
+            // Create a new KeyStore
+            KeyStore virtualKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            virtualKeyStore.load(null, null);
+
+            // Add the certificate and key to the KeyStore
+            virtualKeyStore.setKeyEntry("server", KeyStoreUtil.getKeyPair(KEYSTORE_ALIASPREFIX_SERVER + uuid, keyStore).getPrivate(), "".toCharArray(),
+                    keyStore.getCertificateChain(KEYSTORE_ALIASPREFIX_SERVER + uuid));
+
+            // Initialize the KeyManagerFactory with the KeyStore
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            keyManagerFactory.init(keyStore, "".toCharArray());
+
+            // Initialize the TrustManagerFactory with the KeyStore
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init(keyStore);
+
+            // Create and initialize the SSL context
+            SSLContext sslContext = SSLContext.getInstance("TLS", BouncyCastleJsseProvider.PROVIDER_NAME);
+            sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+
+            return sslContext;
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException("Failed to create SSLContext", e);
+        }
     }
 
     @Override
     public void addCertificateAuthority(RootCa rootCaEntity, KeyPair caKeyPair, X509Certificate caCertificate) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        keyStore.setKeyEntry(
-                rootCaEntity.getInternalUuid(),
-                caKeyPair.getPrivate(),
-                "".toCharArray(),
-                new X509Certificate[]{
-                        caCertificate
-                }
-        );
+        keyStore.setKeyEntry(rootCaEntity.getInternalUuid(), caKeyPair.getPrivate(), "".toCharArray(), new X509Certificate[]{caCertificate});
         saveKeystore();
     }
 
     @Override
-    public void addTimestampAuthority(X509Certificate cert, KeyPair kp, String internalUuid) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-        keyStore.setKeyEntry(
-                KEYSTORE_ALIASPREFIX_TSA + internalUuid,
-                kp.getPrivate(),
-                "".toCharArray(),
-                new X509Certificate[]{
-                        cert
-                }
-        );
+    public void addTimestampAuthority(X509Certificate[] certificateChain, KeyPair kp, String internalUuid) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+        keyStore.setKeyEntry(KEYSTORE_ALIASPREFIX_TSA + internalUuid, kp.getPrivate(), "".toCharArray(), certificateChain);
         saveKeystore();
     }
 
     @Override
-    public void addIntermediateCertificateAuthority(X509Certificate intermediateCert, KeyPair intermediateKeyPair, String internalUuid) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-        keyStore.setKeyEntry(
-                KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid,
-                intermediateKeyPair.getPrivate(),
-                "".toCharArray(),
-                new X509Certificate[]{
-                        intermediateCert
-                }
-        );
+    public void addIntermediateCertificateAuthority(X509Certificate[] intermediateCertificateChain, KeyPair intermediateKeyPair, String internalUuid) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+        keyStore.setKeyEntry(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid, intermediateKeyPair.getPrivate(), "".toCharArray(), intermediateCertificateChain);
         saveKeystore();
     }
 
     @Override
     public void removeIntermediateCaCertificate(String internalUuid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        keyStore.deleteEntry(KEYSTORE_ALIASPREFIX_TSA + internalUuid);
+        keyStore.deleteEntry(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid);
         saveKeystore();
     }
 
@@ -304,12 +307,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
 
     @Override
     public void addServerCertificate(X509Certificate[] x509CertificateChain, KeyPair keyPair, String uuid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        keyStore.setKeyEntry(
-                uuid,
-                keyPair.getPrivate(),
-                "".toCharArray(),
-                x509CertificateChain
-        );
+        keyStore.setKeyEntry(uuid, keyPair.getPrivate(), "".toCharArray(), x509CertificateChain);
         saveKeystore();
     }
 

@@ -87,7 +87,7 @@ public interface ICryptoStoreManager {
      * @param uuid The internal UUID of the server certificate.
      * @return The SSLContext configured for the server.
      */
-    SSLContext getSslContextForServer(String uuid);
+    SSLContext getSslContextForServer(String uuid) throws IOException;
 
     /**
      * Adds a new certificate authority to the keystore.
@@ -101,20 +101,20 @@ public interface ICryptoStoreManager {
     /**
      * Adds a timestamp authority certificate to the keystore.
      *
-     * @param cert         The X509 certificate for the timestamp authority.
-     * @param kp           The key pair for the timestamp authority.
-     * @param internalUuid The internal UUID of the timestamp authority.
+     * @param certificateChain The X509 certificate chain for the timestamp authority.
+     * @param kp               The key pair for the timestamp authority.
+     * @param internalUuid     The internal UUID of the timestamp authority.
      */
-    void addTimestampAuthority(X509Certificate cert, KeyPair kp, String internalUuid) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException;
+    void addTimestampAuthority(X509Certificate[] certificateChain, KeyPair kp, String internalUuid) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException;
 
     /**
      * Adds an intermediate certificate authority to the keystore.
      *
-     * @param intermediateCert    The X509 certificate for the intermediate certificate authority.
-     * @param intermediateKeyPair The key pair for the intermediate certificate authority.
-     * @param internalUuid        The internal UUID of the intermediate certificate authority.
+     * @param intermediateCertificateChain The X509 certificate chain for the intermediate certificate authority.
+     * @param intermediateKeyPair          The key pair for the intermediate certificate authority.
+     * @param internalUuid                 The internal UUID of the intermediate certificate authority.
      */
-    void addIntermediateCertificateAuthority(X509Certificate intermediateCert, KeyPair intermediateKeyPair, String internalUuid) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException;
+    void addIntermediateCertificateAuthority(X509Certificate[] intermediateCertificateChain, KeyPair intermediateKeyPair, String internalUuid) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException;
 
     /**
      * Removes an intermediate certificate authority from the keystore.
@@ -143,8 +143,8 @@ public interface ICryptoStoreManager {
      * Adds a server certificate to the keystore.
      *
      * @param x509CertificateChain The X509 certificate chain for the server.
-     * @param keyPair       The key pair for the server certificate.
-     * @param uuid            The internal UUID of the server certificate.
+     * @param keyPair              The key pair for the server certificate.
+     * @param uuid                 The internal UUID of the server certificate.
      */
     void addServerCertificate(X509Certificate[] x509CertificateChain, KeyPair keyPair, String uuid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException;
 }

@@ -9,6 +9,7 @@ open module acmeserver.cryptography {
     requires org.hibernate.orm.core;
     requires java.sql;
     requires com.github.spotbugs.annotations;
+    requires org.bouncycastle.tls;
     exports de.morihofi.acmeserver.cryptography.acme;
     exports de.morihofi.acmeserver.cryptography.certificate;
     exports de.morihofi.acmeserver.cryptography.csr;

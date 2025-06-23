@@ -147,7 +147,14 @@ public class CaInitHelper {
         provisioner.setAcmeProvisionerDomainNameRestriction(restr);
 
 
-        cryptoStoreManager.addIntermediateCertificateAuthority(intermediateCert, intermediateKeyPair, provisioner.getInternalUuid());
+        cryptoStoreManager.addIntermediateCertificateAuthority(
+                new X509Certificate[]{
+                        intermediateCert,
+                        caCertificate
+                },
+                intermediateKeyPair,
+                provisioner.getInternalUuid()
+        );
 
         session.persist(provisioner);
         eventBus.publish(new ProvisionerCreatedEvent(provisioner));
