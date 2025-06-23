@@ -75,8 +75,8 @@ class JettyCertificateHelperTest {
                 .certificateConfig(cfg)
                 .ownKeyPair(rootKey)
                 .build());
-        csm.getKeyStore().setKeyEntry(root.getInternalUuid(), rootKey.getPrivate(), "".toCharArray(), new java.security.cert.Certificate[]{rootCert});
-        csm.saveKeystore();
+      //  csm.getKeyStore().setKeyEntry(root.getInternalUuid(), rootKey.getPrivate(), "".toCharArray(), new java.security.cert.Certificate[]{rootCert});
+      //  csm.saveKeystore();
 
         IServerInstance si = new DummyServer(csm, root);
         Config app = si.getAppConfig();
@@ -85,9 +85,11 @@ class JettyCertificateHelperTest {
         CertificateRenewScheduler.CertificateData data = JettyCertificateHelper.generateAcmeApiClientCertificate(si);
         assertNotNull(data);
 
-        csm.getKeyStore().setKeyEntry(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, data.keyPair().getPrivate(), "".toCharArray(), data.certificateChain());
-        csm.saveKeystore();
+       // csm.getKeyStore().setKeyEntry(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI, data.keyPair().getPrivate(), "".toCharArray(), data.certificateChain());
+       // csm.saveKeystore();
 
         assertNull(JettyCertificateHelper.generateAcmeApiClientCertificate(si));
+
+        // FIXME: Due to API change not using the alias anymore
     }
 }

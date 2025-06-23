@@ -32,6 +32,8 @@ import lombok.NonNull;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -95,19 +97,14 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
         ctx.result(responseCertificateChain);
     }
 
-    private List<X509Certificate> getCertificateChainOfACMEbyCertificateId(AcmeOrder order, AcmeProvisioner provisioner, IServerInstance serverInstance) throws KeyStoreException, CertificateException, IOException {
-        KeyStore keyStore = serverInstance.getCryptoStoreManager().getKeyStore();
-        String alias = serverInstance.getCryptoStoreManager().getKeyStoreAliasForProvisionerIntermediate(provisioner.getName());
-
+    private List<X509Certificate> getCertificateChainOfACMEbyCertificateId(AcmeOrder order, AcmeProvisioner provisioner, IServerInstance serverInstance) throws KeyStoreException, CertificateException, IOException, UnrecoverableKeyException, NoSuchAlgorithmException {
         X509Certificate entityCertificate = PemUtil.parseCertificatePem(order.getCertificatePem());
-
-        List<X509Certificate> chainFromStore = Arrays.stream(keyStore.getCertificateChain(alias))
-                .map(X509Certificate.class::cast)
-                .toList();
+        serverInstance.getCryptoStoreManager().getIntermediateCertificateAuthorityKeyPair(provisioner.getInternalUuid());
+        X509Certificate[] chainFromStore = serverInstance.getCryptoStoreManager().getFullIntermediateCertificateChain(provisioner.getInternalUuid());
 
         List<X509Certificate> finalCertificateChain = new ArrayList<>();
         finalCertificateChain.add(entityCertificate);
-        finalCertificateChain.addAll(chainFromStore);
+        finalCertificateChain.addAll(List.of(chainFromStore));
 
         return finalCertificateChain;
     }

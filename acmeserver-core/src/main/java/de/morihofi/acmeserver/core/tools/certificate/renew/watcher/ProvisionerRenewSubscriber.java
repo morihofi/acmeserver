@@ -36,6 +36,7 @@ public class ProvisionerRenewSubscriber implements EventSubscriber {
     }
 
     private void registerWatcher(AcmeProvisioner prov) {
+        /*
         String alias = serverInstance.getCryptoStoreManager()
                 .getKeyStoreAliasForProvisionerIntermediate(prov.getName());
         if (renewManager.isWatcherRegistered(alias)) {
@@ -45,15 +46,19 @@ public class ProvisionerRenewSubscriber implements EventSubscriber {
                 (p, cert, kp) -> IntermediateCaRenew.renewIntermediateCertificate(kp, p,
                         serverInstance, alias));
         log.info("Registered renew watcher for provisioner {}", prov.getName());
+
+         */
     }
 
     private void unregisterWatcher(AcmeProvisioner prov) {
+        /*
         String alias = serverInstance.getCryptoStoreManager()
                 .getKeyStoreAliasForProvisionerIntermediate(prov.getName());
         if (renewManager.isWatcherRegistered(alias)) {
             renewManager.unregisterCertificateRenewWatcher(alias);
             log.info("Unregistered renew watcher for provisioner {}", prov.getName());
         }
+         */
     }
 
     @Override

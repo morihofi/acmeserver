@@ -80,8 +80,8 @@ public class OcspProcessor {
 
         ICryptoStoreManager csm = serverInstance.getCryptoStoreManager();
 
-        X509Certificate caCert = provisioner.getIntermediateCaCertificate(csm);
-        KeyPair caKeyPair = provisioner.getIntermediateCaKeyPair(csm);
+        X509Certificate caCert  = /* provisioner.getIntermediateCaCertificate(csm); */ serverInstance.getCryptoStoreManager().getIntermediateCertificate(provisioner.getInternalUuid());
+        KeyPair caKeyPair       = /* provisioner.getIntermediateCaKeyPair(csm); */serverInstance.getCryptoStoreManager().getIntermediateCerificateAuthorityKeyPair(provisioner.getInternalUuid());
 
         // Creating the OCSP response
         SubjectPublicKeyInfo caPublicKeyInfo = SubjectPublicKeyInfo.getInstance(caCert.getPublicKey().getEncoded());

@@ -55,12 +55,11 @@ public class CaInitHelper {
             if (RootCa.getAllRoots(session).length == 0) {
                 Transaction transaction = session.beginTransaction();
 
-                KeyStore caKeyStore = cryptoStoreManager.getKeyStore();
                 final int keySize = 4096;
 
                 log.info("Using RSA algorithm");
                 log.info("Generating new RSA {} bit Key Pair for Root CA", keySize);
-                caKeyPair = KeyPairGenerator.generateRSAKeyPair(keySize, caKeyStore.getProvider().getName());
+                caKeyPair = KeyPairGenerator.generateRSAKeyPair(keySize, cryptoStoreManager.getKeyStoreProviderName());
 
                 rootCaEntity = new RootCa();
                 rootCaEntity.setCertificateConfig(new CertificateConfig(
@@ -82,8 +81,8 @@ public class CaInitHelper {
                 );
 
                 log.info("Writing CA to keystore");
-                caKeyStore.setKeyEntry(rootCaEntity.getInternalUuid(), caKeyPair.getPrivate(), "".toCharArray(), new X509Certificate[]{caCertificate});
-                cryptoStoreManager.saveKeystore();
+                cryptoStoreManager.addCertificateAuthority(rootCaEntity, caKeyPair, caCertificate);
+
 
                 log.info("Persisting root CA in database");
                 session.persist(rootCaEntity);
@@ -113,7 +112,7 @@ public class CaInitHelper {
         log.info("Creating default provisioner");
 
         final int keySize = 4096;
-        KeyPair intermediateKeyPair = KeyPairGenerator.generateRSAKeyPair(keySize, cryptoStoreManager.getKeyStore().getProvider().getName());
+        KeyPair intermediateKeyPair = KeyPairGenerator.generateRSAKeyPair(keySize, cryptoStoreManager.getKeyStoreProviderName());
 
         CertificateConfig intConfig = new CertificateConfig(
                 CertificateMetadata.builder()
@@ -133,11 +132,8 @@ public class CaInitHelper {
                         .build()
         );
 
-        String alias = cryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate("default");
-        cryptoStoreManager.getKeyStore().setKeyEntry(alias, intermediateKeyPair.getPrivate(), "".toCharArray(), new X509Certificate[]{intermediateCert, caCertificate});
-        cryptoStoreManager.saveKeystore();
-
         AcmeProvisioner provisioner = new AcmeProvisioner();
+        provisioner.setInternalUuid(UUID.randomUUID().toString());
         provisioner.setName("default");
         provisioner.setRootCa(rootCa);
         provisioner.setMeta(new ProvisionerMeta("", ""));
@@ -149,6 +145,9 @@ public class CaInitHelper {
         restr.setEnabled(false);
         restr.setMustEndWith(java.util.Collections.emptyList());
         provisioner.setAcmeProvisionerDomainNameRestriction(restr);
+
+
+        cryptoStoreManager.addIntermediateCertificateAuthority(intermediateCert, intermediateKeyPair, provisioner.getInternalUuid());
 
         session.persist(provisioner);
         eventBus.publish(new ProvisionerCreatedEvent(provisioner));

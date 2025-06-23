@@ -28,19 +28,17 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
-import java.security.KeyPair;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * The CryptoStoreManager class manages cryptographic operations, including loading and saving key stores, providing access to key pairs,
@@ -59,7 +57,6 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     /**
      * Prefix for aliases of intermediate certificate authorities in the keystore.
      */
-    @Deprecated
     public static final String KEYSTORE_ALIASPREFIX_INTERMEDIATECA = "intermediateCA_";
 
     /**
@@ -67,23 +64,15 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      */
     public static final String KEYSTORE_ALIASPREFIX_TSA = "tsa_";
 
+
     /**
-     * Returns the key store alias for a provisioner intermediate certificate authority.
-     * The alias is constructed by appending the provisioner's name to the predefined prefix.
+     * Returns the key store alias for a timestamp authority certificate.
+     * The alias is constructed by appending the UUID to the predefined prefix.
      * The return value is not null, but it is possible that the alias does not exist in the keystore.
      *
-     * @param provisioner The name of the provisioner.
-     * @return The key store alias for the provisioner intermediate certificate authority.
+     * @param uuid The UUID of the timestamp authority.
+     * @return The key store alias for the timestamp authority certificate.
      */
-    @NonNull
-    public String getKeyStoreAliasForProvisionerIntermediate(@NonNull String provisioner) {
-        if (!ConfigCheck.isValidProvisionerName(provisioner)) {
-            throw new IllegalArgumentException("Invalid provisioner name: " + provisioner);
-        }
-
-        return KEYSTORE_ALIASPREFIX_INTERMEDIATECA + provisioner;
-    }
-
     @NonNull
     public String getKeyStoreAliasForTimestampAuthority(@NonNull String uuid) {
         return KEYSTORE_ALIASPREFIX_TSA + uuid;
@@ -102,7 +91,6 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     /**
      * The loaded key store instance for cryptographic operations.
      */
-    @Getter
     private final KeyStore keyStore;
 
 
@@ -157,9 +145,9 @@ public class CryptoStoreManager implements ICryptoStoreManager {
                     throw new IllegalArgumentException("Unsupported key store config type: " + keyStoreConfig.getClass());
         }
 
-            // we cannot wipe the password here, because we won't be able to save it later
+        // we cannot wipe the password here, because we won't be able to save it later
 
-        }
+    }
 
 
     /**
@@ -188,7 +176,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      */
     @NonNull
     public X509Certificate getCerificateAuthorityX509Certificate(@NonNull RootCa rootCa) throws KeyStoreException {
-        return (X509Certificate) getKeyStore().getCertificate(rootCa.getInternalUuid());
+        return (X509Certificate) keyStore.getCertificate(rootCa.getInternalUuid());
     }
 
 
@@ -196,39 +184,27 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * Returns the key pair for an intermediate certificate authority from the keystore.
      * This method retrieves the key pair associated with the intermediate CA's name.
      *
-     * @param intermediateCaName The name of the intermediate certificate authority.
+     * @param uuid The uuid of the intermediate certificate authority.
      * @return key pair consisting of the public and private keys for the intermediate CA.
      * @throws UnrecoverableKeyException If the key is unrecoverable (e.g., due to an incorrect password).
      * @throws KeyStoreException         If there is an issue accessing the keystore.
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
     @NonNull
-    public KeyPair getIntermediateCerificateAuthorityKeyPair(@NonNull String intermediateCaName) throws UnrecoverableKeyException, KeyStoreException,
+    public KeyPair getIntermediateCerificateAuthorityKeyPair(@NonNull String uuid) throws UnrecoverableKeyException, KeyStoreException,
             NoSuchAlgorithmException {
-        return KeyStoreUtil.getKeyPair(getKeyStoreAliasForProvisionerIntermediate(intermediateCaName), keyStore);
+        return KeyStoreUtil.getKeyPair(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid, keyStore);
     }
 
-    /**
-     * Returns the X509 certificate for an intermediate certificate authority from the keystore.
-     * This method retrieves the certificate associated with the intermediate CA's name.
-     *
-     * @param provisionerName The name of the intermediate certificate authority.
-     * @return The X509 certificate associated with the intermediate CA.
-     * @throws KeyStoreException If there is an issue accessing the keystore.
-     */
-    @NonNull
-    public X509Certificate getX509CertificateForProvisioner(@NonNull String provisionerName) throws KeyStoreException {
-        return (X509Certificate) getKeyStore().getCertificate(getKeyStoreAliasForProvisionerIntermediate(provisionerName));
-    }
 
     /**
      * Saves the current state of the keystore to the configured file path.
      * This method is applicable for PKCS#12 keystores and does not apply to PKCS#11 keystores.
      *
-     * @throws CertificateException      If there is an issue with certificates.
-     * @throws KeyStoreException         If there is an issue accessing the keystore.
-     * @throws IOException               If there is an I/O error.
-     * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
+     * @throws CertificateException     If there is an issue with certificates.
+     * @throws KeyStoreException        If there is an issue accessing the keystore.
+     * @throws IOException              If there is an I/O error.
+     * @throws NoSuchAlgorithmException If a required cryptographic algorithm is not available.
      */
     public void saveKeystore() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         if (isAllZero(keyStorePassword)) {
@@ -241,6 +217,100 @@ public class CryptoStoreManager implements ICryptoStoreManager {
             }
         }
         // Hint: PKCS#11 does not need to be saved. It happens automatically when you create/remove certificate entry in the store
+    }
+
+    @Override
+    public X509Certificate getIntermediateCertificate(@NonNull String uuid) throws KeyStoreException {
+        return (X509Certificate) keyStore.getCertificate(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid);
+    }
+
+    @Override
+    public KeyPair getIntermediateCertificateAuthorityKeyPair(@NonNull String uuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+        return KeyStoreUtil.getKeyPair(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid, keyStore);
+    }
+
+    @Override
+    public X509Certificate[] getFullIntermediateCertificateChain(String internalUuid) throws KeyStoreException {
+        return Stream.of(keyStore.getCertificateChain(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid))
+                .filter(c -> c instanceof X509Certificate)
+                .map(c -> (X509Certificate) c)
+                .toArray(X509Certificate[]::new);
+    }
+
+    @Override
+    public String getKeyStoreProviderName() {
+        return keyStore.getProvider().getName();
+    }
+
+    @Override
+    public SSLContext getSslContextForServer(String uuid) {
+        return null; //TODO: implement SSLContext creation for server
+    }
+
+    @Override
+    public void addCertificateAuthority(RootCa rootCaEntity, KeyPair caKeyPair, X509Certificate caCertificate) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+        keyStore.setKeyEntry(
+                rootCaEntity.getInternalUuid(),
+                caKeyPair.getPrivate(),
+                "".toCharArray(),
+                new X509Certificate[]{
+                        caCertificate
+                }
+        );
+        saveKeystore();
+    }
+
+    @Override
+    public void addTimestampAuthority(X509Certificate cert, KeyPair kp, String internalUuid) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+        keyStore.setKeyEntry(
+                KEYSTORE_ALIASPREFIX_TSA + internalUuid,
+                kp.getPrivate(),
+                "".toCharArray(),
+                new X509Certificate[]{
+                        cert
+                }
+        );
+        saveKeystore();
+    }
+
+    @Override
+    public void addIntermediateCertificateAuthority(X509Certificate intermediateCert, KeyPair intermediateKeyPair, String internalUuid) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+        keyStore.setKeyEntry(
+                KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid,
+                intermediateKeyPair.getPrivate(),
+                "".toCharArray(),
+                new X509Certificate[]{
+                        intermediateCert
+                }
+        );
+        saveKeystore();
+    }
+
+    @Override
+    public void removeIntermediateCaCertificate(String internalUuid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+        keyStore.deleteEntry(KEYSTORE_ALIASPREFIX_TSA + internalUuid);
+        saveKeystore();
+    }
+
+    @Override
+    public X509Certificate getTimestampAuthorityCertificate(String internalUuid) throws KeyStoreException {
+        return (X509Certificate) keyStore.getCertificate(KEYSTORE_ALIASPREFIX_TSA + internalUuid);
+    }
+
+    @Override
+    public KeyPair getTimeampAuthorityKeyPair(String internalUuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+        return KeyStoreUtil.getKeyPair(KEYSTORE_ALIASPREFIX_TSA + internalUuid, keyStore);
+    }
+
+    @Override
+    public void addServerCertificate(X509Certificate[] x509CertificateChain, KeyPair keyPair, String uuid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+        keyStore.setKeyEntry(
+                uuid,
+                keyPair.getPrivate(),
+                "".toCharArray(),
+                x509CertificateChain
+        );
+        saveKeystore();
     }
 
     private static boolean isAllZero(char[] array) {

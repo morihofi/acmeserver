@@ -15,6 +15,7 @@ import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import lombok.NonNull;
 import org.bouncycastle.cert.ocsp.*;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -122,16 +123,6 @@ class OcspProcessorTest {
             this.kp = kp;
             this.cert = cert;
             setName(name);
-        }
-
-        @Override
-        public X509Certificate getIntermediateCaCertificate(@NonNull ICryptoStoreManager csm) {
-            return cert;
-        }
-
-        @Override
-        public KeyPair getIntermediateCaKeyPair(@NonNull ICryptoStoreManager csm) {
-            return kp;
         }
     }
 

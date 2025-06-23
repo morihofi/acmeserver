@@ -41,8 +41,8 @@ public class CrlStore {
             X509CRL crl = CrlGenerator.generate(
                     CrlGenerator.Request.builder()
                             .revokedCertificates(revokedCertificates)
-                            .caCert(provisioner.getIntermediateCaCertificate(csm))
-                            .caPrivateKey(provisioner.getIntermediateCaKeyPair(csm).getPrivate())
+                            .caCert(csm.getIntermediateCertificate(provisioner.getInternalUuid()))
+                            .caPrivateKey(csm.getIntermediateCertificateAuthorityKeyPair(provisioner.getInternalUuid()).getPrivate())
                             .updateMinutes(updateMinutes)
                             .build());
 

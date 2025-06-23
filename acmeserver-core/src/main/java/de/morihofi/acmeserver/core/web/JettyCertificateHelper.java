@@ -58,6 +58,7 @@ public class JettyCertificateHelper {
 
         KeyPair rootCaKeyPair = cryptoStoreManager.getCerificateAuthorityKeyPair(serverInstance.getRootCa());
 
+        /*
         KeyPair acmeAPIKeyPair;
         if (!cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) ||
                 (cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) &&
@@ -68,7 +69,7 @@ public class JettyCertificateHelper {
             // Create Certificate for our ACME Web Server API (Client Certificate)
 
             log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
-            acmeAPIKeyPair = KeyPairGenerator.generateRSAKeyPair(4096, cryptoStoreManager.getKeyStore().getProvider().getName());
+            acmeAPIKeyPair = KeyPairGenerator.generateRSAKeyPair(4096, cryptoStoreManager.getKeyStoreProviderName());
 
             log.info("Using root CA for generation");
             X509Certificate rootCertificate =
@@ -109,5 +110,9 @@ public class JettyCertificateHelper {
         } else {
             return null;
         }
+        */
+        return null; //TODO: FIXME
     }
+
+
 }

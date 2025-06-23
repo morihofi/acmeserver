@@ -25,6 +25,9 @@ public class AcmeProvisioner implements Serializable {
     @Column(unique = true, nullable = false)
     private String name;
 
+    @Column(unique = true, nullable = false)
+    private String internalUuid;
+
     @Embedded
     private ProvisionerMeta meta;
 
@@ -106,41 +109,7 @@ public class AcmeProvisioner implements Serializable {
         return "/revocation/" + getName() + "/ocsp";
     }
 
-    /**
-     * Retrieves the intermediate Certificate Authority (CA) certificate. This method fetches the X.509 certificate associated with the
-     * intermediate CA from the KeyStore. It uses a specific alias to locate the certificate.
-     *
-     * @return The intermediate CA's {@link X509Certificate}.
-     * @throws KeyStoreException If an error occurs while accessing the KeyStore.
-     */
-    @NonNull
-    public X509Certificate getIntermediateCaCertificate(@NonNull ICryptoStoreManager cryptoStoreManager) throws KeyStoreException {
 
-        String alias = cryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(getName());
-        KeyStore keyStore = cryptoStoreManager.getKeyStore();
-        return (X509Certificate) keyStore.getCertificate(alias);
-    }
-
-    /**
-     * Retrieves the KeyPair associated with the intermediate Certificate Authority (CA). This method fetches both the public and private
-     * keys for the intermediate CA from the KeyStore. It utilizes a specific alias to locate these keys.
-     *
-     * @return A {@link KeyPair} consisting of the intermediate CA's public and private keys.
-     * @throws KeyStoreException         If an error occurs while accessing the KeyStore.
-     * @throws UnrecoverableKeyException If the key cannot be recovered (typically due to an incorrect password or corruption).
-     * @throws NoSuchAlgorithmException  If the algorithm for recovering the key is not available.
-     */
-    public KeyPair getIntermediateCaKeyPair(@NonNull ICryptoStoreManager cryptoStoreManager) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
-
-        String alias = cryptoStoreManager.getKeyStoreAliasForProvisionerIntermediate(getName());
-
-        KeyStore keyStore = cryptoStoreManager.getKeyStore();
-
-        return new KeyPair(
-                keyStore.getCertificate(alias).getPublicKey(),
-                (PrivateKey) keyStore.getKey(alias, "".toCharArray())
-        );
-    }
 
 
     public static AcmeProvisioner getForName(@NonNull IServerInstance si, @NonNull String name){

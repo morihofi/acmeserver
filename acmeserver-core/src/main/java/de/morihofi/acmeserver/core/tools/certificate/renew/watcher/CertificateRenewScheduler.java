@@ -140,7 +140,7 @@ public class CertificateRenewScheduler {
      */
     @SuppressFBWarnings("WMI_WRONG_MAP_ITERATOR")
     private void schedule() {
-
+/*
         KeyStore keyStore = cryptoStoreManager.getKeyStore();
 
         for (Map.Entry<String, RenewEntry> entry : renewMap.entrySet()) {
@@ -191,6 +191,8 @@ public class CertificateRenewScheduler {
                 log.error("Error renewing certificate", ex);
             }
         }
+
+ */
     }
 
     /**

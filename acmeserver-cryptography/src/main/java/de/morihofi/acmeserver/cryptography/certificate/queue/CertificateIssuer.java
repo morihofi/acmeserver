@@ -97,8 +97,8 @@ public class CertificateIssuer {
         X509Certificate acmeGeneratedCertificate = X509Generator.generate(
                 X509Generator.Request.builder()
                         .type(X509Generator.Type.SERVER)
-                        .issuerKeyPair(provisioner.getIntermediateCaKeyPair(cryptoStoreManager))
-                        .issuerCertificate(provisioner.getIntermediateCaCertificate(cryptoStoreManager))
+                        .issuerKeyPair(cryptoStoreManager.getIntermediateCertificateAuthorityKeyPair(provisioner.getInternalUuid()))
+                        .issuerCertificate(cryptoStoreManager.getIntermediateCertificate(provisioner.getInternalUuid()))
                         .serverPublicKeyBytes(pkPemObject.getContent())
                         .identifiers(csrIdentifiers)
                         .startDate(order.getNotBefore())

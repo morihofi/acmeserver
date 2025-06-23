@@ -50,9 +50,8 @@ public class IntermediateCaRenew {
                         .build()
         );
 
-        KeyStore ks = serverInstance.getCryptoStoreManager().getKeyStore();
+        serverInstance.getCryptoStoreManager().removeIntermediateCaCertificate(intermediateAlias);
 
-        ks.deleteEntry(intermediateAlias);
         X509Certificate[] chain = new X509Certificate[]{
                 renewedCertificate,
                 serverInstance.getCryptoStoreManager().getCerificateAuthorityX509Certificate(serverInstance.getRootCa())

@@ -273,7 +273,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         Date endDateByOrder = newOrderRequestPayload.getNotAfter();
 
         Date endDateByCA = DateTools.makeDateForOutliveIntermediateCertificate(
-                provisioner.getIntermediateCaCertificate(getServerInstance().getCryptoStoreManager()).getNotAfter(),
+                getServerInstance().getCryptoStoreManager().getIntermediateCertificate(provisioner.getInternalUuid()).getNotAfter(),
                 DateTools.addToDate(startDate,
                         provisioner.getIssuedCertificateExpiration().getYears(),
                         provisioner.getIssuedCertificateExpiration().getMonths(),

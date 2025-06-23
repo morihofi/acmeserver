@@ -129,13 +129,12 @@ public class WebServer implements EventSubscriber {
             CertificateRenewScheduler.CertificateData data =
                     JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance);
             if (data != null) {
-                serverInstance.getCryptoStoreManager().getKeyStore().setKeyEntry(
-                        CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI,
-                        data.keyPair().getPrivate(),
-                        "".toCharArray(),
-                        data.certificateChain()
+
+                serverInstance.getCryptoStoreManager().addServerCertificate(
+                        data.certificateChain(),
+                        data.keyPair(),
+                        CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI
                 );
-                serverInstance.getCryptoStoreManager().saveKeystore();
             }
 
             loadOrReloadTlsCertificate();
@@ -160,15 +159,12 @@ public class WebServer implements EventSubscriber {
         addProtectedServlet(context, new RootCaDownloadServlet(serverInstance), RootCaDownloadServlet.PATH_MOUNT);
 
         // Add timestamping servlet
-        String tsaAlias = serverInstance.getCryptoStoreManager()
-                .getKeyStoreAliasForTimestampAuthority(serverInstance.getTsaAuthority().getInternalUuid());
-        KeyPair tsaKey = KeyStoreUtil.getKeyPair(
-                tsaAlias, serverInstance.getCryptoStoreManager().getKeyStore());
-        X509Certificate tsaCert = (X509Certificate) serverInstance
-                .getCryptoStoreManager().getKeyStore().getCertificate(tsaAlias);
+        X509Certificate tsaCert = serverInstance
+                .getCryptoStoreManager()
+                .getTimestampAuthorityCertificate(serverInstance.getTsaAuthority().getInternalUuid());
 
         TimeStampAuthority auth = new TimeStampAuthority(
-                tsaKey.getPrivate(),
+                serverInstance.getCryptoStoreManager().getTimeampAuthorityKeyPair(serverInstance.getTsaAuthority().getInternalUuid()).getPrivate(),
                 tsaCert,
                 java.util.List.of(tsaCert,
                         serverInstance.getCryptoStoreManager().getCerificateAuthorityX509Certificate(serverInstance.getRootCa())),
@@ -235,10 +231,7 @@ public class WebServer implements EventSubscriber {
 
     private SslContextFactory.Server getSslContextFactory() {
         SslContextFactory.Server factory = new SslContextFactory.Server();
-        factory.setKeyStore(serverInstance.getCryptoStoreManager().getKeyStore());
-        factory.setKeyStorePassword("");
-        factory.setKeyManagerPassword("");
-        factory.setCertAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI);
+        factory.setSslContext(serverInstance.getCryptoStoreManager().getSslContextForServer(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI));
         factory.setProvider(BouncyCastleJsseProvider.PROVIDER_NAME);
         factory.setProtocol("TLS");
         factory.setKeyManagerFactoryAlgorithm("PKIX");

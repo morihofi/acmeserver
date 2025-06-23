@@ -32,7 +32,7 @@ public class TsaInitHelper {
             TsaAuthority tsa;
             if (TsaAuthority.getAll(s).length == 0) {
                 Transaction tx = s.beginTransaction();
-                KeyPair kp = KeyPairGenerator.generateRSAKeyPair(2048, csm.getKeyStore().getProvider().getName());
+                KeyPair kp = KeyPairGenerator.generateRSAKeyPair(4096, csm.getKeyStoreProviderName());
                 tsa = new TsaAuthority();
                 tsa.setCertificateConfig(new CertificateConfig(
                         CertificateMetadata.builder()
@@ -51,10 +51,9 @@ public class TsaInitHelper {
                                 .ownKeyPair(kp)
                                 .build()
                 );
-                String alias = csm.getKeyStoreAliasForTimestampAuthority(tsa.getInternalUuid());
-                csm.getKeyStore().setKeyEntry(alias, kp.getPrivate(), "".toCharArray(), new X509Certificate[]{cert,
-                        csm.getCerificateAuthorityX509Certificate(root)});
-                csm.saveKeystore();
+
+                csm.addTimestampAuthority(cert, kp, tsa.getInternalUuid());
+
                 s.persist(tsa);
                 tx.commit();
                 bus.publish(new TsaAuthorityCreatedEvent(tsa));

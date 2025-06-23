@@ -133,7 +133,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         }
 
         // Read in root certificate
-        X509Certificate intermediateCertificate = provisioner.getIntermediateCaCertificate(getServerInstance().getCryptoStoreManager());
+        X509Certificate intermediateCertificate = getServerInstance().getCryptoStoreManager().getIntermediateCertificate(provisioner.getInternalUuid());
 
         boolean isValid = true;
         // Validate given certificate against root certificate
