@@ -48,7 +48,6 @@ class TsaInitHelperTest {
 
         String alias = mgr.getKeyStoreAliasForTimestampAuthority(first.getInternalUuid());
         assertEquals(first.getInternalUuid(), second.getInternalUuid());
-      //  assertTrue(mgr.getKeyStore().containsAlias(alias));
-        // FIXME: Due to API change not using the alias anymore
+        assertTrue(mgr.containsTimestampAuthorityCertificate(first.getInternalUuid()));
     }
 }

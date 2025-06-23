@@ -51,6 +51,10 @@ class OcspProcessorTest {
     static class DummyServer implements IServerInstance {
         private final ICryptoStoreManager csm;
 
+        DummyServer() {
+            this(Mockito.mock(ICryptoStoreManager.class));
+        }
+
         DummyServer(ICryptoStoreManager csm) {
             this.csm = csm;
         }
@@ -128,7 +132,6 @@ class OcspProcessorTest {
             this.kp = kp;
             this.cert = cert;
             setName(name);
-            setInternalUuid(name);
         }
     }
 
@@ -142,10 +145,7 @@ class OcspProcessorTest {
                 .ownKeyPair(kp)
                 .build());
         DummyProvisioner prov = new DummyProvisioner("p", kp, caCert);
-        ICryptoStoreManager csm = Mockito.mock(ICryptoStoreManager.class);
-        Mockito.when(csm.getIntermediateCertificate("p")).thenReturn(caCert);
-        Mockito.when(csm.getIntermediateCerificateAuthorityKeyPair("p")).thenReturn(kp);
-        IServerInstance si = new DummyServer(csm);
+        IServerInstance si = new DummyServer();
         BigInteger serial = BigInteger.ONE;
         RevokedCertificate rc = new RevokedCertificate(serial, new Date(), 0);
         try (MockedStatic<AcmeOrder> mock = Mockito.mockStatic(AcmeOrder.class)) {
@@ -168,10 +168,7 @@ class OcspProcessorTest {
                 .ownKeyPair(kp)
                 .build());
         DummyProvisioner prov = new DummyProvisioner("p", kp, caCert);
-        ICryptoStoreManager csm2 = Mockito.mock(ICryptoStoreManager.class);
-        Mockito.when(csm2.getIntermediateCertificate("p")).thenReturn(caCert);
-        Mockito.when(csm2.getIntermediateCerificateAuthorityKeyPair("p")).thenReturn(kp);
-        IServerInstance si = new DummyServer(csm2);
+        IServerInstance si = new DummyServer();
         BigInteger serial = BigInteger.TWO;
         try (MockedStatic<AcmeOrder> mock = Mockito.mockStatic(AcmeOrder.class)) {
             mock.when(() -> AcmeOrder.getRevokedCertificate(serial, prov.getName(), si)).thenReturn(null);

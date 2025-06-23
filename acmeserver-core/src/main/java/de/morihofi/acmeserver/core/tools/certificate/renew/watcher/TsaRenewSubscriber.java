@@ -28,7 +28,6 @@ public class TsaRenewSubscriber implements EventSubscriber {
     }
 
     private void registerWatcher(TsaAuthority tsa) {
-       /*
         String alias = serverInstance.getCryptoStoreManager()
                 .getKeyStoreAliasForTimestampAuthority(tsa.getInternalUuid());
         if (renewManager.isWatcherRegistered(alias)) {
@@ -38,8 +37,6 @@ public class TsaRenewSubscriber implements EventSubscriber {
         renewManager.registerNewCertificateRenewWatcher(alias, dummy,
                 (p, cert, kp) -> TimeStampRenew.renew(kp, tsa, serverInstance, alias));
         log.info("Registered TSA renew watcher {}", alias);
-
-        */
     }
 
     @Override

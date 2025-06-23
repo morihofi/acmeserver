@@ -147,4 +147,107 @@ public interface ICryptoStoreManager {
      * @param uuid                 The internal UUID of the server certificate.
      */
     void addServerCertificate(X509Certificate[] x509CertificateChain, KeyPair keyPair, String uuid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException;
+
+    /**
+     * Checks whether a specific alias exists in the underlying keystore.
+     *
+     * @param alias the alias to check
+     * @return {@code true} if the alias exists, otherwise {@code false}
+     * @throws KeyStoreException if an issue occurs while accessing the keystore
+     */
+    boolean containsAlias(@NonNull String alias) throws KeyStoreException;
+
+    /**
+     * Retrieves the certificate associated with the given alias.
+     *
+     * @param alias the alias of the certificate entry
+     * @return the X509 certificate or {@code null} if not present
+     * @throws KeyStoreException if an issue occurs while accessing the keystore
+     */
+    X509Certificate getCertificate(@NonNull String alias) throws KeyStoreException;
+
+    /**
+     * Returns the {@link KeyPair} stored under the given alias.
+     *
+     * @param alias the alias of the key entry
+     * @return the key pair associated with the alias
+     * @throws UnrecoverableKeyException if the key cannot be recovered
+     * @throws KeyStoreException         if there is an issue with the keystore
+     * @throws NoSuchAlgorithmException  if the algorithm for recovering the key is not available
+     */
+    KeyPair getKeyPairForAlias(@NonNull String alias) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException;
+
+    /**
+     * Checks if the certificate authority identified by the given entity exists in the keystore.
+     *
+     * @param rootCa root certificate authority entity
+     * @return {@code true} if the certificate is present
+     */
+    boolean containsCertificateAuthority(@NonNull RootCa rootCa) throws KeyStoreException;
+
+    /**
+     * Checks if an intermediate certificate authority certificate exists in the keystore.
+     *
+     * @param uuid internal UUID of the provisioner
+     * @return {@code true} if the certificate is present
+     */
+    boolean containsIntermediateCaCertificate(@NonNull String uuid) throws KeyStoreException;
+
+    /**
+     * Checks if a timestamp authority certificate exists in the keystore.
+     *
+     * @param uuid internal UUID of the authority
+     * @return {@code true} if the certificate is present
+     */
+    boolean containsTimestampAuthorityCertificate(@NonNull String uuid) throws KeyStoreException;
+
+    /**
+     * Checks if a server certificate exists in the keystore.
+     *
+     * @param uuid internal UUID or alias of the server certificate
+     * @return {@code true} if the certificate is present
+     */
+    boolean containsServerCertificate(@NonNull String uuid) throws KeyStoreException;
+
+    /**
+     * Retrieves the server certificate stored under the given alias.
+     *
+     * @param uuid the alias of the certificate
+     * @return the server certificate or {@code null} if not found
+     */
+    X509Certificate getServerCertificate(@NonNull String uuid) throws KeyStoreException;
+
+    /**
+     * Returns the key pair associated with a server certificate.
+     *
+     * @param uuid the alias of the server certificate
+     * @return the corresponding key pair
+     */
+    KeyPair getServerKeyPair(@NonNull String uuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException;
+
+    /**
+     * Retrieves the complete server certificate chain for the specified alias.
+     *
+     * @param uuid the alias of the server certificate
+     * @return the certificate chain
+     */
+    X509Certificate[] getFullServerCertificateChain(@NonNull String uuid) throws KeyStoreException;
+
+    /**
+     * Returns the keystore alias for a provisioner's intermediate certificate.
+     *
+     * @param uuid internal UUID of the provisioner
+     * @return alias string used inside the keystore
+     */
+    @NonNull
+    String getKeyStoreAliasForProvisionerIntermediate(@NonNull String uuid);
+
+    /**
+     * Returns the keystore alias for a timestamp authority certificate.
+     *
+     * @param uuid internal UUID of the TSA
+     * @return alias string used inside the keystore
+     */
+    @NonNull
+    String getKeyStoreAliasForTimestampAuthority(@NonNull String uuid);
 }

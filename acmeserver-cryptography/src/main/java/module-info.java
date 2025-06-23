@@ -1,6 +1,7 @@
 open module acmeserver.cryptography {
     requires org.bouncycastle.pkix;
     requires org.bouncycastle.provider;
+    requires org.bouncycastle.tls;
     requires org.jose4j;
     requires acmeserver.utils;
     requires acmeserver.types;
@@ -9,7 +10,6 @@ open module acmeserver.cryptography {
     requires org.hibernate.orm.core;
     requires java.sql;
     requires com.github.spotbugs.annotations;
-    requires org.bouncycastle.tls;
     exports de.morihofi.acmeserver.cryptography.acme;
     exports de.morihofi.acmeserver.cryptography.certificate;
     exports de.morihofi.acmeserver.cryptography.csr;

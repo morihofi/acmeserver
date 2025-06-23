@@ -79,13 +79,14 @@ class ProvisionerRenewSubscriberTest {
 
         AcmeProvisioner prov = new AcmeProvisioner();
         prov.setName("test");
+        prov.setInternalUuid("p1");
 
         try (MockedStatic<AcmeProvisioner> mock = Mockito.mockStatic(AcmeProvisioner.class)) {
             mock.when(() -> AcmeProvisioner.getAllProvisioners(si)).thenReturn(new AcmeProvisioner[]{prov});
             watcher.initialize();
         }
-/*
-        String alias = mgr.getKeyStoreAliasForProvisionerIntermediate("test");
+
+        String alias = mgr.getKeyStoreAliasForProvisionerIntermediate(prov.getInternalUuid());
         assertTrue(renewManager.isWatcherRegistered(alias));
 
         bus.publish(new ProvisionerDeletedEvent(prov));
@@ -93,8 +94,5 @@ class ProvisionerRenewSubscriberTest {
 
         bus.publish(new ProvisionerCreatedEvent(prov));
         assertTrue(renewManager.isWatcherRegistered(alias));
-
- */
-        // FIXME: Due to API change not using the alias anymore
     }
 }

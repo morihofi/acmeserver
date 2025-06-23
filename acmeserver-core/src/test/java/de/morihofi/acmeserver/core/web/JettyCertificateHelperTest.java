@@ -82,8 +82,11 @@ class JettyCertificateHelperTest {
         app.getServer().setDnsName("example.com");
 
         CertificateRenewScheduler.CertificateData data = JettyCertificateHelper.generateAcmeApiClientCertificate(si);
-        assertNull(data); // Functionality not yet implemented
+        assertNotNull(data);
 
-        // FIXME: Due to API change not using the alias anymore
+        csm.addServerCertificate(data.certificateChain(), data.keyPair(), "main");
+
+        assertTrue(csm.containsServerCertificate("main"));
+        assertNull(JettyCertificateHelper.generateAcmeApiClientCertificate(si));
     }
 }

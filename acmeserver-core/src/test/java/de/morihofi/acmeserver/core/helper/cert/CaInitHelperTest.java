@@ -6,6 +6,7 @@ import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.config.DatabaseConfig;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.events.EventBus;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,8 +45,7 @@ class CaInitHelperTest {
         RootCa second = CaInitHelper.initializeCA(hu, mgr, bus);
 
         assertEquals(first.getInternalUuid(), second.getInternalUuid());
-       // assertTrue(mgr.getKeyStore().containsAlias(first.getInternalUuid()));
-        // FIXME: Due to API change not using the alias anymore
+        assertTrue(mgr.containsCertificateAuthority(first));
     }
 
     @Test
@@ -66,13 +66,13 @@ class CaInitHelperTest {
 
         RootCa root = CaInitHelper.initializeCA(hu, mgr, bus);
 
+        AcmeProvisioner provisioner;
         try (var s = hu.getSessionFactory().openSession()) {
             long count = s.createQuery("SELECT count(p) FROM AcmeProvisioner p", Long.class).uniqueResult();
             assertEquals(1, count);
+            provisioner = s.createQuery("FROM AcmeProvisioner", AcmeProvisioner.class).getSingleResult();
         }
 
-      //  String alias = mgr.getKeyStoreAliasForProvisionerIntermediate("default");
-      //  assertTrue(mgr.getKeyStore().containsAlias(alias));
-        // FIXME: Due to API change not using the alias anymore
+        assertTrue(mgr.containsIntermediateCaCertificate(provisioner.getInternalUuid()));
     }
 }

@@ -58,60 +58,51 @@ public class JettyCertificateHelper {
 
         KeyPair rootCaKeyPair = cryptoStoreManager.getCerificateAuthorityKeyPair(serverInstance.getRootCa());
 
-        /*
-        KeyPair acmeAPIKeyPair;
-        if (!cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) ||
-                (cryptoStoreManager.getKeyStore().containsAlias(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI) &&
-                        !X509CertificateTools.isCertificateCurrentlyDateValid(((X509Certificate) cryptoStoreManager.getKeyStore()
-                                .getCertificate(CryptoStoreManager.KEYSTORE_ALIAS_ACMEAPI))))
-        ) {
+        boolean needsNew = !cryptoStoreManager.containsServerCertificate("main");
+        if (!needsNew) {
+            X509Certificate current = cryptoStoreManager.getServerCertificate("main");
+            needsNew = current == null || !X509CertificateTools.isCertificateCurrentlyDateValid(current);
+        }
 
-            // Create Certificate for our ACME Web Server API (Client Certificate)
-
-            log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
-            acmeAPIKeyPair = KeyPairGenerator.generateRSAKeyPair(4096, cryptoStoreManager.getKeyStoreProviderName());
-
-            log.info("Using root CA for generation");
-            X509Certificate rootCertificate =
-                    cryptoStoreManager.getCerificateAuthorityX509Certificate(serverInstance.getRootCa());
-            X509Certificate intermediateCertificate = cryptoStoreManager.getCerificateAuthorityX509Certificate(serverInstance.getRootCa());
-
-            log.info("Creating Server Certificate");
-            Date startDate = new Date(); // Starts now
-            Date endDate = DateTools.makeDateForOutliveIntermediateCertificate(
-                    intermediateCertificate.getNotAfter(),
-                    DateTools.addToDate(startDate,
-                            0, // Years
-                            1, // Months
-                            0 // Days
-                    )
-            );
-
-            X509Certificate acmeAPICertificate = X509Generator.generate(
-                    X509Generator.Request.builder()
-                            .type(X509Generator.Type.SERVER)
-                            .issuerKeyPair(rootCaKeyPair)
-                            .issuerCertificate(intermediateCertificate)
-                            .serverPublicKeyBytes(acmeAPIKeyPair.getPublic().getEncoded())
-                            .identifier(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, serverInstance.getAppConfig().getServer().getDnsName()))
-                            .startDate(startDate)
-                            .endDate(endDate)
-                            .serverInstance(serverInstance)
-                            .build()
-            );
-
-            X509Certificate[] chain = new X509Certificate[]{
-                    acmeAPICertificate,
-                    intermediateCertificate,
-                    rootCertificate
-            };
-
-            return new CertificateRenewScheduler.CertificateData(chain, acmeAPIKeyPair);
-        } else {
+        if (!needsNew) {
             return null;
         }
-        */
-        return null; //TODO: FIXME
+
+        log.info("Generating RSA Key Pair for ACME Web Server API (HTTPS Service)");
+        KeyPair acmeAPIKeyPair = KeyPairGenerator.generateRSAKeyPair(4096, cryptoStoreManager.getKeyStoreProviderName());
+
+        log.info("Using root CA for generation");
+        X509Certificate rootCertificate =
+                cryptoStoreManager.getCerificateAuthorityX509Certificate(serverInstance.getRootCa());
+        X509Certificate intermediateCertificate = rootCertificate;
+
+        log.info("Creating Server Certificate");
+        Date startDate = new Date();
+        Date endDate = DateTools.makeDateForOutliveIntermediateCertificate(
+                intermediateCertificate.getNotAfter(),
+                DateTools.addToDate(startDate, 0, 1, 0)
+        );
+
+        X509Certificate acmeAPICertificate = X509Generator.generate(
+                X509Generator.Request.builder()
+                        .type(X509Generator.Type.SERVER)
+                        .issuerKeyPair(rootCaKeyPair)
+                        .issuerCertificate(intermediateCertificate)
+                        .serverPublicKeyBytes(acmeAPIKeyPair.getPublic().getEncoded())
+                        .identifier(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, serverInstance.getAppConfig().getServer().getDnsName()))
+                        .startDate(startDate)
+                        .endDate(endDate)
+                        .serverInstance(serverInstance)
+                        .build()
+        );
+
+        X509Certificate[] chain = new X509Certificate[]{
+                acmeAPICertificate,
+                intermediateCertificate,
+                rootCertificate
+        };
+
+        return new CertificateRenewScheduler.CertificateData(chain, acmeAPIKeyPair);
     }
 
 

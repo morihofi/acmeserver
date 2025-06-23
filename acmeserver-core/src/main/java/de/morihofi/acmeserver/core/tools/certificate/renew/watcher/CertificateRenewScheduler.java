@@ -18,7 +18,7 @@ package de.morihofi.acmeserver.core.tools.certificate.renew.watcher;
 
 
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
-import de.morihofi.acmeserver.cryptography.keystore.KeyStoreUtil;
+import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.utils.lambda.TriFunction;
 import de.morihofi.acmeserver.types.events.EventBus;
@@ -27,7 +27,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.KeyPair;
-import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Date;
@@ -140,9 +139,6 @@ public class CertificateRenewScheduler {
      */
     @SuppressFBWarnings("WMI_WRONG_MAP_ITERATOR")
     private void schedule() {
-/*
-        KeyStore keyStore = cryptoStoreManager.getKeyStore();
-
         for (Map.Entry<String, RenewEntry> entry : renewMap.entrySet()) {
             String alias = entry.getKey();
             RenewEntry renewEntry = entry.getValue();
@@ -152,15 +148,18 @@ public class CertificateRenewScheduler {
 
             log.info("Checking if certificate for alias {} needs to be renewed", alias);
             try {
-                X509Certificate certificateFromKeyStore = (X509Certificate) keyStore.getCertificate(alias);
+                X509Certificate certificateFromKeyStore = cryptoStoreManager.getCertificate(alias);
+
+                if (certificateFromKeyStore == null) {
+                    log.warn("Certificate for alias {} does not exist", alias);
+                    continue;
+                }
 
                 if (shouldRenew(certificateFromKeyStore)) {
-
                     log.info("Certificate for alias {} needs to be renewed, renewing now ...", alias);
 
-                    // Now we call the user defined function to renew the certificate
                     CertificateData newCertificateData =
-                            function.apply(provisioner, certificateFromKeyStore, KeyStoreUtil.getKeyPair(alias, keyStore));
+                            function.apply(provisioner, certificateFromKeyStore, cryptoStoreManager.getKeyPairForAlias(alias));
 
                     if (newCertificateData.certificateChain() == null || newCertificateData.keyPair() == null) {
                         log.warn("Certificate for alias {} hasn't saved, because returned certificate chain or keypair is null", alias);
@@ -168,15 +167,15 @@ public class CertificateRenewScheduler {
                     }
 
                     log.info("Saving certificate and key for alias {} in keystore", alias);
-                    // Save the new certificate in keystore
-                    keyStore.deleteEntry(alias);
-                    keyStore.setKeyEntry(
-                            alias,
-                            newCertificateData.keyPair().getPrivate(),
-                            "".toCharArray(),
-                            newCertificateData.certificateChain()
-                    );
-                    cryptoStoreManager.saveKeystore();
+                    if (alias.startsWith(CryptoStoreManager.KEYSTORE_ALIASPREFIX_INTERMEDIATECA)) {
+                        String id = alias.substring(CryptoStoreManager.KEYSTORE_ALIASPREFIX_INTERMEDIATECA.length());
+                        cryptoStoreManager.addIntermediateCertificateAuthority(newCertificateData.certificateChain(), newCertificateData.keyPair(), id);
+                    } else if (alias.startsWith(CryptoStoreManager.KEYSTORE_ALIASPREFIX_TSA)) {
+                        String id = alias.substring(CryptoStoreManager.KEYSTORE_ALIASPREFIX_TSA.length());
+                        cryptoStoreManager.addTimestampAuthority(newCertificateData.certificateChain(), newCertificateData.keyPair(), id);
+                    } else {
+                        cryptoStoreManager.addServerCertificate(newCertificateData.certificateChain(), newCertificateData.keyPair(), alias);
+                    }
                     eventBus.publish(new ProvisionerCertificateRenewedEvent(provisioner));
 
                     if (renewEntry.triggerAfterRegeneration != null) {
@@ -191,8 +190,6 @@ public class CertificateRenewScheduler {
                 log.error("Error renewing certificate", ex);
             }
         }
-
- */
     }
 
     /**
