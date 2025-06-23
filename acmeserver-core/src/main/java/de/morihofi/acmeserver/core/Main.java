@@ -40,7 +40,8 @@ import de.morihofi.acmeserver.utils.meta.BuildMetadataImpl;
 import de.morihofi.acmeserver.utils.network.http.NetworkClient;
 import de.morihofi.acmeserver.utils.network.ssl.mozillasslconfig.MozillaSslConfigHelper;
 import de.morihofi.acmeserver.utils.path.AppDirectoryHelper;
-import de.morihofi.acmeserver.types.events.EventBus;
+import de.morihofi.acmeserver.cluster.ClusterManager;
+import de.morihofi.acmeserver.cluster.DistributedEventBus;
 import de.morihofi.acmeserver.types.events.ServerInitializedEvent;
 import de.morihofi.acmeserver.types.events.ServerStartedEvent;
 import de.morihofi.acmeserver.types.events.ServerShutdownEvent;
@@ -173,12 +174,17 @@ public class Main {
         Security.addProvider(new BouncyCastleJsseProvider());
 
         // ... and continue building the server instance
-        EventBus eventBus = new EventBus();
+        DistributedEventBus eventBus = new DistributedEventBus();
+        ClusterManager clusterManager = null;
+        if (config.getGrpc().isEnabled()) {
+            clusterManager = new ClusterManager(config.getGrpc(), eventBus);
+            eventBus.setClusterManager(clusterManager);
+        }
         serverInstance = getServerInstance(config, debug, CONFIG_PATH, eventBus);
         eventBus.publish(new ServerInitializedEvent(serverInstance));
 
 
-        WebServer ws = new WebServer(serverInstance);
+        WebServer ws = new WebServer(serverInstance, clusterManager);
         try {
             ws.startServer();
             eventBus.publish(new ServerStartedEvent(serverInstance));
@@ -194,7 +200,7 @@ public class Main {
 
 
 
-    public static IServerInstance getServerInstance(Config config, boolean debug, Path configPath, EventBus eventBus) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvalidAlgorithmParameterException, OperatorCreationException, UnrecoverableKeyException {
+    public static IServerInstance getServerInstance(Config config, boolean debug, Path configPath, DistributedEventBus eventBus) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvalidAlgorithmParameterException, OperatorCreationException, UnrecoverableKeyException {
         if (Objects.equals(System.getenv("DEBUG"), "TRUE")) {
             debug = true;
             log.info("Debug mode activated by DEBUG environment variable set to TRUE");

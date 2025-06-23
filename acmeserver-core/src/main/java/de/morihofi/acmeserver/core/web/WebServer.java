@@ -31,6 +31,7 @@ import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.TsaRenewSubsc
 import de.morihofi.acmeserver.tsa.TimeStampServlet;
 import de.morihofi.acmeserver.cryptography.tsa.TimeStampAuthority;
 import de.morihofi.acmeserver.cryptography.keystore.KeyStoreUtil;
+import de.morihofi.acmeserver.cluster.ClusterManager;
 import de.morihofi.acmeserver.types.events.AbstractEvent;
 import de.morihofi.acmeserver.types.events.AcmeTlsCertificateHotReloadEvent;
 import de.morihofi.acmeserver.types.events.EventSubscriber;
@@ -67,6 +68,7 @@ public class WebServer implements EventSubscriber {
      * Instance of IServerInstance providing access to server-related configurations and utilities.
      */
     private final IServerInstance serverInstance;
+    private final ClusterManager clusterManager;
 
     private final Server server;
 
@@ -78,8 +80,9 @@ public class WebServer implements EventSubscriber {
      *
      * @param serverInstance The instance of IServerInstance providing access to server-related configurations and utilities.
      */
-    public WebServer(IServerInstance serverInstance) {
+    public WebServer(IServerInstance serverInstance, ClusterManager clusterManager) {
         this.serverInstance = serverInstance;
+        this.clusterManager = clusterManager;
         this.certificateRenewScheduler = new CertificateRenewScheduler(serverInstance.getCryptoStoreManager(), serverInstance.getEventBus());
 
         log.info("Registering WebServer as event listener for TLS Certificate Renew Events");
@@ -102,6 +105,10 @@ public class WebServer implements EventSubscriber {
                     }
                 }
         );
+    }
+
+    public WebServer(IServerInstance serverInstance) {
+        this(serverInstance, null);
     }
 
     /**
@@ -197,8 +204,12 @@ public class WebServer implements EventSubscriber {
         serverInstance.getEventBus().register(tsaWatcher);
         tsaWatcher.initialize();
 
-        log.info("Starting the certificate renew watcher");
-        certificateRenewScheduler.startScheduler();
+        if (clusterManager == null || clusterManager.isLeader()) {
+            log.info("Starting the certificate renew watcher");
+            certificateRenewScheduler.startScheduler();
+        } else {
+            log.info("Skipping certificate renew watcher start on follower");
+        }
 
         if (serverInstance.getStartupFlags().contains(StartupFlag.USE_ASYNC_CERTIFICATE_ISSUING)) {
             log.info("Registering async certificate issuance subscriber");

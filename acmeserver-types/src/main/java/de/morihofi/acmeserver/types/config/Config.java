@@ -41,4 +41,9 @@ public class Config implements Serializable {
 
     private NetworkConfig network = new NetworkConfig();
 
+    /**
+     * gRPC clustering configuration.
+     */
+    private GrpcConfig grpc = new GrpcConfig();
+
 }

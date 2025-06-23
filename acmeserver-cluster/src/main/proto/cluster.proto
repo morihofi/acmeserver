@@ -1,0 +1,18 @@
+syntax = "proto3";
+package de.morihofi.acmeserver.cluster;
+
+message Empty {}
+
+message EventMessage {
+  string type = 1;
+  string json = 2;
+}
+
+message InstanceInfo {
+  string instanceId = 1;
+}
+
+service ClusterService {
+  rpc SendEvent(EventMessage) returns (Empty);
+  rpc GetInstanceInfo(Empty) returns (InstanceInfo);
+}

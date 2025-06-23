@@ -37,7 +37,7 @@ I'll hope to say one day that we are fully compliant.
 ## 📖 Documentation
 
 Documentation is now located [here](docs/README.md). In the same directory are also other tutorials related to this ACME
-Server.
+Server. For details on clustering with gRPC see [docs/Kubernetes_gRPC.md](docs/Kubernetes_gRPC.md).
 
 ## ✨ Features
 

@@ -20,6 +20,7 @@
         <module>acmeserver-acme</module>
         <module>acmeserver-web-legacy</module>
         <module>acmeserver-tsa</module>
+        <module>acmeserver-cluster</module>
     </modules>
 
     <licenses>

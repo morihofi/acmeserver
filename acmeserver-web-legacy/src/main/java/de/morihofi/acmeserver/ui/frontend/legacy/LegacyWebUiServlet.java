@@ -33,7 +33,7 @@ public class LegacyWebUiServlet extends AbstractJteRouterServlet {
 
     @Override
     protected String getBaseUrl(HttpServletRequest request) {
-        return serverInstance.getServerURL(); // z. B. https://example.com
+        return serverInstance.getServerURL(); // z.B. https://example.com
     }
 
     private void handleIndex(HttpServletRequest req, HttpServletResponse resp) {
