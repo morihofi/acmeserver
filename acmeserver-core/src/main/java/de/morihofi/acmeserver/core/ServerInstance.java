@@ -45,9 +45,10 @@ import java.util.Set;
 @Builder
 public class ServerInstance implements IServerInstance {
 
-        // Clear sensitive passwords from in memory config to avoid accidental exposure
-        // this.appConfig.getDatabase().setPassword(null);
-        // this.appConfig.getKeyStore().clearPassword();
+    // TODO: Re-add
+    // Clear sensitive passwords from in memory config to avoid accidental exposure
+    // this.appConfig.getDatabase().setPassword(null);
+    // this.appConfig.getKeyStore().clearPassword();
 
     /**
      * The configuration settings for the application.
@@ -125,19 +126,18 @@ public class ServerInstance implements IServerInstance {
     @Override
     @SuppressFBWarnings("NP_NONNULL_RETURN_VIOLATION") // Suppress false positive for non-null return value
     public Session getDatabaseSession() {
-        if(getHibernateUtil().getSessionFactory() == null) {
+        if (getHibernateUtil().getSessionFactory() == null) {
             throw new IllegalStateException("Hibernate SessionFactory is not initialized. Please ensure that the HibernateUtil is properly configured.");
         }
 
         return getHibernateUtil().getSessionFactory().openSession();
     }
+
     @NonNull
     @Override
     public EventBus getEventBus() {
         return eventBus;
     }
-
-
 
 
 }
