@@ -27,8 +27,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -243,8 +246,27 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     }
 
     @Override
-    public SSLContext getSslContextForServer(String uuid) {
-        return null; //TODO: implement SSLContext creation for server
+    public SSLContext getSslContextForServer(String uuid) throws IOException {
+        try {
+            KeyPair keyPair = getServerKeyPair(uuid);
+            X509Certificate[] chain = getFullServerCertificateChain(uuid);
+
+            KeyStore ks = KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
+            ks.load(null, null);
+            ks.setKeyEntry("srv", keyPair.getPrivate(), new char[0], chain);
+
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance("PKIX");
+            kmf.init(ks, new char[0]);
+
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
+            tmf.init(ks);
+
+            SSLContext context = SSLContext.getInstance("TLS", BouncyCastleJsseProvider.PROVIDER_NAME);
+            context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+            return context;
+        } catch (GeneralSecurityException e) {
+            throw new IOException("Failed to create SSLContext", e);
+        }
     }
 
     @Override
