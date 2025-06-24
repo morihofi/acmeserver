@@ -1,19 +1,17 @@
 package de.morihofi.acmeserver.core.api.download;
 
 import de.morihofi.acmeserver.core.tools.fileformats.archive.cab.CabFile;
+import de.morihofi.acmeserver.cryptography.pem.PemUtil;
 import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.types.database.entities.RootCa;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import lombok.NonNull;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import org.w3c.dom.*;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.PrintWriter;
@@ -24,23 +22,22 @@ import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 
-/**
- * Handler returning the root certificate wrapped into a CAB file for Windows CE/mobile.
- */
-public class DownloadRootCaCabHandler implements Handler {
+public class DownloadRootCaHandler implements Handler {
+
     private final IServerInstance serverInstance;
+    private final CertificateFormat format;
 
-    public DownloadRootCaCabHandler(@NonNull IServerInstance serverInstance) {
+    public DownloadRootCaHandler(IServerInstance serverInstance, CertificateFormat format) {
         this.serverInstance = serverInstance;
+        this.format = format;
     }
 
-    private static String toHex(byte[] data) {
-        StringBuilder sb = new StringBuilder(data.length * 2);
-        for (byte b : data) {
-            sb.append(String.format("%02x", b & 0xff));
-        }
-        return sb.toString();
+    public enum CertificateFormat {
+        PEM,
+        DER,
+        CAB
     }
+
 
     @Override
     public void handle(@NonNull HandlerContext ctx) throws Exception {
@@ -50,32 +47,32 @@ public class DownloadRootCaCabHandler implements Handler {
             ctx.status(404);
             return;
         }
-        ctx.header("Content-Type", "application/vnd.ms-cab-compressed");
 
         X509Certificate cert = serverInstance.getCryptoStoreManager().getCertficateAuthorityX509Certificate(ca);
-        String xml = createXmlWithCertificate(cert);
-        byte[] generatedCab = new CabFile.Builder()
-                .addFile("_setup.xml", xml.getBytes(StandardCharsets.UTF_8))
-                .build().getCabFile();
-        ctx.result(generatedCab);
+
+        switch (format) {
+            case PEM -> {
+                ctx.header("Content-Type", "application/x-x509-ca-cert");
+                String pem = PemUtil.certificateToPEM(cert.getEncoded());
+                ctx.result(pem);
+            }
+            case DER -> {
+                ctx.header("Content-Type", "application/x-x509-ca-cert");
+                ctx.result(cert.getEncoded());
+            }
+            case CAB -> {
+                ctx.header("Content-Type", "application/vnd.ms-cab-compressed");
+                String xml = createXmlWithCertificate(cert);
+                byte[] generatedCab = new CabFile.Builder()
+                        .addFile("_setup.xml", xml.getBytes(StandardCharsets.UTF_8))
+                        .build().getCabFile();
+                ctx.result(generatedCab);
+            }
+        }
     }
 
-    private String getFingerprint(X509Certificate certificate) throws Exception {
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        byte[] certBytes = certificate.getEncoded();
-        byte[] fingerprintBytes = md.digest(certBytes);
-        return toHex(fingerprintBytes);
-    }
-
-    private String getPEMWithoutHeaderAndFooter(X509Certificate certificate) throws Exception {
-        Base64.Encoder encoder = Base64.getMimeEncoder(64, "\r\n".getBytes(StandardCharsets.UTF_8));
-        byte[] derCert = certificate.getEncoded();
-        return encoder.encodeToString(derCert);
-    }
-
-    public String createXmlWithCertificate(X509Certificate certificate) throws Exception {
-        DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+    private String createXmlWithCertificate(X509Certificate certificate) throws Exception {
+        DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         Document doc = docBuilder.newDocument();
 
         Element rootElement = doc.createElement("wap-provisioningdoc");
@@ -99,16 +96,31 @@ public class DownloadRootCaCabHandler implements Handler {
         encodedCert.setAttribute("value", getPEMWithoutHeaderAndFooter(certificate));
         fingerprintElement.appendChild(encodedCert);
 
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        DOMSource source = new DOMSource(doc);
         StringWriter sw = new StringWriter();
         try (Writer writer = new PrintWriter(sw)) {
-            StreamResult result = new StreamResult(writer);
-            transformer.transform(source, result);
+            transformer.transform(new DOMSource(doc), new StreamResult(writer));
         }
 
         return sw.toString().replace("&#10;", "\r\n").replace("&#13;", "");
+    }
+
+    private String getFingerprint(X509Certificate certificate) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        return toHex(md.digest(certificate.getEncoded()));
+    }
+
+    private String toHex(byte[] data) {
+        StringBuilder sb = new StringBuilder(data.length * 2);
+        for (byte b : data) {
+            sb.append(String.format("%02x", b & 0xff));
+        }
+        return sb.toString();
+    }
+
+    private String getPEMWithoutHeaderAndFooter(X509Certificate certificate) throws Exception {
+        Base64.Encoder encoder = Base64.getMimeEncoder(64, "\r\n".getBytes(StandardCharsets.UTF_8));
+        return encoder.encodeToString(certificate.getEncoded());
     }
 }
