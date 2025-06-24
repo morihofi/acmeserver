@@ -61,7 +61,7 @@ public class NonceManager implements INonceManager {
      *
      */
     public NonceManager(@NonNull HibernateUtil hibernateUtil, @NonNull EventBus eventBus) {
-        this.debug = true; //FIXME: set to false in production
+        this.debug = false;
         this.hibernateUtil = hibernateUtil;
         this.eventBus = eventBus;
     }
