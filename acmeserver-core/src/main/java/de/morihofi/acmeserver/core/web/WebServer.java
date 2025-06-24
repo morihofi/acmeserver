@@ -18,6 +18,7 @@ package de.morihofi.acmeserver.core.web;
 
 import de.morihofi.acmeserver.acme.AcmeHttpServlet;
 import de.morihofi.acmeserver.acme.GetHttpsForFreeServlet;
+import de.morihofi.acmeserver.types.events.ServerShutdownEvent;
 import de.morihofi.acmeserver.ui.frontend.legacy.LegacyWebUiServlet;
 import de.morihofi.acmeserver.revocation.crl.CrlScheduler;
 import de.morihofi.acmeserver.revocation.crl.CrlUpdateSubscriber;
@@ -82,6 +83,8 @@ public class WebServer implements EventSubscriber {
         log.info("Registering WebServer as event listener for TLS Certificate Renew Events");
         serverInstance.getEventBus().register(this);
 
+        // We don't use virtual thread pool here, because it may deadlock in Java 21.
+        // This is a known issue with Jetty and virtual threads and fixed in newer Java versions.
         QueuedThreadPool threadPool = new QueuedThreadPool();
         threadPool.setName("WebServer-ThreadPool");
 
@@ -296,18 +299,21 @@ public class WebServer implements EventSubscriber {
 
     @Override
     public List<Class<? extends AbstractEvent>> canHandle() {
-        return List.of(AcmeTlsCertificateHotReloadEvent.class);
+        return List.of(AcmeTlsCertificateHotReloadEvent.class, ServerShutdownEvent.class);
     }
 
     @Override
-    public void onEvent(AbstractEvent event) {
-        if (event instanceof AcmeTlsCertificateHotReloadEvent) {
-            log.info("Reconfiguring TLS due to event: {}", event.getClass().getSimpleName());
-            try {
+    public void onEvent(AbstractEvent event) throws Exception {
+        switch (event) {
+            case AcmeTlsCertificateHotReloadEvent e -> {
+                log.info("Reconfiguring TLS due to event: {}", e.getClass().getSimpleName());
                 loadOrReloadTlsCertificate();
-            } catch (Exception e) {
-                log.error("Failed to reconfigure TLS", e);
             }
+            case ServerShutdownEvent e -> {
+                log.info("Received ServerShutdownEvent, shutting down WebServer...");
+                server.stop();
+            }
+            default -> log.warn("Unhandled event type: {}", event.getClass().getSimpleName());
         }
     }
 }

@@ -12,5 +12,5 @@ public interface EventListener<T> {
      *
      * @param event event data
      */
-    void onEvent(T event);
+    void onEvent(T event) throws Exception;
 }
