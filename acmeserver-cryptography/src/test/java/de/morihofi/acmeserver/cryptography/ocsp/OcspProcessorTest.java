@@ -64,6 +64,7 @@ class OcspProcessorTest {
             return "";
         }
 
+        @NotNull
         @NonNull
         @Override
         public Session getDatabaseSession() {

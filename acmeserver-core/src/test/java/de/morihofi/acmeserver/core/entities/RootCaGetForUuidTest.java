@@ -12,6 +12,7 @@ import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.server.StartupFlag;
 import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +28,7 @@ class RootCaGetForUuidTest {
         private final Config cfg;
         DummySI(HibernateUtil hu, RootCa ca, Config cfg){this.hu=hu;this.ca=ca;this.cfg=cfg;}
         @Override public String getServerURL(){return "";}
+        @NotNull
         @Override public Session getDatabaseSession(){return hu.getSessionFactory().openSession();}
         @Override public ICryptoStoreManager getCryptoStoreManager(){return null;}
         @Override public Config getAppConfig(){return cfg;}

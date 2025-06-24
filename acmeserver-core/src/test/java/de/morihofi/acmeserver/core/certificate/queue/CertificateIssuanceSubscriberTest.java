@@ -13,6 +13,7 @@ import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import org.hibernate.Session;
 import lombok.NonNull;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -29,6 +30,7 @@ class CertificateIssuanceSubscriberTest {
         @NonNull
         @Override public String getServerURL(){return "";}
 
+        @NotNull
         @NonNull
         @Override public Session getDatabaseSession(){return session;}
         @NonNull

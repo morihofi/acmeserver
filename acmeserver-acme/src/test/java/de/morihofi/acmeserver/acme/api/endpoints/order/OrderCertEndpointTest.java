@@ -12,6 +12,7 @@ import de.morihofi.acmeserver.types.intf.IServerInstance;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hibernate.Session;
 import lombok.NonNull;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,7 @@ class OrderCertEndpointTest {
         DummyServerInstance(CryptoStoreManager mgr) { this.mgr = mgr; }
         @NonNull
         @Override public String getServerURL() { return ""; }
+        @NotNull
         @NonNull
         @Override public Session getDatabaseSession() { return null; }
         @NonNull

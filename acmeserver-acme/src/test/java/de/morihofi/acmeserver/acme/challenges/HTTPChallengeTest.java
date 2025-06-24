@@ -16,6 +16,7 @@ import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import okhttp3.OkHttpClient;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import lombok.NonNull;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
@@ -48,6 +49,7 @@ class HTTPChallengeTest {
         private final BuildMetadata meta = BuildMetadata.builder().buildVersion("test").gitCommit("abc").build();
         @NonNull
         @Override public String getServerURL() { return ""; }
+        @NotNull
         @NonNull
         @Override public org.hibernate.Session getDatabaseSession() { return null; }
         @NonNull

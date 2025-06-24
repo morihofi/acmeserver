@@ -228,20 +228,21 @@ public class Main {
         TsaAuthority tsa = TsaInitHelper.initializeTsa(hibernateUtil, cryptoStoreManager, root, eventBus);
 
         log.info("Creating new server instance ...");
-        return new ServerInstance(
-                config,
-                configPath,
-                debug,
-                cryptoStoreManager,
-                new NetworkClient(config.getNetwork()),
-                hibernateUtil,
-                new NonceManager(serverInstance),
-                root,
-                tsa,
-                BuildMetadataImpl.getInstance(),
-                eventBus,
-                startupFlags
-        );
+
+        return ServerInstance.builder()
+                .appConfig(config)
+                .appConfigPath(configPath)
+                .debug(debug)
+                .cryptoStoreManager(cryptoStoreManager)
+                .networkClient(new NetworkClient(config.getNetwork()))
+                .hibernateUtil(hibernateUtil)
+                .rootCa(root)
+                .tsaAuthority(tsa)
+                .buildMetadata(BuildMetadataImpl.getInstance())
+                .eventBus(eventBus)
+                .nonceManager(new NonceManager(hibernateUtil, eventBus))
+                .startupFlags(startupFlags)
+                .build();
     }
 
     /**

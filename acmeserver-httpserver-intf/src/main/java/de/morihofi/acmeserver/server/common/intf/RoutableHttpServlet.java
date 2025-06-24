@@ -11,6 +11,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+
 @RequiredArgsConstructor
 @Slf4j
 public abstract class RoutableHttpServlet extends HttpServlet {
@@ -28,7 +30,7 @@ public abstract class RoutableHttpServlet extends HttpServlet {
     };
 
     @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp) {
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String method = req.getMethod();
         String path = req.getRequestURI();
         HandlerContext context = getHandlerContext(req, resp);
@@ -63,7 +65,7 @@ public abstract class RoutableHttpServlet extends HttpServlet {
         }
     }
 
-    private HandlerContext getHandlerContext(HttpServletRequest req, HttpServletResponse resp) {
+    private HandlerContext getHandlerContext(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         return new HandlerContext(
                 new HttpRequestWrapper(req),
                 new HttpResponseWrapper(resp),

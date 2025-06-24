@@ -9,6 +9,7 @@ import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.server.StartupFlag;
 import lombok.NonNull;
 import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.util.Set;
@@ -29,6 +30,7 @@ class IServerInstanceTest {
         @Override
         public String getServerURL() { return ""; }
 
+        @NotNull
         @NonNull
         @Override
         public Session getDatabaseSession() { return null; }

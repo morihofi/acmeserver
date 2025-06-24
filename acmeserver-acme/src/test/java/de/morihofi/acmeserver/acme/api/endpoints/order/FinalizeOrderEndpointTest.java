@@ -9,6 +9,7 @@ import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEUnauthorizedException;
 import org.hibernate.Session;
 import lombok.NonNull;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -20,6 +21,7 @@ class FinalizeOrderEndpointTest {
     static class DummyServerInstance implements IServerInstance {
         @NonNull
         @Override public String getServerURL() { return ""; }
+        @NotNull
         @NonNull
         @Override public Session getDatabaseSession() { return null; }
         @NonNull

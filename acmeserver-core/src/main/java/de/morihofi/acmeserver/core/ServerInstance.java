@@ -27,11 +27,13 @@ import de.morihofi.acmeserver.types.database.entities.TsaAuthority;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.server.StartupFlag;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import de.morihofi.acmeserver.types.events.EventBus;
 import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
 import java.util.Set;
@@ -40,36 +42,12 @@ import java.util.Set;
  * Represents the server instance that holds various configurations and utilities required for the operation of the server.
  */
 @Getter
+@Builder
 public class ServerInstance implements IServerInstance {
 
-
-    public ServerInstance(@NonNull Config appConfig, @NonNull Path appConfigPath, boolean debug,
-                          @NonNull CryptoStoreManager cryptoStoreManager,
-                          @NonNull INetworkClient networkClient,
-                          @NonNull HibernateUtil hibernateUtil,
-                          @NonNull INonceManager nonceManager,
-                          @NonNull RootCa rootCa,
-                          @NonNull TsaAuthority tsaAuthority,
-                          @NonNull BuildMetadata buildMetadata,
-                          @NonNull EventBus eventBus,
-                          @NonNull Set<StartupFlag> startupFlags) {
-        this.appConfig = appConfig;
-        this.appConfigPath = appConfigPath;
-        this.debug = debug;
-        this.cryptoStoreManager = cryptoStoreManager;
-        this.networkClient = networkClient;
-        this.hibernateUtil = hibernateUtil;
-        this.nonceManager = nonceManager;
-        this.rootCa = rootCa;
-        this.tsaAuthority = tsaAuthority;
-        this.buildMetadata = buildMetadata;
-        this.eventBus = eventBus;
-        this.startupFlags = startupFlags;
-
         // Clear sensitive passwords from in memory config to avoid accidental exposure
-        this.appConfig.getDatabase().setPassword(null);
-        this.appConfig.getKeyStore().clearPassword();
-    }
+        // this.appConfig.getDatabase().setPassword(null);
+        // this.appConfig.getKeyStore().clearPassword();
 
     /**
      * The configuration settings for the application.
@@ -142,6 +120,7 @@ public class ServerInstance implements IServerInstance {
     }
 
 
+    @NotNull
     @NonNull
     @Override
     @SuppressFBWarnings("NP_NONNULL_RETURN_VIOLATION") // Suppress false positive for non-null return value

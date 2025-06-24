@@ -18,7 +18,9 @@ package de.morihofi.acmeserver.core;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import de.morihofi.acmeserver.core.database.HibernateUtil;
 import de.morihofi.acmeserver.types.database.entities.HttpNonces;
+import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEBadNonceException;
 import de.morihofi.acmeserver.types.intf.INonceManager;
 import de.morihofi.acmeserver.types.events.AcmeNonceRedeemedEvent;
@@ -44,7 +46,9 @@ public class NonceManager implements INonceManager {
     /**
     * Server.
     */
-    private final IServerInstance serverInstance;
+    private final HibernateUtil hibernateUtil;
+
+    private final EventBus eventBus;
 
 
     /**
@@ -56,9 +60,10 @@ public class NonceManager implements INonceManager {
      * Constructs a new NonceManager instance
      *
      */
-    public NonceManager(IServerInstance serverInstance) {
-        this.debug = false;
-        this.serverInstance = serverInstance;
+    public NonceManager(@NonNull HibernateUtil hibernateUtil, @NonNull EventBus eventBus) {
+        this.debug = true; //FIXME: set to false in production
+        this.hibernateUtil = hibernateUtil;
+        this.eventBus = eventBus;
     }
 
 
@@ -85,7 +90,7 @@ public class NonceManager implements INonceManager {
             return false;
         }
 
-        try (Session session = Objects.requireNonNull(serverInstance.getDatabaseSession())) {
+        try (Session session = Objects.requireNonNull(hibernateUtil.getSessionFactory().openSession())) {
             Transaction transaction = session.beginTransaction();
 
             // Check if the nonce exists in the database
@@ -115,7 +120,7 @@ public class NonceManager implements INonceManager {
 
             // Apply
             transaction.commit();
-            serverInstance.getEventBus().publish(new AcmeNonceRedeemedEvent(nonce));
+            eventBus.publish(new AcmeNonceRedeemedEvent(nonce));
 
             return false;
 

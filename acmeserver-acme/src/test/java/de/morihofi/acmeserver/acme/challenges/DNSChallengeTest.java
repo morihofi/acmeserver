@@ -20,6 +20,7 @@ import de.morihofi.acmeserver.acme.challenges.DNSChallenge;
 import de.morihofi.acmeserver.acme.challenges.ChallengeResult;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import lombok.NonNull;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,7 @@ class DNSChallengeTest {
         }
         @NonNull
         @Override public String getServerURL() { return ""; }
+        @NotNull
         @NonNull
         @Override public org.hibernate.Session getDatabaseSession() { return null; }
         @NonNull
