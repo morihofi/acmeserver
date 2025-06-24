@@ -20,7 +20,7 @@ public interface ICryptoStoreManager {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
-    KeyPair getCerificateAuthorityKeyPair(@NonNull RootCa rootCa) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException;
+    KeyPair getCertficateAuthorityKeyPair(@NonNull RootCa rootCa) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException;
 
     /**
      * Retrieves the X509 certificate for the root certificate authority from the keystore.
@@ -29,7 +29,7 @@ public interface ICryptoStoreManager {
      * @return The X509 certificate associated with the root certificate authority.
      * @throws KeyStoreException If there is an issue with the keystore.
      */
-    X509Certificate getCerificateAuthorityX509Certificate(@NonNull RootCa rootCa) throws KeyStoreException;
+    X509Certificate getCertficateAuthorityX509Certificate(@NonNull RootCa rootCa) throws KeyStoreException;
 
     /**
      * Retrieves the key pair for an intermediate certificate authority from the keystore.

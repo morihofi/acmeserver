@@ -18,14 +18,12 @@ package de.morihofi.acmeserver.core.web;
 
 import de.morihofi.acmeserver.cryptography.certificate.X509CertificateTools;
 import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
-import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.datetime.DateTools;
-import de.morihofi.acmeserver.types.config.Config;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -56,7 +54,7 @@ public class JettyCertificateHelper {
 
         ICryptoStoreManager cryptoStoreManager = serverInstance.getCryptoStoreManager();
 
-        KeyPair rootCaKeyPair = cryptoStoreManager.getCerificateAuthorityKeyPair(serverInstance.getRootCa());
+        KeyPair rootCaKeyPair = cryptoStoreManager.getCertficateAuthorityKeyPair(serverInstance.getRootCa());
 
         boolean needsNew = !cryptoStoreManager.containsServerCertificate("main");
         if (!needsNew) {
@@ -73,7 +71,7 @@ public class JettyCertificateHelper {
 
         log.info("Using root CA for generation");
         X509Certificate rootCertificate =
-                cryptoStoreManager.getCerificateAuthorityX509Certificate(serverInstance.getRootCa());
+                cryptoStoreManager.getCertficateAuthorityX509Certificate(serverInstance.getRootCa());
         X509Certificate intermediateCertificate = rootCertificate;
 
         log.info("Creating Server Certificate");

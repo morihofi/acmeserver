@@ -164,7 +164,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
     @NonNull
-    public KeyPair getCerificateAuthorityKeyPair(@NonNull RootCa rootCa) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+    public KeyPair getCertficateAuthorityKeyPair(@NonNull RootCa rootCa) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(rootCa.getInternalUuid(), keyStore);
     }
 
@@ -178,7 +178,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * @throws KeyStoreException If there is an issue accessing the keystore.
      */
     @NonNull
-    public X509Certificate getCerificateAuthorityX509Certificate(@NonNull RootCa rootCa) throws KeyStoreException {
+    public X509Certificate getCertficateAuthorityX509Certificate(@NonNull RootCa rootCa) throws KeyStoreException {
         return (X509Certificate) keyStore.getCertificate(rootCa.getInternalUuid());
     }
 

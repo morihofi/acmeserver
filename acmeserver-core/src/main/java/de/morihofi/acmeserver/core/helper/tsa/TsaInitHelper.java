@@ -46,15 +46,15 @@ public class TsaInitHelper {
                         X509Generator.Request.builder()
                                 .type(X509Generator.Type.TIMESTAMPING)
                                 .certificateConfig(tsa.getCertificateConfig())
-                                .issuerKeyPair(csm.getCerificateAuthorityKeyPair(root))
-                                .issuerCertificate(csm.getCerificateAuthorityX509Certificate(root))
+                                .issuerKeyPair(csm.getCertficateAuthorityKeyPair(root))
+                                .issuerCertificate(csm.getCertficateAuthorityX509Certificate(root))
                                 .ownKeyPair(kp)
                                 .build()
                 );
 
                 X509Certificate[] chain = new X509Certificate[]{
                         cert,
-                        csm.getCerificateAuthorityX509Certificate(root)
+                        csm.getCertficateAuthorityX509Certificate(root)
                 };
 
                 csm.addTimestampAuthority(chain, kp, tsa.getInternalUuid());

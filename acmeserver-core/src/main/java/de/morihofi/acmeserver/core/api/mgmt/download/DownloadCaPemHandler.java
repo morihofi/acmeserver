@@ -51,7 +51,7 @@ public class DownloadCaPemHandler implements Handler {
         String pem = PemUtil.certificateToPEM(
                 serverInstance
                         .getCryptoStoreManager()
-                        .getCerificateAuthorityX509Certificate(serverInstance.getRootCa())
+                        .getCertficateAuthorityX509Certificate(serverInstance.getRootCa())
                         .getEncoded()
         );
 

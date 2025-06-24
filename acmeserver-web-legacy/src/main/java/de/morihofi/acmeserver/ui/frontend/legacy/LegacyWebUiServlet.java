@@ -109,7 +109,7 @@ public class LegacyWebUiServlet extends AbstractJteRouterServlet {
             }
 
             try {
-                java.security.cert.X509Certificate cert = serverInstance.getCryptoStoreManager().getCerificateAuthorityX509Certificate(ca);
+                java.security.cert.X509Certificate cert = serverInstance.getCryptoStoreManager().getCertficateAuthorityX509Certificate(ca);
                 entry.setSha1Fingerprint(de.morihofi.acmeserver.ui.frontend.legacy.util.CertificateUtil.getFingerprint(cert, "SHA-1"));
                 entry.setSha256Fingerprint(de.morihofi.acmeserver.ui.frontend.legacy.util.CertificateUtil.getFingerprint(cert, "SHA-256"));
             } catch (Exception ex) {

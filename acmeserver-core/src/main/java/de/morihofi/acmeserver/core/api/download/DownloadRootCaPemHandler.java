@@ -28,7 +28,7 @@ public class DownloadRootCaPemHandler implements Handler {
         ctx.header("Content-Type", "application/x-x509-ca-cert");
         String pem = PemUtil.certificateToPEM(
                 serverInstance.getCryptoStoreManager()
-                        .getCerificateAuthorityX509Certificate(ca)
+                        .getCertficateAuthorityX509Certificate(ca)
                         .getEncoded()
         );
         ctx.result(pem);
