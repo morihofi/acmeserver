@@ -19,6 +19,8 @@ package de.morihofi.acmeserver.core;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
+import de.morihofi.acmeserver.core.impl.NonceManager;
+import de.morihofi.acmeserver.core.impl.ServerInstance;
 import de.morihofi.acmeserver.core.web.JettySslHelper;
 import de.morihofi.acmeserver.core.web.WebServer;
 import de.morihofi.acmeserver.types.database.entities.RootCa;

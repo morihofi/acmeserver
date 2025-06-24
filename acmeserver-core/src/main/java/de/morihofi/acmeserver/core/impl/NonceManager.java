@@ -14,7 +14,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.core;
+package de.morihofi.acmeserver.core.impl;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -24,7 +24,6 @@ import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEBadNonceException;
 import de.morihofi.acmeserver.types.intf.INonceManager;
 import de.morihofi.acmeserver.types.events.AcmeNonceRedeemedEvent;
-import de.morihofi.acmeserver.types.intf.IServerInstance;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

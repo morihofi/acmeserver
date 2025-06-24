@@ -14,7 +14,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.core;
+package de.morihofi.acmeserver.core.impl;
 
 import de.morihofi.acmeserver.core.database.HibernateUtil;
 import de.morihofi.acmeserver.types.intf.network.INetworkClient;
