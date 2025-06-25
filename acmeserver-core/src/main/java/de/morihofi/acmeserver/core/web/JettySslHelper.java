@@ -40,26 +40,6 @@ import java.util.List;
 @Slf4j
 public class JettySslHelper {
 
-    /**
-     * Builds a configured {@link SslContextFactory.Server} instance for the given key material.
-     *
-     * @param keyStore    the keystore containing the certificate
-     * @param alias       alias of the certificate entry
-     * @param keyPassword password for the private key
-     * @return configured SslContextFactory
-     */
-    private static SslContextFactory.Server buildSslContextFactory(KeyStore keyStore, String alias, String keyPassword) {
-        SslContextFactory.Server factory = new SslContextFactory.Server();
-        factory.setKeyStore(keyStore);
-        factory.setKeyStorePassword(keyPassword);
-        factory.setKeyManagerPassword(keyPassword);
-        factory.setCertAlias(alias);
-        factory.setProvider(BouncyCastleJsseProvider.PROVIDER_NAME);
-        factory.setProtocol("TLS");
-        factory.setKeyManagerFactoryAlgorithm("PKIX");
-        return factory;
-    }
-
     public static void applyMozillaTlsConfig(MozillaSslConfigHelper.BasicConfiguration cfg,
                                              SslContextFactory.Server factory,
                                              SecureRequestCustomizer customizer) {
