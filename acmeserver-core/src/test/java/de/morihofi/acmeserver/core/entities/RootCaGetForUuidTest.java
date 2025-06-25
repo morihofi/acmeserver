@@ -31,17 +31,27 @@ class RootCaGetForUuidTest {
         private final RootCa ca;
         private final Config cfg;
         DummySI(HibernateUtil hu, RootCa ca, Config cfg){this.hu=hu;this.ca=ca;this.cfg=cfg;}
+        @NotNull
         @Override public String getServerURL(){return "";}
         @NotNull
         @Override public Session getDatabaseSession(){return hu.getSessionFactory().openSession();}
+        @NotNull
         @Override public ICryptoStoreManager getCryptoStoreManager(){return null;}
+        @NotNull
         @Override public Config getAppConfig(){return cfg;}
+        @NotNull
         @Override public INonceManager getNonceManager(){return null;}
+        @NotNull
         @Override public RootCa getRootCa(){return ca;}
+        @NotNull
         @Override public TsaAuthority getTsaAuthority(){return null;}
+        @NotNull
         @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
+        @NotNull
         @Override public INetworkClient getNetworkClient(){return null;}
+        @NotNull
         @Override public EventBus getEventBus(){return new EventBus();}
+        @NotNull
         @Override public Set<StartupFlag> getStartupFlags(){return Collections.emptySet();}
     }
 

@@ -63,6 +63,7 @@ class OcspProcessorTest {
         DummyServer(ICryptoStoreManager csm) {
             this.csm = csm;
         }
+        @NotNull
         @NonNull
         @Override
         public String getServerURL() {
@@ -76,53 +77,62 @@ class OcspProcessorTest {
             return null;
         }
 
+        @NotNull
         @NonNull
         @Override
         public ICryptoStoreManager getCryptoStoreManager() {
             return csm;
         }
 
+        @NotNull
         @NonNull
         @Override
         public Config getAppConfig() {
             return new Config();
         }
 
+        @NotNull
         @NonNull
         @Override
         public INonceManager getNonceManager() {
             return null;
         }
 
+        @NotNull
         @NonNull
         @Override
         public RootCa getRootCa() {
             return null;
         }
 
+        @NotNull
         @Override
         public @NonNull TsaAuthority getTsaAuthority() {
             return null;
         }
 
+        @NotNull
         @NonNull
         @Override
         public BuildMetadata getBuildMetadata() {
             return BuildMetadata.builder().build();
         }
 
+        @NotNull
         @NonNull
         @Override
         public INetworkClient getNetworkClient() {
             return null;
         }
 
+        @NotNull
         @NonNull
         @Override
         public EventBus getEventBus() {
             return new EventBus();
         }
 
+        @NotNull
         @NonNull
         @Override
         public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() {

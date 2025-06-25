@@ -38,17 +38,27 @@ class JettyCertificateHelperTest {
         private final CryptoStoreManager mgr;
         private final RootCa rootCa;
         DummyServer(CryptoStoreManager mgr, RootCa rootCa){this.mgr=mgr;this.rootCa=rootCa;}
+        @NotNull
         @NonNull @Override public String getServerURL(){return "";}
         @NotNull
         @NonNull @Override public org.hibernate.Session getDatabaseSession(){return null;}
+        @NotNull
         @NonNull @Override public ICryptoStoreManager getCryptoStoreManager(){return mgr;}
+        @NotNull
         @NonNull @Override public Config getAppConfig(){Config c=new Config();c.setServer(new ServerConfig());return c;}
+        @NotNull
         @NonNull @Override public INonceManager getNonceManager(){return null;}
+        @NotNull
         @NonNull @Override public RootCa getRootCa(){return rootCa;}
+        @NotNull
         @NonNull @Override public TsaAuthority getTsaAuthority(){return null;}
+        @NotNull
         @NonNull @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
+        @NotNull
         @NonNull @Override public INetworkClient getNetworkClient(){return null;}
+        @NotNull
         @NonNull @Override public EventBus getEventBus(){return new EventBus();}
+        @NotNull
         @NonNull @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags(){return Collections.emptySet();}
     }
 

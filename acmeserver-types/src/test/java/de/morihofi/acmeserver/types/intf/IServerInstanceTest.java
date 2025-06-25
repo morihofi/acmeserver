@@ -26,6 +26,7 @@ class IServerInstanceTest {
             this.rootCa.setInternalUuid(alias);
         }
 
+        @NotNull
         @NonNull
         @Override
         public String getServerURL() { return ""; }
@@ -35,48 +36,51 @@ class IServerInstanceTest {
         @Override
         public Session getDatabaseSession() { return null; }
 
+        @NotNull
         @NonNull
         @Override
         public ICryptoStoreManager getCryptoStoreManager() { return null; }
 
+        @NotNull
         @NonNull
         @Override
         public Config getAppConfig() { return null; }
 
+        @NotNull
         @NonNull
         @Override
         public INonceManager getNonceManager() { return null; }
 
+        @NotNull
         @NonNull
         @Override
         public RootCa getRootCa() { return rootCa; }
 
+        @NotNull
         @Override
         public TsaAuthority getTsaAuthority() { return null; }
 
+        @NotNull
         @NonNull
         @Override
         public BuildMetadata getBuildMetadata() { return null; }
 
+        @NotNull
         @NonNull
         @Override
         public INetworkClient getNetworkClient() { return null; }
 
+        @NotNull
         @NonNull
         @Override
         public EventBus getEventBus() { return null; }
 
+        @NotNull
         @Override
         public @NonNull Set<StartupFlag> getStartupFlags() {
             return Set.of();
         }
     }
 
-    @Test
-    @DisplayName("getRootCaAlias returns internal UUID")
-    void testGetRootCaAlias() {
-        DummyInstance di = new DummyInstance("abc");
-        assertEquals("abc", di.getRootCaAlias());
-    }
 }
 

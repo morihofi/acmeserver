@@ -114,6 +114,7 @@ public class ServerInstance implements IServerInstance {
      *
      * @return a String representing the full HTTPS URL of the server
      */
+    @NotNull
     @NonNull
     public String getServerURL() {
         return "https://" + this.getAppConfig().getServer().getDnsName() + (this.getAppConfig().getServer().getPorts().getHttps() != 443 ? ":"
@@ -133,6 +134,7 @@ public class ServerInstance implements IServerInstance {
         return getHibernateUtil().getSessionFactory().openSession();
     }
 
+    @NotNull
     @NonNull
     @Override
     public EventBus getEventBus() {

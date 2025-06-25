@@ -39,27 +39,37 @@ class ProvisionerRenewSubscriberTest {
         DummyServerInstance(CryptoStoreManager mgr, EventBus bus) {
             this.mgr = mgr; this.bus = bus;
         }
+        @NotNull
         @NonNull
         @Override public String getServerURL() { return ""; }
         @NotNull
         @NonNull
         @Override public org.hibernate.Session getDatabaseSession() { return null; }
+        @NotNull
         @NonNull
         @Override public ICryptoStoreManager getCryptoStoreManager() { return mgr; }
+        @NotNull
         @NonNull
         @Override public Config getAppConfig() { return new Config(); }
+        @NotNull
         @NonNull
         @Override public INonceManager getNonceManager() { return null; }
+        @NotNull
         @NonNull
         @Override public RootCa getRootCa() { return null; }
+        @NotNull
         @NonNull
         @Override public TsaAuthority getTsaAuthority() { return null; }
+        @NotNull
         @NonNull
         @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
+        @NotNull
         @NonNull
         @Override public INetworkClient getNetworkClient() { return null; }
+        @NotNull
         @NonNull
         @Override public EventBus getEventBus() { return bus; }
+        @NotNull
         @NonNull
         @Override public java.util.Set<de.morihofi.acmeserver.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
     }

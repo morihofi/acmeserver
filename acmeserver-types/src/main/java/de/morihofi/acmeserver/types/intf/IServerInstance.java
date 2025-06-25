@@ -64,16 +64,6 @@ public interface IServerInstance {
     TsaAuthority getTsaAuthority();
 
     /**
-     * Convenience method returning the keystore alias for the active root CA.
-     *
-     * @return alias of the root certificate authority in the keystore
-     */
-    @NonNull
-    default String getRootCaAlias() {
-        return getRootCa().getInternalUuid();
-    }
-
-    /**
      * Get the Build Metadata for this server instance
      */
     @NonNull
@@ -93,6 +83,11 @@ public interface IServerInstance {
     @NonNull
     EventBus getEventBus();
 
+    /**
+     * Get list of startup flags provided at run
+     *
+     * @return startup flags
+     */
     @NonNull
     Set<StartupFlag> getStartupFlags();
 }
