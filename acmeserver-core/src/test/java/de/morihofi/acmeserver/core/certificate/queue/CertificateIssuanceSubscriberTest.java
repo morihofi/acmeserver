@@ -4,7 +4,9 @@ import de.morihofi.acmeserver.cryptography.certificate.queue.CertificateIssuance
 import de.morihofi.acmeserver.cryptography.certificate.queue.CertificateIssuer;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.types.config.Config;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrder;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
+import de.morihofi.acmeserver.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.INonceManager;
@@ -42,9 +44,9 @@ class CertificateIssuanceSubscriberTest {
         @Override public INonceManager getNonceManager(){return null;}
 
         @NonNull
-        @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa(){return null;}
+        @Override public RootCa getRootCa(){return null;}
         @NonNull
-        @Override public de.morihofi.acmeserver.types.database.entities.TsaAuthority getTsaAuthority(){return null;}
+        @Override public TsaAuthority getTsaAuthority(){return null;}
         @NonNull
         @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
         @NonNull

@@ -14,51 +14,61 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.types.database.entities;
+package de.morihofi.acmeserver.types.database.entities.user;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
+import java.sql.Timestamp;
 
 /**
- * ACME Server users
+ * ACME Server user sessions
  */
 @Entity
-@Table(name = "users")
+@Table(name = "user_session")
 @Data
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 @NoArgsConstructor
-public class Users {
+public class UserSession {
+
     /**
-     * The unique identifier for the user.
+     * Unique identifier for the user session.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     /**
-     * The email address of the user.
+     * Token representing the user session.
      */
-    private String email;
+    @Column(nullable = false)
+    private String sessionToken;
 
     /**
-     * The set of sessions associated with the user.
+     * User associated with the session.
      */
-    @OneToMany(mappedBy = "user")
-    private Set<UserSession> sessions;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
 
     /**
-     * Indicates whether the user has administrative privileges.
+     * Timestamp when the session was created.
      */
-    private boolean isAdmin;
+    private Timestamp sessionCreated;
+
+    /**
+     * Timestamp when the session expires.
+     */
+    private Timestamp sessionExpire;
 
 
 }

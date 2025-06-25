@@ -2,7 +2,7 @@ package de.morihofi.acmeserver.core.tools.certificate.renew;
 
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
-import de.morihofi.acmeserver.types.database.entities.TsaAuthority;
+import de.morihofi.acmeserver.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;

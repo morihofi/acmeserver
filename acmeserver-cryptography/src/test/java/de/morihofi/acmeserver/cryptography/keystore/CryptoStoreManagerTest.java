@@ -8,20 +8,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
-import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
-import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
-import de.morihofi.acmeserver.types.database.entities.CertificateConfig;
-import de.morihofi.acmeserver.types.database.entities.CertificateExpiration;
-import de.morihofi.acmeserver.types.database.entities.CertificateMetadata;
-import de.morihofi.acmeserver.types.database.entities.RootCa;
+
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateConfig;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateExpiration;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateMetadata;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
 
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.KeyPair;
 import java.security.Security;
-import java.security.cert.X509Certificate;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -60,9 +56,9 @@ class CryptoStoreManagerTest {
             assertFalse(mgr.containsCertificateAuthority(rc));
 
             KeyPair kp = de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator.generateRSAKeyPair(512, BouncyCastleProvider.PROVIDER_NAME);
-            de.morihofi.acmeserver.types.database.entities.CertificateConfig conf = new de.morihofi.acmeserver.types.database.entities.CertificateConfig(
-                    de.morihofi.acmeserver.types.database.entities.CertificateMetadata.builder().commonName("root").build(),
-                    new de.morihofi.acmeserver.types.database.entities.CertificateExpiration(0,0,1),
+            CertificateConfig conf = new CertificateConfig(
+                    CertificateMetadata.builder().commonName("root").build(),
+                    new CertificateExpiration(0,0,1),
                     null);
             rc.setCertificateConfig(conf);
             X509Certificate cert = de.morihofi.acmeserver.cryptography.certificate.X509Generator.generate(

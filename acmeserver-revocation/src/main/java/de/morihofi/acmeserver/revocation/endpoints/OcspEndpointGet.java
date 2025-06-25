@@ -19,7 +19,7 @@ package de.morihofi.acmeserver.revocation.endpoints;
 
 import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.acmeserver.cryptography.ocsp.OcspProcessor;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;

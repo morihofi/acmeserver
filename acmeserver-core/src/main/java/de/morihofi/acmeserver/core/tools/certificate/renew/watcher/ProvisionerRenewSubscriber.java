@@ -1,13 +1,12 @@
 package de.morihofi.acmeserver.core.tools.certificate.renew.watcher;
 
 import de.morihofi.acmeserver.core.tools.certificate.renew.IntermediateCaRenew;
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.acmeserver.types.events.AbstractEvent;
 import de.morihofi.acmeserver.types.events.EventSubscriber;
 import de.morihofi.acmeserver.types.events.ProvisionerCreatedEvent;
 import de.morihofi.acmeserver.types.events.ProvisionerDeletedEvent;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

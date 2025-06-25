@@ -22,7 +22,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import de.morihofi.acmeserver.acme.api.objects.ACMERequestBody;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
-import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeAccount;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEBadSignatureAlgorithmException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEUnauthorizedException;

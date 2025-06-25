@@ -1,5 +1,6 @@
-package de.morihofi.acmeserver.types.database.entities;
+package de.morihofi.acmeserver.types.database.entities.timestamp;
 
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateConfig;
 import jakarta.persistence.*;
 import lombok.Data;
 import de.morihofi.acmeserver.types.intf.IServerInstance;

@@ -19,7 +19,7 @@ package de.morihofi.acmeserver.core.impl;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
-import de.morihofi.acmeserver.types.database.entities.HttpNonces;
+import de.morihofi.acmeserver.types.database.entities.acme.HttpNonces;
 import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEBadNonceException;
 import de.morihofi.acmeserver.types.intf.INonceManager;

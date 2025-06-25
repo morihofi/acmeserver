@@ -16,14 +16,12 @@
 
 package de.morihofi.acmeserver.cryptography.keystore;
 
-import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
 import de.morihofi.acmeserver.types.cryptography.keystore.IKeyStoreConfig;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS11KeyStoreConfig;
 import de.morihofi.acmeserver.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
-import de.morihofi.acmeserver.utils.regex.ConfigCheck;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -40,7 +38,6 @@ import java.nio.file.Files;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.List;
 import java.util.stream.Stream;
 
 /**

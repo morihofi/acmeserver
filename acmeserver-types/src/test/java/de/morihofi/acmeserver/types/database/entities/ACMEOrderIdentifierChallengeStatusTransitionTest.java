@@ -1,6 +1,7 @@
 package de.morihofi.acmeserver.types.database.entities;
 
-import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrderIdentifierChallenge;
+import de.morihofi.acmeserver.types.database.entities.acme.enums.AcmeStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

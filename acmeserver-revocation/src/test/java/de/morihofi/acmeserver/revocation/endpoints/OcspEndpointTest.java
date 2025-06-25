@@ -1,13 +1,13 @@
 package de.morihofi.acmeserver.revocation.endpoints;
 
 import de.morihofi.acmeserver.server.common.intf.*;
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.acmeserver.cryptography.ocsp.OcspProcessor;
 import de.morihofi.acmeserver.types.httpserver.HandlerType;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import de.morihofi.acmeserver.types.database.entities.CertificateConfig;
-import de.morihofi.acmeserver.types.database.entities.CertificateExpiration;
-import de.morihofi.acmeserver.types.database.entities.CertificateMetadata;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateConfig;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateExpiration;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateMetadata;
 import org.bouncycastle.cert.ocsp.*;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.DigestCalculator;

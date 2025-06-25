@@ -4,8 +4,12 @@ import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.revocation.crl.CrlScheduler;
 import de.morihofi.acmeserver.revocation.crl.CrlUpdateSubscriber;
 import de.morihofi.acmeserver.types.config.Config;
-import de.morihofi.acmeserver.types.database.entities.*;
 import de.morihofi.acmeserver.revocation.crl.CrlStore;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeAccount;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrder;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
+import de.morihofi.acmeserver.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.acmeserver.types.events.AcmeCertificateRevokedEvent;
 import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
@@ -43,7 +47,7 @@ class CrlUpdateSubscriberTest {
         @NonNull
         @Override public RootCa getRootCa(){return null;}
         @NonNull
-        @Override public de.morihofi.acmeserver.types.database.entities.TsaAuthority getTsaAuthority(){return null;}
+        @Override public TsaAuthority getTsaAuthority(){return null;}
         @NonNull
         @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
         @NonNull

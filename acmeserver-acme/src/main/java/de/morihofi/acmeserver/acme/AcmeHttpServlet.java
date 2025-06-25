@@ -10,16 +10,14 @@ import de.morihofi.acmeserver.acme.api.endpoints.order.FinalizeOrderEndpoint;
 import de.morihofi.acmeserver.acme.api.endpoints.order.OrderCertEndpoint;
 import de.morihofi.acmeserver.acme.api.endpoints.order.OrderInfoEndpoint;
 import de.morihofi.acmeserver.server.common.intf.Endpoint;
-import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
 import de.morihofi.acmeserver.server.common.intf.RoutableHttpServlet;
 import de.morihofi.acmeserver.server.common.intf.handler.AbstractExceptionHandler;
-import de.morihofi.acmeserver.types.database.entities.HttpNonces;
+import de.morihofi.acmeserver.types.database.entities.acme.HttpNonces;
 import de.morihofi.acmeserver.types.events.AcmeExceptionEvent;
 import de.morihofi.acmeserver.types.exception.ACMEException;
 import de.morihofi.acmeserver.types.httpserver.HandlerType;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**

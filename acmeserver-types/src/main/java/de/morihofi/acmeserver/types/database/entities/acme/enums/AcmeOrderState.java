@@ -14,7 +14,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.types.database.enums;
+package de.morihofi.acmeserver.types.database.entities.acme.enums;
 
 /**
  * Enum for ACME order states, used for background certificate generation

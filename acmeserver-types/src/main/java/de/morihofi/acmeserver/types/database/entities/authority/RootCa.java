@@ -1,5 +1,6 @@
-package de.morihofi.acmeserver.types.database.entities;
+package de.morihofi.acmeserver.types.database.entities.authority;
 
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import jakarta.persistence.*;
 import lombok.Data;

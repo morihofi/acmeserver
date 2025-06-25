@@ -14,10 +14,10 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.types.database.entities;
+package de.morihofi.acmeserver.types.database.entities.acme;
 
 import de.morihofi.acmeserver.types.api.acme.challenge.AcmeChallengeType;
-import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
+import de.morihofi.acmeserver.types.database.entities.acme.enums.AcmeStatus;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
@@ -126,8 +126,8 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
      *
      * Once a challenge is in {@code valid} or {@code invalid}, it is a terminal state and can no longer transition.
      */
-    static boolean isChallengeTransitionAllowed(@NonNull AcmeStatus currentState,
-                                                @NonNull AcmeStatus newState) {
+    public static boolean isChallengeTransitionAllowed(@NonNull AcmeStatus currentState,
+                                                       @NonNull AcmeStatus newState) {
 
         return switch (currentState) {
             /* -------------------------------- pending --------------------------- */

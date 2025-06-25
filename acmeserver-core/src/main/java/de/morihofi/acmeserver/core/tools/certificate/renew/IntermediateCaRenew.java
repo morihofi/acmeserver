@@ -16,7 +16,7 @@
 
 package de.morihofi.acmeserver.core.tools.certificate.renew;
 
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.acmeserver.types.intf.IServerInstance;

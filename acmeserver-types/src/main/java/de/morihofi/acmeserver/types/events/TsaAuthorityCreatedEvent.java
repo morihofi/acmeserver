@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.types.events;
 
-import de.morihofi.acmeserver.types.database.entities.TsaAuthority;
+import de.morihofi.acmeserver.types.database.entities.timestamp.TsaAuthority;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

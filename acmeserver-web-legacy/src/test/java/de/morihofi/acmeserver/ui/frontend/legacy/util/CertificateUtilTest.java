@@ -2,10 +2,10 @@ package de.morihofi.acmeserver.ui.frontend.legacy.util;
 
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
-import de.morihofi.acmeserver.types.database.entities.CertificateConfig;
-import de.morihofi.acmeserver.types.database.entities.CertificateExpiration;
-import de.morihofi.acmeserver.types.database.entities.CertificateMetadata;
-import de.morihofi.acmeserver.types.database.entities.RsaCertificateAlgorithm;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateConfig;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateExpiration;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateMetadata;
+import de.morihofi.acmeserver.types.database.entities.authority.RsaCertificateAlgorithm;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

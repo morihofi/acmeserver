@@ -1,5 +1,6 @@
 package de.morihofi.acmeserver.types.database.entities;
 
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateMetadata;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

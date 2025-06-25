@@ -16,7 +16,7 @@ import de.morihofi.acmeserver.core.api.mgmt.provisioner.statistics.responses.Pro
 
 import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 
 import lombok.NonNull;

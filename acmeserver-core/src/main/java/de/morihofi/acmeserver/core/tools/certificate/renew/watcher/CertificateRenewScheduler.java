@@ -17,7 +17,7 @@
 package de.morihofi.acmeserver.core.tools.certificate.renew.watcher;
 
 
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.acmeserver.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.utils.lambda.TriFunction;

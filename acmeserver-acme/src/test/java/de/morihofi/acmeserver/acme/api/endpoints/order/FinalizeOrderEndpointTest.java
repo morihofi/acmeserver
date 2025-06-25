@@ -1,10 +1,11 @@
 package de.morihofi.acmeserver.acme.api.endpoints.order;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
+import de.morihofi.acmeserver.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.acmeserver.types.events.EventBus;
-import de.morihofi.acmeserver.acme.api.endpoints.order.FinalizeOrderEndpoint;
 
-import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifier;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifierChallenge;
-import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrderIdentifier;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrderIdentifierChallenge;
+import de.morihofi.acmeserver.types.database.entities.acme.enums.AcmeStatus;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEUnauthorizedException;
 import org.hibernate.Session;
@@ -31,9 +32,9 @@ class FinalizeOrderEndpointTest {
         @NonNull
         @Override public de.morihofi.acmeserver.types.intf.INonceManager getNonceManager() { return null; }
         @NonNull
-        @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
+        @Override public RootCa getRootCa() { return null; }
         @NonNull
-        @Override public de.morihofi.acmeserver.types.database.entities.TsaAuthority getTsaAuthority() { return null; }
+        @Override public TsaAuthority getTsaAuthority() { return null; }
         @NonNull
         @Override public de.morihofi.acmeserver.types.runtime.BuildMetadata getBuildMetadata() { return null; }
         @NonNull

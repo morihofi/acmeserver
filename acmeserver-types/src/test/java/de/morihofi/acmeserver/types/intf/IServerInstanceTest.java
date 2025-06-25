@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.types.intf;
 
-import de.morihofi.acmeserver.types.database.entities.RootCa;
-import de.morihofi.acmeserver.types.database.entities.TsaAuthority;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
+import de.morihofi.acmeserver.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.intf.network.INetworkClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;

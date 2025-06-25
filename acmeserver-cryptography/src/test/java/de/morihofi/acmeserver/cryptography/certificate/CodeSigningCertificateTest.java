@@ -1,9 +1,9 @@
 package de.morihofi.acmeserver.cryptography.certificate;
 
 import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
-import de.morihofi.acmeserver.types.database.entities.CertificateConfig;
-import de.morihofi.acmeserver.types.database.entities.CertificateExpiration;
-import de.morihofi.acmeserver.types.database.entities.CertificateMetadata;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateConfig;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateExpiration;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateMetadata;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;

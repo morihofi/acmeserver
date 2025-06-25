@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.cryptography.certificate;
 
-import de.morihofi.acmeserver.types.database.entities.CertificateMetadata;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateMetadata;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

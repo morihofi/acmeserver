@@ -19,7 +19,7 @@ package de.morihofi.acmeserver.acme.api.endpoints;
 
 import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
-import de.morihofi.acmeserver.types.database.entities.HttpNonces;
+import de.morihofi.acmeserver.types.database.entities.acme.HttpNonces;
 import de.morihofi.acmeserver.types.httpserver.HandlerType;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;

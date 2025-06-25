@@ -1,7 +1,6 @@
 package de.morihofi.acmeserver.types.events;
-import de.morihofi.acmeserver.types.events.AbstractEvent;
 
-import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeAccount;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

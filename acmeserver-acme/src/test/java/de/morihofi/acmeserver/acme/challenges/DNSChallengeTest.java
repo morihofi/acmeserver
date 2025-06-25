@@ -1,4 +1,6 @@
 package de.morihofi.acmeserver.acme.challenges;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
+import de.morihofi.acmeserver.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.acmeserver.types.events.EventBus;
 
 import de.morihofi.acmeserver.cryptography.acme.AcmeTokenCryptography;
@@ -7,7 +9,7 @@ import de.morihofi.acmeserver.utils.crypto.Hashing;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.config.network.DNSConfig;
 import de.morihofi.acmeserver.types.config.network.NetworkConfig;
-import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeAccount;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.INonceManager;
@@ -16,8 +18,6 @@ import de.morihofi.acmeserver.types.intf.network.dns.IDoHClient;
 import de.morihofi.acmeserver.types.runtime.BuildMetadata;
 import de.morihofi.acmeserver.utils.base64.Base64Tools;
 import de.morihofi.acmeserver.utils.network.dns.DNSLookup;
-import de.morihofi.acmeserver.acme.challenges.DNSChallenge;
-import de.morihofi.acmeserver.acme.challenges.ChallengeResult;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
@@ -70,9 +70,9 @@ class DNSChallengeTest {
         @NonNull
         @Override public INonceManager getNonceManager() { return null; }
         @NonNull
-        @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
+        @Override public RootCa getRootCa() { return null; }
         @NonNull
-        @Override public de.morihofi.acmeserver.types.database.entities.TsaAuthority getTsaAuthority() { return null; }
+        @Override public TsaAuthority getTsaAuthority() { return null; }
         @NonNull
         @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
         @NonNull

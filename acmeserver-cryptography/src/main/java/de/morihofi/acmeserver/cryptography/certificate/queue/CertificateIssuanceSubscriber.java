@@ -1,7 +1,7 @@
 package de.morihofi.acmeserver.cryptography.certificate.queue;
 
-import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
-import de.morihofi.acmeserver.types.database.enums.AcmeOrderState;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrder;
+import de.morihofi.acmeserver.types.database.entities.acme.enums.AcmeOrderState;
 import de.morihofi.acmeserver.types.events.*;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import lombok.RequiredArgsConstructor;

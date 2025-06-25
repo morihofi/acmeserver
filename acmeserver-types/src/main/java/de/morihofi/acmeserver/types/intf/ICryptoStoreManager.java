@@ -1,6 +1,6 @@
 package de.morihofi.acmeserver.types.intf;
 
-import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
 import lombok.NonNull;
 
 import javax.net.ssl.SSLContext;

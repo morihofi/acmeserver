@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.types.database.entities;
+package de.morihofi.acmeserver.types.database.entities.authority;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

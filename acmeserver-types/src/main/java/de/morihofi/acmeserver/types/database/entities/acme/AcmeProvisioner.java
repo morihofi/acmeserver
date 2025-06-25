@@ -1,17 +1,16 @@
-package de.morihofi.acmeserver.types.database.entities;
+package de.morihofi.acmeserver.types.database.entities.acme;
 
-import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateExpiration;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import de.morihofi.acmeserver.types.database.entities.IntermediateCa;
+import de.morihofi.acmeserver.types.database.entities.authority.IntermediateCa;
 import org.hibernate.Session;
 
 import java.io.Serializable;
-import java.security.*;
-import java.security.cert.X509Certificate;
 import java.util.List;
 
 @Entity

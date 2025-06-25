@@ -1,13 +1,13 @@
 package de.morihofi.acmeserver.acme.challenges;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
+import de.morihofi.acmeserver.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.acmeserver.types.events.EventBus;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;
-import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
-import de.morihofi.acmeserver.acme.challenges.HTTPChallenge;
-import de.morihofi.acmeserver.acme.challenges.ChallengeResult;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeAccount;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.INonceManager;
@@ -59,9 +59,9 @@ class HTTPChallengeTest {
         @NonNull
         @Override public INonceManager getNonceManager() { return null; }
         @NonNull
-        @Override public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() { return null; }
+        @Override public RootCa getRootCa() { return null; }
         @NonNull
-        @Override public de.morihofi.acmeserver.types.database.entities.TsaAuthority getTsaAuthority() { return null; }
+        @Override public TsaAuthority getTsaAuthority() { return null; }
         @NonNull
         @Override public BuildMetadata getBuildMetadata() { return meta; }
         @NonNull

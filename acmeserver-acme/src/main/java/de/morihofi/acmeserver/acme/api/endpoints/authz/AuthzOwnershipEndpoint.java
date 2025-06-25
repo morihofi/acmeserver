@@ -20,11 +20,11 @@ import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
 import de.morihofi.acmeserver.types.api.acme.challenge.AcmeChallengeType;
 import de.morihofi.acmeserver.acme.api.objects.ACMERequestBody;
 
-import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifier;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifierChallenge;
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
-import de.morihofi.acmeserver.types.database.entities.HttpNonces;
+import de.morihofi.acmeserver.types.database.entities.acme.enums.AcmeStatus;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrderIdentifier;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrderIdentifierChallenge;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.HttpNonces;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEResourceNotFoundException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.types.intf.IServerInstance;

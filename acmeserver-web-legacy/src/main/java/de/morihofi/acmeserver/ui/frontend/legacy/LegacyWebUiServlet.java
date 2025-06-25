@@ -1,6 +1,8 @@
 package de.morihofi.acmeserver.ui.frontend.legacy;
 
-import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
+import de.morihofi.acmeserver.types.database.entities.authority.EcdsaCertificateAlgorithm;
+import de.morihofi.acmeserver.types.database.entities.authority.RsaCertificateAlgorithm;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.ui.frontend.legacy.type.CaEntry;
 import jakarta.servlet.http.HttpServletRequest;
@@ -96,15 +98,15 @@ public class LegacyWebUiServlet extends AbstractJteRouterServlet {
             entry.setPemPath("/dl/rootca/" + ca.getInternalUuid() + ".pem");
             entry.setDerPath("/dl/rootca/" + ca.getInternalUuid() + ".der");
             entry.setCabPath("/dl/rootca/" + ca.getInternalUuid() + ".cab");
-            entry.setEcdsa(ca.getCertificateConfig().getCertificateAlgorithm() instanceof de.morihofi.acmeserver.types.database.entities.EcdsaCertificateAlgorithm);
+            entry.setEcdsa(ca.getCertificateConfig().getCertificateAlgorithm() instanceof EcdsaCertificateAlgorithm);
             entry.setCommonName(ca.getCertificateConfig().getMetadata().getCommonName());
             entry.setOrganisation(ca.getCertificateConfig().getMetadata().getOrganisation());
             entry.setOrganisationalUnit(ca.getCertificateConfig().getMetadata().getOrganisationalUnit());
             entry.setCountryCode(ca.getCertificateConfig().getMetadata().getCountryCode());
 
-            if (ca.getCertificateConfig().getCertificateAlgorithm() instanceof de.morihofi.acmeserver.types.database.entities.RsaCertificateAlgorithm rsaAlg) {
+            if (ca.getCertificateConfig().getCertificateAlgorithm() instanceof RsaCertificateAlgorithm rsaAlg) {
                 entry.setAlgorithmDetail("RSA " + rsaAlg.getKeySize() + " bit");
-            } else if (ca.getCertificateConfig().getCertificateAlgorithm() instanceof de.morihofi.acmeserver.types.database.entities.EcdsaCertificateAlgorithm ecdsaAlg) {
+            } else if (ca.getCertificateConfig().getCertificateAlgorithm() instanceof EcdsaCertificateAlgorithm ecdsaAlg) {
                 entry.setAlgorithmDetail("ECDSA " + ecdsaAlg.getCurveName());
             }
 
@@ -137,7 +139,7 @@ public class LegacyWebUiServlet extends AbstractJteRouterServlet {
                 entry.setPemPath("/dl/rootca/" + rootCa.getInternalUuid() + ".pem");
                 entry.setDerPath("/dl/rootca/" + rootCa.getInternalUuid() + ".der");
                 entry.setCabPath("/dl/rootca/" + rootCa.getInternalUuid() + ".cab");
-                entry.setEcdsa(rootCa.getCertificateConfig().getCertificateAlgorithm() instanceof de.morihofi.acmeserver.types.database.entities.EcdsaCertificateAlgorithm);
+                entry.setEcdsa(rootCa.getCertificateConfig().getCertificateAlgorithm() instanceof EcdsaCertificateAlgorithm);
                 caList.add(entry);
             }
         }

@@ -2,9 +2,14 @@ package de.morihofi.acmeserver.cryptography.ocsp;
 
 import de.morihofi.acmeserver.cryptography.certificate.X509Generator;
 import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
-import de.morihofi.acmeserver.cryptography.ocsp.OcspProcessor;
 import de.morihofi.acmeserver.types.config.Config;
-import de.morihofi.acmeserver.types.database.entities.*;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrder;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateConfig;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateExpiration;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateMetadata;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
+import de.morihofi.acmeserver.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
@@ -91,7 +96,7 @@ class OcspProcessorTest {
 
         @NonNull
         @Override
-        public de.morihofi.acmeserver.types.database.entities.RootCa getRootCa() {
+        public RootCa getRootCa() {
             return null;
         }
 

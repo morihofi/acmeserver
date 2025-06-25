@@ -24,10 +24,10 @@ import de.morihofi.acmeserver.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.acme.api.objects.ACMERequestBody;
 
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
-import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
-import de.morihofi.acmeserver.types.database.entities.HttpNonces;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeAccount;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrder;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.HttpNonces;
 import de.morihofi.acmeserver.types.events.AcmeCertificateRevokedEvent;
 import de.morihofi.acmeserver.types.exception.exceptions.*;
 import de.morihofi.acmeserver.types.intf.IServerInstance;

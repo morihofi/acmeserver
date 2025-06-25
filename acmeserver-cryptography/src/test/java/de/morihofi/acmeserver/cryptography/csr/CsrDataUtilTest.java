@@ -1,9 +1,9 @@
 package de.morihofi.acmeserver.cryptography.csr;
 
 import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifier;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifierChallenge;
-import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrderIdentifier;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrderIdentifierChallenge;
+import de.morihofi.acmeserver.types.database.entities.acme.enums.AcmeStatus;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.acmeserver.utils.base64.Base64Tools;
 import org.bouncycastle.asn1.x500.X500Name;

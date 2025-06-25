@@ -17,7 +17,7 @@
 package de.morihofi.acmeserver.revocation.crl;
 
 
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.scheduler.TimedScheduler;
 import lombok.NonNull;

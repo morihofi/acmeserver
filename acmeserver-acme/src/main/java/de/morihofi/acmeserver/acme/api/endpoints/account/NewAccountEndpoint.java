@@ -25,10 +25,10 @@ import de.morihofi.acmeserver.acme.api.endpoints.account.objects.AccountResponse
 import de.morihofi.acmeserver.acme.api.objects.ACMERequestBody;
 
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
-import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
-import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
-import de.morihofi.acmeserver.types.database.entities.HttpNonces;
+import de.morihofi.acmeserver.types.database.entities.acme.enums.AcmeStatus;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeAccount;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.HttpNonces;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEUserActionRequiredException;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEServerInternalException;

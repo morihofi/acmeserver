@@ -1,8 +1,8 @@
 package de.morihofi.acmeserver.revocation.crl;
 
 import de.morihofi.acmeserver.types.cryptography.revoke.RevokedCertificate;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrder;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.acmeserver.cryptography.crl.CrlGenerator;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;

@@ -3,7 +3,11 @@ package de.morihofi.acmeserver.core.entities;
 import de.morihofi.acmeserver.core.database.HibernateUtil;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.config.DatabaseConfig;
-import de.morihofi.acmeserver.types.database.entities.*;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateConfig;
+import de.morihofi.acmeserver.types.database.entities.authority.CertificateMetadata;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
+import de.morihofi.acmeserver.types.database.entities.authority.RsaCertificateAlgorithm;
+import de.morihofi.acmeserver.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.INonceManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
@@ -34,7 +38,7 @@ class RootCaGetForUuidTest {
         @Override public Config getAppConfig(){return cfg;}
         @Override public INonceManager getNonceManager(){return null;}
         @Override public RootCa getRootCa(){return ca;}
-        @Override public de.morihofi.acmeserver.types.database.entities.TsaAuthority getTsaAuthority(){return null;}
+        @Override public TsaAuthority getTsaAuthority(){return null;}
         @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
         @Override public INetworkClient getNetworkClient(){return null;}
         @Override public EventBus getEventBus(){return new EventBus();}

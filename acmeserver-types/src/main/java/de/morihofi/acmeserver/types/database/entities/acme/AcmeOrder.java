@@ -14,11 +14,11 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.morihofi.acmeserver.types.database.entities;
+package de.morihofi.acmeserver.types.database.entities.acme;
 
 
 import de.morihofi.acmeserver.types.cryptography.revoke.RevokedCertificate;
-import de.morihofi.acmeserver.types.database.enums.AcmeOrderState;
+import de.morihofi.acmeserver.types.database.entities.acme.enums.AcmeOrderState;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -32,9 +32,6 @@ import org.hibernate.query.Query;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;

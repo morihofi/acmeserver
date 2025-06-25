@@ -19,9 +19,9 @@ package de.morihofi.acmeserver.cryptography.certificate.queue;
 import de.morihofi.acmeserver.cryptography.csr.CsrDataUtil;
 import de.morihofi.acmeserver.types.api.acme.dns.Identifier;
 
-import de.morihofi.acmeserver.types.database.enums.AcmeOrderState;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.enums.AcmeOrderState;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrder;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.base64.Base64Tools;

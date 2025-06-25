@@ -24,11 +24,11 @@ import de.morihofi.acmeserver.acme.api.endpoints.order.objects.AcmeOrderResponse
 import de.morihofi.acmeserver.acme.security.SignatureCheck;
 import de.morihofi.acmeserver.acme.api.objects.ACMERequestBody;
 
-import de.morihofi.acmeserver.types.database.enums.AcmeStatus;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrder;
-import de.morihofi.acmeserver.types.database.entities.AcmeOrderIdentifier;
-import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
-import de.morihofi.acmeserver.types.database.entities.HttpNonces;
+import de.morihofi.acmeserver.types.database.entities.acme.enums.AcmeStatus;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrder;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeOrderIdentifier;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.acmeserver.types.database.entities.acme.HttpNonces;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.datetime.DateTools;
 import de.morihofi.acmeserver.types.exception.exceptions.ACMEResourceNotFoundException;

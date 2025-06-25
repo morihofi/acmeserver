@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.types.database.entities;
+package de.morihofi.acmeserver.types.database.entities.acme;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embeddable;

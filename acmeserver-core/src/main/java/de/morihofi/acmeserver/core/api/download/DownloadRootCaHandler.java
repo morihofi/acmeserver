@@ -4,7 +4,7 @@ import de.morihofi.acmeserver.core.tools.fileformats.archive.cab.CabFile;
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;
 import de.morihofi.acmeserver.server.common.intf.Handler;
 import de.morihofi.acmeserver.server.common.intf.HandlerContext;
-import de.morihofi.acmeserver.types.database.entities.RootCa;
+import de.morihofi.acmeserver.types.database.entities.authority.RootCa;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import lombok.NonNull;
 import org.w3c.dom.*;

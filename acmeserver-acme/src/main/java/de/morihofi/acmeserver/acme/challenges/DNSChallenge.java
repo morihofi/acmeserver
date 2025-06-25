@@ -16,7 +16,7 @@
 
 package de.morihofi.acmeserver.acme.challenges;
 
-import de.morihofi.acmeserver.types.database.entities.AcmeAccount;
+import de.morihofi.acmeserver.types.database.entities.acme.AcmeAccount;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
 import de.morihofi.acmeserver.utils.base64.Base64Tools;
 import de.morihofi.acmeserver.cryptography.pem.PemUtil;

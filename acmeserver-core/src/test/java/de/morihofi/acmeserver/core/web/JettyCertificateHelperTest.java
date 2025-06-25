@@ -7,7 +7,8 @@ import de.morihofi.acmeserver.cryptography.keys.KeyPairGenerator;
 import de.morihofi.acmeserver.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.acmeserver.types.config.Config;
 import de.morihofi.acmeserver.types.config.ServerConfig;
-import de.morihofi.acmeserver.types.database.entities.*;
+import de.morihofi.acmeserver.types.database.entities.authority.*;
+import de.morihofi.acmeserver.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.types.intf.INonceManager;
@@ -44,7 +45,7 @@ class JettyCertificateHelperTest {
         @NonNull @Override public Config getAppConfig(){Config c=new Config();c.setServer(new ServerConfig());return c;}
         @NonNull @Override public INonceManager getNonceManager(){return null;}
         @NonNull @Override public RootCa getRootCa(){return rootCa;}
-        @NonNull @Override public de.morihofi.acmeserver.types.database.entities.TsaAuthority getTsaAuthority(){return null;}
+        @NonNull @Override public TsaAuthority getTsaAuthority(){return null;}
         @NonNull @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
         @NonNull @Override public INetworkClient getNetworkClient(){return null;}
         @NonNull @Override public EventBus getEventBus(){return new EventBus();}

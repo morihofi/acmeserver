@@ -1,4 +1,4 @@
-package de.morihofi.acmeserver.types.database.entities;
+package de.morihofi.acmeserver.types.database.entities.authority;
 
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RsaCertificateAlgorithm extends CertificateAlgorithm{
+public class RsaCertificateAlgorithm extends CertificateAlgorithm {
     private Integer keySize;
 }
