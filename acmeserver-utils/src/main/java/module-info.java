@@ -13,4 +13,5 @@ module acmeserver.utils {
     requires org.bouncycastle.pkix;
     requires org.bouncycastle.provider;
     requires com.google.gson;
+    requires com.cronutils;
 }

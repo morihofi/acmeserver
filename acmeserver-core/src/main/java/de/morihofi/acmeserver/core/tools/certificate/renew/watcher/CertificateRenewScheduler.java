@@ -23,6 +23,7 @@ import de.morihofi.acmeserver.types.intf.ICryptoStoreManager;
 import de.morihofi.acmeserver.utils.lambda.TriFunction;
 import de.morihofi.acmeserver.types.events.EventBus;
 import de.morihofi.acmeserver.types.events.ProvisionerCertificateRenewedEvent;
+import de.morihofi.acmeserver.utils.scheduler.TimedScheduler;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,9 +33,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Scheduler that periodically checks registered certificates and renews them
@@ -42,12 +40,10 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class CertificateRenewScheduler {
-    private static final int PERIOD = 6;
-    private static final TimeUnit TIME_UNIT = TimeUnit.HOURS;
-    private static final int RENEWAL_THRESHOLD_DAYS = 7; // Tage vor Ablauf, an denen das Zertifikat erneuert werden soll
+    private static final String DEFAULT_CRON = "0 */6 * * *"; // every six hours
+    private static final int RENEWAL_THRESHOLD_DAYS = 7; // days before expiration for trigger renewal
 
-
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final TimedScheduler scheduler;
     private final ICryptoStoreManager cryptoStoreManager;
     private final EventBus eventBus;
     private final Map<String, RenewEntry> renewMap = Collections.synchronizedMap(new HashMap<>());
@@ -57,9 +53,10 @@ public class CertificateRenewScheduler {
      *
      * @param cryptoStoreManager The CryptoStoreManager instance used for key and certificate management.
      */
-    public CertificateRenewScheduler(ICryptoStoreManager cryptoStoreManager, EventBus eventBus) {
+    public CertificateRenewScheduler(ICryptoStoreManager cryptoStoreManager, EventBus eventBus, TimedScheduler scheduler) {
         this.cryptoStoreManager = cryptoStoreManager;
         this.eventBus = eventBus;
+        this.scheduler = scheduler;
     }
 
     /**
@@ -115,9 +112,17 @@ public class CertificateRenewScheduler {
      * Starts the scheduler that periodically checks for certificates that need to be renewed.
      */
     public void startScheduler() {
+        startScheduler(DEFAULT_CRON);
+    }
+
+    /**
+     * Starts the scheduler with the given cron expression.
+     *
+     * @param cron cron expression defining the execution times
+     */
+    public void startScheduler(String cron) {
         log.info("Initialized Certificate Renew Scheduler");
-        // Start the scheduled task
-        scheduler.scheduleAtFixedRate(this::schedule, 0, PERIOD, TIME_UNIT);
+        scheduler.schedule(cron, this::schedule);
     }
 
     /**

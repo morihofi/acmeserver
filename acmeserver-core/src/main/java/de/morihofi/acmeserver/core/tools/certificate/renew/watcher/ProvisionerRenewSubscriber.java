@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Event subscriber that keeps the {@link CertificateRenewScheduler} in sync with
  * the provisioners available on the server. When new provisioners are created
- * or removed, corresponding renew watchers are registered or deleted.
+ * or removed, corresponding to renew watchers are registered or deleted.
  */
 @Slf4j
 @RequiredArgsConstructor

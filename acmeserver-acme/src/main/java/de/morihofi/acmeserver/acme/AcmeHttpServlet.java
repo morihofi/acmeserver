@@ -41,6 +41,7 @@ public class AcmeHttpServlet extends RoutableHttpServlet {
                 if (e instanceof ACMEException acmeException) {
                     ctx.header("Content-Type", "application/problem+json");
                     ctx.header("Replay-Nonce", HttpNonces.createNonce(serverInstance));
+                    ctx.status(acmeException.getHttpStatusCode());
                     ctx.json(acmeException.getErrorResponse());
                     log.error("ACME Exception thrown {} : {} ({})", acmeException.getClass().getSimpleName(), acmeException.getErrorResponse().getDetail(),
                             acmeException.getErrorResponse().getType());

@@ -19,12 +19,9 @@ package de.morihofi.acmeserver.revocation.crl;
 
 import de.morihofi.acmeserver.types.database.entities.AcmeProvisioner;
 import de.morihofi.acmeserver.types.intf.IServerInstance;
+import de.morihofi.acmeserver.utils.scheduler.TimedScheduler;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class CrlScheduler {
@@ -33,17 +30,22 @@ public class CrlScheduler {
 
     /** Update interval in minutes used for scheduled CRL generation. */
     public static final int UPDATE_MINUTES = 720; // 12 hours
+    public static final String CRON_EXPRESSION = "0 */12 * * *";
 
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final TimedScheduler scheduler;
+    private final IServerInstance serverInstance;
 
-
-    public static void startScheduler(@NonNull IServerInstance serverInstance) {
-        log.info("Initialized CRL Generation Scheduler");
-        // Start the scheduled task to update the CRL every 5 minutes
-        scheduler.scheduleAtFixedRate(() -> schedule(serverInstance), 0, UPDATE_MINUTES, TimeUnit.MINUTES);
+    public CrlScheduler(@NonNull IServerInstance serverInstance, TimedScheduler scheduler) {
+        this.serverInstance = serverInstance;
+        this.scheduler = scheduler;
     }
 
-    private static void schedule(@NonNull IServerInstance serverInstance) {
+    public void startScheduler() {
+        log.info("Initialized CRL Generation Scheduler");
+        scheduler.schedule(CRON_EXPRESSION, this::schedule);
+    }
+
+    private void schedule() {
         log.info("CRL Generation Scheduler is running");
 
         for (AcmeProvisioner provisioner : AcmeProvisioner.getAllProvisioners(serverInstance)) {

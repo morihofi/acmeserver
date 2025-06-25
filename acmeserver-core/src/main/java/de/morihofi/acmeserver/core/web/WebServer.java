@@ -22,6 +22,7 @@ import de.morihofi.acmeserver.types.events.ServerShutdownEvent;
 import de.morihofi.acmeserver.ui.frontend.legacy.LegacyWebUiServlet;
 import de.morihofi.acmeserver.revocation.crl.CrlScheduler;
 import de.morihofi.acmeserver.revocation.crl.CrlUpdateSubscriber;
+import de.morihofi.acmeserver.utils.scheduler.TimedScheduler;
 import de.morihofi.acmeserver.revocation.RevocationHttpServlet;
 import de.morihofi.acmeserver.core.Main;
 import de.morihofi.acmeserver.cryptography.certificate.queue.CertificateIssuanceSubscriber;
@@ -60,6 +61,10 @@ public class WebServer implements EventSubscriber {
      * Scheduler for automatically renewing certificates.
      */
     private final CertificateRenewScheduler certificateRenewScheduler;
+    /**
+     * Shared scheduler instance for timed tasks.
+     */
+    private final TimedScheduler timedScheduler;
 
     /**
      * Instance of IServerInstance providing access to server-related configurations and utilities.
@@ -78,7 +83,11 @@ public class WebServer implements EventSubscriber {
      */
     public WebServer(IServerInstance serverInstance) {
         this.serverInstance = serverInstance;
-        this.certificateRenewScheduler = new CertificateRenewScheduler(serverInstance.getCryptoStoreManager(), serverInstance.getEventBus());
+        this.timedScheduler = new TimedScheduler();
+        this.certificateRenewScheduler = new CertificateRenewScheduler(
+                serverInstance.getCryptoStoreManager(),
+                serverInstance.getEventBus(),
+                timedScheduler);
 
         log.info("Registering WebServer as event listener for TLS Certificate Renew Events");
         serverInstance.getEventBus().register(this);
@@ -179,7 +188,8 @@ public class WebServer implements EventSubscriber {
         server.start();
 
         log.info("Starting the CRL generation Scheduler");
-        CrlScheduler.startScheduler(serverInstance);
+        CrlScheduler crlScheduler = new CrlScheduler(serverInstance, timedScheduler);
+        crlScheduler.startScheduler();
         serverInstance.getEventBus().register(new CrlUpdateSubscriber(serverInstance));
 
         // Register and initialize provisioner certificate watcher
@@ -312,6 +322,7 @@ public class WebServer implements EventSubscriber {
             case ServerShutdownEvent e -> {
                 log.info("Received ServerShutdownEvent, shutting down WebServer...");
                 server.stop();
+                timedScheduler.shutdown();
             }
             default -> log.warn("Unhandled event type: {}", event.getClass().getSimpleName());
         }

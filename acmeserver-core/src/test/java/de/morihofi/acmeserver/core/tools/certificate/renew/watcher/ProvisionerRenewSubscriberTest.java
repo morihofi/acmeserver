@@ -21,6 +21,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import de.morihofi.acmeserver.utils.scheduler.TimedScheduler;
 
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -74,7 +75,8 @@ class ProvisionerRenewSubscriberTest {
         CryptoStoreManager mgr = new CryptoStoreManager(new PKCS12KeyStoreConfig(ksPath, "pw".toCharArray()));
         EventBus bus = new EventBus();
         IServerInstance si = new DummyServerInstance(mgr, bus);
-        CertificateRenewScheduler renewManager = new CertificateRenewScheduler(mgr, bus);
+        TimedScheduler ts = new TimedScheduler();
+        CertificateRenewScheduler renewManager = new CertificateRenewScheduler(mgr, bus, ts);
 
         ProvisionerRenewSubscriber watcher = new ProvisionerRenewSubscriber(si, renewManager);
         bus.register(watcher);
