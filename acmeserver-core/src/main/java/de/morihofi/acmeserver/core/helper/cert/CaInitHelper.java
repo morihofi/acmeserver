@@ -134,10 +134,14 @@ public class CaInitHelper {
 
         AcmeProvisioner provisioner = new AcmeProvisioner();
         provisioner.setInternalUuid(UUID.randomUUID().toString());
+
+        IntermediateCa intermediateCa = new IntermediateCa();
+        intermediateCa.setInternalUuid(provisioner.getInternalUuid());
+        intermediateCa.setCertificateConfig(intConfig);
         provisioner.setName("default");
         provisioner.setRootCa(rootCa);
         provisioner.setMeta(new ProvisionerMeta("", ""));
-        provisioner.setCertificateConfig(intConfig);
+        provisioner.setIntermediateCa(intermediateCa);
         provisioner.setIssuedCertificateExpiration(new CertificateExpiration(0, 3, 0));
         provisioner.setWildcardAllowed(false);
         provisioner.setIpAllowed(true);

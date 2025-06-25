@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import de.morihofi.acmeserver.types.database.entities.IntermediateCa;
 import org.hibernate.Session;
 
 import java.io.Serializable;
@@ -31,8 +32,9 @@ public class AcmeProvisioner implements Serializable {
     @Embedded
     private ProvisionerMeta meta;
 
-    @Embedded
-    private CertificateConfig certificateConfig;
+    @OneToOne(optional = false, cascade = CascadeType.ALL)
+    @JoinColumn(name = "intermediate_id", nullable = false)
+    private IntermediateCa intermediateCa;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "root_ca_id", nullable = false)

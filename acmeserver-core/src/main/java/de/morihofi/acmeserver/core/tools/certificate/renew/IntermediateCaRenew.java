@@ -41,7 +41,7 @@ public class IntermediateCaRenew {
         X509Certificate renewedCertificate = X509Generator.generate(
                 X509Generator.Request.builder()
                         .type(X509Generator.Type.INTERMEDIATE_CA)
-                        .certificateConfig(provisioner.getCertificateConfig())
+                        .certificateConfig(provisioner.getIntermediateCa().getCertificateConfig())
                         .issuerKeyPair(serverInstance.getCryptoStoreManager().getCertficateAuthorityKeyPair(serverInstance.getRootCa()))
                         .issuerCertificate(serverInstance.getCryptoStoreManager().getCertficateAuthorityX509Certificate(serverInstance.getRootCa()))
                         .ownKeyPair(provisionerKeyPair)
