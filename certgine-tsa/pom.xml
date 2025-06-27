@@ -44,5 +44,10 @@
             <artifactId>jetty-ee10-servlet</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>de.morihofi.certgine</groupId>
+            <artifactId>certgine-httpserver-intf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

@@ -1,5 +1,6 @@
 package de.morihofi.certgine.tsa;
 
+import de.morihofi.certgine.server.common.intf.ServletMount;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,8 +16,8 @@ import java.io.InputStream;
  * Servlet providing RFC 3161 timestamping service.
  */
 @Slf4j
+@ServletMount(servletMountPoint = "/tsa", protect = true)
 public class TimeStampServlet extends HttpServlet {
-    public static final String PATH_MOUNT = "/tsa";
     private final TimeStampAuthority authority;
 
     public TimeStampServlet(TimeStampAuthority authority) {

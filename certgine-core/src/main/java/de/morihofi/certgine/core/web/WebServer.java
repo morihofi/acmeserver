@@ -18,6 +18,8 @@ package de.morihofi.certgine.core.web;
 
 import de.morihofi.certgine.acme.AcmeHttpServlet;
 import de.morihofi.certgine.acme.GetHttpsForFreeServlet;
+import de.morihofi.certgine.core.servlet.download.RootCaDownloadServlet;
+import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.events.ServerShutdownEvent;
 import de.morihofi.certgine.ui.frontend.legacy.LegacyWebUiServlet;
 import de.morihofi.certgine.revocation.crl.CrlScheduler;
@@ -50,6 +52,8 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -159,33 +163,7 @@ public class WebServer implements EventSubscriber {
         context.setContextPath("/");
         server.setHandler(context);
 
-        // Add ACME API Servlet
-        addProtectedServlet(context, new AcmeHttpServlet(serverInstance), AcmeHttpServlet.PATH_MOUNT);
-        // Add GetHttpsForFree Servlet
-        addProtectedServlet(context, new GetHttpsForFreeServlet(), GetHttpsForFreeServlet.PATH_MOUNT);
-        // Add Legacy CA download page
-        addProtectedServlet(context, new LegacyWebUiServlet(serverInstance), LegacyWebUiServlet.PATH_MOUNT);
-        // Add Modern WebUI servlet
-        addProtectedServlet(context, new WebUiServlet(serverInstance), WebUiServlet.PATH_MOUNT);
-        // Add root CA download servlet
-        addProtectedServlet(context, new RootCaDownloadServlet(serverInstance), RootCaDownloadServlet.PATH_MOUNT);
-
-
-        // Add timestamping servlet
-        X509Certificate tsaCert = serverInstance
-                .getCryptoStoreManager()
-                .getTimestampAuthorityCertificate(serverInstance.getTsaAuthority().getInternalUuid());
-
-        TimeStampAuthority auth = new TimeStampAuthority(
-                serverInstance.getCryptoStoreManager().getTimeampAuthorityKeyPair(serverInstance.getTsaAuthority().getInternalUuid()).getPrivate(),
-                tsaCert,
-                java.util.List.of(tsaCert,
-                        serverInstance.getCryptoStoreManager().getCertficateAuthorityX509Certificate(serverInstance.getRootCa())),
-                "1.3.6.1.4.1.13762.3");
-        addProtectedServlet(context, new TimeStampServlet(auth), TimeStampServlet.PATH_MOUNT);
-
-        // Add revocation servlet
-        addProtectedServlet(context, new RevocationHttpServlet(serverInstance), RevocationHttpServlet.PATH_MOUNT);
+        addBundledServlets(context);
 
 
         // Start Jetty
@@ -225,17 +203,108 @@ public class WebServer implements EventSubscriber {
     }
 
     /**
-     * Adds the protected servlet to the given context. Protected servlets cannot be unloaded or removed.
-     * The functionality will be added in the future to allow for dynamic servlet management for plugins etc.
-     * At the moment this is just a wrapper.
+     * Registers a predefined set of bundled servlets to the given servlet context.
+     * <p>
+     * This method adds core internal servlets that are part of the application by default.
      *
-     * @param context   The ServletContextHandler to which the servlet will be added.
-     * @param servlet   The HttpServlet instance to be added.
-     * @param mountPath The path at which the servlet will be mounted.
+     * @param context The {@link ServletContextHandler} to which the bundled servlets will be added.
+     * @throws Exception If servlet instantiation or registration fails.
      */
-    private void addProtectedServlet(ServletContextHandler context, HttpServlet servlet, String mountPath) {
+    private void addBundledServlets(ServletContextHandler context) throws Exception {
+        // Add ACME API servlet
+        addServlet(context, AcmeHttpServlet.class);
+        // Add GetHttpsForFree servlet
+        addServlet(context, GetHttpsForFreeServlet.class);
+        // Add Legacy CA download page servlet
+        addServlet(context, LegacyWebUiServlet.class);
+        // Add Modern WebUI servlet
+        addServlet(context, WebUiServlet.class);
+        // Add root CA download servlet
+        addServlet(context, RootCaDownloadServlet.class);
+
+        // Add timestamping servlet
+        X509Certificate tsaCert = serverInstance
+                .getCryptoStoreManager()
+                .getTimestampAuthorityCertificate(serverInstance.getTsaAuthority().getInternalUuid());
+
+        TimeStampAuthority auth = new TimeStampAuthority(
+                serverInstance.getCryptoStoreManager().getTimeampAuthorityKeyPair(serverInstance.getTsaAuthority().getInternalUuid()).getPrivate(),
+                tsaCert,
+                java.util.List.of(tsaCert,
+                        serverInstance.getCryptoStoreManager().getCertficateAuthorityX509Certificate(serverInstance.getRootCa())),
+                "1.3.6.1.4.1.13762.3");
+        addServlet(context, new TimeStampServlet(auth));
+
+        // Add revocation servlet
+        addServlet(context, RevocationHttpServlet.class);
+    }
+
+    /**
+     * Adds a servlet to the specified context at the given mount path.
+     * Optionally marks the servlet as protected, which may prevent it from being dynamically
+     * removed or unloaded in future versions when dynamic servlet management is implemented.
+     *
+     * @param context   The {@link ServletContextHandler} to which the servlet will be added.
+     * @param servlet   The {@link HttpServlet} instance to be added.
+     * @param mountPath The URL path at which the servlet will be mounted.
+     * @param protect   Whether the servlet is protected from dynamic unloading (future feature).
+     */
+    private void addServlet(ServletContextHandler context, HttpServlet servlet, String mountPath, boolean protect) {
+        log.info("Adding servlet {} at mount {}; is unload protected = {}", servlet.getClass().getName(), mountPath, protect);
         context.addServlet(new ServletHolder(servlet), mountPath);
     }
+
+    /**
+     * Adds a servlet to the specified context using mount configuration provided by a
+     * {@link ServletMount} annotation on the servlet class. This allows for declarative configuration
+     * of mount path and protection status.
+     *
+     * @param context The {@link ServletContextHandler} to which the servlet will be added.
+     * @param servlet The {@link HttpServlet} instance to be added.
+     * @throws NoSuchMethodException If the servlet's constructor could not be found.
+     * @throws InvocationTargetException If the constructor throws an exception during instantiation.
+     * @throws InstantiationException If the servlet class cannot be instantiated.
+     * @throws IllegalAccessException If the constructor is not accessible.
+     */
+    private void addServlet(ServletContextHandler context, HttpServlet servlet) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        log.debug("Getting annotation for mount information");
+        ServletMount s = servlet.getClass().getAnnotation(ServletMount.class);
+        addServlet(context, servlet, s.servletMountPoint(), s.protect());
+    }
+
+    /**
+     * Instantiates a servlet from its class, optionally using a constructor that accepts
+     * an {@link IServerInstance}. Then adds the servlet to the context using metadata from
+     * its {@link ServletMount} annotation.
+     *
+     * @param context       The {@link ServletContextHandler} to which the servlet will be added.
+     * @param servletClazz  The class of the {@link HttpServlet} to be instantiated and added.
+     * @throws NoSuchMethodException If neither a suitable constructor nor a no-arg constructor is found.
+     * @throws InvocationTargetException If the constructor throws an exception during instantiation.
+     * @throws InstantiationException If the servlet class cannot be instantiated.
+     * @throws IllegalAccessException If the constructor is not accessible.
+     */
+    private void addServlet(ServletContextHandler context, Class<? extends HttpServlet> servletClazz) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        log.debug("Trying to locate constructor for class {} ...", servletClazz.getName());
+        Constructor<? extends HttpServlet> servletClazzConstructor;
+        try {
+            servletClazzConstructor = servletClazz.getConstructor(IServerInstance.class);
+        } catch (NoSuchMethodException e) {
+            log.debug("No constructor with server instance param found, trying to find no-param constructor");
+            servletClazzConstructor = servletClazz.getConstructor();
+        }
+        log.debug("Constructor found!");
+
+        log.debug("Creating new instance ...");
+        HttpServlet servlet = servletClazzConstructor.getParameterCount() == 0
+                ? servletClazzConstructor.newInstance()
+                : servletClazzConstructor.newInstance(serverInstance);
+
+        log.debug("Instance created, adding servlet ...");
+        addServlet(context, servlet);
+    }
+
+
 
     private HttpConfiguration getHttpConfiguration() {
         HttpConfiguration httpConfig = new HttpConfiguration();

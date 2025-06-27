@@ -5,17 +5,17 @@ import de.morihofi.certgine.revocation.endpoints.OcspEndpointGet;
 import de.morihofi.certgine.revocation.endpoints.OcspEndpointPost;
 import de.morihofi.certgine.server.common.intf.Endpoint;
 import de.morihofi.certgine.server.common.intf.RoutableHttpServlet;
+import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.httpserver.HandlerType;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Servlet serving certificate revocation related endpoints like CRL and OCSP.
  */
+@Slf4j
+@ServletMount(servletMountPoint = "/revocation/*", protect = true)
 public class RevocationHttpServlet extends RoutableHttpServlet {
-    /**
-     * Path mount for this servlet.
-     */
-    public static final String PATH_MOUNT = "/revocation/*";
     private final IServerInstance serverInstance;
 
     public RevocationHttpServlet(IServerInstance serverInstance) {

@@ -13,7 +13,6 @@ import java.util.Objects;
 public abstract class AbstractStaticServlet extends HttpServlet {
 
     protected abstract String getBasePath(); // e.g., "/webapp-modern"
-    public abstract String getMountPath();   // e.g., "/modern/*"
 
     @Override
     public void init() throws ServletException {

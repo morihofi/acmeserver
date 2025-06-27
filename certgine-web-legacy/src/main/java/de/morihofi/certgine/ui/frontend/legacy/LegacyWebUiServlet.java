@@ -1,5 +1,6 @@
 package de.morihofi.certgine.ui.frontend.legacy;
 
+import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.database.entities.authority.EcdsaCertificateAlgorithm;
 import de.morihofi.certgine.types.database.entities.authority.RsaCertificateAlgorithm;
@@ -15,9 +16,9 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 @Slf4j
+@ServletMount(servletMountPoint = "/legacy/*", protect = true)
 public class LegacyWebUiServlet extends AbstractJteRouterServlet {
 
-    public static final String PATH_MOUNT = "/legacy/*";
     private final IServerInstance serverInstance;
 
     public LegacyWebUiServlet(IServerInstance serverInstance) {

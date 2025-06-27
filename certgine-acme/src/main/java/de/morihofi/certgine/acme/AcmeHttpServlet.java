@@ -12,6 +12,7 @@ import de.morihofi.certgine.acme.api.endpoints.order.OrderInfoEndpoint;
 import de.morihofi.certgine.server.common.intf.Endpoint;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.server.common.intf.RoutableHttpServlet;
+import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.server.common.intf.handler.AbstractExceptionHandler;
 import de.morihofi.certgine.types.database.entities.acme.HttpNonces;
 import de.morihofi.certgine.types.events.AcmeExceptionEvent;
@@ -25,9 +26,9 @@ import lombok.extern.slf4j.Slf4j;
  * This Servlet listens on path <code>/acme/*</code>
  */
 @Slf4j
+@ServletMount(servletMountPoint = "/acme/*", protect = true)
 public class AcmeHttpServlet extends RoutableHttpServlet {
 
-    public static final String PATH_MOUNT = "/acme/*";
     private final IServerInstance serverInstance;
 
     public AcmeHttpServlet(IServerInstance serverInstance) {

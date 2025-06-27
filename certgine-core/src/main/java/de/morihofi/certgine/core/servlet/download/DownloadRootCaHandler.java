@@ -1,4 +1,4 @@
-package de.morihofi.certgine.core.api.download;
+package de.morihofi.certgine.core.servlet.download;
 
 import de.morihofi.certgine.core.tools.fileformats.archive.cab.CabFile;
 import de.morihofi.certgine.cryptography.pem.PemUtil;
