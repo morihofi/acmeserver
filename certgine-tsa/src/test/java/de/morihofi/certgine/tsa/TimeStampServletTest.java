@@ -1,5 +1,6 @@
 package de.morihofi.certgine.tsa;
 
+import de.morihofi.certgine.server.common.intf.ServletMount;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
@@ -63,7 +64,8 @@ class TimeStampServletTest {
         TimeStampServlet servlet = new TimeStampServlet(auth);
 
         ServletTester tester = new ServletTester();
-        tester.addServlet(servlet.getClass(), TimeStampServlet.PATH_MOUNT).setServlet(servlet);
+        ServletMount mount = TimeStampServlet.class.getAnnotation(ServletMount.class);
+        tester.addServlet(servlet.getClass(), mount.servletMountPoint()).setServlet(servlet);
         tester.start();
         try {
             byte[] data = MessageDigest.getInstance("SHA-512").digest("hi".getBytes());
@@ -71,7 +73,7 @@ class TimeStampServletTest {
 
             HttpTester.Request request = HttpTester.newRequest();
             request.setMethod("POST");
-            request.setURI(TimeStampServlet.PATH_MOUNT);
+            request.setURI(mount.servletMountPoint());
             request.setVersion("HTTP/1.1");
             request.setHeader("Host", "tester");
             request.setHeader("Content-Type", "application/timestamp-query");
