@@ -35,7 +35,7 @@
         <agroal.version>2.5</agroal.version>
 
         <!-- Lombok (Upgrade this to newest version when updating Java) -->
-        <lombok.version>1.18.34</lombok.version>
+        <lombok.version>1.18.38</lombok.version>
 
         <!-- Unit Testing -->
         <junit.version>5.11.0</junit.version>
