@@ -1,4 +1,5 @@
 # Certgine (formerly ACME Server)
+
 [![Get latest Release here](https://img.shields.io/badge/Get_lastest_Release-here-blue?style=flat)
 ](https://github.com/morihofi/acmeserver/releases/latest)
 [![Report a bug](https://img.shields.io/badge/Report_a-bug-red?style=flat)
@@ -6,13 +7,14 @@
 
 *A self-hostable PKI solution for homelab and beyond*
 
-Certgine (formerly ACME Server) is a modular, self-hostable PKI solution designed 
+Certgine (formerly ACME Server) is a modular, self-hostable PKI solution designed
 with homelab environments in mind. It includes an Automatic Certificate Management Environment (ACME, RFC 8555)
 Server, fully written in Java without native dependencies. If Java runs on your server, then ACME Server should too.
 
-
 - Supports Java 21 and up
 - Any JDBC (and Hibernate compatible) database. Currently, H2, MariaDB and PostgreSQL drivers are in classpath
+- This is currently **NOT PRODUCTION READY and THERE IS NO MANAGEMENT INTERFACE**. This will be available in the
+  final release of 3.0, currently this is a work-in-progress.
 
 ## Notice
 
@@ -39,10 +41,8 @@ Server.
 - ACME:
     - Revocation support for certificates (using JWK and Account Key method)
     - Mostly ACME RFC compliant in its behaviour
-    - Multiple provisioners support with own certificateConfig CA
-    - Set expiration and key algorithm for each certificateConfig
     - Set expiration for each issued certificate in provisioner
-    - Each provisioner has its own CRL (Certificate Revocation List)
+    - Use multiple provisioners with their own linked intermediate CA
     - Set a domain naming restriction for each provisioner (e.g. domain must end with ".example.com")
     - Enable wildcard support individually for each provisioner (e.g. `*.example.com`)
     - ACME Account deactivation
@@ -53,18 +53,26 @@ Server.
         - HTTP-01
         - DNS-01
     - Support for ACME account key rollover
-    - CAA-Lookup (see [RFC 6844](https://datatracker.ietf.org/doc/html/rfc6844))
+    - CAA-Lookup in ACME Process (see [RFC 6844](https://datatracker.ietf.org/doc/html/rfc6844))
     - ACME only available over HTTPS, blocks HTTP requests for security reasons
     - Proxy support for HTTP Challenge, e.g. over Tor for Onion Domains
     - Support for IP-Address certificates over ACME
+- PKI related:
+    - Multiple Intermediate CA support
+        - Set expiration and key algorithm for each intermediate certificate
+        - An ACME Provisioner can be bound to an Intermediate CA
+        - Intermediate CAs will renew automatically
+    - Multiple Root CA support
+        - Support for multiple root CAs and able to create sub certificates from them
+    - Each intermediate has its own CRL (Certificate Revocation List)
+    - Built-in OCSP for each intermediate (Online Certificate Status Protocol,
+      see [RFC 6960](https://datatracker.ietf.org/doc/html/rfc6960)) server
 - Download CA support
     - Download in standard formats like CRT, PEM, DER
     - [CAB file CA export](http://web.archive.org/web/20060427213220/http://blogs.msdn.com/windowsmobile/archive/2006/01/28/making_a_root_cert_cab_file.aspx)
       for install on legacy Windows Mobile based devices (e.g. older embedded devices, old PDAs, ...)
     - Includes JavaScript-less UI for downloading Root-CAs (at `/legacy`-Route)
 - Support for PKCS#12 (.p12) KeyStore and PKCS#11 Hardware Security Modules (HSM)
-- Built-in OCSP (Online Certificate Status Protocol, see [RFC 6960](https://datatracker.ietf.org/doc/html/rfc6960))
-  server
 - Built-in Timestamp Server at `/tsa`-Route (see [RFC 3161](https://datatracker.ietf.org/doc/html/rfc3161))
 - API and WebUI TLS Security can be automatically configured
   using [Mozilla's SSL Config Guidelines](https://ssl-config.mozilla.org/),
@@ -72,11 +80,15 @@ Server.
   writing this) are included, if specified version not available it will try to fetch these from the Mozilla server.
   Note: Version before 5.1 might be a bit buggy). This is useful for homelab use with older legacy devices
 
+## In development
+- GraphQL API
+
 ## Features in the future
 
 - Modern Management UI:
     - better Statistics
 - Functionality for management and issuing of TLS Client-Authorization Certificates
+- Plugins, Custom Servlets and Custom Services
 - ACME
     - External Account Binding support
 - Cluster compatible (e.g. Kubernetes)
