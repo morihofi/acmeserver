@@ -4,22 +4,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.morihofi.acmeserver</groupId>
-    <artifactId>acmeserver</artifactId>
+    <groupId>de.morihofi.certgine</groupId>
+    <artifactId>certgine</artifactId>
     <version>3.0.0</version>
     <packaging>pom</packaging>
     <inceptionYear>2023</inceptionYear>
     <modules>
-        <module>acmeserver-core</module>
-        <module>acmeserver-utils</module>
-        <module>acmeserver-parent</module>
-        <module>acmeserver-types</module>
-        <module>acmeserver-revocation</module>
-        <module>acmeserver-cryptography</module>
-        <module>acmeserver-httpserver-intf</module>
-        <module>acmeserver-acme</module>
-        <module>acmeserver-web-legacy</module>
-        <module>acmeserver-tsa</module>
+        <module>certgine-core</module>
+        <module>certgine-utils</module>
+        <module>certgine-parent</module>
+        <module>certgine-types</module>
+        <module>certgine-revocation</module>
+        <module>certgine-cryptography</module>
+        <module>certgine-httpserver-intf</module>
+        <module>certgine-acme</module>
+        <module>certgine-web-legacy</module>
+        <module>certgine-tsa</module>
     </modules>
 
     <licenses>

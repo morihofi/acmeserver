@@ -1,22 +1,17 @@
-# ACME Server - in search of a better name
-
-A self-hostable PKI solution built for homelab usage.
-Originally designed as a standalone ACME server, this project has evolved into a full-fledged, modular PKI system. While
-the name "ACME Server" no longer captures its full scope, it remains a central feature. A new name is coming in the
-future and before the next release.
-
+# Certgine (formerly ACME Server)
 [![Get latest Release here](https://img.shields.io/badge/Get_lastest_Release-here-blue?style=flat)
 ](https://github.com/morihofi/acmeserver/releases/latest)
 [![Report a bug](https://img.shields.io/badge/Report_a-bug-red?style=flat)
 ](https://github.com/morihofi/acmeserver/issues)
 
-## 📃 About
+*A self-hostable PKI solution for homelab and beyond*
 
-This is an implementation of an Homelab PKI Server, that includes an Automatic Certificate Management Environment (ACME)
-Server, fully written in Java without native dependencies.
-If Java runs on your server, then ACME Server should too.
+Certgine (formerly ACME Server) is a modular, self-hostable PKI solution designed 
+with homelab environments in mind. It includes an Automatic Certificate Management Environment (ACME, RFC 8555)
+Server, fully written in Java without native dependencies. If Java runs on your server, then ACME Server should too.
 
-- Java 21 and up
+
+- Supports Java 21 and up
 - Any JDBC (and Hibernate compatible) database. Currently, H2, MariaDB and PostgreSQL drivers are in classpath
 
 ## Notice
@@ -31,7 +26,7 @@ upgrade. Please import your existing CA (Certificate and private Key) if you wan
 
 ## 📒 Disclaimer
 
-This version is not fully RFC 8555 compliant, but should work with most clients.
+This version is not fully RFC 8555 compliant yet, but should work with most clients.
 I'll hope to say one day that we are fully compliant.
 
 ## 📖 Documentation

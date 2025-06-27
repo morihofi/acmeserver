@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
-    <file url="file://$PROJECT_DIR$/acmeserver-acme/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-acme/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-core/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-core/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-cryptography/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-cryptography/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-httpserver-intf/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-httpserver-intf/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-httpserver-types/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-httpserver-types/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-parent/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-parent/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-plugin-notification/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-plugin-notification/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-revocation/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-revocation/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-tsa/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-tsa/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-types/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-types/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-utils/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-utils/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-web-legacy/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/acmeserver-web-legacy/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-acme/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-acme/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-core/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-cryptography/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-cryptography/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-httpserver-intf/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-httpserver-intf/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-parent/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-parent/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-revocation/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-revocation/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-tsa/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-tsa/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-types/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-types/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-utils/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-utils/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-web-legacy/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-web-legacy/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>

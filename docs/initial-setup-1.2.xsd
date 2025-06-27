@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ================================================================
+     Initial-Setup Schema  v1.2
+     Zielt auf die Beispiel-XML aus der letzten Nachricht.
+     Namespace: urn:example:initial-setup:1.2
+     ============================================================== -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="urn:example:initial-setup:1.2"
+           xmlns="urn:example:initial-setup:1.2"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+    <!-- ========== Basistypen & Hilfen ========== -->
+    <xs:simpleType name="idType">
+        <xs:restriction base="xs:ID"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="refType">
+        <xs:restriction base="xs:IDREF"/>
+    </xs:simpleType>
+
+    <!-- dd.MM.yyyy HH:mm:ss als Einzel-Attribute -->
+    <xs:complexType name="expireType">
+        <xs:attribute name="day"    type="xs:positiveInteger"   use="required"/>
+        <xs:attribute name="month"  type="xs:positiveInteger"   use="required"/>
+        <xs:attribute name="year"   type="xs:positiveInteger"   use="required"/>
+        <xs:attribute name="hour"   type="xs:nonNegativeInteger" use="required"/>
+        <xs:attribute name="minute" type="xs:nonNegativeInteger" use="required"/>
+        <xs:attribute name="second" type="xs:nonNegativeInteger" use="required"/>
+    </xs:complexType>
+
+    <!-- ========== WURZELELEMENT ========== -->
+    <xs:element name="initial-setup">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="core"/>
+                <xs:element ref="user-management"/>
+                <xs:element ref="organisations"/>
+            </xs:sequence>
+            <xs:attribute name="version" type="xs:string" use="required"/>
+        </xs:complexType>
+
+        <!-- ------ Globale Schlüssel ------ -->
+        <!-- Alle Organisation-IDs eindeutig -->
+        <xs:key name="organisationIds">
+            <xs:selector xpath="organisations/organisation"/>
+            <xs:field    xpath="@id"/>
+        </xs:key>
+
+        <!-- Domain-Namen im gesamten Dokument eindeutig -->
+        <xs:key name="uniqueDomainNames">
+            <xs:selector xpath=".//domain"/>
+            <xs:field    xpath="@name"/>
+        </xs:key>
+
+        <!-- Usernamen / E-Mails global eindeutig -->
+        <xs:key name="uniqueUsernames">
+            <xs:selector xpath="user-management/users/user"/>
+            <xs:field    xpath="@username"/>
+        </xs:key>
+        <xs:key name="uniqueEmails">
+            <xs:selector xpath="user-management/users/user"/>
+            <xs:field    xpath="@email"/>
+        </xs:key>
+    </xs:element>
+
+    <!-- ========== CORE ========== -->
+    <xs:element name="core">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="database">
+                    <xs:complexType>
+                        <xs:attribute name="driver"   type="xs:string" use="required"/>
+                        <xs:attribute name="url"      type="xs:anyURI" use="required"/>
+                        <xs:attribute name="username" type="xs:string" use="required"/>
+                        <xs:attribute name="password" type="xs:string" use="required"/>
+                        <xs:attribute name="tls"      type="xs:boolean" default="false"/>
+                    </xs:complexType>
+                </xs:element>
+
+                <xs:element name="webserver">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="https">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="tls">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="config">
+                                                        <xs:complexType>
+                                                            <xs:sequence>
+                                                                <xs:element name="property" maxOccurs="unbounded">
+                                                                    <xs:complexType>
+                                                                        <xs:attribute name="name"  type="xs:string" use="required"/>
+                                                                        <xs:attribute name="value" type="xs:string" use="required"/>
+                                                                    </xs:complexType>
+                                                                </xs:element>
+                                                            </xs:sequence>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                    <xs:element name="mozilla-ssl-config">
+                                                        <xs:complexType>
+                                                            <xs:attribute name="version"       type="xs:string" use="required"/>
+                                                            <xs:attribute name="configuration" type="xs:string" use="required"/>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="port" type="xs:positiveInteger" use="required"/>
+                                </xs:complexType>
+                            </xs:element>
+
+                            <xs:element name="http" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:attribute name="port" type="xs:positiveInteger" use="required"/>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ========== USER-MANAGEMENT ========== -->
+    <xs:element name="user-management">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="users">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="user" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="permissions">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <!-- Organisation-gebundene Rollen -->
+                                                    <xs:element name="organisation" maxOccurs="unbounded" minOccurs="0">
+                                                        <xs:complexType>
+                                                            <xs:sequence>
+                                                                <xs:element name="role" maxOccurs="unbounded">
+                                                                    <xs:complexType>
+                                                                        <xs:attribute name="role" type="xs:string" use="required"/>
+                                                                    </xs:complexType>
+                                                                </xs:element>
+                                                            </xs:sequence>
+                                                            <xs:attribute name="org-id" type="refType" use="required"/>
+                                                        </xs:complexType>
+                                                    </xs:element>
+
+                                                    <!-- Globale Rollen -->
+                                                    <xs:element name="global" minOccurs="0">
+                                                        <xs:complexType>
+                                                            <xs:sequence>
+                                                                <xs:element name="role" maxOccurs="unbounded">
+                                                                    <xs:complexType>
+                                                                        <xs:attribute name="role" type="xs:string" use="required"/>
+                                                                    </xs:complexType>
+                                                                </xs:element>
+                                                            </xs:sequence>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="id"       type="idType" use="required"/>
+                                    <xs:attribute name="username" type="xs:string" use="required"/>
+                                    <xs:attribute name="email"    type="xs:string" use="required"/>
+                                    <xs:attribute name="password" type="xs:string" use="required"/>
+                                </xs:complexType>
+
+                                <!-- Keine doppelte org-id pro User -->
+                                <xs:unique name="oneRolePerOrg">
+                                    <xs:selector xpath="permissions/organisation"/>
+                                    <xs:field    xpath="@org-id"/>
+                                </xs:unique>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+
+        <!-- org-id muss echte Organisation sein -->
+        <xs:keyref name="permOrgRef" refer="organisationIds">
+            <xs:selector xpath=".//organisation/@org-id"/>
+            <xs:field    xpath="."/>
+        </xs:keyref>
+    </xs:element>
+
+    <!-- ========== ORGANISATIONS-CONTAINER ========== -->
+    <xs:element name="organisations">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="organisation" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element ref="domains"/>
+                            <xs:element ref="pki"/>
+                            <xs:element ref="acme"   minOccurs="0"/>
+                        </xs:sequence>
+                        <xs:attribute name="id" type="idType" use="required"/>
+                    </xs:complexType>
+
+                    <!-- Domain-ID innerhalb der Organisation eindeutig -->
+                    <xs:key name="domainIdsPerOrg">
+                        <xs:selector xpath="domains/domain"/>
+                        <xs:field    xpath="@id"/>
+                    </xs:key>
+
+                    <!-- link-id → Domain -->
+                    <xs:keyref name="domainLinkValid" refer="domainIdsPerOrg">
+                        <xs:selector xpath=".//domain[@link-id]"/>
+                        <xs:field    xpath="@link-id"/>
+                    </xs:keyref>
+
+                    <!-- CA-Schlüssel für Referenzen -->
+                    <xs:key name="caIds">
+                        <xs:selector xpath="pki/*[self::root-ca or self::intermediate-ca]"/>
+                        <xs:field    xpath="@id"/>
+                    </xs:key>
+
+                    <!-- Intermediate → Root/Intermediate -->
+                    <xs:keyref name="intParentValid" refer="caIds">
+                        <xs:selector xpath="pki/intermediate-ca"/>
+                        <xs:field    xpath="@ref-parent"/>
+                    </xs:keyref>
+
+                    <!-- server-cert / timestamp-service ➜ CA -->
+                    <xs:keyref name="certCaValid" refer="caIds">
+                        <xs:selector xpath="pki/*[self::server-cert or self::timestamp-service]"/>
+                        <xs:field    xpath="@ref-ca"/>
+                    </xs:keyref>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ========== DOMAINS ========== -->
+    <xs:element name="domains">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="domain" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:attribute name="id"      type="idType"   use="required"/>
+                        <xs:attribute name="name"    type="xs:string" use="required"/>
+                        <xs:attribute name="link-id" type="refType"   use="optional"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ========== PKI ========== -->
+    <xs:element name="pki">
+        <xs:complexType>
+            <xs:sequence>
+                <!-- ========= ROOT-CA  (NEU) ========= -->
+                <!--  Wahl zwischen
+                     (A) selbst erzeugen  ➜ <subject> + <expire>
+                     (B) bestehende CA importieren ➜ <import>
+                     Zusätzlich: <private-key> darf NICHT geschützt sein
+                -->
+                <xs:element name="root-ca">
+                    <xs:complexType>
+                        <!-- Entweder Variante (A) ODER Variante (B) -->
+                        <xs:choice>
+                            <!-- Variante A: Neu erzeugen -->
+                            <xs:sequence>
+                                <xs:element name="subject" type="xs:string"/>
+                                <xs:element name="expire"  type="expireType"/>
+                            </xs:sequence>
+
+                            <!-- Variante B: Import -->
+                            <xs:element name="import">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="certificate" type="xs:string"/>
+                                        <xs:element name="private-key">
+                                            <!-- private-key darf nicht „protected=true“ sein -->
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="xs:string">
+                                                        <!-- fest verdrahtet auf false -->
+                                                        <xs:attribute name="protected"
+                                                                      type="xs:boolean"
+                                                                      fixed="false"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:choice>
+
+                        <!-- unverändert: ID-Attribut -->
+                        <xs:attribute name="id" type="idType" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+
+
+                <!-- ========= INTERMEDIATE-CA  (NEU) ========= -->
+                <xs:element name="intermediate-ca">
+                    <xs:complexType>
+                        <!-- Entweder Variante (A) ODER Variante (B) -->
+                        <xs:choice>
+                            <!-- Variante A: Neu erzeugen -->
+                            <xs:sequence>
+                                <xs:element name="subject" type="xs:string"/>
+                                <xs:element name="expire"  type="expireType"/>
+                            </xs:sequence>
+
+                            <!-- Variante B: Import -->
+                            <xs:element name="import">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="certificate" type="xs:string"/>
+                                        <xs:element name="private-key">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="xs:string">
+                                                        <!-- verschlüsselte Schlüssel verboten -->
+                                                        <xs:attribute name="protected"
+                                                                      type="xs:boolean"
+                                                                      fixed="false"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:choice>
+
+                        <!-- unveränderte Attribute -->
+                        <xs:attribute name="id"         type="idType"  use="required"/>
+                        <xs:attribute name="ref-parent" type="refType" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+
+
+                <xs:element name="server-cert" maxOccurs="unbounded" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="subject">
+                                <xs:complexType>
+                                    <xs:attribute name="link-id" type="refType" use="required"/>
+                                </xs:complexType>
+                            </xs:element>
+
+                            <xs:element name="alt-names" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="domain" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:attribute name="link-id" type="refType" use="required"/>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+
+                            <xs:element name="expire" type="expireType"/>
+                        </xs:sequence>
+                        <xs:attribute name="id"     type="idType"  use="required"/>
+                        <xs:attribute name="ref-ca" type="refType" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+
+                <xs:element name="timestamp-service" maxOccurs="unbounded" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="domain">
+                                <xs:complexType>
+                                    <xs:attribute name="link-id" type="refType" use="required"/>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="path"   type="xs:string"/>
+                            <xs:element name="expire" type="expireType"/>
+                        </xs:sequence>
+                        <xs:attribute name="id"            type="idType"  use="required"/>
+                        <xs:attribute name="ref-ca"        type="refType" use="required"/>
+                        <xs:attribute name="http-enabled"  type="xs:boolean" default="false"/>
+                        <xs:attribute name="https-enabled" type="xs:boolean" default="true"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ========== ACME (vereinfachtes frei erweiterbares Modell) ========== -->
+    <xs:element name="acme">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="provisioner" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="metadata"  minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="meta" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:attribute name="type"  type="xs:string" use="required"/>
+                                                <xs:attribute name="value" type="xs:string" use="required"/>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+
+                            <xs:element name="policies" minOccurs="0">
+                                <!-- Inhalt stark template-abhängig: via xs:any offen lassen -->
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="policy" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+                                                </xs:sequence>
+                                                <xs:attribute name="template" type="xs:string" use="required"/>
+                                                <xs:attribute name="value"    type="xs:string" use="optional"/>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="id"                       type="idType"  use="required"/>
+                        <xs:attribute name="issues-with-provisioner-id" type="refType" use="required"/>
+                    </xs:complexType>
+
+                    <!-- id muss auf Intermediate-CA zeigen -->
+                    <xs:keyref name="acmeIssuerValid"
+                               refer="caIds">
+                        <xs:selector xpath="."/>
+                        <xs:field    xpath="@issues-with-provisioner-id"/>
+                    </xs:keyref>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

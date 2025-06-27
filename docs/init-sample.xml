@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<initial-setup xmlns="urn:example:initial-setup:1.2"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="urn:example:initial-setup:1.2 initial-setup-1.2.xsd"
+               version="1.2">
+
+    <!-- ========================================================= -->
+    <!-- 1) Core-Konfiguration – wird vor Datenbank-Initialisierung -->
+    <!--    eingelesen (startkritisch)                             -->
+    <!-- ========================================================= -->
+    <core>
+        <database driver="org.postgresql.Driver"
+                  url="jdbc:postgresql://db.prod:5432/maindb"
+                  username="setup"
+                  password="secret"
+        />
+
+        <webserver>
+            <!-- https kann nicht disabled werden, http schon -->
+            <https port="443">
+                <tls>
+                    <config>
+                        <property name="enableSniCheck" value="true"/>
+                        <property name="allowLegacyResumption" value="true"/>
+                    </config>
+                    <mozilla-ssl-config version="5.7" configuration="intermediate"/>
+                </tls>
+            </https>
+
+            <http port="80"/>
+        </webserver>
+    </core>
+
+    <!-- =========================================== -->
+    <!-- 2) Globale Benutzerverwaltung               -->
+    <!-- =========================================== -->
+    <user-management>
+        <users>
+            <user id="u-admin"
+                  username="admin"
+                  email="admin@example.com"
+                  password="$2y$10$XCSFobHqymPtpdW3.LEXeufR/Yh7YOS4z.8kbxOOuQDDAPsyGgzDO">
+                <permissions>
+                    <organisation org-id="example">
+                        <role role="admin"/>
+                    </organisation>
+                    <global>
+                        <role role="admin"/>
+                    </global>
+                </permissions>
+            </user>
+
+            <user id="u-alice"
+                  username="alice"
+                  email="alice@example.com"
+                  password="$2y$12$aJpkMf29kXmTpt5ctvEm0e7Yvy3sX.qAty5Qkw52i9Xq7kTSQt1iW">
+                <permissions>
+                    <organisation org-id="example">
+                        <role role="user"/>
+                    </organisation>
+                </permissions>
+            </user>
+        </users>
+    </user-management>
+
+    <organisations>
+        <!-- =========================================== -->
+        <!-- 3) Organisationen, getrennte namespaces wie getrennte unternehmen zu behandeln, mehrere möglich     -->
+        <!-- =========================================== -->
+        <organisation id="example">
+
+            <!-- Domains (IDs organisations-global eindeutig) -->
+            <domains>
+                <domain id="ex-d-main" name="example.com"/>
+                <domain id="ex-d-www" name="www.example.com"/>
+                <domain id="ex-d-tsa" name="timestamp.example.com"/>
+            </domains>
+
+            <!-- PKI -->
+            <pki>
+                <root-ca id="ex-root">
+                    <subject>CN=Example Root CA,O=Example Corp,C=DE</subject>
+                    <expire day="31" month="12" year="2040" hour="23" minute="59" second="59"/>
+                </root-ca>
+
+                <intermediate-ca id="ex-int-web" ref-parent="ex-root">
+                    <subject>CN=Web Issuer,O=Example Corp,C=DE</subject>
+                    <expire day="31" month="12" year="2030" hour="23" minute="59" second="59"/>
+                </intermediate-ca>
+
+                <server-cert id="ex-srv-main" ref-ca="ex-int-web">
+                    <subject link-id="ex-d-main"/>
+                    <alt-names>
+                        <domain link-id="ex-d-main"/>
+                        <domain link-id="ex-d-www"/>
+                    </alt-names>
+                    <expire day="31" month="12" year="2027" hour="12" minute="00" second="00"/>
+                </server-cert>
+
+                <timestamp-service id="ex-tsa" ref-ca="ex-int-web"
+                                   https-enabled="true" http-enabled="false">
+                    <domain link-id="ex-d-tsa"/>
+                    <path>/tsa</path>
+                    <expire day="31" month="12" year="2027" hour="12" minute="00" second="00"/>
+                </timestamp-service>
+            </pki>
+
+            <!-- ACME-Provisioner als Beispiel -->
+            <acme>
+                <provisioner id="ex-default" issues-with-provisioner-id="ex-int-web">
+                    <metadata>
+                        <meta type="website" value="https://ca.example.com"/>
+                        <meta type="tos" value="https://example.com/tos"/>
+                    </metadata>
+                    <policies>
+                        <policy template="allow-ip" value="true">
+                           <subnets>
+                               <ipv4>
+                                   <entry>192.168.178.0/24</entry>
+                               </ipv4>
+                           </subnets>
+                        </policy>
+                        <policy template="domain-restriction">
+                            <require-suffix>
+                                <entry>.test.example.org</entry>
+                            </require-suffix>
+                        </policy>
+                    </policies>
+                </provisioner>
+            </acme>
+        </organisation>
+    </organisations>
+
+
+</initial-setup>
