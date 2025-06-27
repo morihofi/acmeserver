@@ -230,7 +230,7 @@ public class WebServer implements EventSubscriber {
         TimeStampAuthority auth = new TimeStampAuthority(
                 serverInstance.getCryptoStoreManager().getTimeampAuthorityKeyPair(serverInstance.getTsaAuthority().getInternalUuid()).getPrivate(),
                 tsaCert,
-                java.util.List.of(tsaCert,
+                List.of(tsaCert,
                         serverInstance.getCryptoStoreManager().getCertficateAuthorityX509Certificate(serverInstance.getRootCa())),
                 "1.3.6.1.4.1.13762.3");
         addServlet(context, new TimeStampServlet(auth));

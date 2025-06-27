@@ -41,6 +41,10 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-alpn-server</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.graphql-java</groupId>
+            <artifactId>graphql-java</artifactId>
+        </dependency>
 
         <!-- Crypto -->
         <dependency>

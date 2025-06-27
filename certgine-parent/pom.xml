@@ -274,6 +274,13 @@
                 <version>9.2.1</version>
             </dependency>
 
+            <!-- GraphQL -->
+            <dependency>
+                <groupId>com.graphql-java</groupId>
+                <artifactId>graphql-java</artifactId>
+                <version>24.1</version>
+            </dependency>
+
             <!-- Unit Test -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
