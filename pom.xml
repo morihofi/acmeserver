@@ -20,6 +20,7 @@
         <module>certgine-acme</module>
         <module>certgine-web-legacy</module>
         <module>certgine-tsa</module>
+        <module>certgine-web-ui</module>
     </modules>
 
     <licenses>

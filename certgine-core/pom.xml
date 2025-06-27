@@ -187,6 +187,12 @@
             <artifactId>certgine-tsa</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>de.morihofi.certgine</groupId>
+            <artifactId>certgine-web-ui</artifactId>
+            <version>3.0.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
 </project>

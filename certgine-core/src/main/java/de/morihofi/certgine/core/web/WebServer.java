@@ -22,6 +22,7 @@ import de.morihofi.certgine.types.events.ServerShutdownEvent;
 import de.morihofi.certgine.ui.frontend.legacy.LegacyWebUiServlet;
 import de.morihofi.certgine.revocation.crl.CrlScheduler;
 import de.morihofi.certgine.revocation.crl.CrlUpdateSubscriber;
+import de.morihofi.certgine.ui.frontend.modern.WebUiServlet;
 import de.morihofi.certgine.utils.scheduler.TimedScheduler;
 import de.morihofi.certgine.revocation.RevocationHttpServlet;
 import de.morihofi.certgine.core.Main;
@@ -164,8 +165,11 @@ public class WebServer implements EventSubscriber {
         addProtectedServlet(context, new GetHttpsForFreeServlet(), GetHttpsForFreeServlet.PATH_MOUNT);
         // Add Legacy CA download page
         addProtectedServlet(context, new LegacyWebUiServlet(serverInstance), LegacyWebUiServlet.PATH_MOUNT);
+        // Add Modern WebUI servlet
+        addProtectedServlet(context, new WebUiServlet(serverInstance), WebUiServlet.PATH_MOUNT);
         // Add root CA download servlet
         addProtectedServlet(context, new RootCaDownloadServlet(serverInstance), RootCaDownloadServlet.PATH_MOUNT);
+
 
         // Add timestamping servlet
         X509Certificate tsaCert = serverInstance
