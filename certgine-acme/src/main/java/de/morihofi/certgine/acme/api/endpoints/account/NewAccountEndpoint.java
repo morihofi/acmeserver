@@ -22,12 +22,14 @@ import com.google.gson.JsonParser;
 import de.morihofi.certgine.acme.api.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.certgine.acme.api.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.certgine.acme.api.endpoints.account.objects.AccountResponse;
+import de.morihofi.certgine.acme.api.endpoints.account.objects.ExternalAccountBinding;
 import de.morihofi.certgine.acme.api.objects.ACMERequestBody;
 
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.database.entities.acme.enums.AcmeStatus;
 import de.morihofi.certgine.types.database.entities.acme.AcmeAccount;
 import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.certgine.types.database.entities.acme.AcmeExternalAccountBinding;
 import de.morihofi.certgine.types.database.entities.acme.HttpNonces;
 import de.morihofi.certgine.types.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUserActionRequiredException;
@@ -45,6 +47,10 @@ import lombok.NonNull;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.lang.JoseException;
+import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.keys.HmacKey;
+
+import java.util.Base64;
 
 import java.util.List;
 import java.util.UUID;
@@ -112,6 +118,9 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         // Extract the "jwk" JsonObject as a string
         String jwkString = decodedProtectedJsonObject.getAsJsonObject("jwk").toString();
 
+        AcmeExternalAccountBinding bindingUsed = validateExternalAccountBinding(payload.getExternalAccountBinding(),
+                provisioner, jwkString);
+
         PublicJsonWebKey publicJsonWebKey;
         try {
             publicJsonWebKey = (PublicJsonWebKey) JsonWebKey.Factory.newJwk(jwkString);
@@ -130,6 +139,9 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
             account.setEmails(emails);
             account.setDeactivated(false);
             account.setAcmeProvisioner(provisioner);
+            if (bindingUsed != null) {
+                account.setExternalAccountBinding(bindingUsed);
+            }
             session.persist(account);
             transaction.commit();
             log.info("New ACME account created with account id {}", accountId);
@@ -152,5 +164,61 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         response.setOrders(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/acct/" + accountId + "/orders");
 
         ctx.json(response);
+    }
+
+    /**
+     * Validates the provided external account binding and returns the binding used.
+     *
+     * @param eab         ExternalAccountBinding from the request
+     * @param provisioner Provisioner handling the request
+     * @param jwkString   JWK string of the new account
+     * @return the used {@link AcmeExternalAccountBinding} or {@code null}
+     * @throws ACMEUserActionRequiredException if validation fails
+     */
+    private AcmeExternalAccountBinding validateExternalAccountBinding(ExternalAccountBinding eab,
+                                                                      AcmeProvisioner provisioner,
+                                                                      String jwkString) throws ACMEUserActionRequiredException {
+        if (provisioner.isExternalAccountBindingRequired() && eab == null) {
+            throw new ACMEUserActionRequiredException("External Account Binding required");
+        }
+
+        if (eab == null) {
+            return null;
+        }
+
+        String serialized = eab.getProtectedHeader() + "." + eab.getPayload() + "." + eab.getSignature();
+        JsonWebSignature eabJws = new JsonWebSignature();
+        try {
+            eabJws.setCompactSerialization(serialized);
+        } catch (JoseException e) {
+            throw new ACMEUserActionRequiredException("Invalid external account binding signature");
+        }
+
+        String kid = eabJws.getKeyIdHeaderValue();
+        AcmeExternalAccountBinding key = AcmeExternalAccountBinding.getForKid(getServerInstance(), kid);
+        if (key == null) {
+            throw new ACMEUserActionRequiredException("Unknown external account binding key");
+        }
+
+        eabJws.setKey(new HmacKey(Base64.getDecoder().decode(key.getHmacKey())));
+        try {
+            if (!eabJws.verifySignature()) {
+                throw new ACMEUserActionRequiredException("Invalid external account binding signature");
+            }
+        } catch (JoseException e) {
+            throw new ACMEUserActionRequiredException("Invalid external account binding signature");
+        }
+
+        String payload;
+        try {
+            payload = eabJws.getPayload();
+        } catch (JoseException e) {
+            throw new ACMEUserActionRequiredException("Invalid external account binding signature");
+        }
+
+        if (!payload.equals(jwkString)) {
+            throw new ACMEUserActionRequiredException("External account binding payload mismatch");
+        }
+        return key;
     }
 }

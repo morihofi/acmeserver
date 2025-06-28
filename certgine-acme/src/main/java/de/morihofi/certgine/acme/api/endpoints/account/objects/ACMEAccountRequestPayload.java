@@ -18,6 +18,7 @@ package de.morihofi.certgine.acme.api.endpoints.account.objects;
 
 import de.morihofi.certgine.acme.api.endpoints.account.AccountEndpoint;
 import de.morihofi.certgine.acme.api.endpoints.account.NewAccountEndpoint;
+import de.morihofi.certgine.acme.api.endpoints.account.objects.ExternalAccountBinding;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Data;
 
@@ -40,6 +41,11 @@ public class ACMEAccountRequestPayload {
      * Indicates whether the user has agreed to the Terms of Service of the ACME Provisioner.
      */
     private boolean termsOfServiceAgreed;
+
+    /**
+     * External account binding information if provided.
+     */
+    private ExternalAccountBinding externalAccountBinding;
 
     /**
      * The status of the ACME account, e.g., active, deactivated.

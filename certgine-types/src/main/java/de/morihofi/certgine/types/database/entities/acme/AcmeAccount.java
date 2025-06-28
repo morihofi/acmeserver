@@ -169,6 +169,13 @@ public class AcmeAccount implements Serializable {
     private AcmeProvisioner acmeProvisioner;
 
     /**
+     * External Account Binding used during account creation.
+     */
+    @ManyToOne
+    @JoinColumn(name = "eab_id")
+    private AcmeExternalAccountBinding externalAccountBinding;
+
+    /**
      * Orders for this ACME Account
      */
     @OneToMany(mappedBy = "account")

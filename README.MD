@@ -57,6 +57,7 @@ Server.
     - ACME only available over HTTPS, blocks HTTP requests for security reasons
     - Proxy support for HTTP Challenge, e.g. over Tor for Onion Domains
     - Support for IP-Address certificates over ACME
+    - External Account Binding support
 - PKI related:
     - Multiple Intermediate CA support
         - Set expiration and key algorithm for each intermediate certificate
@@ -89,8 +90,6 @@ Server.
     - better Statistics
 - Functionality for management and issuing of TLS Client-Authorization Certificates
 - Plugins, Custom Servlets and Custom Services
-- ACME
-    - External Account Binding support
 - Cluster compatible (e.g. Kubernetes)
 - ... many more I just cant imagine right now
 

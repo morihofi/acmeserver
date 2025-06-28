@@ -52,6 +52,11 @@ public class AcmeProvisioner implements Serializable {
 
     private boolean ipAllowed;
 
+    /**
+     * If true, ACME External Account Binding must be provided when creating new accounts.
+     */
+    private boolean externalAccountBindingRequired;
+
     @Embedded
     private AcmeProvisionerDomainNameRestriction acmeProvisionerDomainNameRestriction;
 
