@@ -1,9 +1,9 @@
 # Certgine (formerly ACME Server)
 
 [![Get latest Release here](https://img.shields.io/badge/Get_lastest_Release-here-blue?style=flat)
-](https://github.com/morihofi/acmeserver/releases/latest)
+](https://github.com/morihofi/certgine/releases/latest)
 [![Report a bug](https://img.shields.io/badge/Report_a-bug-red?style=flat)
-](https://github.com/morihofi/acmeserver/issues)
+](https://github.com/morihofi/certgine/issues)
 
 *A self-hostable PKI solution for homelab and beyond*
 
