@@ -46,9 +46,9 @@
     </developers>
 
     <scm>
-        <url>https://github.com/morihofi/acmeserver/</url>
-        <connection>scm:git:git@github.com:morihofi/acmeserver.git</connection>
-        <developerConnection>scm:git:git@github.com:morihofi/acmeserver.git</developerConnection>
+        <url>https://github.com/morihofi/certgine/</url>
+        <connection>scm:git:git@github.com:morihofi/certgine.git</connection>
+        <developerConnection>scm:git:git@github.com:morihofi/certgine.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
