@@ -31,7 +31,6 @@ public class TimeStampAuthorityTest {
     private static PrivateKey privateKey;
     private static X509Certificate cert;
     private static List<X509Certificate> certChain;
-    private static final String POLICY_OID = "1.3.6.1.4.1.13762.3";
 
     private static final Set<ASN1ObjectIdentifier> ALGORITHMS = Set.of(
             TSPAlgorithms.MD5,
@@ -91,7 +90,7 @@ public class TimeStampAuthorityTest {
 
     @Test
     void testAllSupportedAlgorithms() throws Exception {
-        TimeStampAuthority tsa = new TimeStampAuthority(privateKey, cert, certChain, POLICY_OID);
+        TimeStampAuthority tsa = new TimeStampAuthority(privateKey, cert, certChain);
 
         for (ASN1ObjectIdentifier alg : ALGORITHMS) {
             TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();

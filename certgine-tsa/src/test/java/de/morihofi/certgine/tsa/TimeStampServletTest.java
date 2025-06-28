@@ -60,7 +60,7 @@ class TimeStampServletTest {
     void testServlet() throws Exception {
         KeyPair kp = de.morihofi.certgine.cryptography.keys.KeyPairGenerator.generateRSAKeyPair(1024, BouncyCastleProvider.PROVIDER_NAME);
         X509Certificate cert = createCert(kp);
-        TimeStampAuthority auth = new TimeStampAuthority(kp.getPrivate(), cert, List.of(cert), "1.3.6.1.4.1.13762.3");
+        TimeStampAuthority auth = new TimeStampAuthority(kp.getPrivate(), cert, List.of(cert));
         TimeStampServlet servlet = new TimeStampServlet(auth);
 
         ServletTester tester = new ServletTester();

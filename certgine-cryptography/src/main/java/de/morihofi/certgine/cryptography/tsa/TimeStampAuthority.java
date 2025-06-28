@@ -31,6 +31,8 @@ public class TimeStampAuthority {
     private final List<X509Certificate> certificateChain;
     private final ASN1ObjectIdentifier policy;
 
+    private final ASN1ObjectIdentifier TIME_STAMPING_AUTHORITY_POLICY = new ASN1ObjectIdentifier("1.3.6.1.4.1.13762.3");
+
     private static final Set<ASN1ObjectIdentifier> ALLOWED_ALGORITHMS = Set.of(
             TSPAlgorithms.MD5,
             TSPAlgorithms.RIPEMD160,
@@ -55,6 +57,21 @@ public class TimeStampAuthority {
         this.signingCert = signingCert;
         this.certificateChain = certificateChain;
         this.policy = new ASN1ObjectIdentifier(policyOid);
+    }
+
+    /**
+     * Create a new instance.
+     *
+     * @param privateKey       signing key
+     * @param signingCert      certificate used for signing
+     * @param certificateChain full certificate chain including signer
+     */
+    public TimeStampAuthority(PrivateKey privateKey, X509Certificate signingCert,
+                              List<X509Certificate> certificateChain) {
+        this.privateKey = privateKey;
+        this.signingCert = signingCert;
+        this.certificateChain = certificateChain;
+        this.policy =TIME_STAMPING_AUTHORITY_POLICY;
     }
 
     /**

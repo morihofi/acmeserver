@@ -231,8 +231,7 @@ public class WebServer implements EventSubscriber {
                 serverInstance.getCryptoStoreManager().getTimeampAuthorityKeyPair(serverInstance.getTsaAuthority().getInternalUuid()).getPrivate(),
                 tsaCert,
                 List.of(tsaCert,
-                        serverInstance.getCryptoStoreManager().getCertficateAuthorityX509Certificate(serverInstance.getRootCa())),
-                "1.3.6.1.4.1.13762.3");
+                        serverInstance.getCryptoStoreManager().getCertficateAuthorityX509Certificate(serverInstance.getRootCa())));
         addServlet(context, new TimeStampServlet(auth));
 
         // Add revocation servlet
