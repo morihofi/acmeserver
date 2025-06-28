@@ -27,7 +27,7 @@ capitals, as shown here.
 ### ... using Docker (recommended)
 
 1. Install [Docker Engine](https://docs.docker.com/engine/install/) with `docker compose` plugin, if you haven't already
-2. Create two directories called `serverdata` and `logs` in this directory
+2. Create two directories called `serverdata` and `logs` in this directory. You can override the `serverdata` location using the `SERVERDATA_DIR` environment variable.
 3. Copy the `settings.sample.json` into the new `serverdata` directory and rename it to `settings.json`
 4. Adjust the settings, especially the `dnsName` (of your host), and the `http`/`https` ports. (Don't forget to change
    these also in the `docker-compose.yml`-file) You can't change these later, because they will be written into the
@@ -84,8 +84,8 @@ You'll find then the jar file, you've built in the `target/` folder.
 ## Configuration
 
 You'll find a sample configuration in the root of this repository with the name `settings.sample.json`.
-It provides a sample configuration you should customize it be able to work with this instance.
-Copy the sample file into the `serverdata` directory and call it `settings.json`.
+It provides a sample configuration you should customize to work with this instance.
+Copy the sample file into the `serverdata` directory and call it `settings.json`. If you changed the location using `SERVERDATA_DIR`, place the file in that directory instead.
 
 ### Basic configuration
 
@@ -121,7 +121,8 @@ It is RECOMMENDED to **not run** ACME Server behind a reverse proxy. If you run 
 }
 ```
 
-The Path to `loggingDirectory` can be null. The log files created in this directory have an Nginx like `access.log` syntax.
+The path to `loggingDirectory` can be null. The log files created in this directory have an Nginx like `access.log` syntax.
+All paths in the configuration file assume the default `serverdata` directory. If you override the base directory using `SERVERDATA_DIR`, update these paths accordingly.
 
 #### Information for standalone
 
@@ -176,7 +177,7 @@ below:
 }
 
 ```
-> **Warning:** `CHANGE_ME` is a placeholder. Using default passwords puts your keystore at risk. Replace it with a strong secret.
+> **Warning:** `CHANGE_ME` is a placeholder. Using default passwords puts your keystore at risk. Replace it with a strong secret. If `SERVERDATA_DIR` is used, adjust the `location` path accordingly.
 
 #### PKCS#11 (HSM based)
 
@@ -219,7 +220,7 @@ Following a table with a few JDBC configuration strings for the configuration. Y
 |                                           | JDBC Driver Built-in | Test status | JDBC URL                                                           | Notes                                                                                                 |
 |-------------------------------------------|----------------------|-------------|--------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
 | [MariaDB](https://mariadb.org)            | Yes                  | ✅           | `jdbc:mariadb://localhost:3306/database_name`                      |                                                                                                       |
-| [H2](https://h2database.com)              | Yes                  | ✅           | `jdbc:h2:./serverdata/acme;DB_CLOSE_DELAY=-1` (database in a file) |                                                                                                       |
+| [H2](https://h2database.com)              | Yes                  | ✅           | `jdbc:h2:./serverdata/acme;DB_CLOSE_DELAY=-1` (database in a file; update the path when using `SERVERDATA_DIR`) |                                                                                                       |
 | [PostgreSQL](https://www.postgresql.org/) | Yes                  | ✅           | `jdbc:postgresql://localhost:5740/database_name`                   | Use a up-to-date database version. Tested with PostgreSQL 16.2, older version may won't work properly |
 | [MySQL](https://mysql.com/)               | No                   | ❓           | `jdbc:mysql://localhost:3306/database_name`                        | Hibernate configuration has been prepared, but not tested yet                                         |
 

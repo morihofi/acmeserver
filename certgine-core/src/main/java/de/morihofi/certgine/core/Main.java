@@ -71,10 +71,21 @@ import java.util.*;
 public class Main {
 
     /**
-     * `serverdata` directory as an absolute path.
+     * `serverdata` directory as an absolute path. The default location can be
+     * overridden using the {@code SERVERDATA_DIR} environment variable.
      */
-    public static final Path FILES_DIR =
-            Paths.get(Objects.requireNonNull(AppDirectoryHelper.getAppDirectory(MethodHandles.lookup().lookupClass()))).resolve("serverdata").toAbsolutePath();
+    public static final Path FILES_DIR;
+
+    static {
+        String envDir = System.getenv("SERVERDATA_DIR");
+        if (envDir != null && !envDir.isBlank()) {
+            FILES_DIR = Paths.get(envDir).toAbsolutePath();
+        } else {
+            FILES_DIR = Paths
+                    .get(Objects.requireNonNull(AppDirectoryHelper.getAppDirectory(MethodHandles.lookup().lookupClass())))
+                    .resolve("serverdata").toAbsolutePath();
+        }
+    }
 
     /**
      * Path to the configuration file.

@@ -5,12 +5,13 @@
 - Private key should not be password protected
 
 ## 1. Prepare directories
-Inside the `serverdata`-folder, create a folder called `_rootCA`
+Inside the `serverdata` folder, create a folder called `_rootCA`. If you changed the location with the `SERVERDATA_DIR` environment variable, use that path instead.
 
 ```
 serverdata/
  |- _rootCA/
 ```
+If `SERVERDATA_DIR` is set, replace `serverdata/` with that directory in the structure above.
 
 ## 2. Place your certificate
 Copy your Root CA files into the newly created folder `rootCA`. The naming of these files is very important.
@@ -28,6 +29,7 @@ serverdata/
        |- private_key.pem
        |- public_key.pem
 ```
+Use the path specified in `SERVERDATA_DIR` if you configured one.
 
 
 ### Public key notice

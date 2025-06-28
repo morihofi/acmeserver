@@ -84,7 +84,7 @@
   - fixed multiple security issues
 - Webserver
   - Direct Jetty usage instead of Javalin for allowing more flexibility and extension
-- More Coming soon
-
-### Known Bugs:
- - GetHttpsForFree has currently issues with nonces not sent properly.
+- Server data directory can now be overridden using the `SERVERDATA_DIR` environment variable.
+- ACME
+  - External account binding support
+ - More Coming soon ...
