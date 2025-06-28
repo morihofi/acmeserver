@@ -86,5 +86,7 @@
   - Direct Jetty usage instead of Javalin for allowing more flexibility and extension
 - Server data directory can now be overridden using the `SERVERDATA_DIR` environment variable.
 - ACME
-  - External account binding support
+  - External account binding support (experimental, need to be merged)
+  - Account Key Rollover support
+  - CAA-Lookup in ACME Process
  - More Coming soon ...
