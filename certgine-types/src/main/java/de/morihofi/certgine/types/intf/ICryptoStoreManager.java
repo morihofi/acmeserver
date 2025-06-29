@@ -25,7 +25,7 @@ public interface ICryptoStoreManager {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
-    KeyPair getCertficateAuthorityKeyPair(@NonNull RootCa rootCa) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException;
+    KeyPair getCertificateAuthorityKeyPair(@NonNull RootCa rootCa) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException;
 
     /**
      * Retrieves the X509 certificate for the root certificate authority from the keystore.
@@ -34,18 +34,18 @@ public interface ICryptoStoreManager {
      * @return The X509 certificate associated with the root certificate authority.
      * @throws KeyStoreException If there is an issue with the keystore.
      */
-    X509Certificate getCertficateAuthorityX509Certificate(@NonNull RootCa rootCa) throws KeyStoreException;
+    X509Certificate getCertificateAuthorityX509Certificate(@NonNull RootCa rootCa) throws KeyStoreException;
 
     /**
      * Retrieves the key pair for an intermediate certificate authority from the keystore.
      *
-     * @param intermediateCaName The name of the intermediate certificate authority.
-     * @return The key pair associated with the intermediate certificate authority.
-     * @throws UnrecoverableKeyException If the key is unrecoverable.
-     * @throws KeyStoreException         If there is an issue with the keystore.
-     * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
+     * @param uuid internal UUID of the provisioner
+     * @return the key pair of the provisioner's intermediate CA
+     * @throws UnrecoverableKeyException if the key is unrecoverable
+     * @throws KeyStoreException         if there is an issue with the keystore
+     * @throws NoSuchAlgorithmException  if a required cryptographic algorithm is not available
      */
-    KeyPair getIntermediateCerificateAuthorityKeyPair(@NonNull String intermediateCaName) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException;
+    KeyPair getIntermediateCertificateAuthorityKeyPair(@NonNull String uuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException;
 
     /**
      * Saves the keystore to the specified location, if it is a PKCS#12 keystore configuration.
@@ -60,16 +60,6 @@ public interface ICryptoStoreManager {
      */
     X509Certificate getIntermediateCertificate(String uuid) throws KeyStoreException;
 
-    /**
-     * Gets the key pair for an intermediate CA by its uuid
-     *
-     * @param uuid internal UUID of the provisioner
-     * @return the KeyPair of the provisioner's intermediate CA
-     * @throws UnrecoverableKeyException if the key is unrecoverable
-     * @throws KeyStoreException         if there is an issue with the keystore
-     * @throws NoSuchAlgorithmException  if a required cryptographic algorithm is not available
-     */
-    KeyPair getIntermediateCertificateAuthorityKeyPair(@NonNull String uuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException;
 
     /**
      * Retrieves the full intermediate certificate chain for a provisioner by its internal UUID.
@@ -142,7 +132,7 @@ public interface ICryptoStoreManager {
      * @param internalUuid The internal UUID of the timestamp authority.
      * @return The key pair for the timestamp authority.
      */
-    KeyPair getTimeampAuthorityKeyPair(String internalUuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException;
+    KeyPair getTimestampAuthorityKeyPair(String internalUuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException;
 
     /**
      * Adds a server certificate to the keystore.

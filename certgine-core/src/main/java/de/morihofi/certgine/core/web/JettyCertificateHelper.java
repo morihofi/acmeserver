@@ -43,7 +43,7 @@ public class JettyCertificateHelper {
 
         ICryptoStoreManager cryptoStoreManager = serverInstance.getCryptoStoreManager();
 
-        KeyPair rootCaKeyPair = cryptoStoreManager.getCertficateAuthorityKeyPair(serverInstance.getRootCa());
+        KeyPair rootCaKeyPair = cryptoStoreManager.getCertificateAuthorityKeyPair(serverInstance.getRootCa());
 
         boolean needsNew = !cryptoStoreManager.containsServerCertificate("main");
         if (!needsNew) {
@@ -60,7 +60,7 @@ public class JettyCertificateHelper {
 
         log.info("Using root CA for generation");
         X509Certificate rootCertificate =
-                cryptoStoreManager.getCertficateAuthorityX509Certificate(serverInstance.getRootCa());
+                cryptoStoreManager.getCertificateAuthorityX509Certificate(serverInstance.getRootCa());
         X509Certificate intermediateCertificate = rootCertificate;
 
         log.info("Creating Server Certificate");

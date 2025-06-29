@@ -81,8 +81,8 @@ public class CaInitHelper {
                 transaction.commit();
             } else {
                 rootCaEntity = RootCa.getAllRoots(session)[0]; //FIXME: Return correct one ... somehow
-                caKeyPair = cryptoStoreManager.getCertficateAuthorityKeyPair(rootCaEntity);
-                caCertificate = cryptoStoreManager.getCertficateAuthorityX509Certificate(rootCaEntity);
+                caKeyPair = cryptoStoreManager.getCertificateAuthorityKeyPair(rootCaEntity);
+                caCertificate = cryptoStoreManager.getCertificateAuthorityX509Certificate(rootCaEntity);
             }
 
             Transaction transaction = session.beginTransaction();

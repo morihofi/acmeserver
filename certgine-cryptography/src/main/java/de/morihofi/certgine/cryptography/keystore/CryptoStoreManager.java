@@ -150,7 +150,8 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
     @NonNull
-    public KeyPair getCertficateAuthorityKeyPair(@NonNull RootCa rootCa) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+    @Override
+    public KeyPair getCertificateAuthorityKeyPair(@NonNull RootCa rootCa) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(rootCa.getInternalUuid(), keyStore);
     }
 
@@ -164,7 +165,8 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * @throws KeyStoreException If there is an issue accessing the keystore.
      */
     @NonNull
-    public X509Certificate getCertficateAuthorityX509Certificate(@NonNull RootCa rootCa) throws KeyStoreException {
+    @Override
+    public X509Certificate getCertificateAuthorityX509Certificate(@NonNull RootCa rootCa) throws KeyStoreException {
         return (X509Certificate) keyStore.getCertificate(rootCa.getInternalUuid());
     }
 
@@ -179,8 +181,9 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * @throws KeyStoreException         If there is an issue accessing the keystore.
      * @throws NoSuchAlgorithmException  If a required cryptographic algorithm is not available.
      */
+    @Override
     @NonNull
-    public KeyPair getIntermediateCerificateAuthorityKeyPair(@NonNull String uuid) throws UnrecoverableKeyException, KeyStoreException,
+    public KeyPair getIntermediateCertificateAuthorityKeyPair(@NonNull String uuid) throws UnrecoverableKeyException, KeyStoreException,
             NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid, keyStore);
     }
@@ -211,11 +214,6 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     @Override
     public X509Certificate getIntermediateCertificate(@NonNull String uuid) throws KeyStoreException {
         return (X509Certificate) keyStore.getCertificate(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid);
-    }
-
-    @Override
-    public KeyPair getIntermediateCertificateAuthorityKeyPair(@NonNull String uuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
-        return KeyStoreUtil.getKeyPair(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid, keyStore);
     }
 
     @Override
@@ -302,7 +300,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     }
 
     @Override
-    public KeyPair getTimeampAuthorityKeyPair(String internalUuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+    public KeyPair getTimestampAuthorityKeyPair(String internalUuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(KEYSTORE_ALIASPREFIX_TSA + internalUuid, keyStore);
     }
 

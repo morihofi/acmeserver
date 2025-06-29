@@ -53,7 +53,7 @@ public class DownloadRootCaHandler implements Handler {
             return;
         }
 
-        X509Certificate cert = serverInstance.getCryptoStoreManager().getCertficateAuthorityX509Certificate(ca);
+        X509Certificate cert = serverInstance.getCryptoStoreManager().getCertificateAuthorityX509Certificate(ca);
 
         switch (format) {
             case PEM -> {

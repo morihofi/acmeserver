@@ -30,12 +30,12 @@ public class TimeStampRenew {
                 X509Generator.Request.builder()
                         .type(X509Generator.Type.TIMESTAMPING)
                         .certificateConfig(tsa.getCertificateConfig())
-                        .issuerKeyPair(si.getCryptoStoreManager().getCertficateAuthorityKeyPair(si.getRootCa()))
-                        .issuerCertificate(si.getCryptoStoreManager().getCertficateAuthorityX509Certificate(si.getRootCa()))
+                        .issuerKeyPair(si.getCryptoStoreManager().getCertificateAuthorityKeyPair(si.getRootCa()))
+                        .issuerCertificate(si.getCryptoStoreManager().getCertificateAuthorityX509Certificate(si.getRootCa()))
                         .ownKeyPair(tsaKeyPair)
                         .build()
         );
-        X509Certificate rootCert = si.getCryptoStoreManager().getCertficateAuthorityX509Certificate(si.getRootCa());
+        X509Certificate rootCert = si.getCryptoStoreManager().getCertificateAuthorityX509Certificate(si.getRootCa());
         X509Certificate[] chain = new X509Certificate[]{renewed, rootCert};
         return new CertificateRenewScheduler.CertificateData(chain, tsaKeyPair);
     }

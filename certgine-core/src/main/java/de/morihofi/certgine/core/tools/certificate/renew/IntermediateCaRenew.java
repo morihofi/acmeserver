@@ -31,8 +31,8 @@ public class IntermediateCaRenew {
                 X509Generator.Request.builder()
                         .type(X509Generator.Type.INTERMEDIATE_CA)
                         .certificateConfig(provisioner.getIntermediateCa().getCertificateConfig())
-                        .issuerKeyPair(serverInstance.getCryptoStoreManager().getCertficateAuthorityKeyPair(serverInstance.getRootCa()))
-                        .issuerCertificate(serverInstance.getCryptoStoreManager().getCertficateAuthorityX509Certificate(serverInstance.getRootCa()))
+                        .issuerKeyPair(serverInstance.getCryptoStoreManager().getCertificateAuthorityKeyPair(serverInstance.getRootCa()))
+                        .issuerCertificate(serverInstance.getCryptoStoreManager().getCertificateAuthorityX509Certificate(serverInstance.getRootCa()))
                         .ownKeyPair(provisionerKeyPair)
                         .crlDistributionUrl(provisioner.getFullCrlUrl(serverInstance))
                         .ocspServiceEndpoint(provisioner.getFullOcspUrl(serverInstance))
@@ -43,7 +43,7 @@ public class IntermediateCaRenew {
 
         X509Certificate[] chain = new X509Certificate[]{
                 renewedCertificate,
-                serverInstance.getCryptoStoreManager().getCertficateAuthorityX509Certificate(serverInstance.getRootCa())
+                serverInstance.getCryptoStoreManager().getCertificateAuthorityX509Certificate(serverInstance.getRootCa())
         };
 
         return new CertificateRenewScheduler.CertificateData(chain, provisionerKeyPair);
