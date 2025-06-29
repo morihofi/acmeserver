@@ -42,10 +42,13 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -194,7 +197,7 @@ public class WebServer implements EventSubscriber {
             sub.initialize();
         }
 
-        // TODO: Show listening at ports and check if really ready
+        logActiveConnectorsAndWaitReady();
 
         log.info("\u2705 Ready for incoming requests");
         Main.startupTime = (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000L; // in seconds
@@ -472,5 +475,44 @@ public class WebServer implements EventSubscriber {
             }
             default -> log.warn("Unhandled event type: {}", event.getClass().getSimpleName());
         }
+    }
+
+    /**
+     * Logs the active connectors and waits until they accept connections.
+     */
+    void logActiveConnectorsAndWaitReady() throws InterruptedException {
+        for (Connector connector : server.getConnectors()) {
+            if (connector instanceof ServerConnector sc) {
+                String host = sc.getHost();
+                if (host == null || host.isBlank()) {
+                    host = "127.0.0.1";
+                }
+                int port = sc.getLocalPort();
+                log.info("Jetty listening on {}:{}", host, port);
+                waitUntilAccepting(host, port, Duration.ofSeconds(10));
+            }
+        }
+    }
+
+    /**
+     * Waits until a TCP connection to the given host and port succeeds within the specified timeout.
+     *
+     * @param host    host to connect to
+     * @param port    port to connect to
+     * @param timeout maximum time to wait
+     * @throws InterruptedException          if the thread is interrupted while waiting
+     * @throws IllegalStateException         if the connection could not be established within the timeout
+     */
+    static void waitUntilAccepting(String host, int port, Duration timeout) throws InterruptedException {
+        long end = System.currentTimeMillis() + timeout.toMillis();
+        while (System.currentTimeMillis() < end) {
+            try (Socket s = new Socket()) {
+                s.connect(new InetSocketAddress(host, port), (int) Math.min(timeout.toMillis(), 1000));
+                return;
+            } catch (IOException e) {
+                Thread.sleep(100);
+            }
+        }
+        throw new IllegalStateException("Jetty not accepting connections on " + host + ":" + port);
     }
 }
