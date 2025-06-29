@@ -13,11 +13,6 @@ jobs:
       - name: Checkout code
         uses: https://github.com/actions/checkout@v3
 
-      - name: REUSE compliance check
-        run: |
-          pip install --no-cache-dir reuse
-          reuse lint
-
       - name: Maven Clean Compile
         uses: docker://maven:3.9-eclipse-temurin-21-alpine
         with:

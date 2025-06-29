@@ -1,0 +1,19 @@
+name: License Lint
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  reuse-compliance:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: https://github.com/actions/checkout@v3
+
+      - name: REUSE compliance check
+        run: |
+          pip3 install --no-cache-dir reuse
+          reuse lint

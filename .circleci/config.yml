@@ -2,16 +2,21 @@
 # Stacks detected: deps:java:.
 version: 2.1
 jobs:
-  test-java:
+  license-lint:
     docker:
-      - image: cimg/openjdk:21.0
+      - image: cimg/python:3.11
     steps:
       - checkout
       - run:
           name: REUSE compliance check
           command: |
-            pip install --no-cache-dir reuse
+            pip3 install --no-cache-dir reuse
             reuse lint
+  test-java:
+    docker:
+      - image: cimg/openjdk:21.0
+    steps:
+      - checkout
       - run:
           name: Calculate cache key
           command: |-
@@ -39,7 +44,10 @@ jobs:
 workflows:
   build-and-test:
     jobs:
-      - test-java
+      - license-lint
+      - test-java:
+          requires:
+            - license-lint
     # - deploy:
     #     requires:
     #       - test-java
