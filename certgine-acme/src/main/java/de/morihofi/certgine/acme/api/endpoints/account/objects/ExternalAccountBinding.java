@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
+ * SPDX-License-Identifier: MIT
+ */
+
 package de.morihofi.certgine.acme.api.endpoints.account.objects;
 
 import com.google.gson.annotations.SerializedName;

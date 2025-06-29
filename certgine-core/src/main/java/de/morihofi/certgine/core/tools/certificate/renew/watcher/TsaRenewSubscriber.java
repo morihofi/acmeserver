@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
+ * SPDX-License-Identifier: MIT
+ */
+
 package de.morihofi.certgine.core.tools.certificate.renew.watcher;
 
 import de.morihofi.certgine.core.tools.certificate.renew.TimeStampRenew;

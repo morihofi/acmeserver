@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
+ * SPDX-License-Identifier: MIT
+ */
+
 package de.morihofi.certgine.cryptography.crl;
 
 import de.morihofi.certgine.cryptography.certificate.X509Generator;

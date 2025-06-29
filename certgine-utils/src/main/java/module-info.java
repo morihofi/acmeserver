@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
+ * SPDX-License-Identifier: MIT
+ */
+
 module certgine.utils {
     exports de.morihofi.certgine.utils.base64;
     exports de.morihofi.certgine.utils.network.dns;

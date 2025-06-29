@@ -1,23 +1,12 @@
 /*
- * Copyright 2004 - 2013 Wayne Grant
- *           2013 - 2023 Kai Kramer
- * Copyright 2023-2025 Moritz Hofmann <info@morihofi.de>
+ * SPDX-FileCopyrightText: 2004-2013 Wayne Grant
+ * SPDX-FileCopyrightText: 2013-2023 Kai Kramer
+ * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
- * This file is part of KeyStore Explorer and modified for use in Certgine PKI service.
- *
- * KeyStore Explorer is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * KeyStore Explorer is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with KeyStore Explorer.  If not, see <http://www.gnu.org/licenses/>.
+ * This file originates from Keystore Explorer and has been modified for use in Certgine.
  */
+
 package de.morihofi.certgine.utils.javaversion;
 
 import lombok.Getter;

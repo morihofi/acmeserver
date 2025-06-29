@@ -1,4 +1,8 @@
 /*
+ * SPDX-License-Identifier: MIT
+ * SPDX-FileCopyrightText: 2015 Daniel Roesler
+ * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
+ *
  * This file contains the functions needed to run index.html
  */
 
