@@ -7,15 +7,20 @@ package de.morihofi.certgine.revocation.crl;
 
 
 import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.certgine.types.events.AbstractEvent;
+import de.morihofi.certgine.types.events.EventSubscriber;
+import de.morihofi.certgine.types.events.ProvisionerCreatedEvent;
+import de.morihofi.certgine.types.events.ProvisionerDeletedEvent;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.utils.scheduler.TimedScheduler;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-public class CrlScheduler {
+import java.util.Arrays;
+import java.util.List;
 
-    //FIXME: Add trigger for update crl on provisioner removal/add
+@Slf4j
+public class CrlScheduler implements EventSubscriber {
 
     /** Update interval in minutes used for scheduled CRL generation. */
     public static final int UPDATE_MINUTES = 720; // 12 hours
@@ -44,6 +49,25 @@ public class CrlScheduler {
         }
 
         log.info("CRL Scheduler finished execution");
+    }
+
+    @Override
+    public List<Class<? extends AbstractEvent>> canHandle() {
+        return Arrays.asList(ProvisionerCreatedEvent.class, ProvisionerDeletedEvent.class);
+    }
+
+    @Override
+    public void onEvent(AbstractEvent event) {
+        if (event instanceof ProvisionerCreatedEvent created) {
+            handleProvisionerChange(created.getProvisioner());
+        } else if (event instanceof ProvisionerDeletedEvent deleted) {
+            handleProvisionerChange(deleted.getProvisioner());
+        }
+    }
+
+    private void handleProvisionerChange(AcmeProvisioner prov) {
+        log.info("Updating CRL cache for provisioner {} due to configuration change", prov.getName());
+        CrlStore.updateCachedCRL(UPDATE_MINUTES, prov, serverInstance);
     }
 
 }

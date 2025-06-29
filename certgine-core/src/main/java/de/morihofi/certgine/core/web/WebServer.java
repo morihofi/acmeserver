@@ -170,6 +170,7 @@ public class WebServer implements EventSubscriber {
         log.info("Starting the CRL generation Scheduler");
         CrlScheduler crlScheduler = new CrlScheduler(serverInstance, timedScheduler);
         crlScheduler.startScheduler();
+        serverInstance.getEventBus().register(crlScheduler);
         serverInstance.getEventBus().register(new CrlUpdateSubscriber(serverInstance));
 
         // Register and initialize provisioner certificate watcher
