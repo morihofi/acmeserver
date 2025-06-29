@@ -46,6 +46,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
+import org.eclipse.jetty.ee10.servlet.ServletHandler;
+import org.eclipse.jetty.ee10.servlet.ServletMapping;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -55,6 +57,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -79,6 +82,12 @@ public class WebServer implements EventSubscriber {
     private final Server server;
 
     private ServerConnector sslConnector = null;
+
+    /** List of servlets that have been mounted. */
+    private final List<MountedServlet> mountedServlets = new ArrayList<>();
+
+    /** Data class to track mounted servlets and their protection state. */
+    private record MountedServlet(ServletHolder holder, ServletMapping mapping, boolean protect) {}
 
 
     /**
@@ -250,7 +259,10 @@ public class WebServer implements EventSubscriber {
      */
     private void addServlet(ServletContextHandler context, HttpServlet servlet, String mountPath, boolean protect) {
         log.info("Adding servlet {} at mount {}; is unload protected = {}", servlet.getClass().getName(), mountPath, protect);
-        context.addServlet(new ServletHolder(servlet), mountPath);
+        ServletHolder holder = new ServletHolder(servlet);
+        context.addServlet(holder, mountPath);
+        ServletMapping mapping = context.getServletHandler().getServletMapping(holder.getName());
+        mountedServlets.add(new MountedServlet(holder, mapping, protect));
     }
 
     /**
@@ -301,6 +313,78 @@ public class WebServer implements EventSubscriber {
 
         log.debug("Instance created, adding servlet ...");
         addServlet(context, servlet);
+    }
+
+    /**
+     * Unloads all servlets that are not marked as protected.
+     *
+     * @param context The {@link ServletContextHandler} from which the servlets will be removed.
+     */
+    private void unloadUnprotectedServlets(ServletContextHandler context) {
+        ServletHandler handler = context.getServletHandler();
+        List<ServletHolder> keepHolders = new ArrayList<>();
+        List<ServletMapping> keepMappings = new ArrayList<>();
+
+        for (MountedServlet ms : new ArrayList<>(mountedServlets)) {
+            if (ms.protect()) {
+                keepHolders.add(ms.holder());
+                keepMappings.add(ms.mapping());
+                continue;
+            }
+
+            log.info("Unloading servlet {}", ms.holder().getHeldClass().getName());
+            try {
+                ms.holder().stop();
+            } catch (Exception e) {
+                log.error("Failed to stop servlet {}", ms.holder().getName(), e);
+            }
+            mountedServlets.remove(ms);
+        }
+
+        handler.setServlets(keepHolders.toArray(new ServletHolder[0]));
+        handler.setServletMappings(keepMappings.toArray(new ServletMapping[0]));
+    }
+
+    /**
+     * Unloads the servlet of the specified class if it is not marked as
+     * protected.
+     *
+     * @param context      The {@link ServletContextHandler} from which the
+     *                     servlet will be removed.
+     * @param servletClazz The class of the servlet to unload.
+     */
+    private void unloadServlet(ServletContextHandler context,
+                               Class<? extends HttpServlet> servletClazz) {
+        ServletHandler handler = context.getServletHandler();
+        List<ServletHolder> keepHolders = new ArrayList<>();
+        List<ServletMapping> keepMappings = new ArrayList<>();
+
+        for (MountedServlet ms : new ArrayList<>(mountedServlets)) {
+            if (!ms.holder().getHeldClass().equals(servletClazz)) {
+                keepHolders.add(ms.holder());
+                keepMappings.add(ms.mapping());
+                continue;
+            }
+
+            if (ms.protect()) {
+                log.info("Servlet {} is marked as protected; skipping unload",
+                        servletClazz.getName());
+                keepHolders.add(ms.holder());
+                keepMappings.add(ms.mapping());
+                continue;
+            }
+
+            log.info("Unloading servlet with class {}", servletClazz.getName());
+            try {
+                ms.holder().stop();
+            } catch (Exception e) {
+                log.error("Failed to stop servlet {}", ms.holder().getName(), e);
+            }
+            mountedServlets.remove(ms);
+        }
+
+        handler.setServlets(keepHolders.toArray(new ServletHolder[0]));
+        handler.setServletMappings(keepMappings.toArray(new ServletMapping[0]));
     }
 
 
