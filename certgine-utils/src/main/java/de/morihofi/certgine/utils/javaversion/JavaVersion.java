@@ -1,8 +1,9 @@
 /*
  * Copyright 2004 - 2013 Wayne Grant
  *           2013 - 2023 Kai Kramer
+ * Copyright 2023-2025 Moritz Hofmann <info@morihofi.de>
  *
- * This file is part of KeyStore Explorer.
+ * This file is part of KeyStore Explorer and modified for use in Certgine PKI service.
  *
  * KeyStore Explorer is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +61,7 @@ public class JavaVersion implements Comparable<Object> {
     public static final JavaVersion JRE_VERSION_21 = new JavaVersion("21");
     public static final JavaVersion JRE_VERSION_22 = new JavaVersion("22");
     public static final JavaVersion JRE_VERSION_23 = new JavaVersion("23");
+    public static final JavaVersion JRE_VERSION_24 = new JavaVersion("24");
     private static final String VERSION_NUMBER_REGEXP = "([0-9]+(?:\\.[0-9]*)*)";
     private static final String REST_REGEXP = "(?:[_\\-\\.\\+a-zA-Z0-9]*)";
     private static final String VERSION_FORMAT = "^" + VERSION_NUMBER_REGEXP + REST_REGEXP + "$";
