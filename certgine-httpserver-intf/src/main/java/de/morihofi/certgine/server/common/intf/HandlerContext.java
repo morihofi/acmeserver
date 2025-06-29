@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public record HandlerContext(Request request, Response response, Router router) {
 
-    private static Gson gson = new Gson();;
+    private static final Gson GSON = new Gson();
 
     /**
      * Sets a response header.
@@ -152,7 +152,7 @@ public record HandlerContext(Request request, Response response, Router router) 
     }
 
     public void json(Object objectToBeSerialized) {
-        String json = gson.toJson(objectToBeSerialized);
+        String json = GSON.toJson(objectToBeSerialized);
         contentType("application/json"); // Set Content-Type as JSON
         result(json); // Set the serialized JSON as the response body
     }
