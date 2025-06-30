@@ -1,8 +1,8 @@
 /*
+ * SPDX-FileCopyrightText: 2013 Graham Rivers-Brown
  * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
  * SPDX-License-Identifier: MIT
  */
-
 package de.morihofi.certgine.core.tools.fileformats.archive.cab;
 
 import java.util.Calendar;

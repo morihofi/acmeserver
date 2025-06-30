@@ -1,4 +1,5 @@
 /*
+ * SPDX-FileCopyrightText: 2013 Graham Rivers-Brown
  * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
  * SPDX-License-Identifier: MIT
  */
@@ -19,7 +20,7 @@ import java.util.Vector;
  * This class is used in conjunction with other CAB file structures to create or manipulate CAB archives.
  * </p>
  * <p>
- * This code is originally based on the work of Graham Rivers-Brown and has been adapted for use in the ACME server project.
+ * This code is originally based on the work of Graham Rivers-Brown and has been adapted for use in the Certgine project.
  * </p>
  */
 @Setter
