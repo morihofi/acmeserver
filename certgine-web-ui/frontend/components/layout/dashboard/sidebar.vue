@@ -20,7 +20,7 @@
           type="text"
           class="w-full bg-gray-800 text-white rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           placeholder="Search..."
-        >
+        />
         <div
           class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
         >
@@ -48,11 +48,12 @@
           <a
             v-if="!item.children"
             :href="item.link"
-:class="[
-  'flex items-center px-4 py-2.5 text-sm font-medium rounded-lg',
-  isActive(item.link) ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-]"
-
+            :class="[
+              'flex items-center px-4 py-2.5 text-sm font-medium rounded-lg',
+              isActive(item.link)
+                ? 'bg-gray-700 text-white'
+                : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+            ]"
             class="flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white"
           >
             <ComponentLucideIcon :icon="item.icon" class="h-5 w-5 mr-3" />
@@ -89,10 +90,11 @@
                 :key="cIdx"
                 :href="child.link"
                 :class="[
-  'block px-4 py-2 text-sm rounded-md',
-  isActive(child.link) ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-]"
-
+                  'block px-4 py-2 text-sm rounded-md',
+                  isActive(child.link)
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                ]"
               >
                 {{ child.label }}
               </a>
@@ -127,7 +129,7 @@ type MenuItem = {
 };
 
 const menuItems: MenuItem[] = [
-  { label: "Dashboard", link: "/", icon: "LayoutDashboard" },
+  { label: "Dashboard", link: "/ui", icon: "LayoutDashboard" },
   {
     label: "PKI",
     icon: "KeyRound",
@@ -148,14 +150,12 @@ const menuItems: MenuItem[] = [
       { label: "Orders", link: "#" },
     ],
   },
-    {
+  {
     label: "Timestamp Authority",
     icon: "Stamp",
-    children: [
-      { label: "Configuration", link: "#" },
-    ],
+    children: [{ label: "Configuration", link: "#" }],
   },
-    {
+  {
     label: "System",
     icon: "Activity",
     children: [
