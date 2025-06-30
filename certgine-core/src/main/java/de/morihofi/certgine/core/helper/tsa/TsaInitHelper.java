@@ -42,7 +42,7 @@ public class TsaInitHelper {
                 tsa = new TsaAuthority();
                 tsa.setCertificateConfig(new CertificateConfig(
                         CertificateMetadata.builder()
-                                .commonName("ACME Default TSA")
+                                .commonName("Certgine Default TSA")
                                 .build(),
                         new CertificateExpiration(0,0,3),
                         new RsaCertificateAlgorithm(4096)
