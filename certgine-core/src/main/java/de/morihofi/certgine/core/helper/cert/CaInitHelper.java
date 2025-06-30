@@ -56,7 +56,7 @@ public class CaInitHelper {
                 rootCaEntity = new RootCa();
                 rootCaEntity.setCertificateConfig(new CertificateConfig(
                         CertificateMetadata.builder()
-                                .commonName("ACME Server Default Root CA")
+                                .commonName("Certgine Default Root CA")
                                 .build(),
                         new CertificateExpiration(0, 0, 20),
                         new RsaCertificateAlgorithm(keySize)
@@ -108,7 +108,7 @@ public class CaInitHelper {
 
         CertificateConfig intConfig = new CertificateConfig(
                 CertificateMetadata.builder()
-                        .commonName("ACME Server Default Intermediate")
+                        .commonName("CertgineDefault Intermediate")
                         .build(),
                 new CertificateExpiration(0, 0, 5),
                 new RsaCertificateAlgorithm(keySize)

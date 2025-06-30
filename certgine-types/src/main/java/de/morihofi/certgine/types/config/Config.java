@@ -14,7 +14,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * Represents a configuration for this ACME Server instance.
+ * Represents a configuration for this Certgine instance.
  */
 @Data
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})

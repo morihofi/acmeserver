@@ -53,8 +53,7 @@ import java.security.cert.CertificateException;
 import java.util.*;
 
 /**
- * Main class for the ACME server application. This class handles the initialization and startup of the server, including configuration
- * loading, security provider registration, and mode selection.
+ * Main class for the Certgine application. This class handles the initialization and startup of the server.
  */
 @Slf4j
 public class Main {

@@ -12,7 +12,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * Represents a response from the ACME server for an order request.
+ * Represents a response from the Certgine for an order request.
  */
 @Data
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})

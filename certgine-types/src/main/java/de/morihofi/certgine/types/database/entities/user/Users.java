@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 import java.util.Set;
 
 /**
- * ACME Server users
+ * Certgine users
  */
 @Entity
 @Table(name = "users")

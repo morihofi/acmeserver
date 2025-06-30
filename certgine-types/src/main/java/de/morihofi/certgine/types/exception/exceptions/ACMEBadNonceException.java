@@ -9,7 +9,7 @@ import de.morihofi.certgine.types.exception.ACMEException;
 import de.morihofi.certgine.types.exception.objects.ErrorResponse;
 
 /**
- * Exception thrown when an ACME server responds with a bad or expired nonce.
+ * Exception thrown when the ACME server responds with a bad or expired nonce.
  */
 public class ACMEBadNonceException extends ACMEException {
 

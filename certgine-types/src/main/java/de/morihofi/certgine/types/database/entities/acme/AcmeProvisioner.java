@@ -66,7 +66,7 @@ public class AcmeProvisioner implements Serializable {
     private AcmeProvisionerDomainNameRestriction acmeProvisionerDomainNameRestriction;
 
     /**
-     * Get the ACME Server URL, reachable from other Hosts
+     * Get the Certgine URL, reachable from other Hosts
      *
      * @return Full url (including HTTPS prefix) and port to this server
      */

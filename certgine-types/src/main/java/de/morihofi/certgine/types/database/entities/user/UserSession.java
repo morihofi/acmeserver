@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 import java.sql.Timestamp;
 
 /**
- * ACME Server user sessions
+ * Certgine user sessions
  */
 @Entity
 @Table(name = "user_session")
