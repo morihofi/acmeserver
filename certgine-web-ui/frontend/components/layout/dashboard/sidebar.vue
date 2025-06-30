@@ -1,5 +1,12 @@
 <template>
-  <aside class="w-80 bg-gray-900 text-white flex flex-col h-full">
+  <aside
+    :class="[
+      'bg-gray-900 text-white flex flex-col h-full transition-transform duration-300 transform',
+      open ? 'translate-x-0' : '-translate-x-full',
+      'fixed md:relative inset-y-0 left-0 z-40',
+      'w-64 md:w-80',
+    ]"
+  >
     <!-- Header -->
     <div class="p-4 border-b border-gray-800 h-16">
       <div class="flex items-center justify-between">
@@ -9,6 +16,9 @@
           class="h-8 w-auto"
         /-->
         <span class="text-xl font-bold">Certgine</span>
+        <button class="md:hidden" @click="$emit('close')">
+          <ComponentLucideIcon icon="X" class="h-5 w-5" />
+        </button>
       </div>
     </div>
 
@@ -110,6 +120,15 @@
 import { ref, computed } from "vue";
 import type { icons } from "lucide-vue-next";
 import { useRoute } from "vue-router";
+
+const { open } = defineProps({
+  open: {
+    type: Boolean,
+    default: true,
+  },
+});
+
+defineEmits(["close"]);
 
 const route = useRoute();
 

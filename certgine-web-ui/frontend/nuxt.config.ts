@@ -3,5 +3,6 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
   modules: ['@nuxt/eslint', '@nuxtjs/tailwindcss'],
-  plugins: ['~/plugins/chart.js']
+  plugins: ['~/plugins/chart.js'],
+  ssr: false
 })
