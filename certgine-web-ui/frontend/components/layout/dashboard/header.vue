@@ -41,7 +41,7 @@
           <img
             class="w-8 h-8 rounded-full"
             src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
-          />
+          >
         </button>
         <div
           v-if="showUserMenu"
