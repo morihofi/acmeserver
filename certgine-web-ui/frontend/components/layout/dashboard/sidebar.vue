@@ -153,10 +153,10 @@ const menuItems: MenuItem[] = [
     label: "PKI",
     icon: "KeyRound",
     children: [
-      { label: "Overview", link: "#" },
-      { label: "Root CAs", link: "#" },
-      { label: "Intermediate CAs", link: "#" },
-      { label: "KeyStore", link: "#" },
+      { label: "Overview", link: "/ui/pki" },
+      { label: "Root CAs", link: "/ui/pki/root" },
+      { label: "Intermediate CAs", link: "/ui/pki/intermediate" },
+      { label: "Key Manager", link: "/ui/pki/keys" },
     ],
   },
   {

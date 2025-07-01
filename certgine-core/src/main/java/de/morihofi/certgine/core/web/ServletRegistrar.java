@@ -2,6 +2,7 @@ package de.morihofi.certgine.core.web;
 
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.ui.frontend.modern.WebUiServletHolderHolder;
 import jakarta.servlet.http.HttpServlet;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
@@ -36,8 +37,13 @@ public class ServletRegistrar {
         addServlet(context, de.morihofi.certgine.acme.AcmeHttpServlet.class);
         addServlet(context, de.morihofi.certgine.acme.GetHttpsForFreeServlet.class);
         addServlet(context, de.morihofi.certgine.ui.frontend.legacy.LegacyWebUiServlet.class);
-        addServlet(context, de.morihofi.certgine.ui.frontend.modern.WebUiServlet.class);
         addServlet(context, de.morihofi.certgine.core.servlet.download.RootCaDownloadServlet.class);
+        {
+            ServletHolder holder = new WebUiServletHolderHolder(serverInstance);
+            context.addServlet(holder, "/*");
+            ServletMapping mapping = context.getServletHandler().getServletMapping(holder.getName());
+            mountedServlets.add(new MountedServlet(holder, mapping, true));
+        }
 
         X509Certificate tsaCert = serverInstance
                 .getCryptoStoreManager()

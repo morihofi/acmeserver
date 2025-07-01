@@ -18,21 +18,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useMediaQuery } from '@vueuse/core'
+import { ref, watch } from "vue";
+import { useMediaQuery } from "@vueuse/core";
 
-const isDesktop = useMediaQuery('(min-width: 768px)', { ssrWidth: 1024 })
-const sidebarOpen = ref(isDesktop.value)
+definePageMeta({
+  pageTransition: {
+    name: "bounce",
+    mode: "out-in", // default
+  },
+});
+
+const isDesktop = useMediaQuery("(min-width: 768px)");
+const sidebarOpen = ref(isDesktop.value);
 
 watch(isDesktop, (val) => {
-  sidebarOpen.value = val
-})
+  sidebarOpen.value = val;
+});
 
 const toggleSidebar = () => {
-  sidebarOpen.value = !sidebarOpen.value
-}
+  sidebarOpen.value = !sidebarOpen.value;
+};
 
 const closeSidebar = () => {
-  sidebarOpen.value = false
-}
+  sidebarOpen.value = false;
+};
 </script>
