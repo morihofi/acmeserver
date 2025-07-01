@@ -38,6 +38,7 @@ public class ServletRegistrar {
         addServlet(context, de.morihofi.certgine.acme.GetHttpsForFreeServlet.class);
         addServlet(context, de.morihofi.certgine.ui.frontend.legacy.LegacyWebUiServlet.class);
         addServlet(context, de.morihofi.certgine.core.servlet.download.RootCaDownloadServlet.class);
+        addServlet(context, de.morihofi.certgine.core.servlet.api.ApiServlet.class);
         {
             ServletHolder holder = new WebUiServletHolderHolder(serverInstance);
             context.addServlet(holder, "/*");

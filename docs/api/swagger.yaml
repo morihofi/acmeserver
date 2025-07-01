@@ -1,0 +1,69 @@
+openapi: 3.0.1
+info:
+  title: Certgine API
+  version: 1.0.0
+paths:
+  /api/core/users/login:
+    post:
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                totp:
+                  type: string
+      responses:
+        '200':
+          description: JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+  /api/core/users/register:
+    post:
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Success
+  /api/core/users/logout:
+    post:
+      summary: Logout user
+      responses:
+        '204':
+          description: Logged out
+  /api/core/status:
+    get:
+      summary: Status information
+      responses:
+        '200':
+          description: Status JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  readiness:
+                    type: string
+                  firstrun:
+                    type: boolean

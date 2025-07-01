@@ -6,12 +6,7 @@
 package de.morihofi.certgine.types.database.entities.user;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -39,10 +34,37 @@ public class Users {
     private String email;
 
     /**
+     * BCrypt hashed password of the user.
+     */
+    @Column(nullable = false)
+    private String passwordHash;
+
+    /**
      * The set of sessions associated with the user.
      */
     @OneToMany(mappedBy = "user")
     private Set<UserSession> sessions;
+
+    /**
+     * Groups the user belongs to.
+     */
+    @ManyToMany
+    @JoinTable(name = "user_group_map",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "group_id"))
+    private Set<UserGroup> groups;
+
+    /**
+     * Registered WebAuthn credentials.
+     */
+    @OneToMany(mappedBy = "user")
+    private Set<UserWebAuthnKey> webAuthnKeys;
+
+    /**
+     * Registered TOTP authenticators.
+     */
+    @OneToMany(mappedBy = "user")
+    private Set<UserTotp> totpAuthenticators;
 
     /**
      * Indicates whether the user has administrative privileges.
