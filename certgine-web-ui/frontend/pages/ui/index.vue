@@ -22,6 +22,8 @@ import { ref } from 'vue'
 import type { ChartData, ChartOptions } from 'chart.js'
 import StatsCard from '~/components/dashboard/StatsCard.vue'
 import BarChart from '~/components/dashboard/BarChart.vue'
+import { useAuth } from '~/composables/useAuth'
+import { onMounted } from 'vue'
 
 const stats = {
   rootCAs: Math.floor(Math.random() * 5) + 1,
@@ -46,12 +48,16 @@ const barOptions = ref<ChartOptions<'bar'>>({
   maintainAspectRatio: false
 })
 
+const { load } = useAuth()
+onMounted(load)
+
 
 definePageMeta({
   title: 'Dashboard',
   meta: [
     { name: 'description', content: 'Dashboard' }
   ],
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: ['auth']
 })
 </script>

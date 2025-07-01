@@ -43,6 +43,11 @@ public class HttpResponseWrapper extends Response {
     }
 
     @Override
+    public void setStatus(int status) {
+        response.setStatus(status);
+    }
+
+    @Override
     public void setBodyBytes(byte[] data) {
         try {
             response.getOutputStream().write(data);

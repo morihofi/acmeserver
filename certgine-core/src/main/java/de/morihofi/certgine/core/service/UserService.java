@@ -17,6 +17,8 @@ import java.security.PublicKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Set;
+import java.util.List;
+import lombok.Data;
 
 /**
  * Service handling user registration and authentication.
@@ -25,6 +27,14 @@ import java.util.Set;
 public class UserService {
     private final IServerInstance serverInstance;
     private KeyPair jwtKeyPair;
+
+    /** Result returned by {@link #login(String, String, String, String)}. */
+    @Data
+    public static class LoginResult {
+        private String token;
+        private boolean totpRequired;
+        private boolean webauthnRequired;
+    }
 
     private KeyPair getJwtKeyPair() throws Exception {
         if (jwtKeyPair == null) {
@@ -72,9 +82,12 @@ public class UserService {
     }
 
     /**
-     * Authenticates the user and creates a session token.
+     * Authenticates the user. Only after the email and password are verified
+     * does the method evaluate if a second factor is required. When additional
+     * verification is needed the returned {@link LoginResult} indicates which
+     * methods are expected.
      */
-    public String login(String email, String password, String totp) throws Exception {
+    public LoginResult login(String email, String password, String totp, String webauthnId) throws Exception {
         try (Session s = serverInstance.getDatabaseSession()) {
             Users user = s.createQuery("from Users u where u.email = :e", Users.class)
                     .setParameter("e", email)
@@ -85,18 +98,39 @@ public class UserService {
             if (!BCrypt.checkpw(password, user.getPasswordHash())) {
                 return null;
             }
-            if (user.getTotpAuthenticators() != null && !user.getTotpAuthenticators().isEmpty()) {
-                boolean ok = false;
+            boolean hasTotp = !s.createQuery("select 1 from UserTotp t where t.user = :u")
+                    .setParameter("u", user)
+                    .setMaxResults(1)
+                    .list().isEmpty();
+            boolean hasWebAuthn = !s.createQuery("select 1 from UserWebAuthnKey w where w.user = :u")
+                    .setParameter("u", user)
+                    .setMaxResults(1)
+                    .list().isEmpty();
+
+            boolean totpOk = false;
+            boolean webAuthnOk = false;
+            if (hasTotp && totp != null) {
                 for (UserTotp t : user.getTotpAuthenticators()) {
                     if (TotpUtil.verifyCode(t.getSecret(), totp)) {
-                        ok = true;
+                        totpOk = true;
                         break;
                     }
                 }
-                if (!ok) {
-                    return null;
+            }
+            if (hasWebAuthn && webauthnId != null) {
+                webAuthnOk = user.getWebAuthnKeys().stream()
+                        .anyMatch(k -> k.getCredentialId().equals(webauthnId));
+            }
+
+            if (hasTotp || hasWebAuthn) {
+                if (!(totpOk || webAuthnOk)) {
+                    LoginResult r = new LoginResult();
+                    r.setTotpRequired(hasTotp);
+                    r.setWebauthnRequired(hasWebAuthn);
+                    return r;
                 }
             }
+
             String token = buildJwt(user);
             s.beginTransaction();
             UserSession us = new UserSession();
@@ -106,7 +140,36 @@ public class UserService {
             us.setSessionExpire(java.sql.Timestamp.from(Instant.now().plusSeconds(3600)));
             s.persist(us);
             s.getTransaction().commit();
-            return token;
+            LoginResult r = new LoginResult();
+            r.setToken(token);
+            return r;
+        }
+    }
+
+    /**
+     * Get user from session token.
+     */
+    public Users getUserFromToken(String token) {
+        if (token == null) {
+            return null;
+        }
+        try (Session s = serverInstance.getDatabaseSession()) {
+            UserSession us = s.createQuery("from UserSession u where u.sessionToken = :t and u.sessionExpire > :now", UserSession.class)
+                    .setParameter("t", token)
+                    .setParameter("now", new Date())
+                    .uniqueResult();
+            return us == null ? null : us.getUser();
+        }
+    }
+
+    /**
+     * Get all sessions for a user.
+     */
+    public List<UserSession> getSessionsForUser(Users user) {
+        try (Session s = serverInstance.getDatabaseSession()) {
+            return s.createQuery("from UserSession u where u.user = :u", UserSession.class)
+                    .setParameter("u", user)
+                    .list();
         }
     }
 

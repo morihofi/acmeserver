@@ -21,18 +21,26 @@ public class LoginHandler implements Handler {
         private String email;
         private String password;
         private String totp;
+        private String webauthnId;
     }
 
     @Override
     public void handle(HandlerContext context) throws Exception {
         LoginRequest req = context.bodyAsClass(LoginRequest.class);
-        String token = userService.login(req.getEmail(), req.getPassword(), req.getTotp());
-        if (token == null) {
+        UserService.LoginResult res = userService.login(req.getEmail(), req.getPassword(), req.getTotp(), req.getWebauthnId());
+        if (res == null) {
             context.status(401);
             return;
         }
-        Map<String, String> r = new HashMap<>();
-        r.put("token", token);
-        context.json(r);
+        if (res.getToken() == null) {
+            Map<String, Object> r = new HashMap<>();
+            r.put("totpRequired", res.isTotpRequired());
+            r.put("webauthnRequired", res.isWebauthnRequired());
+            context.json(r);
+        } else {
+            Map<String, String> r = new HashMap<>();
+            r.put("token", res.getToken());
+            context.json(r);
+        }
     }
 }

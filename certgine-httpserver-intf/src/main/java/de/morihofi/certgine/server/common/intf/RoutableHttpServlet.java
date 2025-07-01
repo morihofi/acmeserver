@@ -52,12 +52,12 @@ public abstract class RoutableHttpServlet extends HttpServlet {
             if (handler == null) {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return;
-
             }
-
+            if (handler instanceof OptionsHandler){
+                router.invokeBeforeHandlers(context, path);
+            }
             handler.handle(context);
             log.info("Successfully handled request for path: {}", path);
-
 
         } catch (Exception e) {
             log.error("Error while handling request for path: {}", path, e);

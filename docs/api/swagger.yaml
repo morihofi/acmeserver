@@ -19,9 +19,11 @@ paths:
                   type: string
                 totp:
                   type: string
+                webauthnId:
+                  type: string
       responses:
         '200':
-          description: JWT token
+          description: Login result
           content:
             application/json:
               schema:
@@ -29,6 +31,10 @@ paths:
                 properties:
                   token:
                     type: string
+                  totpRequired:
+                    type: boolean
+                  webauthnRequired:
+                    type: boolean
   /api/core/users/register:
     post:
       summary: Register user
@@ -67,3 +73,43 @@ paths:
                     type: string
                   firstrun:
                     type: boolean
+  /api/core/users/info:
+    get:
+      summary: Information about current user
+      responses:
+        '200':
+          description: User information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                  admin:
+                    type: boolean
+                  groups:
+                    type: array
+                    items:
+                      type: string
+  /api/core/users/sessions:
+    get:
+      summary: List user sessions
+      responses:
+        '200':
+          description: Sessions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    created:
+                      type: string
+                      format: date-time
+                    expires:
+                      type: string
+                      format: date-time

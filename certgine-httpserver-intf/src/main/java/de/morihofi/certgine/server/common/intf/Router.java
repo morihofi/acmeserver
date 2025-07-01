@@ -223,6 +223,10 @@ public class Router {
         return false; // No handlers registered for the path
     }
 
+    public void invokeBeforeHandlers(HandlerContext context, String path) throws Exception {
+        invokeHandlers(beforeHandlers, path, context);
+    }
+
     /**
      * Represents a variable-based endpoint with dynamic path matching.
      */
