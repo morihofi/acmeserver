@@ -6,6 +6,7 @@
 package de.morihofi.certgine.ui.frontend.modern;
 
 import de.morihofi.certgine.server.common.intf.Endpoint;
+import de.morihofi.certgine.server.common.intf.ReverseProxyServlet;
 import de.morihofi.certgine.server.common.intf.RoutableHttpServlet;
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.httpserver.HandlerType;
@@ -14,10 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ServletMount(servletMountPoint = "/*", protect = true)
-public class WebUiServlet extends RoutableHttpServlet {
+public class WebUiServlet extends ReverseProxyServlet {
     public WebUiServlet(IServerInstance si) {
-        getRouter().addHandler(new Endpoint(HandlerType.GET, "/", context -> {
-            context.result("Certgine is running!");
-        }));
+        super("http://localhost:3000");
+
     }
 }
