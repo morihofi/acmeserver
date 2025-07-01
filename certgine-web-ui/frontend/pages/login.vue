@@ -8,6 +8,10 @@
   </div>
 </template>
 <script setup lang="ts">
+definePageMeta({
+  layout: 'auth',
+  title: 'Login'
+})
 const email = ref('')
 const password = ref('')
 const totp = ref('')

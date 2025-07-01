@@ -18,8 +18,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { useMediaQuery } from "@vueuse/core";
+import { useAuth } from "~/composables/useAuth";
 
 definePageMeta({
   pageTransition: {
@@ -30,6 +31,17 @@ definePageMeta({
 
 const isDesktop = useMediaQuery("(min-width: 768px)");
 const sidebarOpen = ref(isDesktop.value);
+
+const { user, load } = useAuth();
+
+onMounted(async () => {
+  if (!user.value) {
+    await load();
+  }
+  if (!user.value) {
+    navigateTo('/login');
+  }
+});
 
 watch(isDesktop, (val) => {
   sidebarOpen.value = val;

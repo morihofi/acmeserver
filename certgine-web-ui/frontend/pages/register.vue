@@ -7,6 +7,10 @@
   </div>
 </template>
 <script setup lang="ts">
+definePageMeta({
+  layout: 'auth',
+  title: 'Register'
+})
 const email = ref('')
 const password = ref('')
 const error = ref('')

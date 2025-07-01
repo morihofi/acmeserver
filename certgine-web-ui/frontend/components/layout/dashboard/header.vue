@@ -51,8 +51,8 @@
           class="absolute right-0 top-full mt-2 w-48 bg-white border rounded shadow-md z-50"
         >
           <div class="px-4 py-3 border-b">
-            <p class="text-sm font-semibold">User</p>
-            <p class="text-xs text-gray-500">user@example.com</p>
+            <p class="text-sm font-semibold">{{ user?.email || 'User' }}</p>
+            <p class="text-xs text-gray-500" v-if="user">{{ user.admin ? 'Admin' : '' }}</p>
           </div>
           <ul class="text-sm">
             <li>
@@ -69,9 +69,7 @@
               <a href="#" class="block px-4 py-2 hover:bg-gray-100">Support</a>
             </li>
             <li>
-              <a href="#" class="block px-4 py-2 text-red-600 hover:bg-gray-100"
-                >Sign Out</a
-              >
+              <button @click="logout" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">Sign Out</button>
             </li>
           </ul>
         </div>
@@ -85,6 +83,8 @@ import { LucideBell, LucideMenu } from "lucide-vue-next";
 import { ref } from "vue";
 import { onClickOutside } from "@vueuse/core";
 
+import { useAuth } from "~/composables/useAuth";
+
 import { useRoute } from "vue-router";
 
 defineEmits(["toggle-sidebar"]);
@@ -94,13 +94,19 @@ const showUserMenu = ref(false);
 const notificationsRef = ref<HTMLElement | null>(null);
 const userMenuRef = ref<HTMLElement | null>(null);
 
-onMounted(() => {
+const { user, load } = useAuth();
+
+onMounted(async () => {
   if (!notificationsRef.value || !userMenuRef.value) {
     return;
   }
 
   onClickOutside(userMenuRef, () => (showUserMenu.value = false));
   onClickOutside(notificationsRef, () => (showNotifications.value = false));
+
+  if (!user.value) {
+    await load();
+  }
 });
 
 const toggleNotifications = () => {
@@ -121,4 +127,12 @@ const notifications = ref([
 ]);
 
 const pageTitle = useRoute().meta.title;
+
+function logout() {
+  if (process.client) {
+    localStorage.removeItem('token');
+  }
+  user.value = null;
+  navigateTo('/login');
+}
 </script>

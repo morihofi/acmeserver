@@ -4,9 +4,16 @@ export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
   const api = ofetch.create({
     baseURL: config.public.API_URL || '/api',
-    headers: () => {
-      const t = localStorage.getItem('token')
-      return t ? { Authorization: `Bearer ${t}` } : {}
+    onRequest({ options }) {
+      if (process.client) {
+        const t = localStorage.getItem('token')
+        if (t) {
+          options.headers = {
+            ...(options.headers || {}),
+            Authorization: `Bearer ${t}`
+          }
+        }
+      }
     }
   })
   return { provide: { api } }

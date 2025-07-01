@@ -57,7 +57,6 @@ definePageMeta({
   meta: [
     { name: 'description', content: 'Dashboard' }
   ],
-  layout: 'dashboard',
-  middleware: ['auth']
+  layout: 'dashboard'
 })
 </script>
