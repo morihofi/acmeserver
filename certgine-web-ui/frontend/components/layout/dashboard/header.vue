@@ -44,7 +44,7 @@
           <img
             class="w-8 h-8 rounded-full"
             src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
-          />
+          >
         </button>
         <div
           v-if="showUserMenu"
@@ -52,7 +52,7 @@
         >
           <div class="px-4 py-3 border-b">
             <p class="text-sm font-semibold">{{ user?.email || 'User' }}</p>
-            <p class="text-xs text-gray-500" v-if="user">{{ user.admin ? 'Admin' : '' }}</p>
+            <p v-if="user" class="text-xs text-gray-500">{{ user.admin ? 'Admin' : 'User' }}</p>
           </div>
           <ul class="text-sm">
             <li>
@@ -69,7 +69,7 @@
               <a href="#" class="block px-4 py-2 hover:bg-gray-100">Support</a>
             </li>
             <li>
-              <button @click="logout" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">Sign Out</button>
+              <button class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100" @click="logout">Sign Out</button>
             </li>
           </ul>
         </div>
@@ -129,10 +129,10 @@ const notifications = ref([
 const pageTitle = useRoute().meta.title;
 
 function logout() {
-  if (process.client) {
+  if (import.meta.client) {
     localStorage.removeItem('token');
   }
   user.value = null;
-  navigateTo('/login');
+  navigateTo('/');
 }
 </script>
