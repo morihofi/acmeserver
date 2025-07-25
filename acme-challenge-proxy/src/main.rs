@@ -1,6 +1,6 @@
 mod service;
 mod challenge {
-    tonic::include_proto!("acme.challenge.proxy");
+    tonic::include_proto!("certgine.challenge");
 }
 use clap::Parser;
 use service::ChallengeProxyService;
@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Server::builder()
         .tls_config(tls)?
-        .add_service(challenge::challenge_proxy_server::ChallengeProxyServer::new(svc))
+        .add_service(challenge::challenge_checker_server::ChallengeCheckerServer::new(svc))
         .serve(addr)
         .await?;
 
