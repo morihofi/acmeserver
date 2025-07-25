@@ -1,0 +1,26 @@
+syntax = "proto3";
+package acme.challenge.proxy;
+
+service ChallengeProxy {
+  rpc CheckHttpChallenge(CheckHttpChallengeRequest) returns (CheckHttpChallengeResponse);
+  rpc CheckDnsChallenge(CheckDnsChallengeRequest) returns (CheckDnsChallengeResponse);
+}
+
+message CheckHttpChallengeRequest {
+  string host = 1;
+  string token = 2;
+  string expected_value = 3;
+}
+
+message CheckHttpChallengeResponse {
+  bool ok = 1;
+}
+
+message CheckDnsChallengeRequest {
+  string domain = 1;
+  string expected_value = 2;
+}
+
+message CheckDnsChallengeResponse {
+  bool ok = 1;
+}
