@@ -21,7 +21,7 @@
         <maven.build.timestamp.format>dd-MM-yyyy HH:mm</maven.build.timestamp.format>
 
         <!-- Logging -->
-        <log4j.version>2.24.0</log4j.version>
+        <log4j.version>2.25.1</log4j.version>
         <slf4j2.version>2.0.16</slf4j2.version>
 
         <!-- Cryptographic libraries -->
@@ -113,7 +113,7 @@
                                 </goals>
                                 <configuration>
                                     <environmentVariables>
-                                        <NUXT_PUBLIC_API_URL></NUXT_PUBLIC_API_URL> <!-- use empty string ("") to have an absolute path to the API without the host:port -->
+                                        <NUXT_PUBLIC_API_URL/> <!-- use empty string ("") to have an absolute path to the API without the host:port -->
                                     </environmentVariables>
                                     <arguments>run generate</arguments>
                                     <workingDirectory>frontend</workingDirectory>
