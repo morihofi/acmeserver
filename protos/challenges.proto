@@ -1,5 +1,5 @@
 syntax = "proto3";
-package certgine.challenge;
+package de.morihofi.certgine.rpc.proto.acme.challenge;
 
 // Type of ACME challenge
 enum ChallengeType {
