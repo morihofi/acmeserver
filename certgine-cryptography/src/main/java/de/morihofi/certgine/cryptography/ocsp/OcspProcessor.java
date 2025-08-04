@@ -30,6 +30,9 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.*;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
@@ -83,11 +86,15 @@ public class OcspProcessor {
                 new JcaX509CertificateHolder(caCert), serialNumber), certStatus);
 
         // Creating and signing the OCSP response
+        Instant producedAt = Instant.now();
         BasicOCSPResp basicResp = respBuilder.build(
                 new JcaContentSignerBuilder(KeyHelper.getSignatureAlgorithmBasedOnKeyType(caKeyPair.getPrivate())).build(
                         caKeyPair.getPrivate()),
                 new X509CertificateHolder[]{new JcaX509CertificateHolder(caCert)},
-                new Date());
+                Date.from(producedAt));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC"));
+        log.debug("OCSP response produced at {}", formatter.format(producedAt));
 
         return new OCSPRespBuilder().build(OCSPRespBuilder.SUCCESSFUL, basicResp);
     }

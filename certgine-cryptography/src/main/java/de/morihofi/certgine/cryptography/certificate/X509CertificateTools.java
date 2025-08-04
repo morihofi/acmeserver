@@ -27,8 +27,9 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -99,12 +100,12 @@ public class X509CertificateTools {
      * @return {@code true} if the certificate is currently valid; {@code false} if it is expired or not yet valid as of the current date.
      */
     public static boolean isCertificateCurrentlyDateValid(X509Certificate certificate) {
-        try {
-            certificate.checkValidity(new Date());
-            return true;
-        } catch (Exception ex) {
-            return false;
-        }
+        Instant now = Instant.now();
+        Instant notBefore = certificate.getNotBefore().toInstant();
+        Instant notAfter = certificate.getNotAfter().toInstant();
+        Duration validity = Duration.between(notBefore, notAfter);
+        Duration elapsed = Duration.between(notBefore, now);
+        return !now.isBefore(notBefore) && elapsed.compareTo(validity) <= 0;
     }
 
     /**

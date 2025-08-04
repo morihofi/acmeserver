@@ -8,6 +8,7 @@ package de.morihofi.certgine.cryptography.crl;
 import de.morihofi.certgine.cryptography.keys.KeyHelper;
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509v2CRLBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CRLConverter;
@@ -21,12 +22,17 @@ import java.security.cert.CRLException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
 /**
  * Generates X509 certificate revocation lists using a request built via Lombok's builder.
  */
+@Slf4j
 public class CrlGenerator {
 
     /**
@@ -51,10 +57,15 @@ public class CrlGenerator {
      */
     public static X509CRL generate(@NonNull Request req)
             throws CertificateEncodingException, CRLException, OperatorCreationException {
+        Instant now = Instant.now();
         X509v2CRLBuilder crlBuilder = new X509v2CRLBuilder(
                 new JcaX509CertificateHolder(req.getCaCert()).getSubject(),
-                new Date());
-        crlBuilder.setNextUpdate(new Date(System.currentTimeMillis() + req.getUpdateMinutes() * 60L * 1000));
+                Date.from(now));
+        Instant nextUpdate = now.plus(Duration.ofMinutes(req.getUpdateMinutes()));
+        crlBuilder.setNextUpdate(Date.from(nextUpdate));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC"));
+        log.debug("CRL thisUpdate {} nextUpdate {}", formatter.format(now), formatter.format(nextUpdate));
 
         for (RevokedCertificate rc : req.getRevokedCertificates()) {
             crlBuilder.addCRLEntry(rc.serialNumber(), rc.revocationDate(), rc.revocationReason());

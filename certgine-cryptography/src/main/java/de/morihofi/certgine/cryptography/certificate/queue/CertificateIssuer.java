@@ -36,7 +36,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Set;
 
 @Slf4j
@@ -84,6 +83,9 @@ public class CertificateIssuer {
                 )
         );
 
+        Instant notBefore = order.getNotBefore();
+        Instant notAfter = order.getNotAfter();
+
         X509Certificate acmeGeneratedCertificate = X509Generator.generate(
                 X509Generator.Request.builder()
                         .type(X509Generator.Type.SERVER)
@@ -91,8 +93,8 @@ public class CertificateIssuer {
                         .issuerCertificate(cryptoStoreManager.getIntermediateCertificate(provisioner.getInternalUuid()))
                         .serverPublicKeyBytes(pkPemObject.getContent())
                         .identifiers(csrIdentifiers)
-                        .startDate(Date.from(order.getNotBefore()))
-                        .endDate(Date.from(order.getNotAfter()))
+                        .startDate(java.util.Date.from(notBefore))
+                        .endDate(java.util.Date.from(notAfter))
                         .provisioner(provisioner)
                         .serverInstance(serverInstance)
                         .build()

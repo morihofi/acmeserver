@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -111,7 +112,8 @@ public class TimeStampAuthority {
         tokenGen.addCertificates(new JcaCertStore(certificateChain));
 
         TimeStampResponseGenerator respGen = new TimeStampResponseGenerator(tokenGen, ALLOWED_ALGORITHMS);
-        TimeStampResponse resp = respGen.generate(request, RandomGenerator.generateRandomId(), new Date());
+        Instant now = Instant.now();
+        TimeStampResponse resp = respGen.generate(request, RandomGenerator.generateRandomId(), Date.from(now));
         return resp.getEncoded();
     }
 
