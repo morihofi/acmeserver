@@ -19,7 +19,6 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.time.Instant;
 
 /**
@@ -84,7 +83,7 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
                 orderIdentifierChallenge.setStatus(newState);
 
                 if(newState.equals(AcmeStatus.VALID)){
-                    orderIdentifierChallenge.setVerifiedTime(Timestamp.from(Instant.now()));
+                    orderIdentifierChallenge.setVerifiedTime(Instant.now());
                 }
 
                 session.merge(orderIdentifierChallenge);
@@ -165,8 +164,8 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
     /**
      * The timestamp when the verification of this ACME order identifier occurred.
      */
-    @Column(name = "verifiedTime")
-    private Timestamp verifiedTime;
+    @Column(name = "verifiedTime", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant verifiedTime;
 
     /**
      * The type of the challenge (e.g., "http-01", "dns-01").

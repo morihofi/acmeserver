@@ -127,7 +127,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
      * @return The expiration {@link Instant} of the order.
      */
     Instant getOrderExpiration(@NonNull AcmeOrder order) {
-        return order.getExpires().toInstant();
+        return order.getExpires();
     }
 
     /**

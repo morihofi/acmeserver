@@ -21,7 +21,6 @@ import org.hibernate.query.Query;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 
@@ -122,7 +121,7 @@ public class AcmeOrder implements Serializable {
                 for (AcmeOrder revokedIdentifier : result) {
                     certificates.add(new RevokedCertificate(
                             revokedIdentifier.getCertificateSerialNumber(),
-                            revokedIdentifier.getRevokeTimestamp(),
+                            Date.from(revokedIdentifier.getRevokeTimestamp()),
                             revokedIdentifier.getRevokeStatusCode()
                     ));
                 }
@@ -169,7 +168,7 @@ public class AcmeOrder implements Serializable {
                     && result.getRevokeTimestamp() != null) {
                 rc = new RevokedCertificate(
                         result.getCertificateSerialNumber(),
-                        result.getRevokeTimestamp(),
+                        Date.from(result.getRevokeTimestamp()),
                         result.getRevokeStatusCode());
             }
 
@@ -190,7 +189,7 @@ public class AcmeOrder implements Serializable {
      * @throws ACMEServerInternalException If an error occurs while revoking the certificate.
      */
     public static void revokeCertificate(AcmeOrder order, int reason, IServerInstance serverInstance) {
-        order.setRevokeTimestamp(Timestamp.from(Instant.now()));
+        order.setRevokeTimestamp(Instant.now());
         order.setRevokeStatusCode(reason);
 
         Transaction transaction;
@@ -232,25 +231,25 @@ public class AcmeOrder implements Serializable {
     /**
      * Creation of the order
      */
-    @Column(name = "created")
-    private Timestamp created;
+    @Column(name = "created", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant created;
 
     /**
      * Expiring of the order
      */
-    @Column(name = "expires")
-    private Timestamp expires;
+    @Column(name = "expires", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant expires;
 
     /**
      * Not before for the generated certificate
      */
-    @Column(name = "notBefore")
-    private Timestamp notBefore;
+    @Column(name = "notBefore", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant notBefore;
     /**
      * Not after for the generated certificate
      */
-    @Column(name = "notAfter")
-    private Timestamp notAfter;
+    @Column(name = "notAfter", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant notAfter;
     /**
      * Order Identifiers (Domains, IPs) of this Order
      */
@@ -277,13 +276,13 @@ public class AcmeOrder implements Serializable {
     /**
      * Timestamp when the certificate was issued
      */
-    @Column(name = "certificateIssued")
-    private Timestamp certificateIssued;
+    @Column(name = "certificateIssued", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant certificateIssued;
     /**
      * Time when the certificate will expire
      */
-    @Column(name = "certificateExpires")
-    private Timestamp certificateExpires;
+    @Column(name = "certificateExpires", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant certificateExpires;
     /**
      * The certificate without the full chain
      */
@@ -302,7 +301,7 @@ public class AcmeOrder implements Serializable {
     /**
      * Revokation timestamp of the certificate. Defaults to null if not revoked
      */
-    @Column(name = "revokeTimestamp")
-    private Timestamp revokeTimestamp;
+    @Column(name = "revokeTimestamp", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant revokeTimestamp;
 
 }

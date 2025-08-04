@@ -71,7 +71,7 @@ class AuthzOwnershipEndpointTest {
         AuthzOwnershipEndpoint endpoint = new AuthzOwnershipEndpoint(new DummyServerInstance(), clock);
         AcmeOrder order = new AcmeOrder();
         Instant expires = now.plus(Duration.ofHours(1));
-        order.setExpires(java.sql.Timestamp.from(expires));
+        order.setExpires(expires);
         AcmeOrderIdentifier identifier = new AcmeOrderIdentifier("dns", "example.com");
         identifier.setOrder(order);
 

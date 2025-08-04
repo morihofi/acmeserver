@@ -35,7 +35,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Set;
 
 @Slf4j
@@ -90,8 +91,8 @@ public class CertificateIssuer {
                         .issuerCertificate(cryptoStoreManager.getIntermediateCertificate(provisioner.getInternalUuid()))
                         .serverPublicKeyBytes(pkPemObject.getContent())
                         .identifiers(csrIdentifiers)
-                        .startDate(order.getNotBefore())
-                        .endDate(order.getNotAfter())
+                        .startDate(Date.from(order.getNotBefore()))
+                        .endDate(Date.from(order.getNotAfter()))
                         .provisioner(provisioner)
                         .serverInstance(serverInstance)
                         .build()
@@ -100,8 +101,8 @@ public class CertificateIssuer {
         BigInteger serialNumber = acmeGeneratedCertificate.getSerialNumber();
         String pemCertificate = PemUtil.certificateToPEM(acmeGeneratedCertificate.getEncoded());
 
-        Timestamp expiresAt = new Timestamp(acmeGeneratedCertificate.getNotAfter().getTime());
-        Timestamp issuedAt = new Timestamp(acmeGeneratedCertificate.getNotBefore().getTime());
+        Instant expiresAt = acmeGeneratedCertificate.getNotAfter().toInstant();
+        Instant issuedAt = acmeGeneratedCertificate.getNotBefore().toInstant();
 
         Transaction transaction = session.beginTransaction();
 
@@ -110,6 +111,7 @@ public class CertificateIssuer {
         order.setCertificatePem(pemCertificate);
         order.setExpires(expiresAt);
         order.setCertificateIssued(issuedAt);
+        order.setCertificateExpires(expiresAt);
 
         order.setOrderState(AcmeOrderState.IDLE); // Set it back to idle
         session.merge(order);

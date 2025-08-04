@@ -17,7 +17,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 
 /**
  * Certgine user sessions
@@ -52,12 +52,14 @@ public class UserSession {
     /**
      * Timestamp when the session was created.
      */
-    private Timestamp sessionCreated;
+    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant sessionCreated;
 
     /**
      * Timestamp when the session expires.
      */
-    private Timestamp sessionExpire;
+    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant sessionExpire;
 
 
 }

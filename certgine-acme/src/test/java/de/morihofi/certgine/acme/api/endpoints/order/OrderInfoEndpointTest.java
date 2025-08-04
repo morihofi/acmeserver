@@ -72,7 +72,7 @@ class OrderInfoEndpointTest {
         OrderInfoEndpoint endpoint = new OrderInfoEndpoint(new DummyServerInstance(), clock);
         AcmeOrder order = new AcmeOrder();
         Instant expires = now.plus(Duration.ofHours(1));
-        order.setExpires(java.sql.Timestamp.from(expires));
+        order.setExpires(expires);
 
         java.lang.reflect.Method m;
         try {

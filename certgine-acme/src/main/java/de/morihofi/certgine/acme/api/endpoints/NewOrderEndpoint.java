@@ -186,10 +186,10 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             order = new AcmeOrder();
             order.setOrderId(orderId);
             order.setAccount(account);
-            order.setCreated(java.sql.Timestamp.from(startInstant));
-            order.setExpires(java.sql.Timestamp.from(endInstant));
-            order.setNotBefore(java.sql.Timestamp.from(startInstant));
-            order.setNotAfter(java.sql.Timestamp.from(endInstant));
+            order.setCreated(startInstant);
+            order.setExpires(endInstant);
+            order.setNotBefore(startInstant);
+            order.setNotAfter(endInstant);
             order.setCertificateId(certificateId);
             session.persist(order);
 
@@ -220,9 +220,9 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         NewOrderResponse response = new NewOrderResponse();
         response.setStatus(AcmeStatus.PENDING.getRfcName());
-        response.setExpires(TimeTools.formatInstantForAcme(order.getExpires().toInstant()));
-        response.setNotBefore(TimeTools.formatInstantForAcme(order.getNotBefore().toInstant()));
-        response.setNotAfter(TimeTools.formatInstantForAcme(order.getNotAfter().toInstant()));
+        response.setExpires(TimeTools.formatInstantForAcme(order.getExpires()));
+        response.setNotBefore(TimeTools.formatInstantForAcme(order.getNotBefore()));
+        response.setNotAfter(TimeTools.formatInstantForAcme(order.getNotAfter()));
         response.setIdentifiers(respIdentifiers);
         response.setAuthorizations(respAuthorizations);
         response.setFinalize(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId + "/finalize");

@@ -189,7 +189,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
      * @return The expiration {@link Instant} of the authorization.
      */
     Instant getAuthorizationExpiration(@NonNull AcmeOrderIdentifier identifier) {
-        return identifier.getOrder().getExpires().toInstant();
+        return identifier.getOrder().getExpires();
     }
 
     /**
@@ -207,7 +207,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         challengeResponse.setToken(identifierChallenge.getAuthorizationToken());
         if (identifierChallenge.getStatus() == AcmeStatus.VALID) {
             challengeResponse.setStatus(AcmeStatus.VALID.getRfcName());
-            challengeResponse.setValidated(TimeTools.formatInstantForAcme(identifierChallenge.getVerifiedTime().toInstant()));
+            challengeResponse.setValidated(TimeTools.formatInstantForAcme(identifierChallenge.getVerifiedTime()));
         } else {
             challengeResponse.setStatus(identifierChallenge.getStatus().getRfcName());
         }

@@ -141,8 +141,8 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
             // We have a certificate
 
             response.setStatus(AcmeStatus.VALID.getRfcName());
-            response.setExpires(TimeTools.formatInstantForAcme(order.getCertificateExpires().toInstant()));
-            response.setIssued(TimeTools.formatInstantForAcme(order.getCertificateIssued().toInstant()));
+            response.setExpires(TimeTools.formatInstantForAcme(order.getCertificateExpires()));
+            response.setIssued(TimeTools.formatInstantForAcme(order.getCertificateIssued()));
         }
 
         ctx.header("Content-Type", "application/json");

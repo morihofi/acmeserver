@@ -129,7 +129,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         response.setType(challengeType);
         if (identifierChallenge.getStatus() == AcmeStatus.VALID) {
             response.setStatus(AcmeStatus.VALID.getRfcName());
-            response.setValidated(TimeTools.formatInstantForAcme(identifierChallenge.getVerifiedTime().toInstant()));
+            response.setValidated(TimeTools.formatInstantForAcme(identifierChallenge.getVerifiedTime()));
         } else {
             response.setStatus(AcmeStatus.PENDING.getRfcName());
         }
