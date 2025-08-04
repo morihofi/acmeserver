@@ -9,7 +9,7 @@ import de.morihofi.certgine.types.api.acme.dns.Identifier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Getter;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -27,5 +27,5 @@ public class NewOrderRequestPayload {
     /**
      * the desired notAfter property for the certificate
      */
-    private Date notAfter;
+    private Instant notAfter;
 }

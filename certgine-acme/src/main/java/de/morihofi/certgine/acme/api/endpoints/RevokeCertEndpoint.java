@@ -34,8 +34,8 @@ import java.net.HttpURLConnection;
 import java.security.PublicKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
 import java.util.Base64;
-import java.util.Date;
 
 /**
  * Endpoint for handling certificate revocation requests in the ACME server.
@@ -47,15 +47,28 @@ import java.util.Date;
 @Slf4j
 public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
+    private final Clock clock;
+
     /**
      * Constructs a new RevokeCertEndpoint instance. This constructor initializes the endpoint with a specific Provisioner instance. It sets
      * up the necessary components for handling certificate revocation requests, including creating a new Gson instance for JSON
      * processing.
      *
      * @param serverInstance The {@link IServerInstance} to use for this endpoint
+     * @param clock          Clock used for time calculations.
+     */
+    public RevokeCertEndpoint(IServerInstance serverInstance, Clock clock) {
+        super(serverInstance);
+        this.clock = clock;
+    }
+
+    /**
+     * Constructs a new RevokeCertEndpoint instance using the system UTC clock.
+     *
+     * @param serverInstance The server instance.
      */
     public RevokeCertEndpoint(IServerInstance serverInstance) {
-        super(serverInstance);
+        this(serverInstance, Clock.systemUTC());
     }
 
 
@@ -138,7 +151,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
         // Validate validation date
         try {
-            certificate.checkValidity(new Date());
+            certificate.checkValidity(java.util.Date.from(clock.instant()));
             log.debug("Certificate date is valid");
         } catch (
                 Exception e) {

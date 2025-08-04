@@ -32,6 +32,7 @@ import org.hibernate.Transaction;
 import lombok.NonNull;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,13 +44,26 @@ import java.util.function.Supplier;
 @Slf4j
 public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
+    private final Clock clock;
+
     /**
      * Constructs a new endpoint for handling authorization ownership challenges.
      *
      * @param serverInstance The server instance.
+     * @param clock          Clock used for time calculations.
+     */
+    public AuthzOwnershipEndpoint(IServerInstance serverInstance, Clock clock) {
+        super(serverInstance);
+        this.clock = clock;
+    }
+
+    /**
+     * Constructs a new endpoint using the system UTC clock.
+     *
+     * @param serverInstance The server instance.
      */
     public AuthzOwnershipEndpoint(IServerInstance serverInstance) {
-        super(serverInstance);
+        this(serverInstance, Clock.systemUTC());
     }
 
     /**

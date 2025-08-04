@@ -18,8 +18,10 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Timestamp;
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -65,10 +67,12 @@ class OrderInfoEndpointTest {
     @Test
     @DisplayName("Order expiration comes from stored order")
     void testOrderExpiration() {
-        OrderInfoEndpoint endpoint = new OrderInfoEndpoint(new DummyServerInstance());
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        Clock clock = Clock.fixed(now, ZoneOffset.UTC);
+        OrderInfoEndpoint endpoint = new OrderInfoEndpoint(new DummyServerInstance(), clock);
         AcmeOrder order = new AcmeOrder();
-        Timestamp expires = Timestamp.from(Instant.now().plusSeconds(3600));
-        order.setExpires(expires);
+        Instant expires = now.plus(Duration.ofHours(1));
+        order.setExpires(java.sql.Timestamp.from(expires));
 
         java.lang.reflect.Method m;
         try {
@@ -83,7 +87,7 @@ class OrderInfoEndpointTest {
     @Test
     @DisplayName("verifyIdentifiersPresent throws when list empty")
     void testVerifyIdentifiersPresentThrows() {
-        OrderInfoEndpoint endpoint = new OrderInfoEndpoint(new DummyServerInstance());
+        OrderInfoEndpoint endpoint = new OrderInfoEndpoint(new DummyServerInstance(), Clock.systemUTC());
         java.lang.reflect.Method m;
         try {
             m = OrderInfoEndpoint.class.getDeclaredMethod("verifyIdentifiersPresent", String.class, List.class);
@@ -98,7 +102,7 @@ class OrderInfoEndpointTest {
     @Test
     @DisplayName("verifyIdentifiersPresent passes with identifiers")
     void testVerifyIdentifiersPresentOk() {
-        OrderInfoEndpoint endpoint = new OrderInfoEndpoint(new DummyServerInstance());
+        OrderInfoEndpoint endpoint = new OrderInfoEndpoint(new DummyServerInstance(), Clock.systemUTC());
         AcmeOrderIdentifier id = new AcmeOrderIdentifier("dns", "example.com");
         java.lang.reflect.Method m;
         try {

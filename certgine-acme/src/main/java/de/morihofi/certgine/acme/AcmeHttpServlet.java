@@ -25,6 +25,7 @@ import de.morihofi.certgine.types.exception.ACMEException;
 import de.morihofi.certgine.types.httpserver.HandlerType;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.extern.slf4j.Slf4j;
+import java.time.Clock;
 
 /**
  * Servlet routing ACME requests to registered sub servlets.
@@ -35,9 +36,11 @@ import lombok.extern.slf4j.Slf4j;
 public class AcmeHttpServlet extends RoutableHttpServlet {
 
     private final IServerInstance serverInstance;
+    private final Clock clock;
 
-    public AcmeHttpServlet(IServerInstance serverInstance) {
+    public AcmeHttpServlet(IServerInstance serverInstance, Clock clock) {
         this.serverInstance = serverInstance;
+        this.clock = clock;
 
         setExceptionHandler(new AbstractExceptionHandler() {
             @Override
@@ -71,10 +74,10 @@ public class AcmeHttpServlet extends RoutableHttpServlet {
         getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/acct/{id}", new AccountEndpoint(serverInstance)));
 
         // Create new Order
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/new-order", new NewOrderEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/new-order", new NewOrderEndpoint(serverInstance, clock)));
 
         // Challenge / Ownership verification
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(serverInstance, clock)));
 
         // Challenge Callback
         getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/chall/{challengeId}/{challengeType}", new ChallengeCallbackEndpoint(serverInstance)));
@@ -83,15 +86,19 @@ public class AcmeHttpServlet extends RoutableHttpServlet {
         getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(serverInstance)));
 
         // Order info Endpoint
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}", new OrderInfoEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}", new OrderInfoEndpoint(serverInstance, clock)));
 
         // Get Order Certificate
         getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}/cert", new OrderCertEndpoint(serverInstance)));
 
         // Revoke certificate
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/revoke-cert", new RevokeCertEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/revoke-cert", new RevokeCertEndpoint(serverInstance, clock)));
 
         getRouter().addBeforeHandler("/acme", new AcmeBeforeHandler());
 
+    }
+
+    public AcmeHttpServlet(IServerInstance serverInstance) {
+        this(serverInstance, Clock.systemUTC());
     }
 }

@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,14 +37,26 @@ import java.util.List;
 @Slf4j
 public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
 
+    private final Clock clock;
 
     /**
      * Constructs a new OrderInfoEndpoint instance with the specified provisioner and server instance.
      *
      * @param serverInstance The server instance for managing server configurations and operations.
+     * @param clock          Clock used for time calculations.
+     */
+    public OrderInfoEndpoint(IServerInstance serverInstance, Clock clock) {
+        super(serverInstance);
+        this.clock = clock;
+    }
+
+    /**
+     * Constructs a new OrderInfoEndpoint instance using the system UTC clock.
+     *
+     * @param serverInstance The server instance for managing server configurations and operations.
      */
     public OrderInfoEndpoint(IServerInstance serverInstance) {
-        super(serverInstance);
+        this(serverInstance, Clock.systemUTC());
     }
 
     /**

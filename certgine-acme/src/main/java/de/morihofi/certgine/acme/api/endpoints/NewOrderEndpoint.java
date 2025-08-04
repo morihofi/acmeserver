@@ -34,7 +34,7 @@ import org.hibernate.Transaction;
 
 import java.net.HttpURLConnection;
 import java.security.KeyStoreException;
-import java.sql.Timestamp;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,13 +48,26 @@ import java.util.UUID;
 @Slf4j
 public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
+    private final Clock clock;
+
     /**
      * Constructs a NewOrderEndpoint with the given provisioner and server instance.
      *
      * @param serverInstance The server instance.
+     * @param clock         Clock used for time calculations.
+     */
+    public NewOrderEndpoint(IServerInstance serverInstance, Clock clock) {
+        super(serverInstance);
+        this.clock = clock;
+    }
+
+    /**
+     * Constructs a NewOrderEndpoint using the system UTC clock.
+     *
+     * @param serverInstance The server instance.
      */
     public NewOrderEndpoint(IServerInstance serverInstance) {
-        super(serverInstance);
+        this(serverInstance, Clock.systemUTC());
     }
 
     /**
@@ -166,17 +179,17 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         try (Session session = getServerInstance().getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
 
-            Instant startInstant = Instant.now(); // Starts now
+            Instant startInstant = clock.instant(); // Starts now
             Instant endInstant = calculateEndInstant(newOrderRequestPayload, provisioner, startInstant);
 
             // Create order
             order = new AcmeOrder();
             order.setOrderId(orderId);
             order.setAccount(account);
-            order.setCreated(Timestamp.from(startInstant));
-            order.setExpires(Timestamp.from(endInstant));
-            order.setNotBefore(Timestamp.from(startInstant));
-            order.setNotAfter(Timestamp.from(endInstant));
+            order.setCreated(java.sql.Timestamp.from(startInstant));
+            order.setExpires(java.sql.Timestamp.from(endInstant));
+            order.setNotBefore(java.sql.Timestamp.from(startInstant));
+            order.setNotAfter(java.sql.Timestamp.from(endInstant));
             order.setCertificateId(certificateId);
             session.persist(order);
 
@@ -261,9 +274,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
     private Instant calculateEndInstant(@NonNull NewOrderRequestPayload newOrderRequestPayload,
                                         @NonNull AcmeProvisioner provisioner,
                                         @NonNull Instant start) throws KeyStoreException {
-        Instant endByOrder = newOrderRequestPayload.getNotAfter() == null
-                ? null
-                : newOrderRequestPayload.getNotAfter().toInstant();
+        Instant endByOrder = newOrderRequestPayload.getNotAfter();
 
         Instant endByCa = TimeTools.makeInstantForOutliveIntermediateCertificate(
                 getServerInstance().getCryptoStoreManager()

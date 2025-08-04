@@ -17,8 +17,10 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Timestamp;
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -64,10 +66,12 @@ class AuthzOwnershipEndpointTest {
     @Test
     @DisplayName("Authorization expiration comes from associated order")
     void testAuthorizationExpiration() {
-        AuthzOwnershipEndpoint endpoint = new AuthzOwnershipEndpoint(new DummyServerInstance());
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        Clock clock = Clock.fixed(now, ZoneOffset.UTC);
+        AuthzOwnershipEndpoint endpoint = new AuthzOwnershipEndpoint(new DummyServerInstance(), clock);
         AcmeOrder order = new AcmeOrder();
-        Timestamp expires = Timestamp.from(Instant.now().plusSeconds(3600));
-        order.setExpires(expires);
+        Instant expires = now.plus(Duration.ofHours(1));
+        order.setExpires(java.sql.Timestamp.from(expires));
         AcmeOrderIdentifier identifier = new AcmeOrderIdentifier("dns", "example.com");
         identifier.setOrder(order);
 
