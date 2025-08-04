@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
 import java.time.Instant;
-import java.util.Date;
 
 @Slf4j
 public class JettyCertificateHelper {
@@ -39,8 +39,10 @@ public class JettyCertificateHelper {
      * @throws KeyStoreException         If there is an issue with the keystore.
      * @throws UnrecoverableKeyException If a keystore key cannot be recovered.
      */
-    public static CertificateRenewScheduler.CertificateData generateAcmeApiClientCertificate(IServerInstance serverInstance) throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
-            OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
+    public static CertificateRenewScheduler.CertificateData generateAcmeApiClientCertificate(
+            IServerInstance serverInstance, Clock clock)
+            throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
+                    OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
 
         ICryptoStoreManager cryptoStoreManager = serverInstance.getCryptoStoreManager();
 
@@ -65,13 +67,11 @@ public class JettyCertificateHelper {
         X509Certificate intermediateCertificate = rootCertificate;
 
         log.info("Creating Server Certificate");
-        Instant startInstant = Instant.now();
-        Instant endInstant = TimeTools.makeInstantForOutliveIntermediateCertificate(
-                intermediateCertificate.getNotAfter().toInstant(),
-                TimeTools.addToInstant(startInstant, 0, 1, 0)
-        );
-        Date startDate = Date.from(startInstant);
-        Date endDate = Date.from(endInstant);
+        Instant startInstant = Instant.now(clock);
+        Instant endInstant =
+                TimeTools.makeInstantForOutliveIntermediateCertificate(
+                        intermediateCertificate.getNotAfter().toInstant(),
+                        TimeTools.addToInstant(startInstant, 0, 1, 0));
 
         X509Certificate acmeAPICertificate = X509Generator.generate(
                 X509Generator.Request.builder()
@@ -80,8 +80,8 @@ public class JettyCertificateHelper {
                         .issuerCertificate(intermediateCertificate)
                         .serverPublicKeyBytes(acmeAPIKeyPair.getPublic().getEncoded())
                         .identifier(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, serverInstance.getAppConfig().getServer().getDnsName()))
-                        .startDate(startDate)
-                        .endDate(endDate)
+                        .startDate(java.util.Date.from(startInstant))
+                        .endDate(java.util.Date.from(endInstant))
                         .serverInstance(serverInstance)
                         .build()
         );
@@ -95,5 +95,16 @@ public class JettyCertificateHelper {
         return new CertificateRenewScheduler.CertificateData(chain, acmeAPIKeyPair);
     }
 
-
+    /**
+     * Generates an ACME API client certificate using the system UTC clock.
+     *
+     * @param serverInstance Reference to the server instance containing the crypto store manager and configuration.
+     * @return certificate data or {@code null} if an existing certificate is still valid.
+     */
+    public static CertificateRenewScheduler.CertificateData generateAcmeApiClientCertificate(
+            IServerInstance serverInstance)
+            throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
+                    OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
+        return generateAcmeApiClientCertificate(serverInstance, Clock.systemUTC());
+    }
 }

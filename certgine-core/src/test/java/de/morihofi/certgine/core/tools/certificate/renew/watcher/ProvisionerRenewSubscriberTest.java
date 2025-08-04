@@ -33,6 +33,7 @@ import de.morihofi.certgine.utils.scheduler.TimedScheduler;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.security.Security;
+import java.time.Clock;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -93,7 +94,8 @@ class ProvisionerRenewSubscriberTest {
         EventBus bus = new EventBus();
         IServerInstance si = new DummyServerInstance(mgr, bus);
         TimedScheduler ts = new TimedScheduler();
-        CertificateRenewScheduler renewManager = new CertificateRenewScheduler(mgr, bus, ts);
+        CertificateRenewScheduler renewManager =
+                new CertificateRenewScheduler(mgr, bus, ts, Clock.systemUTC());
 
         ProvisionerRenewSubscriber watcher = new ProvisionerRenewSubscriber(si, renewManager);
         bus.register(watcher);

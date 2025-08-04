@@ -21,6 +21,7 @@ import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.List;
 
 /**
@@ -46,7 +47,7 @@ public class TlsCertificateManager implements EventSubscriber {
         certificateRenewScheduler.registerNewCertificateRenewWatcher(
                 CryptoStoreManager.KEYSTORE_ALIASPREFIX_SERVER,
                 null,
-                (p, cert, kp) -> JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance),
+                (p, cert, kp) -> JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance, Clock.systemUTC()),
                 () -> {
                     try {
                         loadOrReloadTlsCertificate();
@@ -84,7 +85,8 @@ public class TlsCertificateManager implements EventSubscriber {
      * Ensures the TLS certificate exists and loads it into Jetty.
      */
     public void setupTls() throws Exception {
-        CertificateRenewScheduler.CertificateData data = JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance);
+        CertificateRenewScheduler.CertificateData data =
+                JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance, Clock.systemUTC());
         if (data != null) {
             serverInstance.getCryptoStoreManager().addServerCertificate(data.certificateChain(), data.keyPair(), "main");
         }

@@ -18,8 +18,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,17 +39,38 @@ public class CertificateRenewScheduler {
     private final TimedScheduler scheduler;
     private final ICryptoStoreManager cryptoStoreManager;
     private final EventBus eventBus;
+    private final Clock clock;
     private final Map<String, RenewEntry> renewMap = Collections.synchronizedMap(new HashMap<>());
 
     /**
      * Constructs a new scheduler instance.
      *
      * @param cryptoStoreManager The CryptoStoreManager instance used for key and certificate management.
+     * @param clock              Clock used for time calculations.
      */
-    public CertificateRenewScheduler(ICryptoStoreManager cryptoStoreManager, EventBus eventBus, TimedScheduler scheduler) {
+    public CertificateRenewScheduler(
+            ICryptoStoreManager cryptoStoreManager,
+            EventBus eventBus,
+            TimedScheduler scheduler,
+            Clock clock) {
         this.cryptoStoreManager = cryptoStoreManager;
         this.eventBus = eventBus;
         this.scheduler = scheduler;
+        this.clock = clock;
+    }
+
+    /**
+     * Constructs a new scheduler instance using the system UTC clock.
+     *
+     * @param cryptoStoreManager The CryptoStoreManager instance used for key and certificate management.
+     * @param eventBus           Event bus for publishing renewal events.
+     * @param scheduler          Scheduler used for periodic execution.
+     */
+    public CertificateRenewScheduler(
+            ICryptoStoreManager cryptoStoreManager,
+            EventBus eventBus,
+            TimedScheduler scheduler) {
+        this(cryptoStoreManager, eventBus, scheduler, Clock.systemUTC());
     }
 
     /**
@@ -121,9 +146,9 @@ public class CertificateRenewScheduler {
      * @return True if the certificate should be renewed; otherwise, false.
      */
     private boolean shouldRenew(X509Certificate certificate) {
-        Date now = new Date();
-        Date expiryDate = certificate.getNotAfter();
-        long daysUntilExpiry = (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+        Instant now = Instant.now(clock);
+        Instant expiryInstant = certificate.getNotAfter().toInstant();
+        long daysUntilExpiry = Duration.between(now, expiryInstant).toDays();
         return daysUntilExpiry <= RENEWAL_THRESHOLD_DAYS;
     }
 
@@ -177,8 +202,14 @@ public class CertificateRenewScheduler {
                         renewEntry.triggerAfterRegeneration.run();
                     }
                 } else {
-                    log.info("Certificate for alias {} doesn't need to be renewed -> NotAfter date {} is more than {} days in the future",
-                            alias, certificateFromKeyStore.getNotAfter(), RENEWAL_THRESHOLD_DAYS);
+                    ZonedDateTime notAfter = certificateFromKeyStore.getNotAfter()
+                            .toInstant()
+                            .atZone(clock.getZone());
+                    log.info(
+                            "Certificate for alias {} doesn't need to be renewed -> NotAfter date {} is more than {} days in the future",
+                            alias,
+                            notAfter.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+                            RENEWAL_THRESHOLD_DAYS);
                 }
             } catch (Exception ex) {
                 log.error("Error renewing certificate", ex);

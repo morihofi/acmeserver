@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -99,12 +100,13 @@ class JettyCertificateHelperTest {
         Config app = si.getAppConfig();
         app.getServer().setDnsName("example.com");
 
-        CertificateRenewScheduler.CertificateData data = JettyCertificateHelper.generateAcmeApiClientCertificate(si);
+        CertificateRenewScheduler.CertificateData data =
+                JettyCertificateHelper.generateAcmeApiClientCertificate(si, Clock.systemUTC());
         assertNotNull(data);
 
         csm.addServerCertificate(data.certificateChain(), data.keyPair(), "main");
 
         assertTrue(csm.containsServerCertificate("main"));
-        assertNull(JettyCertificateHelper.generateAcmeApiClientCertificate(si));
+        assertNull(JettyCertificateHelper.generateAcmeApiClientCertificate(si, Clock.systemUTC()));
     }
 }

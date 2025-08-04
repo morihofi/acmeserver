@@ -22,9 +22,10 @@ import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.lang.management.ManagementFactory;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
 
@@ -66,10 +67,12 @@ public class WebServer implements EventSubscriber {
 
         this.server = new Server(threadPool);
 
-        CertificateRenewScheduler scheduler = new CertificateRenewScheduler(
-                serverInstance.getCryptoStoreManager(),
-                serverInstance.getEventBus(),
-                timedScheduler);
+        CertificateRenewScheduler scheduler =
+                new CertificateRenewScheduler(
+                        serverInstance.getCryptoStoreManager(),
+                        serverInstance.getEventBus(),
+                        timedScheduler,
+                        Clock.systemUTC());
         this.tlsManager = new TlsCertificateManager(serverInstance, server, scheduler);
         this.servletRegistrar = new ServletRegistrar(serverInstance);
         serverInstance.getEventBus().register(tlsManager);
