@@ -22,6 +22,8 @@ import org.hibernate.query.Query;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -118,12 +120,15 @@ public class AcmeOrder implements Serializable {
             List<AcmeOrder> result = query.getResultList();
 
             if (!result.isEmpty()) {
+                DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC"));
                 for (AcmeOrder revokedIdentifier : result) {
                     certificates.add(new RevokedCertificate(
                             revokedIdentifier.getCertificateSerialNumber(),
-                            Date.from(revokedIdentifier.getRevokeTimestamp()),
+                            revokedIdentifier.getRevokeTimestamp(),
                             revokedIdentifier.getRevokeStatusCode()
                     ));
+                    log.debug("Loaded revoked certificate {} at {}", revokedIdentifier.getCertificateSerialNumber(),
+                            formatter.format(revokedIdentifier.getRevokeTimestamp()));
                 }
             }
 
@@ -168,8 +173,11 @@ public class AcmeOrder implements Serializable {
                     && result.getRevokeTimestamp() != null) {
                 rc = new RevokedCertificate(
                         result.getCertificateSerialNumber(),
-                        Date.from(result.getRevokeTimestamp()),
+                        result.getRevokeTimestamp(),
                         result.getRevokeStatusCode());
+                DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC"));
+                log.debug("Loaded revoked certificate {} at {}", serialNumber,
+                        formatter.format(result.getRevokeTimestamp()));
             }
 
             transaction.commit();

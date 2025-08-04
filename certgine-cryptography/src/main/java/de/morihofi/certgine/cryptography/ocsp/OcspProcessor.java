@@ -62,8 +62,10 @@ public class OcspProcessor {
 
         RevokedCertificate rc = AcmeOrder.getRevokedCertificate(serialNumber, provisioner.getName(), serverInstance);
         CertificateStatus certStatus;
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC"));
         if (rc != null) {
-            certStatus = new RevokedStatus(rc.revocationDate(), rc.revocationReason());
+            certStatus = new RevokedStatus(Date.from(rc.revocationDate()), rc.revocationReason());
+            log.debug("Certificate {} revoked at {}", serialNumber, formatter.format(rc.revocationDate()));
         } else {
             certStatus = CertificateStatus.GOOD;
         }
@@ -93,7 +95,6 @@ public class OcspProcessor {
                 new X509CertificateHolder[]{new JcaX509CertificateHolder(caCert)},
                 Date.from(producedAt));
 
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC"));
         log.debug("OCSP response produced at {}", formatter.format(producedAt));
 
         return new OCSPRespBuilder().build(OCSPRespBuilder.SUCCESSFUL, basicResp);

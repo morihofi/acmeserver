@@ -37,7 +37,7 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509Certificate;
-import java.util.Date;
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -172,7 +172,7 @@ class OcspProcessorTest {
                 .thenReturn(kp);
         IServerInstance si = new DummyServer(csm);
         BigInteger serial = BigInteger.ONE;
-        RevokedCertificate rc = new RevokedCertificate(serial, new Date(), 0);
+        RevokedCertificate rc = new RevokedCertificate(serial, Instant.now(), 0);
         try (MockedStatic<AcmeOrder> mock = Mockito.mockStatic(AcmeOrder.class)) {
             mock.when(() -> AcmeOrder.getRevokedCertificate(serial, prov.getName(), si)).thenReturn(rc);
             OCSPResp resp = OcspProcessor.processOCSPRequest(serial, prov, si);

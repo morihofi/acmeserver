@@ -21,7 +21,7 @@ import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
-import java.util.Date;
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -53,7 +53,7 @@ class CrlGeneratorTest {
                         .ownKeyPair(kp)
                         .build());
 
-        RevokedCertificate rc = new RevokedCertificate(BigInteger.ONE, new Date(), 0);
+        RevokedCertificate rc = new RevokedCertificate(BigInteger.ONE, Instant.now(), 0);
 
         X509CRL crl = CrlGenerator.generate(
                 CrlGenerator.Request.builder()
