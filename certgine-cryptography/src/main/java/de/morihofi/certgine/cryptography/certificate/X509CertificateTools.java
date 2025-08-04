@@ -27,6 +27,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -92,20 +93,31 @@ public class X509CertificateTools {
     }
 
     /**
-     * Checks the validity of a given X.509 certificate as of the current date and time. This method uses the {@code checkValidity} method
-     * of {@link X509Certificate} to determine whether the certificate is currently valid. The validity check is based on the certificate's
-     * notBefore and notAfter dates.
+     * Checks the validity of a given X.509 certificate as of the provided clock's instant. This method uses the
+     * {@code checkValidity} logic of {@link X509Certificate} to determine whether the certificate is valid at the
+     * specified time.
      *
-     * @param certificate the X.509 certificate to be checked for validity.
-     * @return {@code true} if the certificate is currently valid; {@code false} if it is expired or not yet valid as of the current date.
+     * @param certificate the X.509 certificate to be checked for validity
+     * @param clock       the clock supplying the current instant
+     * @return {@code true} if the certificate is valid relative to the clock; {@code false} otherwise
      */
-    public static boolean isCertificateCurrentlyDateValid(X509Certificate certificate) {
-        Instant now = Instant.now();
+    public static boolean isCertificateCurrentlyDateValid(X509Certificate certificate, Clock clock) {
+        Instant now = Instant.now(clock);
         Instant notBefore = certificate.getNotBefore().toInstant();
         Instant notAfter = certificate.getNotAfter().toInstant();
         Duration validity = Duration.between(notBefore, notAfter);
         Duration elapsed = Duration.between(notBefore, now);
         return !now.isBefore(notBefore) && elapsed.compareTo(validity) <= 0;
+    }
+
+    /**
+     * Checks the validity of a given X.509 certificate as of the current system time.
+     *
+     * @param certificate the X.509 certificate to be checked for validity
+     * @return {@code true} if the certificate is currently valid; {@code false} otherwise
+     */
+    public static boolean isCertificateCurrentlyDateValid(X509Certificate certificate) {
+        return isCertificateCurrentlyDateValid(certificate, Clock.systemUTC());
     }
 
     /**

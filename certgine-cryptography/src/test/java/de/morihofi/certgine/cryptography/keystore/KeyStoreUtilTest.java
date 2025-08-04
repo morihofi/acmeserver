@@ -22,11 +22,15 @@ import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.Security;
 import java.security.cert.X509Certificate;
-import java.util.Date;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class KeyStoreUtilTest {
+
+    private static final Clock clock = Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC);
 
     @BeforeAll
     static void setup() {
@@ -35,9 +39,10 @@ class KeyStoreUtilTest {
 
     private static X509Certificate selfSigned(KeyPair kp) throws Exception {
         X500Name name = new X500Name("CN=test");
-        Date now = new Date();
+        Instant now = clock.instant();
+        Instant later = now.plusSeconds(10);
         JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(
-                name, BigInteger.ONE, now, new Date(now.getTime() + 10000), name, kp.getPublic());
+                name, BigInteger.ONE, java.util.Date.from(now), java.util.Date.from(later), name, kp.getPublic());
         ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(kp.getPrivate());
         X509CertificateHolder holder = builder.build(signer);
         return new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getCertificate(holder);

@@ -32,12 +32,16 @@ import java.security.KeyPair;
 import java.security.MessageDigest;
 import java.security.Security;
 import java.security.cert.X509Certificate;
-import java.util.Date;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TimeStampServletTest {
+    private static final Clock clock = Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC);
     @BeforeAll
     static void addProvider() {
         Security.addProvider(new BouncyCastleProvider());
@@ -45,9 +49,10 @@ class TimeStampServletTest {
 
     private static X509Certificate createCert(KeyPair kp) throws Exception {
         X500Name name = new X500Name("CN=TSA" );
-        Date now = new Date();
+        Instant now = clock.instant();
+        Instant tomorrow = now.plus(Duration.ofDays(1));
         X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
-                name, BigInteger.ONE, now, new Date(now.getTime() + 86400000L),
+                name, BigInteger.ONE, java.util.Date.from(now), java.util.Date.from(tomorrow),
                 name, SubjectPublicKeyInfo.getInstance(kp.getPublic().getEncoded()));
         builder.addExtension(Extension.extendedKeyUsage, true,
                 new ExtendedKeyUsage(KeyPurposeId.id_kp_timeStamping));

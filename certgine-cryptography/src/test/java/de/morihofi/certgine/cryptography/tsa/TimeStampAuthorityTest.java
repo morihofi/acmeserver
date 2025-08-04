@@ -24,7 +24,10 @@ import org.junit.jupiter.api.Test;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.X509Certificate;
-import java.util.Date;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 
@@ -36,6 +39,7 @@ public class TimeStampAuthorityTest {
     private static PrivateKey privateKey;
     private static X509Certificate cert;
     private static List<X509Certificate> certChain;
+    private static final Clock clock = Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC);
 
     private static final Set<ASN1ObjectIdentifier> ALGORITHMS = Set.of(
             TSPAlgorithms.MD5,
@@ -62,15 +66,13 @@ public class TimeStampAuthorityTest {
     }
 
     public static X509Certificate generate(String subjectDN, KeyPair keyPair) throws Exception {
-        long now = System.currentTimeMillis();
-        Date start = new Date(now);
-        Date end = new Date(now + (365L * 24 * 60 * 60 * 1000)); // 1 Jahr Gültigkeit
-
+        Instant now = clock.instant();
+        Instant end = now.plus(Duration.ofDays(365));
         X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(
                 new org.bouncycastle.asn1.x500.X500Name(subjectDN),
-                BigInteger.valueOf(now),
-                start,
-                end,
+                BigInteger.valueOf(now.toEpochMilli()),
+                java.util.Date.from(now),
+                java.util.Date.from(end),
                 new org.bouncycastle.asn1.x500.X500Name(subjectDN),
                 keyPair.getPublic()
         );

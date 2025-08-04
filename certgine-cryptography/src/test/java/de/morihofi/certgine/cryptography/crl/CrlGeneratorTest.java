@@ -21,11 +21,15 @@ import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class CrlGeneratorTest {
+
+    private static final Clock clock = Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC);
 
     @BeforeAll
     static void setup() {
@@ -53,7 +57,7 @@ class CrlGeneratorTest {
                         .ownKeyPair(kp)
                         .build());
 
-        RevokedCertificate rc = new RevokedCertificate(BigInteger.ONE, Instant.now(), 0);
+        RevokedCertificate rc = new RevokedCertificate(BigInteger.ONE, clock.instant(), 0);
 
         X509CRL crl = CrlGenerator.generate(
                 CrlGenerator.Request.builder()

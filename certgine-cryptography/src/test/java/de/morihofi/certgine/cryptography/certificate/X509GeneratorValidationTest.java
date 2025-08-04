@@ -18,11 +18,16 @@ import org.junit.jupiter.api.Test;
 import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509Certificate;
-import java.util.Date;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class X509GeneratorValidationTest {
+
+    private static final Clock clock = Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC);
 
     @BeforeAll
     static void setup() {
@@ -81,8 +86,8 @@ class X509GeneratorValidationTest {
 
         KeyPair serverKey = KeyPairGenerator.generateRSAKeyPair(1024, BouncyCastleProvider.PROVIDER_NAME);
         Identifier id = new Identifier(Identifier.IDENTIFIER_TYPE.DNS, "example.com");
-        Date start = new Date();
-        Date end = new Date(start.getTime() + 86_400_000L);
+        Instant start = clock.instant();
+        Instant end = start.plus(Duration.ofDays(1));
 
         X509Certificate serverCert = X509Generator.generate(X509Generator.Request.builder()
                 .type(X509Generator.Type.SERVER)
@@ -90,8 +95,8 @@ class X509GeneratorValidationTest {
                 .issuerCertificate(rootCert)
                 .serverPublicKeyBytes(serverKey.getPublic().getEncoded())
                 .identifier(id)
-                .startDate(start)
-                .endDate(end)
+                .startDate(java.util.Date.from(start))
+                .endDate(java.util.Date.from(end))
                 .build());
 
         assertThrows(IllegalArgumentException.class, () ->
@@ -101,8 +106,8 @@ class X509GeneratorValidationTest {
                         .issuerCertificate(serverCert)
                         .serverPublicKeyBytes(serverKey.getPublic().getEncoded())
                         .identifier(id)
-                        .startDate(start)
-                        .endDate(end)
+                        .startDate(java.util.Date.from(start))
+                        .endDate(java.util.Date.from(end))
                         .build()));
     }
 }

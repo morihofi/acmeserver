@@ -37,11 +37,15 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class OcspProcessorTest {
+
+    private static final Clock clock = Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC);
 
     @BeforeAll
     static void setup() {
@@ -172,7 +176,7 @@ class OcspProcessorTest {
                 .thenReturn(kp);
         IServerInstance si = new DummyServer(csm);
         BigInteger serial = BigInteger.ONE;
-        RevokedCertificate rc = new RevokedCertificate(serial, Instant.now(), 0);
+        RevokedCertificate rc = new RevokedCertificate(serial, clock.instant(), 0);
         try (MockedStatic<AcmeOrder> mock = Mockito.mockStatic(AcmeOrder.class)) {
             mock.when(() -> AcmeOrder.getRevokedCertificate(serial, prov.getName(), si)).thenReturn(rc);
             OCSPResp resp = OcspProcessor.processOCSPRequest(serial, prov, si);

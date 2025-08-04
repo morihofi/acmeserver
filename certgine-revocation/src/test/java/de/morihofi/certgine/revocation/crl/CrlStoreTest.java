@@ -24,8 +24,10 @@ import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
-import java.time.LocalTime;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -55,14 +57,16 @@ class CrlStoreTest {
                 .certificateConfig(cfg("Test"))
                 .ownKeyPair(kp)
                 .build());
-        RevokedCertificate rc = new RevokedCertificate(BigInteger.ONE, Instant.now(), 0);
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        Clock clock = Clock.fixed(now, ZoneOffset.UTC);
+        RevokedCertificate rc = new RevokedCertificate(BigInteger.ONE, clock.instant(), 0);
         X509CRL crl = CrlGenerator.generate(CrlGenerator.Request.builder()
                 .revokedCertificate(rc)
                 .caCert(caCert)
                 .caPrivateKey(kp.getPrivate())
                 .updateMinutes(5)
                 .build());
-        CrlStore.entryMap.put("p", new CrlStore.CrlEntry(LocalTime.now(), crl));
+        CrlStore.entryMap.put("p", new CrlStore.CrlEntry(LocalTime.now(clock), crl));
 
         CertificateStatus status = CrlStore.getCertificateStatus(BigInteger.ONE, "p");
         assertTrue(status instanceof RevokedStatus);
