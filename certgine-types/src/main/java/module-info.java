@@ -9,6 +9,7 @@ open module certgine.types {
     exports de.morihofi.certgine.types.intf.network;
     exports de.morihofi.certgine.types.runtime;
     exports de.morihofi.certgine.types.intf;
+    exports de.morihofi.certgine.types.json;
     exports de.morihofi.certgine.types.api.acme.dns;
     exports de.morihofi.certgine.types.cryptography.keystore;
     exports de.morihofi.certgine.types.cryptography.revoke;
