@@ -79,6 +79,13 @@
         </pluginManagement>
     </build>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -274,6 +281,14 @@
                 <artifactId>graphql-java</artifactId>
                 <version>24.1</version>
             </dependency>
+
+            <!-- Cab4j -->
+            <dependency>
+                <groupId>com.github.morihofi</groupId>
+                <artifactId>cab4j</artifactId>
+                <version>v0.1.0-beta2</version>
+            </dependency>
+
 
             <!-- Unit Test -->
             <dependency>

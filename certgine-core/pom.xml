@@ -46,6 +46,12 @@
             <artifactId>graphql-java</artifactId>
         </dependency>
 
+        <!-- Cabinet -->
+        <dependency>
+            <groupId>com.github.morihofi</groupId>
+            <artifactId>cab4j</artifactId>
+        </dependency>
+
         <!-- Crypto -->
         <dependency>
             <groupId>org.bouncycastle</groupId>

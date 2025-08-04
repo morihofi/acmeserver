@@ -5,7 +5,8 @@
 
 package de.morihofi.certgine.core.servlet.download;
 
-import de.morihofi.certgine.core.tools.fileformats.archive.cab.CabFile;
+import de.morihofi.cab4j.archive.CabArchive;
+import de.morihofi.cab4j.generator.CabGenerator;
 import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.server.common.intf.Handler;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
@@ -22,7 +23,9 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
@@ -68,10 +71,13 @@ public class DownloadRootCaHandler implements Handler {
             case CAB -> {
                 ctx.header("Content-Type", "application/vnd.ms-cab-compressed");
                 String xml = createXmlWithCertificate(cert);
-                byte[] generatedCab = new CabFile.Builder()
-                        .addFile("_setup.xml", xml.getBytes(StandardCharsets.UTF_8))
-                        .build().getCabFile();
-                ctx.result(generatedCab);
+
+                CabArchive archive = new CabArchive();
+                archive.addFile("_setup.xml", xml.getBytes(StandardCharsets.UTF_8));
+                CabGenerator generator = new CabGenerator(archive);
+                ByteBuffer buf = generator.createCabinet();
+
+                ctx.result(buf.array());
             }
         }
     }
