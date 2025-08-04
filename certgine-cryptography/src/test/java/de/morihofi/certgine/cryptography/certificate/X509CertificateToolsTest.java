@@ -24,6 +24,7 @@ import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -65,5 +66,39 @@ class X509CertificateToolsTest {
     void testDateValid() throws Exception {
         X509Certificate cert = createCert();
         assertTrue(X509CertificateTools.isCertificateCurrentlyDateValid(cert, clock));
+    }
+
+    @Test
+    @DisplayName("isCertificateCurrentlyDateValid false before validity")
+    void testDateInvalidBefore() throws Exception {
+        X509Certificate cert = createCert();
+        Clock beforeClock = Clock.fixed(clock.instant().minusSeconds(1), ZoneOffset.UTC);
+        assertFalse(X509CertificateTools.isCertificateCurrentlyDateValid(cert, beforeClock));
+    }
+
+    @Test
+    @DisplayName("isCertificateCurrentlyDateValid false after validity")
+    void testDateInvalidAfter() throws Exception {
+        X509Certificate cert = createCert();
+        Clock afterClock = Clock.fixed(clock.instant().plusSeconds(11), ZoneOffset.UTC);
+        assertFalse(X509CertificateTools.isCertificateCurrentlyDateValid(cert, afterClock));
+    }
+
+    @Test
+    @DisplayName("isCertificateCurrentlyDateValid true at boundaries")
+    void testDateValidAtBoundaries() throws Exception {
+        X509Certificate cert = createCert();
+        Clock atStart = Clock.fixed(clock.instant(), ZoneOffset.UTC);
+        Clock atEnd = Clock.fixed(clock.instant().plusSeconds(10), ZoneOffset.UTC);
+        assertTrue(X509CertificateTools.isCertificateCurrentlyDateValid(cert, atStart));
+        assertTrue(X509CertificateTools.isCertificateCurrentlyDateValid(cert, atEnd));
+    }
+
+    @Test
+    @DisplayName("isCertificateCurrentlyDateValid independent of clock timezone")
+    void testDateValidDifferentTimeZone() throws Exception {
+        X509Certificate cert = createCert();
+        Clock zoneClock = Clock.fixed(clock.instant().plusSeconds(5), ZoneId.of("America/Los_Angeles"));
+        assertTrue(X509CertificateTools.isCertificateCurrentlyDateValid(cert, zoneClock));
     }
 }

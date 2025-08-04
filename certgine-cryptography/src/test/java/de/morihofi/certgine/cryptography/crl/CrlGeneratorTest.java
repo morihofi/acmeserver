@@ -24,6 +24,9 @@ import java.security.cert.X509Certificate;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -69,5 +72,36 @@ class CrlGeneratorTest {
 
         assertNotNull(crl);
         assertNotNull(crl.getRevokedCertificate(BigInteger.ONE));
+    }
+
+    @Test
+    @DisplayName("generated CRL timestamps use UTC")
+    void testCrlTimestampsUtc() throws Exception {
+        TimeZone original = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("Pacific/Honolulu"));
+        try {
+            KeyPair kp = KeyPairGenerator.generateRSAKeyPair(1024, BouncyCastleProvider.PROVIDER_NAME);
+            X509Certificate caCert = X509Generator.generate(
+                    X509Generator.Request.builder()
+                            .type(X509Generator.Type.ROOT_CA)
+                            .certificateConfig(cfg("Test CA UTC"))
+                            .ownKeyPair(kp)
+                            .build());
+            X509CRL crl = CrlGenerator.generate(
+                    CrlGenerator.Request.builder()
+                            .caCert(caCert)
+                            .caPrivateKey(kp.getPrivate())
+                            .updateMinutes(10)
+                            .build());
+            Instant thisUpdate = crl.getThisUpdate().toInstant();
+            Instant nextUpdate = crl.getNextUpdate().toInstant();
+            assertEquals(Duration.ofMinutes(10), Duration.between(thisUpdate, nextUpdate));
+            String thisStr = DateTimeFormatter.ISO_INSTANT.format(thisUpdate);
+            String nextStr = DateTimeFormatter.ISO_INSTANT.format(nextUpdate);
+            assertTrue(thisStr.endsWith("Z"));
+            assertTrue(nextStr.endsWith("Z"));
+        } finally {
+            TimeZone.setDefault(original);
+        }
     }
 }
