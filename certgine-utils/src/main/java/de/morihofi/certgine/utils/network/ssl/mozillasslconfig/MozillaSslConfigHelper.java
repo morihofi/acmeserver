@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
+import de.morihofi.certgine.types.json.GsonFactory;
 import okhttp3.Request;
 import okhttp3.Response;
 
@@ -39,7 +40,7 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MozillaSslConfigHelper {
 
-    private static final Gson GSON = new Gson();
+    private static final Gson GSON = GsonFactory.createGson();
 
     private static final String RESOURCE_PREFIX = "/mozillaSslConfig/";
     private static final String RESOURCE_SUFFIX = ".json";

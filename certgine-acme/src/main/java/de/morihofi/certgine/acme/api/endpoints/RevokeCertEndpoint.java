@@ -51,8 +51,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
     /**
      * Constructs a new RevokeCertEndpoint instance. This constructor initializes the endpoint with a specific Provisioner instance. It sets
-     * up the necessary components for handling certificate revocation requests, including creating a new Gson instance for JSON
-     * processing.
+     * up the necessary components for handling certificate revocation requests.
      *
      * @param serverInstance The {@link IServerInstance} to use for this endpoint
      * @param clock          Clock used for time calculations.

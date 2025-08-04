@@ -7,6 +7,7 @@ package de.morihofi.certgine.server.common.intf;
 
 import com.google.gson.Gson;
 import de.morihofi.certgine.types.httpserver.HandlerType;
+import de.morihofi.certgine.types.json.GsonFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -20,7 +21,7 @@ import java.util.Map;
  */
 public record HandlerContext(Request request, Response response, Router router) {
 
-    private static final Gson GSON = new Gson();
+    private static final Gson GSON = GsonFactory.createGson();
 
     /**
      * Sets a response header.
@@ -166,9 +167,9 @@ public record HandlerContext(Request request, Response response, Router router) 
     }
 
     public <T> T bodyAsClass(Class<T> targetClazz) throws IOException {
-        Gson gson = new Gson();
-        String requestBody = body(); // Get the request body as a string
-        return gson.fromJson(requestBody, targetClazz); // Deserialize into the specified class
+        Gson gson = GsonFactory.createGson();
+        String requestBody = body();
+        return gson.fromJson(requestBody, targetClazz);
     }
 
     public HandlerType method(){

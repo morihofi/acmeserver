@@ -15,6 +15,7 @@ import de.morihofi.certgine.types.database.entities.acme.AcmeAccount;
 import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.certgine.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.json.GsonFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
@@ -34,7 +35,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
     /**
      * Gson instance for JSON to POJO and POJO to JSON conversion.
      */
-    private final Gson gson = new Gson();
+    private final Gson gson = GsonFactory.createGson();
 
     private final IServerInstance serverInstance;
 

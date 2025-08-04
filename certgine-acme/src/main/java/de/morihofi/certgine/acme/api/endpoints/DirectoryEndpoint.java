@@ -13,6 +13,7 @@ import de.morihofi.certgine.server.common.intf.Handler;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.json.GsonFactory;
 
 import lombok.NonNull;
 
@@ -37,7 +38,7 @@ public class DirectoryEndpoint implements Handler {
         ctx.header("Content-Type", "application/json");
 
         // Create the Gson instance
-        Gson gson = new Gson();
+        Gson gson = GsonFactory.createGson();
 
         // Create the meta object
         JsonObject metaObject = new JsonObject();

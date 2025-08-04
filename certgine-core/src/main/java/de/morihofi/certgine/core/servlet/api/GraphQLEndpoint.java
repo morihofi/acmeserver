@@ -10,6 +10,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import de.morihofi.certgine.server.common.intf.Handler;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
+import de.morihofi.certgine.types.json.GsonFactory;
 import graphql.ExecutionInput;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
@@ -46,7 +47,7 @@ public class GraphQLEndpoint implements Handler {
     /**
      * A Gson instance for serializing GraphQL execution results to JSON.
      */
-    public static final Gson gson = new Gson();
+    public static final Gson gson = GsonFactory.createGson();
 
     /**
      * Handles the incoming HTTP request as a GraphQL query and returns the JSON response.

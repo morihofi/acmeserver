@@ -6,7 +6,7 @@
 package de.morihofi.certgine.core;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import de.morihofi.certgine.types.json.GsonFactory;
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.core.impl.NonceManager;
 import de.morihofi.certgine.core.impl.ServerInstance;
@@ -88,7 +88,7 @@ public class Main {
     /**
      * Gson instance for configuration deserialization.
      */
-    private static final Gson CONFIG_GSON = new GsonBuilder()
+    private static final Gson CONFIG_GSON = GsonFactory.baseBuilder()
             .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())
             .setPrettyPrinting()
             .create();

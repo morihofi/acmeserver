@@ -5,11 +5,11 @@
 
 package de.morihofi.certgine.acme.api.endpoints;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import de.morihofi.certgine.acme.security.SignatureCheck;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.server.common.intf.Router;
+import de.morihofi.certgine.types.json.GsonFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jws.AlgorithmIdentifiers;
@@ -75,6 +75,6 @@ class RevokeCertEndpointTest {
         }
 
         HandlerContext ctx = new HandlerContext(new DummyRequest(), new DummyResponse(), new Router());
-        assertDoesNotThrow(() -> SignatureCheck.checkSignature(ctx, kp.getPublic(), new Gson()));
+        assertDoesNotThrow(() -> SignatureCheck.checkSignature(ctx, kp.getPublic(), GsonFactory.createGson()));
     }
 }
