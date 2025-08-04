@@ -23,7 +23,7 @@ import de.morihofi.certgine.types.exception.exceptions.ACMEUnauthorizedException
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.server.StartupFlag;
 import de.morihofi.certgine.utils.base64.Base64Tools;
-import de.morihofi.certgine.utils.datetime.DateTools;
+import de.morihofi.certgine.utils.datetime.TimeTools;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import lombok.extern.slf4j.Slf4j;
@@ -141,8 +141,8 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
             // We have a certificate
 
             response.setStatus(AcmeStatus.VALID.getRfcName());
-            response.setExpires(DateTools.formatDateForACME(order.getCertificateExpires()));
-            response.setIssued(DateTools.formatDateForACME(order.getCertificateIssued()));
+            response.setExpires(TimeTools.formatInstantForAcme(order.getCertificateExpires().toInstant()));
+            response.setIssued(TimeTools.formatInstantForAcme(order.getCertificateIssued().toInstant()));
         }
 
         ctx.header("Content-Type", "application/json");

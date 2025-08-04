@@ -21,7 +21,7 @@ import de.morihofi.certgine.types.exception.exceptions.ACMEConnectionErrorExcept
 import de.morihofi.certgine.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;
 import de.morihofi.certgine.types.intf.IServerInstance;
-import de.morihofi.certgine.utils.datetime.DateTools;
+import de.morihofi.certgine.utils.datetime.TimeTools;
 import de.morihofi.certgine.types.events.BeforeChallengeEvent;
 import de.morihofi.certgine.types.events.AfterChallengeEvent;
 import de.morihofi.certgine.types.api.acme.challenge.AcmeChallengeType;
@@ -129,7 +129,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         response.setType(challengeType);
         if (identifierChallenge.getStatus() == AcmeStatus.VALID) {
             response.setStatus(AcmeStatus.VALID.getRfcName());
-            response.setValidated(DateTools.formatDateForACME(identifierChallenge.getVerifiedTime()));
+            response.setValidated(TimeTools.formatInstantForAcme(identifierChallenge.getVerifiedTime().toInstant()));
         } else {
             response.setStatus(AcmeStatus.PENDING.getRfcName());
         }

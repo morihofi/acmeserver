@@ -19,14 +19,14 @@ import de.morihofi.certgine.types.database.entities.acme.AcmeOrderIdentifier;
 import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.certgine.types.database.entities.acme.HttpNonces;
 import de.morihofi.certgine.types.intf.IServerInstance;
-import de.morihofi.certgine.utils.datetime.DateTools;
+import de.morihofi.certgine.utils.datetime.TimeTools;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 
 
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -84,7 +84,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         }
 
         AcmeOrderResponse response = new AcmeOrderResponse();
-        response.setExpires(DateTools.formatDateForACME(getOrderExpiration(order)));
+        response.setExpires(TimeTools.formatInstantForAcme(getOrderExpiration(order)));
 
         if (order.getCertificatePem() != null) {
             response.setStatus(AcmeStatus.VALID.getRfcName());
@@ -111,10 +111,10 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
      * Returns the expiration timestamp for the provided order.
      *
      * @param order The ACME order.
-     * @return The expiration {@link Date} of the order.
+     * @return The expiration {@link Instant} of the order.
      */
-    Date getOrderExpiration(@NonNull AcmeOrder order) {
-        return order.getExpires();
+    Instant getOrderExpiration(@NonNull AcmeOrder order) {
+        return order.getExpires().toInstant();
     }
 
     /**

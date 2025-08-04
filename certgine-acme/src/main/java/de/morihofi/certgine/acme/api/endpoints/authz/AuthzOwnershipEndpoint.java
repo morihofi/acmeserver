@@ -25,15 +25,15 @@ import de.morihofi.certgine.types.exception.exceptions.ACMEServerInternalExcepti
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.utils.base64.Base64Tools;
 import de.morihofi.certgine.utils.conversion.HexConverter;
-import de.morihofi.certgine.utils.datetime.DateTools;
+import de.morihofi.certgine.utils.datetime.TimeTools;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import lombok.NonNull;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -161,7 +161,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
         AuthzResponse response = new AuthzResponse();
         response.setStatus(identifier.getChallengeStatus().getRfcName());
-        response.setExpires(DateTools.formatDateForACME(getAuthorizationExpiration(identifier)));
+        response.setExpires(TimeTools.formatInstantForAcme(getAuthorizationExpiration(identifier)));
         response.setIdentifier(idObj);
         response.setChallenges(challengeResponses);
 
@@ -172,10 +172,10 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
      * Returns the expiration timestamp for the provided authorization identifier.
      *
      * @param identifier The ACME order identifier.
-     * @return The expiration {@link Date} of the authorization.
+     * @return The expiration {@link Instant} of the authorization.
      */
-    Date getAuthorizationExpiration(@NonNull AcmeOrderIdentifier identifier) {
-        return identifier.getOrder().getExpires();
+    Instant getAuthorizationExpiration(@NonNull AcmeOrderIdentifier identifier) {
+        return identifier.getOrder().getExpires().toInstant();
     }
 
     /**
@@ -193,7 +193,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         challengeResponse.setToken(identifierChallenge.getAuthorizationToken());
         if (identifierChallenge.getStatus() == AcmeStatus.VALID) {
             challengeResponse.setStatus(AcmeStatus.VALID.getRfcName());
-            challengeResponse.setValidated(DateTools.formatDateForACME(identifierChallenge.getVerifiedTime()));
+            challengeResponse.setValidated(TimeTools.formatInstantForAcme(identifierChallenge.getVerifiedTime().toInstant()));
         } else {
             challengeResponse.setStatus(identifierChallenge.getStatus().getRfcName());
         }

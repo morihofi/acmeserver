@@ -12,7 +12,7 @@ import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.certgine.types.intf.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
-import de.morihofi.certgine.utils.datetime.DateTools;
+import de.morihofi.certgine.utils.datetime.TimeTools;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.Date;
 
 @Slf4j
@@ -64,11 +65,13 @@ public class JettyCertificateHelper {
         X509Certificate intermediateCertificate = rootCertificate;
 
         log.info("Creating Server Certificate");
-        Date startDate = new Date();
-        Date endDate = DateTools.makeDateForOutliveIntermediateCertificate(
-                intermediateCertificate.getNotAfter(),
-                DateTools.addToDate(startDate, 0, 1, 0)
+        Instant startInstant = Instant.now();
+        Instant endInstant = TimeTools.makeInstantForOutliveIntermediateCertificate(
+                intermediateCertificate.getNotAfter().toInstant(),
+                TimeTools.addToInstant(startInstant, 0, 1, 0)
         );
+        Date startDate = Date.from(startInstant);
+        Date endDate = Date.from(endInstant);
 
         X509Certificate acmeAPICertificate = X509Generator.generate(
                 X509Generator.Request.builder()

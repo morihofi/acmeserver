@@ -22,7 +22,7 @@ import de.morihofi.certgine.types.exception.exceptions.ACMEInvalidContactExcepti
 import de.morihofi.certgine.types.exception.exceptions.ACMERejectedIdentifierException;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.utils.conversion.HexConverter;
-import de.morihofi.certgine.utils.datetime.DateTools;
+import de.morihofi.certgine.utils.datetime.TimeTools;
 import de.morihofi.certgine.utils.regex.DomainValidator;
 import de.morihofi.certgine.utils.regex.IpValidator;
 import de.morihofi.certgine.types.events.NewAcmeOrderEvent;
@@ -35,8 +35,8 @@ import org.hibernate.Transaction;
 import java.net.HttpURLConnection;
 import java.security.KeyStoreException;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -166,17 +166,17 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         try (Session session = getServerInstance().getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
 
-            Date startDate = new Date(); // Starts now
-            Date endDate = calculateEndDate(newOrderRequestPayload, provisioner, startDate);
+            Instant startInstant = Instant.now(); // Starts now
+            Instant endInstant = calculateEndInstant(newOrderRequestPayload, provisioner, startInstant);
 
             // Create order
             order = new AcmeOrder();
             order.setOrderId(orderId);
             order.setAccount(account);
-            order.setCreated(Timestamp.from(startDate.toInstant()));
-            order.setExpires(Timestamp.from(endDate.toInstant()));
-            order.setNotBefore(Timestamp.from(startDate.toInstant()));
-            order.setNotAfter(Timestamp.from(endDate.toInstant()));
+            order.setCreated(Timestamp.from(startInstant));
+            order.setExpires(Timestamp.from(endInstant));
+            order.setNotBefore(Timestamp.from(startInstant));
+            order.setNotAfter(Timestamp.from(endInstant));
             order.setCertificateId(certificateId);
             session.persist(order);
 
@@ -207,9 +207,9 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         NewOrderResponse response = new NewOrderResponse();
         response.setStatus(AcmeStatus.PENDING.getRfcName());
-        response.setExpires(DateTools.formatDateForACME(order.getExpires()));
-        response.setNotBefore(DateTools.formatDateForACME(order.getNotBefore()));
-        response.setNotAfter(DateTools.formatDateForACME(order.getNotAfter()));
+        response.setExpires(TimeTools.formatInstantForAcme(order.getExpires().toInstant()));
+        response.setNotBefore(TimeTools.formatInstantForAcme(order.getNotBefore().toInstant()));
+        response.setNotAfter(TimeTools.formatInstantForAcme(order.getNotAfter().toInstant()));
         response.setIdentifiers(respIdentifiers);
         response.setAuthorizations(respAuthorizations);
         response.setFinalize(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId + "/finalize");
@@ -248,30 +248,33 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
     }
 
     /**
-     * Calculates the notAfter property of the certificate. If the {@link NewOrderRequestPayload} provides a notAfter date,
-     * and it does not exceed the notAfter of the intermediate CA certificate, it is returned.
-     * Otherwise, the notAfter policy of the provisioner is returned.
+     * Calculates the {@code notAfter} value for the certificate. If the {@link NewOrderRequestPayload}
+     * provides a {@code notAfter} instant that does not exceed the intermediate CA certificate's
+     * expiration, that value is used. Otherwise, the provisioner's validity policy is applied.
      *
-     * @param newOrderRequestPayload The payload of the new order request.
-     * @param provisioner            The provisioner instance.
-     * @param startDate              The start date of the order.
-     * @return The calculated end date for the certificate.
-     * @throws KeyStoreException if the intermediate CA certificate could not be loaded.
+     * @param newOrderRequestPayload the payload of the new order request
+     * @param provisioner            the provisioner instance
+     * @param start                  the start instant of the order
+     * @return the calculated end instant for the certificate
+     * @throws KeyStoreException if the intermediate CA certificate could not be loaded
      */
-    private Date calculateEndDate(@NonNull NewOrderRequestPayload newOrderRequestPayload, @NonNull AcmeProvisioner provisioner, @NonNull Date startDate) throws KeyStoreException {
-        Date endDateByOrder = newOrderRequestPayload.getNotAfter();
+    private Instant calculateEndInstant(@NonNull NewOrderRequestPayload newOrderRequestPayload,
+                                        @NonNull AcmeProvisioner provisioner,
+                                        @NonNull Instant start) throws KeyStoreException {
+        Instant endByOrder = newOrderRequestPayload.getNotAfter() == null
+                ? null
+                : newOrderRequestPayload.getNotAfter().toInstant();
 
-        Date endDateByCA = DateTools.makeDateForOutliveIntermediateCertificate(
-                getServerInstance().getCryptoStoreManager().getIntermediateCertificate(provisioner.getInternalUuid()).getNotAfter(),
-                DateTools.addToDate(startDate,
+        Instant endByCa = TimeTools.makeInstantForOutliveIntermediateCertificate(
+                getServerInstance().getCryptoStoreManager()
+                        .getIntermediateCertificate(provisioner.getInternalUuid())
+                        .getNotAfter().toInstant(),
+                TimeTools.addToInstant(start,
                         provisioner.getIssuedCertificateExpiration().getYears(),
                         provisioner.getIssuedCertificateExpiration().getMonths(),
-                        provisioner.getIssuedCertificateExpiration().getDays()
-                )
+                        provisioner.getIssuedCertificateExpiration().getDays())
         );
 
-        return endDateByOrder == null || endDateByOrder.after(endDateByCA)
-                ? endDateByCA
-                : endDateByOrder;
+        return endByOrder == null || endByOrder.isAfter(endByCa) ? endByCa : endByOrder;
     }
 }
