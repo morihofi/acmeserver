@@ -7,6 +7,7 @@ package de.morihofi.certgine.core.modules;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -24,8 +25,7 @@ class ModuleLoaderTest {
 
         assertTrue(registry.getModules().containsKey("dummy"));
         assertTrue(registry.getEntityClasses().contains(DummyModule.DummyEntity.class));
-        assertTrue(registry.getHttpHandlerClasses().contains(DummyModule.DummyHandler.class));
-        assertTrue(registry.getServiceInterfaces().contains(DummyModule.DummyService.class));
+        assertTrue(registry.getHttpHandlerClasses().contains(DummyModule.DummyServlet.class));
     }
 }
 

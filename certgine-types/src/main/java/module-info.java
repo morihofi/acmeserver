@@ -35,4 +35,5 @@ open module certgine.types {
     requires org.hibernate.orm.core;
     requires okhttp3;
     requires org.dnsjava;
+    requires jakarta.servlet;
 }

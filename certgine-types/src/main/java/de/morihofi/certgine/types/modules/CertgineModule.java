@@ -5,7 +5,7 @@
 
 package de.morihofi.certgine.types.modules;
 
-import de.morihofi.certgine.types.intf.IServerInstance;
+import jakarta.servlet.http.HttpServlet;
 
 import java.util.Set;
 
@@ -30,14 +30,8 @@ public interface CertgineModule {
      *
      * @return immutable set of HTTP handler classes
      */
-    Set<Class<?>> getHttpHandlerClasses();
+    Set<Class<? extends HttpServlet>> getHttpServlets();
 
-    /**
-     * Service interface classes contributed by this module.
-     *
-     * @return immutable set of service interface classes
-     */
-    Set<Class<?>> getServiceInterfaces();
 
     /**
      * Runs on module gets loaded

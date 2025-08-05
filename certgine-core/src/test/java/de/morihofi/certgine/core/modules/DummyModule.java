@@ -5,8 +5,11 @@
 
 package de.morihofi.certgine.core.modules;
 
+import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.ModuleDescriptor;
+import jakarta.persistence.Entity;
+import jakarta.servlet.http.HttpServlet;
 
 import java.util.Set;
 
@@ -22,22 +25,17 @@ public class DummyModule implements CertgineModule {
     }
 
     @Override
-    public Set<Class<?>> getHttpHandlerClasses() {
-        return Set.of(DummyHandler.class);
+    public Set<Class<? extends HttpServlet>> getHttpServlets() {
+        return Set.of(DummyServlet.class);
     }
 
-    @Override
-    public Set<Class<?>> getServiceInterfaces() {
-        return Set.of(DummyService.class);
-    }
 
     /** Dummy entity class. */
+    @Entity
     public static class DummyEntity {}
 
-    /** Dummy handler class. */
-    public static class DummyHandler {}
-
-    /** Dummy service interface. */
-    public interface DummyService {}
+    /** Dummy servlet class. */
+    @ServletMount(servletMountPoint = "/dummy")
+    public static class DummyServlet extends HttpServlet {}
 }
 
