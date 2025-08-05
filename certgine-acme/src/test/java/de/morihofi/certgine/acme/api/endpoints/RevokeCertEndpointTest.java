@@ -9,8 +9,9 @@ import com.google.gson.JsonObject;
 import de.morihofi.certgine.acme.security.SignatureCheck;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.server.common.intf.Router;
+import de.morihofi.certgine.server.common.intf.testing.MockRequest;
+import de.morihofi.certgine.server.common.intf.testing.MockResponse;
 import de.morihofi.certgine.types.json.GsonFactory;
-import jakarta.servlet.http.HttpServletRequest;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jwk.PublicJsonWebKey;
@@ -52,29 +53,9 @@ class RevokeCertEndpointTest {
         String[] parts = jws.getCompactSerialization().split("\\.");
         String body = String.format("{\"protected\":\"%s\",\"payload\":\"%s\",\"signature\":\"%s\"}", parts[0], parts[1], parts[2]);
 
-        class DummyRequest implements de.morihofi.certgine.server.common.intf.Request {
-            @Override
-            public HttpServletRequest getHttpServletRequest() {
-                return null;
-            }
-
-            @Override public String getPath() { return "/"; }
-            @Override public String getMethod() { return "POST"; }
-            @Override public String getHeader(String name) { return null; }
-            @Override public String getBody() { return body; }
-            @Override public String getIP() { return "127.0.0.1"; }
-            @Override public String getQueryParam(String name) { return null; }
-            @Override public byte[] getBodyBytes() { return body.getBytes(); }
-        }
-        class DummyResponse extends de.morihofi.certgine.server.common.intf.Response {
-            @Override public void setHeader(String name, String value) { }
-            @Override public String getHeader(String name) { return null; }
-            @Override public void setBodyBytes(byte[] data) { }
-            @Override public java.util.Map<String, String> getHeaders() { return java.util.Collections.emptyMap(); }
-            @Override public java.io.OutputStream getOutputStream() { return new java.io.ByteArrayOutputStream(); }
-        }
-
-        HandlerContext ctx = new HandlerContext(new DummyRequest(), new DummyResponse(), new Router());
+        MockRequest req = new MockRequest().path("/").method("POST").body(body);
+        MockResponse resp = new MockResponse();
+        HandlerContext ctx = new HandlerContext(req, resp, new Router());
         assertDoesNotThrow(() -> SignatureCheck.checkSignature(ctx, kp.getPublic(), GsonFactory.createGson()));
     }
 }

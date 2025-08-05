@@ -5,8 +5,9 @@
 
 package de.morihofi.certgine.server.common.intf;
 
+import de.morihofi.certgine.server.common.intf.testing.MockRequest;
+import de.morihofi.certgine.server.common.intf.testing.MockResponse;
 import de.morihofi.certgine.types.httpserver.HandlerType;
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,30 +35,10 @@ class RouterTest {
         handler = new TestHandler();
     }
 
-    private HandlerContext dummyContext(String path){
-        return new HandlerContext(
-                new Request() {
-                    @Override
-                    public HttpServletRequest getHttpServletRequest() {
-                        return null;
-                    }
-                    @Override public String getPath() { return path; }
-                    @Override public String getMethod() { return "GET"; }
-                    @Override public String getHeader(String name) { return null; }
-                    @Override public String getBody() { return ""; }
-                    @Override public String getIP() { return ""; }
-                    @Override public String getQueryParam(String name) { return null; }
-                    @Override public byte[] getBodyBytes(){ return new byte[0]; }
-                },
-                new Response() {
-                    @Override public void setHeader(String name, String value) { }
-                    @Override public String getHeader(String name) { return null; }
-                    @Override public void setBodyBytes(byte[] data) { }
-                    @Override public java.util.Map<String, String> getHeaders() { return java.util.Collections.emptyMap(); }
-                    @Override public java.io.OutputStream getOutputStream() { return java.io.OutputStream.nullOutputStream(); }
-                },
-                router
-        );
+    private HandlerContext dummyContext(String path) {
+        MockRequest req = new MockRequest().path(path);
+        MockResponse resp = new MockResponse();
+        return new HandlerContext(req, resp, router);
     }
 
     @Test

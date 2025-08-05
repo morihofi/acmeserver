@@ -6,6 +6,8 @@
 package de.morihofi.certgine.revocation.endpoints;
 
 import de.morihofi.certgine.server.common.intf.*;
+import de.morihofi.certgine.server.common.intf.testing.MockRequest;
+import de.morihofi.certgine.server.common.intf.testing.MockResponse;
 import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.certgine.cryptography.ocsp.OcspProcessor;
 import de.morihofi.certgine.types.httpserver.HandlerType;
@@ -23,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URLEncoder;
@@ -31,38 +32,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class OcspEndpointTest {
-
-    static class StubRequest implements Request {
-        String path;
-        String method = "GET";
-        Map<String,String> query = new HashMap<>();
-        Map<String,String> headers = new HashMap<>();
-        byte[] body = new byte[0];
-        @Override public jakarta.servlet.http.HttpServletRequest getHttpServletRequest(){return null;}
-        @Override public String getPath(){return path;}
-        @Override public String getMethod(){return method;}
-        @Override public String getHeader(String name){return headers.get(name);} 
-        @Override public String getBody(){return new String(body, StandardCharsets.UTF_8);} 
-        @Override public String getIP(){return "127.0.0.1";} 
-        @Override public String getQueryParam(String name){return query.get(name);} 
-        @Override public byte[] getBodyBytes(){return body;}
-    }
-
-    static class StubResponse extends Response {
-        Map<String,String> headers = new HashMap<>();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        @Override public void setHeader(String name, String value){headers.put(name,value);} 
-        @Override public String getHeader(String name){return headers.get(name);} 
-        @Override public void setBodyBytes(byte[] data){try{out.write(data);}catch(IOException ignore){}} 
-        @Override public Map<String,String> getHeaders(){return headers;} 
-        @Override public java.io.OutputStream getOutputStream(){return out;}
-    }
 
     @BeforeAll
     static void setup(){
@@ -81,8 +54,8 @@ class OcspEndpointTest {
         Router router = new Router();
         OcspEndpointGet handler = new OcspEndpointGet(Mockito.mock(IServerInstance.class));
         router.addHandler(new Endpoint(HandlerType.GET, "/revocation/{provisioner}/ocsp/{ocspRequest}", handler));
-        StubRequest req = new StubRequest();
-        StubResponse resp = new StubResponse();
+        MockRequest req = new MockRequest();
+        MockResponse resp = new MockResponse();
         KeyPair kp = de.morihofi.certgine.cryptography.keys.KeyPairGenerator.generateRSAKeyPair(512, BouncyCastleProvider.PROVIDER_NAME);
         X509Certificate cert = de.morihofi.certgine.cryptography.certificate.X509Generator.generate(
                 de.morihofi.certgine.cryptography.certificate.X509Generator.Request.builder()
@@ -98,7 +71,7 @@ class OcspEndpointTest {
                         .build());
         OCSPReq ocspReq = createReq(BigInteger.ONE, cert);
         String encoded = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(ocspReq.getEncoded());
-        req.path = "/revocation/p/ocsp/" + URLEncoder.encode(encoded, StandardCharsets.UTF_8);
+        req.path("/revocation/p/ocsp/" + URLEncoder.encode(encoded, StandardCharsets.UTF_8));
         HandlerContext ctx = new HandlerContext(req, resp, router);
         AcmeProvisioner prov = new AcmeProvisioner(); prov.setName("p");
         try (MockedStatic<AcmeProvisioner> mockProv = Mockito.mockStatic(AcmeProvisioner.class);
@@ -109,7 +82,7 @@ class OcspEndpointTest {
             handler.handle(ctx);
             mockProc.verify(() -> OcspProcessor.processOCSPRequest(BigInteger.ONE, prov, handler.serverInstance));
             assertEquals("application/ocsp-response", resp.getHeader("Content-Type"));
-            assertTrue(resp.out.size() > 0);
+            assertTrue(resp.getBodyAsBytes().length > 0);
         }
     }
 
@@ -119,9 +92,8 @@ class OcspEndpointTest {
         Router router = new Router();
         OcspEndpointPost handler = new OcspEndpointPost(Mockito.mock(IServerInstance.class));
         router.addHandler(new Endpoint(HandlerType.POST, "/revocation/{provisioner}/ocsp", handler));
-        StubRequest req = new StubRequest();
-        StubResponse resp = new StubResponse();
-        req.method = "POST";
+        MockRequest req = new MockRequest().method("POST");
+        MockResponse resp = new MockResponse();
         KeyPair kp = de.morihofi.certgine.cryptography.keys.KeyPairGenerator.generateRSAKeyPair(512, BouncyCastleProvider.PROVIDER_NAME);
         X509Certificate cert = de.morihofi.certgine.cryptography.certificate.X509Generator.generate(
                 de.morihofi.certgine.cryptography.certificate.X509Generator.Request.builder()
@@ -136,8 +108,8 @@ class OcspEndpointTest {
                         .ownKeyPair(kp)
                         .build());
         OCSPReq ocspReq = createReq(BigInteger.ONE, cert);
-        req.body = ocspReq.getEncoded();
-        req.path = "/revocation/p/ocsp";
+        req.bodyBytes(ocspReq.getEncoded());
+        req.path("/revocation/p/ocsp");
         HandlerContext ctx = new HandlerContext(req, resp, router);
         AcmeProvisioner prov = new AcmeProvisioner(); prov.setName("p");
         try (MockedStatic<AcmeProvisioner> mockProv = Mockito.mockStatic(AcmeProvisioner.class);
@@ -148,7 +120,7 @@ class OcspEndpointTest {
             handler.handle(ctx);
             mockProc.verify(() -> OcspProcessor.processOCSPRequest(BigInteger.ONE, prov, handler.serverInstance));
             assertEquals("application/ocsp-response", resp.getHeader("Content-Type"));
-            assertTrue(resp.out.size() > 0);
+            assertTrue(resp.getBodyAsBytes().length > 0);
         }
     }
 
@@ -168,9 +140,8 @@ class OcspEndpointTest {
             }
         };
         OcspEndpointGet handler = new OcspEndpointGet(Mockito.mock(IServerInstance.class));
-        StubRequest req = new StubRequest();
-        req.path = "/revocation/p/ocsp/";
-        StubResponse resp = new StubResponse();
+        MockRequest req = new MockRequest().path("/revocation/p/ocsp/");
+        MockResponse resp = new MockResponse();
         HandlerContext ctx = new HandlerContext(req, resp, router);
         assertThrows(IllegalArgumentException.class, () -> handler.handle(ctx));
     }
@@ -181,9 +152,8 @@ class OcspEndpointTest {
         Router router = new Router();
         OcspEndpointGet handler = new OcspEndpointGet(Mockito.mock(IServerInstance.class));
         router.addHandler(new Endpoint(HandlerType.GET, "/revocation/{provisioner}/ocsp/{ocspRequest}", handler));
-        StubRequest req = new StubRequest();
-        StubResponse resp = new StubResponse();
-        req.path = "/revocation/p/ocsp/" + URLEncoder.encode("???", StandardCharsets.UTF_8);
+        MockRequest req = new MockRequest().path("/revocation/p/ocsp/" + URLEncoder.encode("???", StandardCharsets.UTF_8));
+        MockResponse resp = new MockResponse();
         HandlerContext ctx = new HandlerContext(req, resp, router);
         assertThrows(IllegalArgumentException.class, () -> handler.handle(ctx));
     }
@@ -194,8 +164,8 @@ class OcspEndpointTest {
         Router router = new Router();
         OcspEndpointGet handler = new OcspEndpointGet(Mockito.mock(IServerInstance.class));
         router.addHandler(new Endpoint(HandlerType.GET, "/revocation/{provisioner}/ocsp/{ocspRequest}", handler));
-        StubRequest req = new StubRequest();
-        StubResponse resp = new StubResponse();
+        MockRequest req = new MockRequest();
+        MockResponse resp = new MockResponse();
         KeyPair kp = de.morihofi.certgine.cryptography.keys.KeyPairGenerator.generateRSAKeyPair(512, BouncyCastleProvider.PROVIDER_NAME);
         X509Certificate cert = de.morihofi.certgine.cryptography.certificate.X509Generator.generate(
                 de.morihofi.certgine.cryptography.certificate.X509Generator.Request.builder()
@@ -211,7 +181,7 @@ class OcspEndpointTest {
                         .build());
         OCSPReq ocspReq = createReq(BigInteger.ONE, cert);
         String encoded = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(ocspReq.getEncoded());
-        req.path = "/revocation/p/ocsp/" + URLEncoder.encode(encoded, StandardCharsets.UTF_8);
+        req.path("/revocation/p/ocsp/" + URLEncoder.encode(encoded, StandardCharsets.UTF_8));
         HandlerContext ctx = new HandlerContext(req, resp, router);
         try (MockedStatic<AcmeProvisioner> mockProv = Mockito.mockStatic(AcmeProvisioner.class)) {
             mockProv.when(() -> AcmeProvisioner.getForName(handler.serverInstance, "p")).thenReturn(null);
