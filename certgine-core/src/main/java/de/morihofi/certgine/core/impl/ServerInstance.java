@@ -6,6 +6,7 @@
 package de.morihofi.certgine.core.impl;
 
 import de.morihofi.certgine.core.database.HibernateUtil;
+import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.intf.INonceManager;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
@@ -96,6 +97,9 @@ public class ServerInstance implements IServerInstance {
 
     @NonNull
     private final Set<StartupFlag> startupFlags;
+
+    @NonNull
+    private final ModuleRegistry moduleRegistry;
 
     /**
      * Retrieves the server URL constructed from the application's configuration. This method combines the DNS name and HTTPS port specified

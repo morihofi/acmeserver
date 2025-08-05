@@ -17,10 +17,13 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import jakarta.persistence.Entity;
+import org.reflections.Reflections;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Security;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,7 +44,9 @@ class CaInitHelperTest {
         cfg.setDatabase(db);
 
         EventBus bus = new EventBus();
-        HibernateUtil hu = new HibernateUtil(cfg, true, bus);
+        Set<Class<?>> entities = new Reflections("de.morihofi.certgine.types.database")
+                .getTypesAnnotatedWith(Entity.class);
+        HibernateUtil hu = new HibernateUtil(cfg, true, bus, entities);
 
         Path ks = Files.createTempDirectory("ks").resolve("store.p12");
         CryptoStoreManager mgr = new CryptoStoreManager(new PKCS12KeyStoreConfig(ks, "pw".toCharArray()));
@@ -64,7 +69,9 @@ class CaInitHelperTest {
         cfg.setDatabase(db);
 
         EventBus bus = new EventBus();
-        HibernateUtil hu = new HibernateUtil(cfg, true, bus);
+        Set<Class<?>> entities = new Reflections("de.morihofi.certgine.types.database")
+                .getTypesAnnotatedWith(Entity.class);
+        HibernateUtil hu = new HibernateUtil(cfg, true, bus, entities);
 
         Path ks = Files.createTempDirectory("ks").resolve("store2.p12");
         CryptoStoreManager mgr = new CryptoStoreManager(new PKCS12KeyStoreConfig(ks, "pw".toCharArray()));

@@ -7,7 +7,6 @@ package de.morihofi.certgine.core.database;
 
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
-import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +14,10 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
-import org.reflections.Reflections;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.events.ServerShutdownEvent;
+
+import java.util.Collection;
 
 /**
  * Utility class for Hibernate configuration and session management.
@@ -31,11 +31,14 @@ public class HibernateUtil {
     private final Config appConfig;
     private final boolean debug;
     private final EventBus eventBus;
+    private final Collection<Class<?>> entityClasses;
 
-    public HibernateUtil(@NonNull Config appConfig, boolean debug, EventBus eventBus) {
+    public HibernateUtil(@NonNull Config appConfig, boolean debug, EventBus eventBus,
+            @NonNull Collection<Class<?>> entityClasses) {
         this.appConfig = appConfig;
         this.debug = debug;
         this.eventBus = eventBus;
+        this.entityClasses = entityClasses;
         initDatabase();
     }
 
@@ -50,9 +53,7 @@ public class HibernateUtil {
             try {
                 Configuration configuration = getConfigurationFor(databaseConfig);
 
-                // Scan Entity classes
-                Reflections reflections = new Reflections("de.morihofi.certgine.types.database");
-                for (Class<?> clazz : reflections.getTypesAnnotatedWith(Entity.class)) {
+                for (Class<?> clazz : entityClasses) {
                     configuration.addAnnotatedClass(clazz);
                 }
 

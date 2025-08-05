@@ -20,10 +20,12 @@ import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.server.StartupFlag;
+import jakarta.persistence.Entity;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.reflections.Reflections;
 
 import java.util.Collections;
 import java.util.Set;
@@ -71,7 +73,9 @@ class RootCaGetForUuidTest {
         cfg.setDatabase(db);
 
         EventBus bus = new EventBus();
-        HibernateUtil hu = new HibernateUtil(cfg, true, bus);
+        Set<Class<?>> entities = new Reflections("de.morihofi.certgine.types.database")
+                .getTypesAnnotatedWith(Entity.class);
+        HibernateUtil hu = new HibernateUtil(cfg, true, bus, entities);
 
         RootCa ca = new RootCa();
         ca.setInternalUuid("abc");

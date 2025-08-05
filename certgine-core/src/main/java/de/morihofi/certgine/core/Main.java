@@ -10,6 +10,8 @@ import de.morihofi.certgine.types.json.GsonFactory;
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.core.impl.NonceManager;
 import de.morihofi.certgine.core.impl.ServerInstance;
+import de.morihofi.certgine.core.modules.ModuleLoader;
+import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.core.web.JettySslHelper;
 import de.morihofi.certgine.core.web.WebServer;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
@@ -220,8 +222,12 @@ public class Main {
             default -> throw new IllegalArgumentException("Unsupported keystore");
         };
 
+        log.info("Loading modules ...");
+        ModuleRegistry moduleRegistry = new ModuleLoader().loadModules();
+
         log.info("Initializing database ...");
-        HibernateUtil hibernateUtil = new HibernateUtil(config, debug, eventBus);
+        HibernateUtil hibernateUtil = new HibernateUtil(config, debug, eventBus,
+                moduleRegistry.getEntityClasses());
         hibernateUtil.initDatabase();
 
         log.info("Initializing certificate authorities ...");
@@ -237,6 +243,7 @@ public class Main {
                 .cryptoStoreManager(cryptoStoreManager)
                 .networkClient(new NetworkClient(config.getNetwork()))
                 .hibernateUtil(hibernateUtil)
+                .moduleRegistry(moduleRegistry)
                 .rootCa(root)
                 .tsaAuthority(tsa)
                 .buildMetadata(BuildMetadataImpl.getInstance())

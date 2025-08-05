@@ -6,9 +6,13 @@ import de.morihofi.certgine.types.config.DatabaseConfig;
 import de.morihofi.certgine.types.database.entities.acme.HttpNonces;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadNonceException;
+import jakarta.persistence.Entity;
 import org.hibernate.Session;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.reflections.Reflections;
+
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,7 +25,9 @@ class NonceManagerTest {
         db.setUser("sa");
         db.setPassword("");
         cfg.setDatabase(db);
-        return new HibernateUtil(cfg, true, new EventBus());
+        Set<Class<?>> entities = new Reflections("de.morihofi.certgine.types.database")
+                .getTypesAnnotatedWith(Entity.class);
+        return new HibernateUtil(cfg, true, new EventBus(), entities);
     }
 
     @Test
