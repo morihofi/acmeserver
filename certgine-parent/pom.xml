@@ -286,7 +286,7 @@
             <dependency>
                 <groupId>com.github.morihofi</groupId>
                 <artifactId>cab4j</artifactId>
-                <version>v0.1.0-beta2</version>
+                <version>v0.1.1-beta</version>
             </dependency>
 
 
