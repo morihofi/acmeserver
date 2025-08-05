@@ -1,16 +1,43 @@
+/*
+ * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
+ * SPDX-License-Identifier: MIT
+ */
+
 package de.morihofi.certgine.types.json;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.google.gson.Gson;
-import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
-import de.morihofi.certgine.types.database.entities.acme.AcmeOrder;
-import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.TimeZone;
 
-import static org.junit.jupiter.api.Assertions.*;
+import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
+import de.morihofi.certgine.types.database.entities.acme.AcmeOrder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link GsonFactory} and its timezone aware instant adapter.
+ */
 class GsonFactoryTest {
+
+    private TimeZone originalTz;
+
+    @BeforeEach
+    void setUp() {
+        originalTz = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("Pacific/Honolulu"));
+    }
+
+    @AfterEach
+    void tearDown() {
+        TimeZone.setDefault(originalTz);
+    }
 
     @Test
     void testInstantSerialization() {
@@ -24,6 +51,23 @@ class GsonFactoryTest {
         Gson gson = GsonFactory.createGson();
         Instant instant = gson.fromJson("\"2021-03-15T10:15:30Z\"", Instant.class);
         assertEquals(Instant.parse("2021-03-15T10:15:30Z"), instant);
+    }
+
+
+    @Test
+    void serializeInstantProducesUtcString() {
+        Gson gson = GsonFactory.createGson();
+        Instant instant = Instant.parse("2023-01-01T00:00:00Z");
+        String json = gson.toJson(instant);
+        assertEquals("\"2023-01-01T00:00:00Z\"", json);
+        assertTrue(json.contains("Z"));
+    }
+
+    @Test
+    void deserializeInstantWithOffsetParsesToUtc() {
+        Gson gson = GsonFactory.createGson();
+        Instant parsed = gson.fromJson("\"2024-01-01T02:00:00+02:00\"", Instant.class);
+        assertEquals(Instant.parse("2024-01-01T00:00:00Z"), parsed);
     }
 
     @Test
