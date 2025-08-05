@@ -5,7 +5,7 @@
 
 package de.morihofi.certgine.acme.challenges;
 
-import de.morihofi.certgine.types.database.entities.acme.AcmeAccount;
+import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.cryptography.acme.AcmeTokenCryptography;
 import de.morihofi.certgine.types.intf.IServerInstance;

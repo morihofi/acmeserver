@@ -44,6 +44,11 @@
         </dependency>
         <dependency>
             <groupId>de.morihofi.certgine</groupId>
+            <artifactId>certgine-acme</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>de.morihofi.certgine</groupId>
             <artifactId>certgine-cryptography</artifactId>
             <version>${project.version}</version>
         </dependency>

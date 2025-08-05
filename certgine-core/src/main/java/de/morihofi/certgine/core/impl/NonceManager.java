@@ -8,7 +8,7 @@ package de.morihofi.certgine.core.impl;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.morihofi.certgine.core.database.HibernateUtil;
-import de.morihofi.certgine.types.database.entities.acme.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.HttpNonces;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadNonceException;
 import de.morihofi.certgine.types.intf.INonceManager;

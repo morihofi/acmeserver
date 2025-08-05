@@ -8,7 +8,7 @@ package de.morihofi.certgine.revocation.endpoints;
 import de.morihofi.certgine.server.common.intf.*;
 import de.morihofi.certgine.server.common.intf.testing.MockRequest;
 import de.morihofi.certgine.server.common.intf.testing.MockResponse;
-import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.cryptography.ocsp.OcspProcessor;
 import de.morihofi.certgine.types.httpserver.HandlerType;
 import de.morihofi.certgine.types.intf.IServerInstance;
@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;

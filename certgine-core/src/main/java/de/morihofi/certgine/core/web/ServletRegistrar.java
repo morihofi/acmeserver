@@ -1,5 +1,7 @@
 package de.morihofi.certgine.core.web;
 
+import de.morihofi.certgine.acme.servlets.AcmeHttpServlet;
+import de.morihofi.certgine.acme.servlets.GetHttpsForFreeServlet;
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import jakarta.servlet.http.HttpServlet;
@@ -33,8 +35,8 @@ public class ServletRegistrar {
      * Registers all bundled servlets to the given context.
      */
     public void addBundledServlets(ServletContextHandler context) throws Exception {
-        addServlet(context, de.morihofi.certgine.acme.AcmeHttpServlet.class);
-        addServlet(context, de.morihofi.certgine.acme.GetHttpsForFreeServlet.class);
+        addServlet(context, AcmeHttpServlet.class);
+        addServlet(context, GetHttpsForFreeServlet.class);
         addServlet(context, de.morihofi.certgine.ui.frontend.legacy.LegacyWebUiServlet.class);
         addServlet(context, de.morihofi.certgine.ui.frontend.modern.WebUiServlet.class);
         addServlet(context, de.morihofi.certgine.core.servlet.download.RootCaDownloadServlet.class);

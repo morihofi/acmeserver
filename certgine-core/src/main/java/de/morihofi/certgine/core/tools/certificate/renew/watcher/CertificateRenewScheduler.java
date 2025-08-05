@@ -6,12 +6,12 @@
 package de.morihofi.certgine.core.tools.certificate.renew.watcher;
 
 
-import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.intf.ICryptoStoreManager;
 import de.morihofi.certgine.utils.lambda.TriFunction;
 import de.morihofi.certgine.types.events.EventBus;
-import de.morihofi.certgine.types.events.ProvisionerCertificateRenewedEvent;
+import de.morihofi.certgine.acme.types.events.ProvisionerCertificateRenewedEvent;
 import de.morihofi.certgine.utils.scheduler.TimedScheduler;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;

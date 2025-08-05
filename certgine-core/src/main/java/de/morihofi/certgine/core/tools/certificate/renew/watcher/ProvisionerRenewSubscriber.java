@@ -6,11 +6,11 @@
 package de.morihofi.certgine.core.tools.certificate.renew.watcher;
 
 import de.morihofi.certgine.core.tools.certificate.renew.IntermediateCaRenew;
-import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.events.EventSubscriber;
-import de.morihofi.certgine.types.events.ProvisionerCreatedEvent;
-import de.morihofi.certgine.types.events.ProvisionerDeletedEvent;
+import de.morihofi.certgine.acme.types.events.ProvisionerCreatedEvent;
+import de.morihofi.certgine.acme.types.events.ProvisionerDeletedEvent;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

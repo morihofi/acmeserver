@@ -8,7 +8,7 @@ package de.morihofi.certgine.revocation.endpoints;
 
 import de.morihofi.certgine.server.common.intf.Handler;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.cryptography.ocsp.OcspProcessor;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;

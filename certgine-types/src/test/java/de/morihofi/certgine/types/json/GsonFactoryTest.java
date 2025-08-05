@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.util.TimeZone;
 
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
-import de.morihofi.certgine.types.database.entities.acme.AcmeOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,18 +86,4 @@ class GsonFactoryTest {
         assertEquals(Instant.parse("2021-03-15T10:15:30Z"), cert.revocationDate());
     }
 
-    @Test
-    void testAcmeOrderSerializationAndDeserialization() {
-        Gson gson = GsonFactory.createGson();
-        AcmeOrder order = new AcmeOrder();
-        order.setCreated(Instant.parse("2021-03-15T10:15:30Z"));
-        order.setNotAfter(Instant.parse("2021-03-16T10:15:30Z"));
-        String json = gson.toJson(order);
-        assertTrue(json.contains("\"created\":\"2021-03-15T10:15:30Z\""));
-        assertTrue(json.contains("\"notAfter\":\"2021-03-16T10:15:30Z\""));
-
-        AcmeOrder deserialized = gson.fromJson(json, AcmeOrder.class);
-        assertEquals(Instant.parse("2021-03-15T10:15:30Z"), deserialized.getCreated());
-        assertEquals(Instant.parse("2021-03-16T10:15:30Z"), deserialized.getNotAfter());
-    }
 }

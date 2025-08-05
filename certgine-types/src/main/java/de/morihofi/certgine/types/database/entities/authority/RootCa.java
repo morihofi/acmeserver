@@ -5,7 +5,6 @@
 
 package de.morihofi.certgine.types.database.entities.authority;
 
-import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -28,8 +27,6 @@ public class RootCa implements Serializable {
     @Embedded
     private CertificateConfig certificateConfig;
 
-    @OneToMany(mappedBy = "rootCa", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AcmeProvisioner> provisioners;
 
     private String internalUuid;
 

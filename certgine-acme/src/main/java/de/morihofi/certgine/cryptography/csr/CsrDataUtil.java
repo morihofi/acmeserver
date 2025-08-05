@@ -1,0 +1,122 @@
+/*
+ * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
+ * SPDX-License-Identifier: MIT
+ */
+
+package de.morihofi.certgine.cryptography.csr;
+
+import de.morihofi.certgine.types.api.acme.dns.Identifier;
+import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier;
+import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.types.exception.exceptions.ACMEBadCsrException;
+import de.morihofi.certgine.types.exception.exceptions.ACMEServerInternalException;
+import de.morihofi.certgine.utils.base64.Base64Tools;
+import lombok.NonNull;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class CsrDataUtil {
+
+    /**
+     * Extracts domain names from a Certificate Signing Request (CSR) in PEM format.
+     *
+     * @param csr The Certificate Signing Request in PEM format.
+     * @return A list of domain names (Subject Alternative Names) extracted from the CSR. Including DNS and IP Adresses
+     * @throws IOException If an error occurs while processing the CSR.
+     */
+    @NonNull
+    public static Set<@NonNull Identifier> getDomainsAndIPsFromCSR(@NonNull String csr) throws IOException {
+        byte[] csrBytes = Base64Tools.decodeBase64URLAsBytes(csr);
+        PKCS10CertificationRequest certRequest = new PKCS10CertificationRequest(csrBytes);
+
+        Set<Identifier> domainAndIpList = new HashSet<>();
+
+        // Extract the subject DN to get the Common Name (CN)
+        X500Name subject = certRequest.getSubject();
+        RDN[] cnRDNs = subject.getRDNs(BCStyle.CN);  // Assumes there's only one CN RDN
+        if(cnRDNs.length != 0){
+            RDN cnRDN = cnRDNs[0];
+            String commonName = cnRDN.getFirst().getValue().toString();
+            domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, commonName));
+        }
+
+        // Extract the SAN extension
+        Extension sanExtension = certRequest.getRequestedExtensions().getExtension(Extension.subjectAlternativeName);
+        if (sanExtension != null) {
+            GeneralNames san = GeneralNames.getInstance(sanExtension.getParsedValue());
+            GeneralName[] names = san.getNames();
+
+            // Loop through all names in the SAN
+            for (GeneralName name : names) {
+                if (name.getTagNo() == GeneralName.dNSName) {
+                    String dnsName = name.getName().toString();
+                    domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, dnsName));
+                } else if (name.getTagNo() == GeneralName.iPAddress) {
+                    // Convert the octet sequence into a human-readable IP address
+                    byte[] ip = ASN1OctetString.getInstance(name.getName()).getOctets();
+                    String ipAddress = convertToIP(ip);
+                    domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.IP, ipAddress));
+                }
+            }
+        }
+
+        return domainAndIpList;
+    }
+
+    /**
+     * Converts a byte array into a human-readable IP address.
+     *
+     * @param ip The IP address as a byte array.
+     * @return The IP address as a string.
+     */
+    @NonNull
+    private static String convertToIP(byte[] ip) throws UnknownHostException {
+        InetAddress ipAddress = InetAddress.getByAddress(ip);
+        return ipAddress.getHostAddress();
+    }
+
+    @NonNull
+    public static Set<@NonNull Identifier> getCsrIdentifiersAndVerifyWithIdentifiers(
+            String csr, List<AcmeOrderIdentifier> identifiers) throws IOException {
+        // Extract CSR Domain Names
+        Set<Identifier> csrDomainNames = getDomainsAndIPsFromCSR(csr);
+        if (csrDomainNames.isEmpty()) {
+            throw new ACMEBadCsrException("CSR does not contain any identifiers");
+        }
+
+        // Verify all ACME Identifiers are validated
+        boolean allIdentifiersValid = identifiers.stream()
+                .allMatch(AcmeOrderIdentifier -> AcmeOrderIdentifier.getChallengeStatus() == AcmeStatus.VALID);
+        if (!allIdentifiersValid) {
+            throw new ACMEServerInternalException("Not all ACME identifiers were validated");
+        }
+
+        // Verify CSR domains match ACME identifiers
+        List<String> identifierValues = identifiers.stream()
+                .map(AcmeOrderIdentifier::getDataValue)
+                .toList();
+
+        boolean allDomainsMatch = csrDomainNames.stream()
+                .map(Identifier::getValue)
+                .allMatch(identifierValues::contains);
+
+        if (!allDomainsMatch) {
+            throw new ACMEBadCsrException("One or more CSR domains do not match the ACME identifiers");
+        }
+
+        return csrDomainNames;
+    }
+}

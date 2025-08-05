@@ -11,7 +11,7 @@ import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.types.events.EventBus;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;

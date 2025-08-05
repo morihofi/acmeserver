@@ -5,7 +5,7 @@
 
 package de.morihofi.certgine.core.tools.certificate.renew;
 
-import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.certgine.types.intf.IServerInstance;

@@ -10,7 +10,6 @@ import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.events.EventSubscriber;
 import de.morihofi.certgine.types.events.ServerShutdownEvent;
 import de.morihofi.certgine.types.events.ServerStartedEvent;
-import de.morihofi.certgine.types.events.AcmeAccountCreatedEvent;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -34,6 +33,8 @@ class EventBusTest {
             last = event;
         }
     }
+    static class UnregisteredEvent extends AbstractEvent {}
+
 
     @Test
     void testRegisterAndPublish() {
@@ -52,7 +53,7 @@ class EventBusTest {
         assertEquals(shut, sub.last);
 
         // Event not handled should be ignored
-        bus.publish(new AcmeAccountCreatedEvent(null));
+        bus.publish(new UnregisteredEvent());
         assertEquals(2, sub.count);
 
         bus.unregister(sub);

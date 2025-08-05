@@ -17,10 +17,8 @@ open module certgine.cryptography {
     requires com.github.spotbugs.annotations;
     exports de.morihofi.certgine.cryptography.acme;
     exports de.morihofi.certgine.cryptography.certificate;
-    exports de.morihofi.certgine.cryptography.csr;
     exports de.morihofi.certgine.cryptography.keys;
     exports de.morihofi.certgine.cryptography.keystore;
-    exports de.morihofi.certgine.cryptography.ocsp;
     exports de.morihofi.certgine.cryptography.pem;
     exports de.morihofi.certgine.cryptography.randomness;
     exports de.morihofi.certgine.cryptography.crl;

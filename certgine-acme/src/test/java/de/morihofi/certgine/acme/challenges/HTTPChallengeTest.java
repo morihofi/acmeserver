@@ -12,7 +12,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import de.morihofi.certgine.cryptography.pem.PemUtil;
-import de.morihofi.certgine.types.database.entities.acme.AcmeAccount;
+import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.INonceManager;

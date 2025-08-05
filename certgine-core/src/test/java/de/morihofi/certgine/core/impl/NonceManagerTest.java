@@ -3,7 +3,7 @@ package de.morihofi.certgine.core.impl;
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
-import de.morihofi.certgine.types.database.entities.acme.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.HttpNonces;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadNonceException;
 import jakarta.persistence.Entity;

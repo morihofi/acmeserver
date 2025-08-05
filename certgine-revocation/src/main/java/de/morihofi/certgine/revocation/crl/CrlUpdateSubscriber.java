@@ -5,8 +5,10 @@
 
 package de.morihofi.certgine.revocation.crl;
 
-import de.morihofi.certgine.types.events.*;
-import de.morihofi.certgine.types.database.entities.acme.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.events.AcmeCertificateRevokedEvent;
+import de.morihofi.certgine.types.events.AbstractEvent;
+import de.morihofi.certgine.types.events.EventSubscriber;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

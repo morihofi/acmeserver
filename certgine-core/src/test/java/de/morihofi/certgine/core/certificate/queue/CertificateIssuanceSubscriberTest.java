@@ -9,7 +9,7 @@ import de.morihofi.certgine.cryptography.certificate.queue.CertificateIssuanceSu
 import de.morihofi.certgine.cryptography.certificate.queue.CertificateIssuer;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.config.Config;
-import de.morihofi.certgine.types.database.entities.acme.AcmeOrder;
+import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.certgine.types.events.EventBus;

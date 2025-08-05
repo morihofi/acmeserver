@@ -13,12 +13,10 @@ open module certgine.types {
     exports de.morihofi.certgine.types.api.acme.dns;
     exports de.morihofi.certgine.types.cryptography.keystore;
     exports de.morihofi.certgine.types.cryptography.revoke;
-    exports de.morihofi.certgine.types.database.entities.acme.enums;
     exports de.morihofi.certgine.types.exception.exceptions;
     exports de.morihofi.certgine.types.events;
     exports de.morihofi.certgine.types.config;
     exports de.morihofi.certgine.types.server;
-    exports de.morihofi.certgine.types.database.entities.acme;
     exports de.morihofi.certgine.types.database.entities.authority;
     exports de.morihofi.certgine.types.database.entities.timestamp;
     exports de.morihofi.certgine.types.database.entities.user;
