@@ -5,9 +5,16 @@
 
 package de.morihofi.certgine.types.modules;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * Describes a {@link CertgineModule} by exposing metadata and provided classes.
  */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
 public @interface ModuleDescriptor {
 
     /**

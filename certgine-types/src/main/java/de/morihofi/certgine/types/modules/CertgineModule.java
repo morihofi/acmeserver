@@ -42,11 +42,11 @@ public interface CertgineModule {
     /**
      * Runs on module gets loaded
      */
-    default void onLoad(IServerInstance serverInstance) {}
+    default void onLoad() {}
 
     /**
      * Runs on module gets unloaded
      */
-    default void onUnLoad(IServerInstance serverInstance) {}
+    default void onUnLoad() {}
 }
 
