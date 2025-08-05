@@ -19,6 +19,7 @@ import de.morihofi.certgine.cryptography.tsa.TimeStampAuthority;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.tsp.TSPAlgorithms;
+import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.eclipse.jetty.ee10.servlet.ServletTester;
@@ -95,6 +96,102 @@ class TimeStampServletTest {
             TimeStampResponse tsResp = new TimeStampResponse(response.getContentBytes());
             assertEquals(TSPAlgorithms.SHA512, tsResp.getTimeStampToken().getTimeStampInfo().getHashAlgorithm().getAlgorithm());
             assertArrayEquals(data, tsResp.getTimeStampToken().getTimeStampInfo().getMessageImprintDigest());
+        } finally {
+            tester.stop();
+        }
+    }
+
+    @Test
+    @DisplayName("non timestamp-query content type returns 415")
+    void testUnsupportedContentType() throws Exception {
+        TimeStampAuthority auth = new TimeStampAuthority(null, null, null) {
+            @Override
+            public byte[] generate(TimeStampRequest request) {
+                return new byte[0];
+            }
+        };
+        TimeStampServlet servlet = new TimeStampServlet(auth);
+
+        ServletTester tester = new ServletTester();
+        ServletMount mount = TimeStampServlet.class.getAnnotation(ServletMount.class);
+        tester.addServlet(servlet.getClass(), mount.servletMountPoint()).setServlet(servlet);
+        tester.start();
+        try {
+            HttpTester.Request request = HttpTester.newRequest();
+            request.setMethod("POST");
+            request.setURI(mount.servletMountPoint());
+            request.setVersion("HTTP/1.1");
+            request.setHeader("Host", "tester");
+            request.setHeader("Content-Type", "text/plain");
+            request.setContent("bad".getBytes());
+
+            HttpTester.Response response = HttpTester.parseResponse(tester.getResponses(request.generate()));
+            assertEquals(415, response.getStatus());
+        } finally {
+            tester.stop();
+        }
+    }
+
+    @Test
+    @DisplayName("corrupted request bytes return 400")
+    void testCorruptedRequest() throws Exception {
+        TimeStampAuthority auth = new TimeStampAuthority(null, null, null) {
+            @Override
+            public byte[] generate(TimeStampRequest request) {
+                return new byte[0];
+            }
+        };
+        TimeStampServlet servlet = new TimeStampServlet(auth);
+
+        ServletTester tester = new ServletTester();
+        ServletMount mount = TimeStampServlet.class.getAnnotation(ServletMount.class);
+        tester.addServlet(servlet.getClass(), mount.servletMountPoint()).setServlet(servlet);
+        tester.start();
+        try {
+            HttpTester.Request request = HttpTester.newRequest();
+            request.setMethod("POST");
+            request.setURI(mount.servletMountPoint());
+            request.setVersion("HTTP/1.1");
+            request.setHeader("Host", "tester");
+            request.setHeader("Content-Type", "application/timestamp-query");
+            request.setContent(new byte[]{0x00});
+
+            HttpTester.Response response = HttpTester.parseResponse(tester.getResponses(request.generate()));
+            assertEquals(400, response.getStatus());
+        } finally {
+            tester.stop();
+        }
+    }
+
+    @Test
+    @DisplayName("authority failure returns 500")
+    void testAuthorityFailure() throws Exception {
+        TimeStampAuthority auth = new TimeStampAuthority(null, null, null) {
+            @Override
+            public byte[] generate(TimeStampRequest request) {
+                throw new RuntimeException("fail");
+            }
+        };
+        TimeStampServlet servlet = new TimeStampServlet(auth);
+
+        ServletTester tester = new ServletTester();
+        ServletMount mount = TimeStampServlet.class.getAnnotation(ServletMount.class);
+        tester.addServlet(servlet.getClass(), mount.servletMountPoint()).setServlet(servlet);
+        tester.start();
+        try {
+            byte[] data = MessageDigest.getInstance("SHA-512").digest("hi".getBytes());
+            byte[] reqBytes = new TimeStampRequestGenerator().generate(TSPAlgorithms.SHA512, data).getEncoded();
+
+            HttpTester.Request request = HttpTester.newRequest();
+            request.setMethod("POST");
+            request.setURI(mount.servletMountPoint());
+            request.setVersion("HTTP/1.1");
+            request.setHeader("Host", "tester");
+            request.setHeader("Content-Type", "application/timestamp-query");
+            request.setContent(reqBytes);
+
+            HttpTester.Response response = HttpTester.parseResponse(tester.getResponses(request.generate()));
+            assertEquals(500, response.getStatus());
         } finally {
             tester.stop();
         }

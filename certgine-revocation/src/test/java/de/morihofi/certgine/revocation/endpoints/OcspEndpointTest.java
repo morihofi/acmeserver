@@ -151,4 +151,71 @@ class OcspEndpointTest {
             assertTrue(resp.out.size() > 0);
         }
     }
+
+    @Test
+    @DisplayName("GET endpoint rejects empty OCSP request")
+    void testGetEmptyOcspRequest() {
+        Router router = new Router() {
+            @Override
+            public String getPathParam(String path, String param) {
+                if ("provisioner".equals(param)) {
+                    return "p";
+                }
+                if ("ocspRequest".equals(param)) {
+                    return "";
+                }
+                return super.getPathParam(path, param);
+            }
+        };
+        OcspEndpointGet handler = new OcspEndpointGet(Mockito.mock(IServerInstance.class));
+        StubRequest req = new StubRequest();
+        req.path = "/revocation/p/ocsp/";
+        StubResponse resp = new StubResponse();
+        HandlerContext ctx = new HandlerContext(req, resp, router);
+        assertThrows(IllegalArgumentException.class, () -> handler.handle(ctx));
+    }
+
+    @Test
+    @DisplayName("GET endpoint rejects invalid Base64 request")
+    void testGetInvalidBase64() {
+        Router router = new Router();
+        OcspEndpointGet handler = new OcspEndpointGet(Mockito.mock(IServerInstance.class));
+        router.addHandler(new Endpoint(HandlerType.GET, "/revocation/{provisioner}/ocsp/{ocspRequest}", handler));
+        StubRequest req = new StubRequest();
+        StubResponse resp = new StubResponse();
+        req.path = "/revocation/p/ocsp/" + URLEncoder.encode("???", StandardCharsets.UTF_8);
+        HandlerContext ctx = new HandlerContext(req, resp, router);
+        assertThrows(IllegalArgumentException.class, () -> handler.handle(ctx));
+    }
+
+    @Test
+    @DisplayName("GET endpoint throws when provisioner is unknown")
+    void testGetUnknownProvisioner() throws Exception {
+        Router router = new Router();
+        OcspEndpointGet handler = new OcspEndpointGet(Mockito.mock(IServerInstance.class));
+        router.addHandler(new Endpoint(HandlerType.GET, "/revocation/{provisioner}/ocsp/{ocspRequest}", handler));
+        StubRequest req = new StubRequest();
+        StubResponse resp = new StubResponse();
+        KeyPair kp = de.morihofi.certgine.cryptography.keys.KeyPairGenerator.generateRSAKeyPair(512, BouncyCastleProvider.PROVIDER_NAME);
+        X509Certificate cert = de.morihofi.certgine.cryptography.certificate.X509Generator.generate(
+                de.morihofi.certgine.cryptography.certificate.X509Generator.Request.builder()
+                        .type(de.morihofi.certgine.cryptography.certificate.X509Generator.Type.ROOT_CA)
+                        .certificateConfig(new CertificateConfig(
+                                CertificateMetadata.builder()
+                                        .commonName("CA")
+                                        .organisation("Org")
+                                        .countryCode("DE")
+                                        .build(),
+                                new CertificateExpiration(0,0,1), null))
+                        .ownKeyPair(kp)
+                        .build());
+        OCSPReq ocspReq = createReq(BigInteger.ONE, cert);
+        String encoded = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(ocspReq.getEncoded());
+        req.path = "/revocation/p/ocsp/" + URLEncoder.encode(encoded, StandardCharsets.UTF_8);
+        HandlerContext ctx = new HandlerContext(req, resp, router);
+        try (MockedStatic<AcmeProvisioner> mockProv = Mockito.mockStatic(AcmeProvisioner.class)) {
+            mockProv.when(() -> AcmeProvisioner.getForName(handler.serverInstance, "p")).thenReturn(null);
+            assertThrows(NullPointerException.class, () -> handler.handle(ctx));
+        }
+    }
 }
