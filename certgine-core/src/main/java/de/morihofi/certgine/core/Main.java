@@ -236,7 +236,7 @@ public class Main {
 
         log.info("Creating new server instance ...");
 
-        return ServerInstance.builder()
+        IServerInstance preServerInstance = ServerInstance.builder()
                 .appConfig(config)
                 .appConfigPath(configPath)
                 .debug(debug)
@@ -251,6 +251,18 @@ public class Main {
                 .nonceManager(new NonceManager(hibernateUtil, eventBus))
                 .startupFlags(startupFlags)
                 .build();
+
+        log.info("Initializing modules ...");
+        for (Map.Entry<String, ModuleRegistry.ModuleInfo> m : moduleRegistry.getModules().entrySet()){
+            ModuleRegistry.ModuleInfo moduleInfo = m.getValue();
+            String name = m.getKey();
+            log.debug("Initializing module {} ...", name);
+            moduleInfo.getModule().onModuleInitialize(preServerInstance);
+        }
+        log.info("All modules initialized");
+
+        // ... and all is done, time to continue
+        return serverInstance;
     }
 
     /**

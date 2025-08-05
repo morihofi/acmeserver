@@ -5,6 +5,7 @@
 
 package de.morihofi.certgine.types.modules;
 
+import de.morihofi.certgine.types.intf.IServerInstance;
 import jakarta.servlet.http.HttpServlet;
 
 import java.util.Set;
@@ -34,13 +35,19 @@ public interface CertgineModule {
 
 
     /**
-     * Runs on module gets loaded
+     * Runs on module gets registered
      */
-    default void onLoad() {}
+    default void onRegister() {}
 
     /**
      * Runs on module gets unloaded
      */
     default void onUnLoad() {}
+
+    /**
+     * Runs as soon as serverinstance has been created
+     * @param serverInstance server instance object
+     */
+    default void onModuleInitialize(IServerInstance serverInstance){}
 }
 

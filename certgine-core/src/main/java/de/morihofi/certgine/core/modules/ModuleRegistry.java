@@ -83,7 +83,7 @@ public class ModuleRegistry {
 
 
         modules.put(info.getModuleName(), info);
-        module.onLoad();
+        module.onRegister();
     }
 
     /**
