@@ -24,10 +24,19 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>de.morihofi.certgine</groupId>
             <artifactId>certgine-httpserver-intf</artifactId>
             <version>3.0.0</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.morihofi.certgine</groupId>
+            <artifactId>certgine-types</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
