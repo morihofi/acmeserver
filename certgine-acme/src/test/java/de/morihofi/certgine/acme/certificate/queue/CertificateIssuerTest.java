@@ -1,4 +1,4 @@
-package de.morihofi.certgine.cryptography.certificate.queue;
+package de.morihofi.certgine.acme.certificate.queue;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;

@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.cryptography.certificate.queue;
+package de.morihofi.certgine.acme.certificate.queue;
 
-import de.morihofi.certgine.cryptography.csr.CsrDataUtil;
+import de.morihofi.certgine.acme.csr.AcmeCsrValidator;
 import de.morihofi.certgine.types.api.acme.dns.Identifier;
 
 import de.morihofi.certgine.acme.types.entities.enums.AcmeOrderState;
@@ -51,7 +51,7 @@ public class CertificateIssuer {
         PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
         PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
 
-        Set<Identifier> csrIdentifiers = CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
+        Set<Identifier> csrIdentifiers = AcmeCsrValidator.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
         AcmeProvisioner provisioner = order.getAccount().getAcmeProvisioner();
 
         // Perform CAA checks for each DNS identifier
@@ -125,5 +125,4 @@ public class CertificateIssuer {
         log.info("Stored certificate successful");
     }
 
-    // utility class only
 }

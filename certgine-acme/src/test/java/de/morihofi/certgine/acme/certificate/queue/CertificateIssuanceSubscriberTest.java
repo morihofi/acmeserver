@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.cryptography.certificate.queue;
+package de.morihofi.certgine.acme.certificate.queue;
 
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeOrderState;

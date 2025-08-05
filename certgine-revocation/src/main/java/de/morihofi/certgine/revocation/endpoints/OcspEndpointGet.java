@@ -9,7 +9,10 @@ package de.morihofi.certgine.revocation.endpoints;
 import de.morihofi.certgine.server.common.intf.Handler;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.entities.AcmeOrder;
+import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.certgine.cryptography.ocsp.OcspProcessor;
+import de.morihofi.certgine.types.intf.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -79,7 +82,12 @@ public class OcspEndpointGet implements Handler {
         log.info("Checking revocation status for serial number {}", serialNumber);
 
         // Processing the request and creating the OCSP response
-        OCSPResp ocspResponse = OcspProcessor.processOCSPRequest(serialNumber, AcmeProvisioner.getForName(serverInstance, provisionerName), serverInstance);
+        AcmeProvisioner provisioner = AcmeProvisioner.getForName(serverInstance, provisionerName);
+        ICryptoStoreManager crypto = serverInstance.getCryptoStoreManager();
+        RevokedCertificate rc = AcmeOrder.getRevokedCertificate(serialNumber, provisioner.getName(), serverInstance);
+        OCSPResp ocspResponse = OcspProcessor.processOCSPRequest(serialNumber, rc,
+                crypto.getIntermediateCertificate(provisioner.getInternalUuid()),
+                crypto.getIntermediateCertificateAuthorityKeyPair(provisioner.getInternalUuid()));
 
         // Sending the OCSP response
         ctx.contentType("application/ocsp-response");

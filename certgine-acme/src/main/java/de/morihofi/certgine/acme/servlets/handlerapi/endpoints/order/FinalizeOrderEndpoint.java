@@ -9,8 +9,8 @@ import com.google.gson.Gson;
 import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order.objects.AcmeOrderResponse;
 import de.morihofi.certgine.acme.types.entities.*;
-import de.morihofi.certgine.cryptography.certificate.queue.CertificateIssuer;
-import de.morihofi.certgine.cryptography.csr.CsrDataUtil;
+import de.morihofi.certgine.acme.certificate.queue.CertificateIssuer;
+import de.morihofi.certgine.acme.csr.AcmeCsrValidator;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.api.acme.dns.Identifier;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order.objects.FinalizeOrderRequestPayload;
@@ -79,7 +79,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         verifyAuthorizationsComplete(identifiers);
 
         // We just use the verification, that throws exceptions, here not the resulting identifiers
-        CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
+        AcmeCsrValidator.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
 
         // Convert AcmeOrderIdentifier into simple identifier
         List<Identifier> identifierList = identifiers.stream()

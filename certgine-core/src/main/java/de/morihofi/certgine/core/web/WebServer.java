@@ -9,7 +9,7 @@ import de.morihofi.certgine.revocation.crl.CrlScheduler;
 import de.morihofi.certgine.revocation.crl.CrlUpdateSubscriber;
 import de.morihofi.certgine.utils.scheduler.TimedScheduler;
 import de.morihofi.certgine.core.Main;
-import de.morihofi.certgine.cryptography.certificate.queue.CertificateIssuanceSubscriber;
+import de.morihofi.certgine.acme.certificate.queue.CertificateIssuanceSubscriber;
 import de.morihofi.certgine.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.events.EventSubscriber;

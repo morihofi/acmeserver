@@ -1,9 +1,4 @@
-/*
- * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
- * SPDX-License-Identifier: MIT
- */
-
-package de.morihofi.certgine.cryptography.csr;
+package de.morihofi.certgine.acme.csr;
 
 import de.morihofi.certgine.types.api.acme.dns.Identifier;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier;
@@ -34,7 +29,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CsrDataUtilTest {
+class AcmeCsrValidatorTest {
 
     @BeforeAll
     static void setup() {
@@ -60,15 +55,6 @@ class CsrDataUtilTest {
     }
 
     @Test
-    @DisplayName("getDomainsAndIPsFromCSR returns identifiers")
-    void testGetDomains() throws Exception {
-        String csr = createCsr();
-        Set<Identifier> ids = CsrDataUtil.getDomainsAndIPsFromCSR(csr);
-        assertTrue(ids.stream().anyMatch(i -> i.getValue().equals("example.com")));
-        assertTrue(ids.stream().anyMatch(i -> i.getValue().equals("127.0.0.1")));
-    }
-
-    @Test
     @DisplayName("getCsrIdentifiersAndVerifyWithIdentifiers checks identifiers")
     void testGetCsrIdentifiersAndVerify() throws Exception {
         String csr = createCsr();
@@ -80,7 +66,7 @@ class CsrDataUtilTest {
         AcmeOrderIdentifierChallenge ch2 = new AcmeOrderIdentifierChallenge(null, ip, "cid2", "tok");
         ch2.setStatus(AcmeStatus.VALID);
         ip.setChallenges(List.of(ch2));
-        Set<Identifier> result = CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, List.of(dns, ip));
+        Set<Identifier> result = AcmeCsrValidator.getCsrIdentifiersAndVerifyWithIdentifiers(csr, List.of(dns, ip));
         assertEquals(2, result.size());
     }
 
@@ -93,6 +79,6 @@ class CsrDataUtilTest {
         challenge.setStatus(AcmeStatus.VALID);
         id.setChallenges(List.of(challenge));
         assertThrows(ACMEBadCsrException.class,
-                () -> CsrDataUtil.getCsrIdentifiersAndVerifyWithIdentifiers(csr, List.of(id)));
+                () -> AcmeCsrValidator.getCsrIdentifiersAndVerifyWithIdentifiers(csr, List.of(id)));
     }
 }

@@ -5,8 +5,8 @@
 
 package de.morihofi.certgine.core.certificate.queue;
 
-import de.morihofi.certgine.cryptography.certificate.queue.CertificateIssuanceSubscriber;
-import de.morihofi.certgine.cryptography.certificate.queue.CertificateIssuer;
+import de.morihofi.certgine.acme.certificate.queue.CertificateIssuanceSubscriber;
+import de.morihofi.certgine.acme.certificate.queue.CertificateIssuer;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;

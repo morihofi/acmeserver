@@ -74,7 +74,12 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bctls-jdk18on</artifactId>
         </dependency>
-    </dependencies>
+        <dependency>
+            <groupId>de.morihofi.certgine</groupId>
+            <artifactId>certgine-types</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+</dependencies>
 
     <build>
         <plugins>

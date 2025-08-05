@@ -1,20 +1,17 @@
-/*
- * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
- * SPDX-License-Identifier: MIT
- */
-
 package de.morihofi.certgine.revocation.endpoints;
 
+import de.morihofi.certgine.acme.types.entities.AcmeOrder;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
+import de.morihofi.certgine.cryptography.ocsp.OcspProcessor;
 import de.morihofi.certgine.server.common.intf.*;
 import de.morihofi.certgine.server.common.intf.testing.MockRequest;
 import de.morihofi.certgine.server.common.intf.testing.MockResponse;
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.cryptography.ocsp.OcspProcessor;
-import de.morihofi.certgine.types.httpserver.HandlerType;
-import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
 import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
+import de.morihofi.certgine.types.httpserver.HandlerType;
+import de.morihofi.certgine.types.intf.ICryptoStoreManager;
+import de.morihofi.certgine.types.intf.IServerInstance;
 import org.bouncycastle.cert.ocsp.*;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.DigestCalculator;
@@ -37,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class OcspEndpointTest {
 
     @BeforeAll
-    static void setup(){
+    static void setup() {
         Security.addProvider(new BouncyCastleProvider());
     }
 
@@ -60,26 +57,30 @@ class OcspEndpointTest {
                 de.morihofi.certgine.cryptography.certificate.X509Generator.Request.builder()
                         .type(de.morihofi.certgine.cryptography.certificate.X509Generator.Type.ROOT_CA)
                         .certificateConfig(new CertificateConfig(
-                                CertificateMetadata.builder()
-                                        .commonName("CA")
-                                        .organisation("Org")
-                                        .countryCode("DE")
-                                        .build(),
-                                new CertificateExpiration(0,0,1), null))
+                                CertificateMetadata.builder().commonName("CA").organisation("Org").countryCode("DE").build(),
+                                new CertificateExpiration(0, 0, 1), null))
                         .ownKeyPair(kp)
                         .build());
         OCSPReq ocspReq = createReq(BigInteger.ONE, cert);
         String encoded = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(ocspReq.getEncoded());
         req.path("/revocation/p/ocsp/" + URLEncoder.encode(encoded, StandardCharsets.UTF_8));
         HandlerContext ctx = new HandlerContext(req, resp, router);
-        AcmeProvisioner prov = new AcmeProvisioner(); prov.setName("p");
+        AcmeProvisioner prov = new AcmeProvisioner();
+        prov.setName("p");
+        prov.setInternalUuid("u");
+        ICryptoStoreManager crypto = Mockito.mock(ICryptoStoreManager.class);
+        Mockito.when(handler.serverInstance.getCryptoStoreManager()).thenReturn(crypto);
+        Mockito.when(crypto.getIntermediateCertificate("u")).thenReturn(cert);
+        Mockito.when(crypto.getIntermediateCertificateAuthorityKeyPair("u")).thenReturn(kp);
         try (MockedStatic<AcmeProvisioner> mockProv = Mockito.mockStatic(AcmeProvisioner.class);
+             MockedStatic<AcmeOrder> mockOrder = Mockito.mockStatic(AcmeOrder.class);
              MockedStatic<OcspProcessor> mockProc = Mockito.mockStatic(OcspProcessor.class)) {
             mockProv.when(() -> AcmeProvisioner.getForName(handler.serverInstance, "p")).thenReturn(prov);
-            mockProc.when(() -> OcspProcessor.processOCSPRequest(BigInteger.ONE, prov, handler.serverInstance))
+            mockOrder.when(() -> AcmeOrder.getRevokedCertificate(BigInteger.ONE, "p", handler.serverInstance)).thenReturn(null);
+            mockProc.when(() -> OcspProcessor.processOCSPRequest(BigInteger.ONE, null, cert, kp))
                     .thenReturn(new OCSPRespBuilder().build(OCSPRespBuilder.SUCCESSFUL, null));
             handler.handle(ctx);
-            mockProc.verify(() -> OcspProcessor.processOCSPRequest(BigInteger.ONE, prov, handler.serverInstance));
+            mockProc.verify(() -> OcspProcessor.processOCSPRequest(BigInteger.ONE, null, cert, kp));
             assertEquals("application/ocsp-response", resp.getHeader("Content-Type"));
             assertTrue(resp.getBodyAsBytes().length > 0);
         }
@@ -98,26 +99,30 @@ class OcspEndpointTest {
                 de.morihofi.certgine.cryptography.certificate.X509Generator.Request.builder()
                         .type(de.morihofi.certgine.cryptography.certificate.X509Generator.Type.ROOT_CA)
                         .certificateConfig(new CertificateConfig(
-                                CertificateMetadata.builder()
-                                        .commonName("CA")
-                                        .organisation("Org")
-                                        .countryCode("DE")
-                                        .build(),
-                                new CertificateExpiration(0,0,1), null))
+                                CertificateMetadata.builder().commonName("CA").organisation("Org").countryCode("DE").build(),
+                                new CertificateExpiration(0, 0, 1), null))
                         .ownKeyPair(kp)
                         .build());
         OCSPReq ocspReq = createReq(BigInteger.ONE, cert);
         req.bodyBytes(ocspReq.getEncoded());
         req.path("/revocation/p/ocsp");
         HandlerContext ctx = new HandlerContext(req, resp, router);
-        AcmeProvisioner prov = new AcmeProvisioner(); prov.setName("p");
+        AcmeProvisioner prov = new AcmeProvisioner();
+        prov.setName("p");
+        prov.setInternalUuid("u");
+        ICryptoStoreManager crypto = Mockito.mock(ICryptoStoreManager.class);
+        Mockito.when(handler.serverInstance.getCryptoStoreManager()).thenReturn(crypto);
+        Mockito.when(crypto.getIntermediateCertificate("u")).thenReturn(cert);
+        Mockito.when(crypto.getIntermediateCertificateAuthorityKeyPair("u")).thenReturn(kp);
         try (MockedStatic<AcmeProvisioner> mockProv = Mockito.mockStatic(AcmeProvisioner.class);
+             MockedStatic<AcmeOrder> mockOrder = Mockito.mockStatic(AcmeOrder.class);
              MockedStatic<OcspProcessor> mockProc = Mockito.mockStatic(OcspProcessor.class)) {
             mockProv.when(() -> AcmeProvisioner.getForName(handler.serverInstance, "p")).thenReturn(prov);
-            mockProc.when(() -> OcspProcessor.processOCSPRequest(BigInteger.ONE, prov, handler.serverInstance))
+            mockOrder.when(() -> AcmeOrder.getRevokedCertificate(BigInteger.ONE, "p", handler.serverInstance)).thenReturn(null);
+            mockProc.when(() -> OcspProcessor.processOCSPRequest(BigInteger.ONE, null, cert, kp))
                     .thenReturn(new OCSPRespBuilder().build(OCSPRespBuilder.SUCCESSFUL, null));
             handler.handle(ctx);
-            mockProc.verify(() -> OcspProcessor.processOCSPRequest(BigInteger.ONE, prov, handler.serverInstance));
+            mockProc.verify(() -> OcspProcessor.processOCSPRequest(BigInteger.ONE, null, cert, kp));
             assertEquals("application/ocsp-response", resp.getHeader("Content-Type"));
             assertTrue(resp.getBodyAsBytes().length > 0);
         }
@@ -170,12 +175,8 @@ class OcspEndpointTest {
                 de.morihofi.certgine.cryptography.certificate.X509Generator.Request.builder()
                         .type(de.morihofi.certgine.cryptography.certificate.X509Generator.Type.ROOT_CA)
                         .certificateConfig(new CertificateConfig(
-                                CertificateMetadata.builder()
-                                        .commonName("CA")
-                                        .organisation("Org")
-                                        .countryCode("DE")
-                                        .build(),
-                                new CertificateExpiration(0,0,1), null))
+                                CertificateMetadata.builder().commonName("CA").organisation("Org").countryCode("DE").build(),
+                                new CertificateExpiration(0, 0, 1), null))
                         .ownKeyPair(kp)
                         .build());
         OCSPReq ocspReq = createReq(BigInteger.ONE, cert);
