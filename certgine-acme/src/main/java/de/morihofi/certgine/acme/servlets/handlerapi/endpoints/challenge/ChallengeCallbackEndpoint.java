@@ -16,7 +16,7 @@ import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.acme.types.entities.HttpNonces;
+import de.morihofi.certgine.types.database.entities.HttpNonces;
 import de.morihofi.certgine.types.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;

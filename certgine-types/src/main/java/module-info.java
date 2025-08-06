@@ -20,6 +20,7 @@ open module certgine.types {
     exports de.morihofi.certgine.types.database.entities.authority;
     exports de.morihofi.certgine.types.database.entities.user;
     exports de.morihofi.certgine.types.modules;
+    exports de.morihofi.certgine.types.cryptography;
 
     requires com.github.spotbugs.annotations;
     requires com.google.gson;

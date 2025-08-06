@@ -5,11 +5,12 @@
 
 package de.morihofi.certgine.cryptography.keystore;
 
+import de.morihofi.certgine.types.cryptography.CryptoStoreManagerConstants;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.cryptography.keystore.IKeyStoreConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS11KeyStoreConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
-import de.morihofi.certgine.types.intf.ICryptoStoreManager;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -38,21 +39,6 @@ import java.util.stream.Stream;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class CryptoStoreManager implements ICryptoStoreManager {
 
-    /**
-     * Alias for the ACME API certificate in the keystore.
-     */
-    public static final String KEYSTORE_ALIASPREFIX_SERVER = "server_";
-
-    /**
-     * Prefix for aliases of intermediate certificate authorities in the keystore.
-     */
-    public static final String KEYSTORE_ALIASPREFIX_INTERMEDIATECA = "intermediateCA_";
-
-    /**
-     * Prefix for aliases of timestamp authority certificates in the keystore.
-     */
-    public static final String KEYSTORE_ALIASPREFIX_TSA = "tsa_";
-
 
     /**
      * Returns the key store alias for a timestamp authority certificate.
@@ -64,7 +50,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      */
     @NonNull
     public String getKeyStoreAliasForTimestampAuthority(@NonNull String uuid) {
-        return KEYSTORE_ALIASPREFIX_TSA + uuid;
+        return CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA + uuid;
     }
 
     /**
@@ -185,7 +171,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     @NonNull
     public KeyPair getIntermediateCertificateAuthorityKeyPair(@NonNull String uuid) throws UnrecoverableKeyException, KeyStoreException,
             NoSuchAlgorithmException {
-        return KeyStoreUtil.getKeyPair(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid, keyStore);
+        return KeyStoreUtil.getKeyPair(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid, keyStore);
     }
 
 
@@ -213,12 +199,12 @@ public class CryptoStoreManager implements ICryptoStoreManager {
 
     @Override
     public X509Certificate getIntermediateCertificate(@NonNull String uuid) throws KeyStoreException {
-        return (X509Certificate) keyStore.getCertificate(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid);
+        return (X509Certificate) keyStore.getCertificate(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid);
     }
 
     @Override
     public X509Certificate[] getFullIntermediateCertificateChain(String internalUuid) throws KeyStoreException {
-        return Stream.of(keyStore.getCertificateChain(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid))
+        return Stream.of(keyStore.getCertificateChain(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid))
                 .filter(c -> c instanceof X509Certificate)
                 .map(c -> (X509Certificate) c)
                 .toArray(X509Certificate[]::new);
@@ -269,7 +255,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     @Override
     public void addTimestampAuthority(X509Certificate[] certificateChain, KeyPair kp, String internalUuid) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         keyStore.setKeyEntry(
-                KEYSTORE_ALIASPREFIX_TSA + internalUuid,
+                CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA + internalUuid,
                 kp.getPrivate(),
                 "".toCharArray(),
                 certificateChain
@@ -280,7 +266,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     @Override
     public void addIntermediateCertificateAuthority(X509Certificate[] intermediateCertificateChain, KeyPair intermediateKeyPair, String internalUuid) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         keyStore.setKeyEntry(
-                KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid,
+                CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid,
                 intermediateKeyPair.getPrivate(),
                 "".toCharArray(),
                 intermediateCertificateChain
@@ -290,18 +276,18 @@ public class CryptoStoreManager implements ICryptoStoreManager {
 
     @Override
     public void removeIntermediateCaCertificate(String internalUuid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        keyStore.deleteEntry(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid);
+        keyStore.deleteEntry(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid);
         saveKeystore();
     }
 
     @Override
     public X509Certificate getTimestampAuthorityCertificate(String internalUuid) throws KeyStoreException {
-        return (X509Certificate) keyStore.getCertificate(KEYSTORE_ALIASPREFIX_TSA + internalUuid);
+        return (X509Certificate) keyStore.getCertificate(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA + internalUuid);
     }
 
     @Override
     public KeyPair getTimestampAuthorityKeyPair(String internalUuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
-        return KeyStoreUtil.getKeyPair(KEYSTORE_ALIASPREFIX_TSA + internalUuid, keyStore);
+        return KeyStoreUtil.getKeyPair(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA + internalUuid, keyStore);
     }
 
     @Override
@@ -332,12 +318,12 @@ public class CryptoStoreManager implements ICryptoStoreManager {
 
     @Override
     public boolean containsIntermediateCaCertificate(@NonNull String uuid) throws KeyStoreException {
-        return keyStore.containsAlias(KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid);
+        return keyStore.containsAlias(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid);
     }
 
     @Override
     public boolean containsTimestampAuthorityCertificate(@NonNull String uuid) throws KeyStoreException {
-        return keyStore.containsAlias(KEYSTORE_ALIASPREFIX_TSA + uuid);
+        return keyStore.containsAlias(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA + uuid);
     }
 
     @Override
@@ -366,7 +352,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     @Override
     @NonNull
     public String getKeyStoreAliasForProvisionerIntermediate(@NonNull String uuid) {
-        return KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid;
+        return CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid;
     }
 
     private static boolean isAllZero(char[] array) {

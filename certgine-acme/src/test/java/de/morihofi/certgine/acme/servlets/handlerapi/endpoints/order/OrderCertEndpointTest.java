@@ -4,6 +4,7 @@
  */
 
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
 import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
@@ -39,7 +40,7 @@ class OrderCertEndpointTest {
         @Override public Session getDatabaseSession() { return null; }
         @NotNull
         @NonNull
-        @Override public de.morihofi.certgine.types.intf.ICryptoStoreManager getCryptoStoreManager() { return mgr; }
+        @Override public ICryptoStoreManager getCryptoStoreManager() { return mgr; }
         @NotNull
         @NonNull
         @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }

@@ -4,6 +4,7 @@
  */
 
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.authz;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.events.EventBus;
 
@@ -35,7 +36,7 @@ class AuthzOwnershipEndpointTest {
         @Override public Session getDatabaseSession() { return null; }
         @NotNull
         @NonNull
-        @Override public de.morihofi.certgine.types.intf.ICryptoStoreManager getCryptoStoreManager() { return null; }
+        @Override public ICryptoStoreManager getCryptoStoreManager() { return null; }
         @NotNull
         @NonNull
         @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }

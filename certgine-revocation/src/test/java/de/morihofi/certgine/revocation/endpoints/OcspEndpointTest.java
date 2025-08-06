@@ -10,7 +10,7 @@ import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
 import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
 import de.morihofi.certgine.types.httpserver.HandlerType;
-import de.morihofi.certgine.types.intf.ICryptoStoreManager;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import org.bouncycastle.cert.ocsp.*;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;

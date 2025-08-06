@@ -16,7 +16,7 @@ import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.acme.types.events.AcmeCertificateRevokedEvent;
 import de.morihofi.certgine.types.events.EventBus;
-import de.morihofi.certgine.types.intf.ICryptoStoreManager;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.INonceManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;

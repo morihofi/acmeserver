@@ -17,7 +17,7 @@ import de.morihofi.certgine.acme.types.events.AcmeCertificateCreatedEvent;
 import de.morihofi.certgine.acme.types.events.BeforeAcmeCertificateCreatedEvent;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.exception.exceptions.ACMECaaException;
-import de.morihofi.certgine.types.intf.ICryptoStoreManager;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;

@@ -19,7 +19,7 @@ import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.server.common.intf.RoutableHttpServlet;
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.server.common.intf.handler.AbstractExceptionHandler;
-import de.morihofi.certgine.acme.types.entities.HttpNonces;
+import de.morihofi.certgine.types.database.entities.HttpNonces;
 import de.morihofi.certgine.types.events.AcmeExceptionEvent;
 import de.morihofi.certgine.types.exception.ACMEException;
 import de.morihofi.certgine.types.httpserver.HandlerType;

@@ -16,7 +16,7 @@ import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.acme.types.entities.HttpNonces;
+import de.morihofi.certgine.types.database.entities.HttpNonces;
 import de.morihofi.certgine.acme.types.events.AcmeCertificateRevokedEvent;
 import de.morihofi.certgine.types.exception.exceptions.*;
 import de.morihofi.certgine.types.intf.IServerInstance;

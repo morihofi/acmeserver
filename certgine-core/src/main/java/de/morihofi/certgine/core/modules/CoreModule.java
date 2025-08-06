@@ -2,7 +2,7 @@ package de.morihofi.certgine.core.modules;
 
 import de.morihofi.certgine.core.servlet.api.ApiServlet;
 import de.morihofi.certgine.core.servlet.download.RootCaDownloadServlet;
-import de.morihofi.certgine.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
+import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.ModuleDescriptor;
@@ -36,8 +36,7 @@ public class CoreModule implements CertgineModule {
     @Override
     public void onModuleInitialize(IServerInstance serverInstance) {
         certificateRenewScheduler = new CertificateRenewScheduler(
-                serverInstance.getCryptoStoreManager(),
-                serverInstance.getEventBus()
+                serverInstance.getCryptoStoreManager()
         );
         String moduleName = getClass().getAnnotation(ModuleDescriptor.class).moduleName();
         ((ModuleRegistry) serverInstance.getModuleRegistry()).registerService(

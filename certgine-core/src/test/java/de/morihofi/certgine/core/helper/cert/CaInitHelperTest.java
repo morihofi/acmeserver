@@ -5,7 +5,6 @@
 
 package de.morihofi.certgine.core.helper.cert;
 
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.config.Config;
@@ -48,7 +47,6 @@ class CaInitHelperTest {
         Set<Class<?>> entities = new HashSet<>(
                 new Reflections("de.morihofi.certgine.types.database")
                         .getTypesAnnotatedWith(Entity.class));
-        entities.add(AcmeProvisioner.class);
         HibernateUtil hu = new HibernateUtil(cfg, true, bus, entities);
 
         Path ks = Files.createTempDirectory("ks").resolve("store.p12");
@@ -61,35 +59,4 @@ class CaInitHelperTest {
         assertTrue(mgr.containsCertificateAuthority(first));
     }
 
-    @Test
-    @DisplayName("initializeCA creates default provisioner")
-    void testDefaultProvisioner() throws Exception {
-        Config cfg = new Config();
-        DatabaseConfig db = new DatabaseConfig();
-        db.setJdbcUrl("jdbc:h2:mem:testdb2;DB_CLOSE_DELAY=-1");
-        db.setUser("sa");
-        db.setPassword("");
-        cfg.setDatabase(db);
-
-        EventBus bus = new EventBus();
-        Set<Class<?>> entities = new HashSet<>(
-                new Reflections("de.morihofi.certgine.types.database")
-                        .getTypesAnnotatedWith(Entity.class));
-        entities.add(AcmeProvisioner.class);
-        HibernateUtil hu = new HibernateUtil(cfg, true, bus, entities);
-
-        Path ks = Files.createTempDirectory("ks").resolve("store2.p12");
-        CryptoStoreManager mgr = new CryptoStoreManager(new PKCS12KeyStoreConfig(ks, "pw".toCharArray()));
-
-        RootCa root = CaInitHelper.initializeCA(hu, mgr, bus);
-
-        AcmeProvisioner provisioner;
-        try (var s = hu.getSessionFactory().openSession()) {
-            long count = s.createQuery("SELECT count(p) FROM AcmeProvisioner p", Long.class).uniqueResult();
-            assertEquals(1, count);
-            provisioner = s.createQuery("FROM AcmeProvisioner", AcmeProvisioner.class).getSingleResult();
-        }
-
-        assertTrue(mgr.containsIntermediateCaCertificate(provisioner.getInternalUuid()));
-    }
 }

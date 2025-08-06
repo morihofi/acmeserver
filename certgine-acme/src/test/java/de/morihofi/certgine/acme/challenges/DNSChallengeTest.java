@@ -16,7 +16,7 @@ import de.morihofi.certgine.types.config.network.DNSConfig;
 import de.morihofi.certgine.types.config.network.NetworkConfig;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.types.intf.IServerInstance;
-import de.morihofi.certgine.types.intf.ICryptoStoreManager;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.INonceManager;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.intf.network.dns.IDoHClient;

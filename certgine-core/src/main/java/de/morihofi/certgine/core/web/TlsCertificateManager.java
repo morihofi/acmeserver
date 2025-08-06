@@ -1,8 +1,8 @@
 package de.morihofi.certgine.core.web;
 
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
-import de.morihofi.certgine.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
-import de.morihofi.certgine.core.tools.certificate.renew.watcher.ProvisionerRenewSubscriber;
+import de.morihofi.certgine.types.cryptography.CryptoStoreManagerConstants;
+import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
 import de.morihofi.certgine.types.events.AcmeTlsCertificateHotReloadEvent;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.events.EventSubscriber;
@@ -33,7 +33,6 @@ public class TlsCertificateManager implements EventSubscriber {
     private final IServerInstance serverInstance;
     private final Server server;
     private final CertificateRenewScheduler certificateRenewScheduler;
-    private final ProvisionerRenewSubscriber provisionerWatcher;
 
     private ServerConnector sslConnector;
 
@@ -47,9 +46,8 @@ public class TlsCertificateManager implements EventSubscriber {
         }
 
         certificateRenewScheduler.registerNewCertificateRenewWatcher(
-                CryptoStoreManager.KEYSTORE_ALIASPREFIX_SERVER,
-                null,
-                (p, cert, kp) -> JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance, Clock.systemUTC()),
+                CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_SERVER,
+                (cert, kp) -> JettyCertificateHelper.generateAcmeApiClientCertificate(serverInstance, Clock.systemUTC()),
                 () -> {
                     try {
                         loadOrReloadTlsCertificate();
@@ -58,16 +56,13 @@ public class TlsCertificateManager implements EventSubscriber {
                     }
                 });
 
-        this.provisionerWatcher = new ProvisionerRenewSubscriber(serverInstance, certificateRenewScheduler);
-
     }
 
     /**
      * Initializes watchers and starts the scheduler.
      */
     public void initialize() {
-        serverInstance.getEventBus().register(provisionerWatcher);
-        provisionerWatcher.initialize();
+        // no-op; module-specific watchers are registered by their modules
     }
 
     /**

@@ -18,6 +18,7 @@ import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
 import de.morihofi.certgine.acme.types.events.AcmeCertificateIssuanceRequestedEvent;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeOrderState;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.types.database.entities.HttpNonces;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUnauthorizedException;
 import de.morihofi.certgine.types.intf.IServerInstance;

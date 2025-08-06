@@ -19,7 +19,7 @@ import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.acme.types.entities.AcmeExternalAccountBinding;
-import de.morihofi.certgine.acme.types.entities.HttpNonces;
+import de.morihofi.certgine.types.database.entities.HttpNonces;
 import de.morihofi.certgine.types.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUserActionRequiredException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEServerInternalException;

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.types.intf;
+package de.morihofi.certgine.types.cryptography;
 
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import lombok.NonNull;

@@ -11,7 +11,7 @@ import de.morihofi.certgine.types.api.acme.dns.Identifier;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeOrderState;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.types.intf.ICryptoStoreManager;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.utils.base64.Base64Tools;
 import de.morihofi.certgine.cryptography.pem.PemUtil;

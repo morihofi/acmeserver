@@ -8,18 +8,14 @@ package de.morihofi.certgine.core.helper.cert;
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.acme.types.entities.AcmeProvisionerDomainNameRestriction;
-import de.morihofi.certgine.acme.types.entities.ProvisionerMeta;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.database.entities.authority.*;
-import de.morihofi.certgine.types.intf.ICryptoStoreManager;
+import de.morihofi.certgine.types.events.EventBus;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import de.morihofi.certgine.types.events.EventBus;
-import de.morihofi.certgine.acme.types.events.ProvisionerCreatedEvent;
 
 import java.io.IOException;
 import java.security.*;
@@ -85,74 +81,8 @@ public class CaInitHelper {
                 caCertificate = cryptoStoreManager.getCertificateAuthorityX509Certificate(rootCaEntity);
             }
 
-            Transaction transaction = session.beginTransaction();
-            if (session.createQuery("FROM AcmeProvisioner", AcmeProvisioner.class).list().isEmpty()) {
-                createDefaultProvisioner(session, cryptoStoreManager, rootCaEntity, caKeyPair, caCertificate, eventBus);
-            }
-            transaction.commit();
-
             return rootCaEntity;
 
         }
-    }
-
-    private static void createDefaultProvisioner(Session session, ICryptoStoreManager cryptoStoreManager,
-                                                 RootCa rootCa, KeyPair caKeyPair, X509Certificate caCertificate,
-                                                 EventBus eventBus)
-            throws NoSuchAlgorithmException, CertificateException, KeyStoreException, OperatorCreationException, IOException, NoSuchProviderException {
-
-        log.info("Creating default provisioner");
-
-        final int keySize = 4096;
-        KeyPair intermediateKeyPair = KeyPairGenerator.generateRSAKeyPair(keySize, cryptoStoreManager.getKeyStoreProviderName());
-
-        CertificateConfig intConfig = new CertificateConfig(
-                CertificateMetadata.builder()
-                        .commonName("CertgineDefault Intermediate")
-                        .build(),
-                new CertificateExpiration(0, 0, 5),
-                new RsaCertificateAlgorithm(keySize)
-        );
-
-        X509Certificate intermediateCert = de.morihofi.certgine.cryptography.certificate.X509Generator.generate(
-                de.morihofi.certgine.cryptography.certificate.X509Generator.Request.builder()
-                        .type(de.morihofi.certgine.cryptography.certificate.X509Generator.Type.INTERMEDIATE_CA)
-                        .certificateConfig(intConfig)
-                        .ownKeyPair(intermediateKeyPair)
-                        .issuerKeyPair(caKeyPair)
-                        .issuerCertificate(caCertificate)
-                        .build()
-        );
-
-        AcmeProvisioner provisioner = new AcmeProvisioner();
-        provisioner.setInternalUuid(UUID.randomUUID().toString());
-
-        IntermediateCa intermediateCa = new IntermediateCa();
-        intermediateCa.setInternalUuid(provisioner.getInternalUuid());
-        intermediateCa.setCertificateConfig(intConfig);
-        provisioner.setName("default");
-        provisioner.setRootCa(rootCa);
-        provisioner.setMeta(new ProvisionerMeta("", ""));
-        provisioner.setIntermediateCa(intermediateCa);
-        provisioner.setIssuedCertificateExpiration(new CertificateExpiration(0, 3, 0));
-        provisioner.setWildcardAllowed(false);
-        provisioner.setIpAllowed(true);
-        AcmeProvisionerDomainNameRestriction restr = new AcmeProvisionerDomainNameRestriction();
-        restr.setEnabled(false);
-        restr.setMustEndWith(java.util.Collections.emptyList());
-        provisioner.setAcmeProvisionerDomainNameRestriction(restr);
-
-
-        cryptoStoreManager.addIntermediateCertificateAuthority(
-                new X509Certificate[]{
-                        intermediateCert,
-                        caCertificate
-                },
-                intermediateKeyPair,
-                provisioner.getInternalUuid()
-        );
-
-        session.persist(provisioner);
-        eventBus.publish(new ProvisionerCreatedEvent(provisioner));
     }
 }

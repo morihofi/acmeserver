@@ -8,7 +8,7 @@ package de.morihofi.certgine.acme.servlets.handlerapi.endpoints;
 
 import de.morihofi.certgine.server.common.intf.Handler;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.acme.types.entities.HttpNonces;
+import de.morihofi.certgine.types.database.entities.HttpNonces;
 import de.morihofi.certgine.types.httpserver.HandlerType;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;

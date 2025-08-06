@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.core.tools.certificate.renew;
+package de.morihofi.certgine.acme.tools.certificate.renew;
 
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
-import de.morihofi.certgine.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -17,16 +17,20 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+/**
+ * Helper to renew intermediate CA certificates for provisioners.
+ */
 @Slf4j
 public class IntermediateCaRenew {
 
+    public static CertificateRenewScheduler.CertificateData renewIntermediateCertificate(
+            KeyPair provisionerKeyPair,
+            AcmeProvisioner provisioner,
+            IServerInstance serverInstance,
+            String intermediateAlias)
+            throws CertificateException, OperatorCreationException, IOException,
+            UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
 
-    public static CertificateRenewScheduler.CertificateData renewIntermediateCertificate(KeyPair provisionerKeyPair, AcmeProvisioner provisioner,
-                                                                                       IServerInstance serverInstance, String intermediateAlias) throws CertificateException, OperatorCreationException,
-            IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
-
-
-        // Generate a new certificate
         X509Certificate renewedCertificate = X509Generator.generate(
                 X509Generator.Request.builder()
                         .type(X509Generator.Type.INTERMEDIATE_CA)
@@ -49,3 +53,4 @@ public class IntermediateCaRenew {
         return new CertificateRenewScheduler.CertificateData(chain, provisionerKeyPair);
     }
 }
+

@@ -13,7 +13,7 @@ import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.acme.types.entities.HttpNonces;
+import de.morihofi.certgine.types.database.entities.HttpNonces;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;

@@ -3,15 +3,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.core.tools.certificate.renew.watcher;
+package de.morihofi.certgine.utils.scheduler;
 
 
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
-import de.morihofi.certgine.types.intf.ICryptoStoreManager;
-import de.morihofi.certgine.utils.lambda.TriFunction;
-import de.morihofi.certgine.types.events.EventBus;
-import de.morihofi.certgine.acme.types.events.ProvisionerCertificateRenewedEvent;
+import de.morihofi.certgine.types.cryptography.CryptoStoreManagerConstants;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
+import de.morihofi.certgine.utils.lambda.BiFunctionWithException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +33,6 @@ public class CertificateRenewScheduler {
     private static final int RENEWAL_THRESHOLD_DAYS = 7; // days before expiration for trigger renewal
 
     private final ICryptoStoreManager cryptoStoreManager;
-    private final EventBus eventBus;
     private final Clock clock;
     private final Map<String, RenewEntry> renewMap = Collections.synchronizedMap(new HashMap<>());
 
@@ -48,10 +44,8 @@ public class CertificateRenewScheduler {
      */
     public CertificateRenewScheduler(
             ICryptoStoreManager cryptoStoreManager,
-            EventBus eventBus,
             Clock clock) {
         this.cryptoStoreManager = cryptoStoreManager;
-        this.eventBus = eventBus;
         this.clock = clock;
     }
 
@@ -62,9 +56,8 @@ public class CertificateRenewScheduler {
      * @param eventBus           Event bus for publishing renewal events.
      */
     public CertificateRenewScheduler(
-            ICryptoStoreManager cryptoStoreManager,
-            EventBus eventBus) {
-        this(cryptoStoreManager, eventBus, Clock.systemUTC());
+            ICryptoStoreManager cryptoStoreManager) {
+        this(cryptoStoreManager, Clock.systemUTC());
     }
 
     /**
@@ -74,9 +67,9 @@ public class CertificateRenewScheduler {
      * @param provisioner          The provisioner responsible for renewing the certificate.
      * @param regenerationFunction The function used to regenerate the certificate.
      */
-    public void registerNewCertificateRenewWatcher(String alias, AcmeProvisioner provisioner,
-                                                   TriFunction<AcmeProvisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction) {
-        registerNewCertificateRenewWatcher(alias, provisioner, regenerationFunction, null);
+    public void registerNewCertificateRenewWatcher(String alias,
+                                                   BiFunctionWithException<X509Certificate, KeyPair, CertificateData> regenerationFunction) {
+        registerNewCertificateRenewWatcher(alias, regenerationFunction, null);
     }
 
     /**
@@ -87,14 +80,15 @@ public class CertificateRenewScheduler {
      * @param regenerationFunction     The function used to regenerate the certificate.
      * @param triggerAfterRegeneration The runnable to execute after the certificate has been regenerated.
      */
-    public void registerNewCertificateRenewWatcher(String alias, AcmeProvisioner provisioner,
-                                                   TriFunction<AcmeProvisioner, X509Certificate, KeyPair, CertificateData> regenerationFunction, Runnable triggerAfterRegeneration) {
+    public void registerNewCertificateRenewWatcher(String alias,
+                                                   BiFunctionWithException<X509Certificate, KeyPair, CertificateData> regenerationFunction,
+                                                   Runnable triggerAfterRegeneration) {
 
         if (renewMap.containsKey(alias)) {
             throw new IllegalArgumentException("An watcher was already registered for keystore alias " + alias);
         }
 
-        renewMap.put(alias, new RenewEntry(provisioner, regenerationFunction, triggerAfterRegeneration));
+        renewMap.put(alias, new RenewEntry(regenerationFunction, triggerAfterRegeneration));
     }
 
     /**
@@ -139,8 +133,7 @@ public class CertificateRenewScheduler {
             String alias = entry.getKey();
             RenewEntry renewEntry = entry.getValue();
 
-            TriFunction<AcmeProvisioner, X509Certificate, KeyPair, CertificateData> function = renewEntry.renewFunction();
-            AcmeProvisioner provisioner = renewEntry.provisioner();
+            BiFunctionWithException<X509Certificate, KeyPair, CertificateData> function = renewEntry.renewFunction();
 
             log.info("Checking if certificate for alias {} needs to be renewed", alias);
             try {
@@ -155,7 +148,7 @@ public class CertificateRenewScheduler {
                     log.info("Certificate for alias {} needs to be renewed, renewing now ...", alias);
 
                     CertificateData newCertificateData =
-                            function.apply(provisioner, certificateFromKeyStore, cryptoStoreManager.getKeyPairForAlias(alias));
+                            function.apply(certificateFromKeyStore, cryptoStoreManager.getKeyPairForAlias(alias));
 
                     if (newCertificateData.certificateChain() == null || newCertificateData.keyPair() == null) {
                         log.warn("Certificate for alias {} hasn't saved, because returned certificate chain or keypair is null", alias);
@@ -163,21 +156,19 @@ public class CertificateRenewScheduler {
                     }
 
                     log.info("Saving certificate and key for alias {} in keystore", alias);
-                    if (alias.startsWith(CryptoStoreManager.KEYSTORE_ALIASPREFIX_INTERMEDIATECA)) {
-                        String id = alias.substring(CryptoStoreManager.KEYSTORE_ALIASPREFIX_INTERMEDIATECA.length());
+                    if (alias.startsWith(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA)) {
+                        String id = alias.substring(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA.length());
                         cryptoStoreManager.addIntermediateCertificateAuthority(newCertificateData.certificateChain(), newCertificateData.keyPair(), id);
-                    } else if (alias.startsWith(CryptoStoreManager.KEYSTORE_ALIASPREFIX_TSA)) {
-                        String id = alias.substring(CryptoStoreManager.KEYSTORE_ALIASPREFIX_TSA.length());
+                    } else if (alias.startsWith(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA)) {
+                        String id = alias.substring(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA.length());
                         cryptoStoreManager.addTimestampAuthority(newCertificateData.certificateChain(), newCertificateData.keyPair(), id);
                     } else {
                         cryptoStoreManager.addServerCertificate(newCertificateData.certificateChain(), newCertificateData.keyPair(), alias);
                     }
-                    eventBus.publish(new ProvisionerCertificateRenewedEvent(provisioner));
-
-                    if (renewEntry.triggerAfterRegeneration != null) {
-                        log.info("Running post configuration runnable");
-                        renewEntry.triggerAfterRegeneration.run();
-                    }
+                      if (renewEntry.triggerAfterRegeneration != null) {
+                          log.info("Running post configuration runnable");
+                          renewEntry.triggerAfterRegeneration.run();
+                      }
                 } else {
                     ZonedDateTime notAfter = certificateFromKeyStore.getNotAfter()
                             .toInstant()
@@ -205,8 +196,9 @@ public class CertificateRenewScheduler {
     /**
      * Represents an entry in the renewal map, containing the provisioner, renewal function, and post-regeneration trigger.
      */
-    private record RenewEntry(AcmeProvisioner provisioner,
-                              TriFunction<AcmeProvisioner, X509Certificate, KeyPair, CertificateData> renewFunction, Runnable triggerAfterRegeneration) {
+    private record RenewEntry(
+            BiFunctionWithException<X509Certificate, KeyPair, CertificateData> renewFunction,
+            Runnable triggerAfterRegeneration) {
     }
 
     /**

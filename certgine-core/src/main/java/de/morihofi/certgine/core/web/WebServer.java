@@ -6,11 +6,9 @@
 package de.morihofi.certgine.core.web;
 
 import de.morihofi.certgine.core.Main;
-import de.morihofi.certgine.acme.certificate.queue.CertificateIssuanceSubscriber;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.events.EventSubscriber;
 import de.morihofi.certgine.types.events.ServerShutdownEvent;
-import de.morihofi.certgine.types.server.StartupFlag;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
@@ -94,12 +92,7 @@ public class WebServer implements EventSubscriber {
 
         tlsManager.initialize();
 
-        if (serverInstance.getStartupFlags().contains(StartupFlag.USE_ASYNC_CERTIFICATE_ISSUING)) {
-            log.info("Registering async certificate issuance subscriber");
-            CertificateIssuanceSubscriber sub = new CertificateIssuanceSubscriber(serverInstance);
-            serverInstance.getEventBus().register(sub);
-            sub.initialize();
-        }
+        // async certificate issuance handled by modules if available
 
         logActiveConnectorsAndWaitReady();
 

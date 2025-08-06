@@ -3,15 +3,16 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.core.tools.certificate.renew.watcher;
+package de.morihofi.certgine.acme.tools.certificate.renew.watcher;
 
-import de.morihofi.certgine.core.tools.certificate.renew.IntermediateCaRenew;
+import de.morihofi.certgine.acme.tools.certificate.renew.IntermediateCaRenew;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.events.EventSubscriber;
 import de.morihofi.certgine.acme.types.events.ProvisionerCreatedEvent;
 import de.morihofi.certgine.acme.types.events.ProvisionerDeletedEvent;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,9 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Event subscriber that keeps the {@link CertificateRenewScheduler} in sync with
- * the provisioners available on the server. When new provisioners are created
- * or removed, corresponding to renew watchers are registered or deleted.
+ * Event subscriber keeping certificate renew watchers in sync with ACME provisioners.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -30,7 +29,7 @@ public class ProvisionerRenewSubscriber implements EventSubscriber {
     private final CertificateRenewScheduler renewManager;
 
     /**
-     * Registers watchers for all provisioners currently present in the system.
+     * Registers watchers for all existing provisioners.
      */
     public void initialize() {
         AcmeProvisioner[] all = AcmeProvisioner.getAllProvisioners(serverInstance);
@@ -45,9 +44,8 @@ public class ProvisionerRenewSubscriber implements EventSubscriber {
         if (renewManager.isWatcherRegistered(alias)) {
             return;
         }
-        renewManager.registerNewCertificateRenewWatcher(alias, prov,
-                (p, cert, kp) -> IntermediateCaRenew.renewIntermediateCertificate(kp, p,
-                        serverInstance, alias));
+        renewManager.registerNewCertificateRenewWatcher(alias,
+                (cert, kp) -> IntermediateCaRenew.renewIntermediateCertificate(kp, prov, serverInstance, alias));
         log.info("Registered renew watcher for provisioner {}", prov.getName());
     }
 
@@ -74,3 +72,4 @@ public class ProvisionerRenewSubscriber implements EventSubscriber {
         }
     }
 }
+

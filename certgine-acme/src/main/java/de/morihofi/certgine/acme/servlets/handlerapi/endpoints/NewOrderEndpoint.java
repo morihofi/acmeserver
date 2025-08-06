@@ -17,6 +17,7 @@ import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.objects.NewOrderR
 import de.morihofi.certgine.acme.security.SignatureCheck;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.types.database.entities.HttpNonces;
 import de.morihofi.certgine.types.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.certgine.types.exception.exceptions.ACMERejectedIdentifierException;

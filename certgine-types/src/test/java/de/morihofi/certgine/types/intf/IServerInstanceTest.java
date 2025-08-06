@@ -5,6 +5,7 @@
 
 package de.morihofi.certgine.types.intf;
 
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.intf.network.INetworkClient;

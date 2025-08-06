@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.acme.types.entities;
+package de.morihofi.certgine.types.database.entities;
 
 import de.morihofi.certgine.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -22,6 +22,9 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 
+/**
+ * Entity storing ACME HTTP nonces used to prevent replay attacks.
+ */
 @Entity
 @Table(name = "httpnonces")
 @Data
@@ -44,38 +47,29 @@ public class HttpNonces {
     @Column(name = "generated")
     private LocalDateTime generationTimestamp = LocalDateTime.now();
 
-    private final static SecureRandom secureRandom = new SecureRandom();
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     /**
-     * Generates a nonce (number used once) for security purposes.
+     * Generates and stores a new nonce.
      *
-     * @return A randomly generated nonce as a hexadecimal string.
-     * @throws IllegalArgumentException If there is an issue creating the nonce.
+     * @param serverInstance server instance for database access
+     * @return generated nonce
      */
     public static String createNonce(@NonNull IServerInstance serverInstance) {
-
         log.info("Generating nonce");
 
-        // Generate a random 128-bit nonce
-        byte[] nonce = new byte[16]; // 128 bits are 16 bytes
-        secureRandom.nextBytes(nonce);
-
-        // Encode the nonce to Base64 for easy handling
-        String base64Nonce = Base64.getUrlEncoder().withoutPadding().encodeToString(nonce);
-
+        byte[] nonceBytes = new byte[16];
+        SECURE_RANDOM.nextBytes(nonceBytes);
+        String base64Nonce = Base64.getUrlEncoder().withoutPadding().encodeToString(nonceBytes);
 
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction tx = session.beginTransaction();
-
-            session.persist(new HttpNonces(base64Nonce)); // Store nonce
+            session.persist(new HttpNonces(base64Nonce));
             log.info("Nonce {} stored", base64Nonce);
-
             tx.commit();
         }
 
         return base64Nonce;
-
     }
-
-
 }
+
