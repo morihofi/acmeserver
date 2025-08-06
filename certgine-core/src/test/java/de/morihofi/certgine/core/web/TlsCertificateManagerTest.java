@@ -6,6 +6,7 @@ import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
 import de.morihofi.certgine.core.modules.CoreModule;
 import de.morihofi.certgine.core.modules.ModuleRegistry;
+import de.morihofi.certgine.types.cryptography.CryptoStoreManagerConstants;
 import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.ServerConfig;
@@ -174,7 +175,7 @@ class TlsCertificateManagerTest {
         CertificateRenewScheduler sched =
                 server.getModuleRegistry().getService(CertificateRenewScheduler.class);
         assertNotNull(sched);
-        assertTrue(sched.isWatcherRegistered(CryptoStoreManager.KEYSTORE_ALIASPREFIX_SERVER));
+        assertTrue(sched.isWatcherRegistered(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_SERVER));
     }
 
     @Test

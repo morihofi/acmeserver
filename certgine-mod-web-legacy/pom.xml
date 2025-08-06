@@ -75,7 +75,7 @@
                 <version>${jte.version}</version>
                 <configuration>
                     <!-- This is the directory where your .jte files are located. -->
-                    <sourceDirectory>certgine-web-legacy/src/main/jte</sourceDirectory>
+                    <sourceDirectory>certgine-mod-web-legacy/src/main/jte</sourceDirectory>
                     <!-- This is the directory where compiled templates are located. -->
                     <targetDirectory>${project.build.directory}/classes</targetDirectory>
                     <contentType>Html</contentType>
