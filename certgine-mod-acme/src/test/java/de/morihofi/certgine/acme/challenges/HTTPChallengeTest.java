@@ -121,11 +121,6 @@ class HTTPChallengeTest {
         public java.util.List<String> getDnsServer() {
             return Collections.emptyList();
         }
-
-        @Override
-        public Proxy getProxy() {
-            return Proxy.NO_PROXY;
-        }
     }
 
     static class DummyServerInstance implements IServerInstance {

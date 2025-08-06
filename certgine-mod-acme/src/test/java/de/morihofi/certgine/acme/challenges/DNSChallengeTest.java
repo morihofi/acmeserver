@@ -115,11 +115,6 @@ class DNSChallengeTest {
             public List<String> getDnsServer() {
                 return Collections.emptyList();
             }
-
-            @Override
-            public java.net.Proxy getProxy() {
-                return java.net.Proxy.NO_PROXY;
-            }
         };
         private final Config cfg;
 
