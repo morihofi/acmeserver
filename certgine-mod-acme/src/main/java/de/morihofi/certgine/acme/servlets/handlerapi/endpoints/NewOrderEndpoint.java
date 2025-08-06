@@ -11,17 +11,18 @@ import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeE
 import de.morihofi.certgine.acme.types.entities.*;
 import de.morihofi.certgine.cryptography.randomness.RandomGenerator;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
+import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.objects.NewOrderRequestPayload;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.objects.NewOrderResponse;
 import de.morihofi.certgine.acme.security.SignatureCheck;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.types.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.certgine.types.exception.exceptions.ACMERejectedIdentifierException;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.utils.conversion.HexConverter;
 import de.morihofi.certgine.utils.datetime.TimeTools;
 import de.morihofi.certgine.utils.regex.DomainValidator;
@@ -57,8 +58,8 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
      * @param serverInstance The server instance.
      * @param clock         Clock used for time calculations.
      */
-    public NewOrderEndpoint(IServerInstance serverInstance, Clock clock) {
-        super(serverInstance);
+    public NewOrderEndpoint(CertgineModuleInstance moduleInstance, Clock clock) {
+        super(moduleInstance);
         this.clock = clock;
     }
 
@@ -67,8 +68,8 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
      *
      * @param serverInstance The server instance.
      */
-    public NewOrderEndpoint(IServerInstance serverInstance) {
-        this(serverInstance, Clock.systemUTC());
+    public NewOrderEndpoint(CertgineModuleInstance moduleInstance) {
+        this(moduleInstance, Clock.systemUTC());
     }
 
     /**
@@ -84,7 +85,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
     @Override
     public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
-        AcmeAccount account = AcmeAccount.getAccount(accountId, getServerInstance());
+        AcmeAccount account = AcmeAccount.getAccount(accountId, getModuleInstance().getModule().getServerInstance());
 
         // Check if account exists
         if (account == null) {
@@ -99,13 +100,13 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         // Convert payload into object
         NewOrderRequestPayload newOrderRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), NewOrderRequestPayload.class);
 
-        List<AcmeOrderIdentifier> AcmeOrderIdentifiers = new ArrayList<>();
+        List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> AcmeOrderIdentifiers = new ArrayList<>();
 
-        for (Identifier identifier : newOrderRequestPayload.getIdentifiers()) {
+        for (AcmeOrderIdentifier identifier : newOrderRequestPayload.getIdentifiers()) {
             String type = identifier.getType();
             String value = identifier.getValue();
 
-            AcmeOrderIdentifiers.add(new AcmeOrderIdentifier(type, value));
+            AcmeOrderIdentifiers.add(new de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier(type, value));
         }
 
         // Create order in Database
@@ -116,15 +117,15 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
                     "This account doesn't have any E-Mail addresses. Please set at least one E-Mail address and try again.");
         }
 
-        List<Identifier> respIdentifiers = new ArrayList<>();
+        List<de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier> respIdentifiers = new ArrayList<>();
         List<String> respAuthorizations = new ArrayList<>();
 
-        List<AcmeOrderIdentifier> AcmeOrderIdentifiersWithAuthorizationData = new ArrayList<>();
+        List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> AcmeOrderIdentifiersWithAuthorizationData = new ArrayList<>();
 
         // Unique certificate id per order
         String certificateId = HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId());
 
-        for (AcmeOrderIdentifier identifier : AcmeOrderIdentifiers) {
+        for (de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier identifier : AcmeOrderIdentifiers) {
             // Unique value for each domain
             String authorizationId = HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId());
 
@@ -165,19 +166,19 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
             identifier.setAuthorizationId(authorizationId);
 
-            Identifier identifierObj = new Identifier();
+            AcmeOrderIdentifier identifierObj = new AcmeOrderIdentifier();
             identifierObj.setType(identifier.getType());
             identifierObj.setValue(identifier.getDataValue());
             respIdentifiers.add(identifierObj);
 
             AcmeOrderIdentifiersWithAuthorizationData.add(identifier);
 
-            respAuthorizations.add(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/authz/" + authorizationId);
+            respAuthorizations.add(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/authz/" + authorizationId);
         }
 
         AcmeOrder order;
 
-        try (Session session = getServerInstance().getDatabaseSession()) {
+        try (Session session = getModuleInstance().getModule().getServerInstance().getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
 
             Instant startInstant = clock.instant(); // Starts now
@@ -197,7 +198,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             log.info("Created new order {}", orderId);
 
             // Create order identifiers
-            for (AcmeOrderIdentifier identifier : AcmeOrderIdentifiersWithAuthorizationData) {
+            for (de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier identifier : AcmeOrderIdentifiersWithAuthorizationData) {
                 identifier.setIdentifierId(HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId()));
                 identifier.setOrder(order);
                 identifier.setAuthorizationId(identifier.getAuthorizationId());
@@ -213,7 +214,7 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
             }
 
             transaction.commit();
-            getServerInstance().getEventBus().publish(new NewAcmeOrderEvent(order));
+            getModuleInstance().getModule().getServerInstance().getEventBus().publish(new NewAcmeOrderEvent(order));
         }
 
         // FIXME Send E-Mail/Notification if order was created
@@ -226,12 +227,12 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         response.setNotAfter(TimeTools.formatInstantForAcme(order.getNotAfter()));
         response.setIdentifiers(respIdentifiers);
         response.setAuthorizations(respAuthorizations);
-        response.setFinalize(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId + "/finalize");
+        response.setFinalize(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId + "/finalize");
 
         ctx.status(HttpURLConnection.HTTP_CREATED);
-        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(getModuleInstance().getModule().getServerInstance()));
         ctx.header("Content-Type", "application/json");
-        ctx.header("Location", provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId);
+        ctx.header("Location", provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId);
 
         ctx.json(response);
     }
@@ -278,9 +279,13 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         Instant endByOrder = newOrderRequestPayload.getNotAfter();
 
         Instant endByCa = TimeTools.makeInstantForOutliveIntermediateCertificate(
-                getServerInstance().getCryptoStoreManager()
+                getModuleInstance()
+                        .getModule()
+                        .getServerInstance()
+                        .getCryptoStoreManager()
                         .getIntermediateCertificate(provisioner.getInternalUuid())
-                        .getNotAfter().toInstant(),
+                        .getNotAfter()
+                        .toInstant(),
                 TimeTools.addToInstant(start,
                         provisioner.getIssuedCertificateExpiration().getYears(),
                         provisioner.getIssuedCertificateExpiration().getMonths(),

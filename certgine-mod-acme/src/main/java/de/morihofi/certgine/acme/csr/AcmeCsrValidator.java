@@ -1,9 +1,9 @@
 package de.morihofi.certgine.acme.csr;
 
 import de.morihofi.certgine.cryptography.csr.CsrDataUtil;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
-import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier;
+import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.types.dns.DnsIdentifier;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEServerInternalException;
 import lombok.NonNull;
@@ -29,9 +29,9 @@ public final class AcmeCsrValidator {
      * @throws IOException if the CSR cannot be parsed
      */
     @NonNull
-    public static Set<@NonNull Identifier> getCsrIdentifiersAndVerifyWithIdentifiers(
-            String csr, List<AcmeOrderIdentifier> identifiers) throws IOException {
-        Set<Identifier> csrDomainNames = CsrDataUtil.getDomainsAndIPsFromCSR(csr);
+    public static Set<@NonNull DnsIdentifier> getCsrIdentifiersAndVerifyWithIdentifiers(
+            String csr, List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> identifiers) throws IOException {
+        Set<DnsIdentifier> csrDomainNames = CsrDataUtil.getDomainsAndIPsFromCSR(csr);
         if (csrDomainNames.isEmpty()) {
             throw new ACMEBadCsrException("CSR does not contain any identifiers");
         }
@@ -43,11 +43,11 @@ public final class AcmeCsrValidator {
         }
 
         List<String> identifierValues = identifiers.stream()
-                .map(AcmeOrderIdentifier::getDataValue)
+                .map(de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier::getDataValue)
                 .toList();
 
         boolean allDomainsMatch = csrDomainNames.stream()
-                .map(Identifier::getValue)
+                .map(DnsIdentifier::getValue)
                 .allMatch(identifierValues::contains);
 
         if (!allDomainsMatch) {

@@ -16,7 +16,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProvisionerMeta implements Serializable {
+public class AcmeProvisionerMeta implements Serializable {
     private String website;
     private String tos;
 }

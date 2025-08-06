@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.types.intf;
+package de.morihofi.certgine.acme.security;
 
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadNonceException;
 

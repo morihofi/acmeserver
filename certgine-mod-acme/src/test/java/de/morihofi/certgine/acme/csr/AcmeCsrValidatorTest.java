@@ -1,9 +1,9 @@
 package de.morihofi.certgine.acme.csr;
 
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
-import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier;
+import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.types.dns.DnsIdentifier;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.certgine.utils.base64.Base64Tools;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -58,15 +58,15 @@ class AcmeCsrValidatorTest {
     @DisplayName("getCsrIdentifiersAndVerifyWithIdentifiers checks identifiers")
     void testGetCsrIdentifiersAndVerify() throws Exception {
         String csr = createCsr();
-        AcmeOrderIdentifier dns = new AcmeOrderIdentifier("dns", "example.com");
+        de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier dns = new de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier("dns", "example.com");
         AcmeOrderIdentifierChallenge ch1 = new AcmeOrderIdentifierChallenge(null, dns, "cid1", "tok");
         ch1.setStatus(AcmeStatus.VALID);
         dns.setChallenges(List.of(ch1));
-        AcmeOrderIdentifier ip = new AcmeOrderIdentifier("ip", "127.0.0.1");
+        de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier ip = new de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier("ip", "127.0.0.1");
         AcmeOrderIdentifierChallenge ch2 = new AcmeOrderIdentifierChallenge(null, ip, "cid2", "tok");
         ch2.setStatus(AcmeStatus.VALID);
         ip.setChallenges(List.of(ch2));
-        Set<Identifier> result = AcmeCsrValidator.getCsrIdentifiersAndVerifyWithIdentifiers(csr, List.of(dns, ip));
+        Set<DnsIdentifier> result = AcmeCsrValidator.getCsrIdentifiersAndVerifyWithIdentifiers(csr, List.of(dns, ip));
         assertEquals(2, result.size());
     }
 
@@ -74,7 +74,7 @@ class AcmeCsrValidatorTest {
     @DisplayName("getCsrIdentifiersAndVerifyWithIdentifiers fails on mismatch")
     void testGetCsrIdentifiersAndVerifyMismatch() throws Exception {
         String csr = createCsr();
-        AcmeOrderIdentifier id = new AcmeOrderIdentifier("dns", "other.com");
+        de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier id = new de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier("dns", "other.com");
         AcmeOrderIdentifierChallenge challenge = new AcmeOrderIdentifierChallenge(null, id, "cid", "tok");
         challenge.setStatus(AcmeStatus.VALID);
         id.setChallenges(List.of(challenge));

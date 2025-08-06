@@ -7,6 +7,7 @@ import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.ModuleDescriptor;
 import de.morihofi.certgine.types.modules.ModuleScheduledTask;
 import jakarta.servlet.http.HttpServlet;
+import lombok.NonNull;
 
 import java.util.Map;
 import java.util.Set;
@@ -15,11 +16,15 @@ import java.util.Set;
  * Module exposing certificate revocation HTTP endpoints.
  */
 @ModuleDescriptor(moduleName = "revocation", description = "Certificate revocation endpoints")
-public class RevocationModule implements CertgineModule {
+public class RevocationModule extends CertgineModule {
 
     private IServerInstance serverInstance;
     private CrlScheduler crlScheduler;
     private CrlUpdateSubscriber updateSubscriber;
+
+    public RevocationModule(IServerInstance serverInstance) {
+        super(serverInstance);
+    }
 
     @Override
     public Set<Class<?>> getEntityClasses() {

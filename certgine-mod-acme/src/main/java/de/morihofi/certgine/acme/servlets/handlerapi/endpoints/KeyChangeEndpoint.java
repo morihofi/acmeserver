@@ -15,9 +15,10 @@ import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.types.exception.exceptions.*;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -33,8 +34,8 @@ import java.net.HttpURLConnection;
  */
 @Slf4j
 public class KeyChangeEndpoint extends AbstractAcmeEndpoint {
-    public KeyChangeEndpoint(IServerInstance serverInstance) {
-        super(serverInstance);
+    public KeyChangeEndpoint(CertgineModuleInstance moduleInstance) {
+        super(moduleInstance);
     }
 
     @Override
@@ -51,7 +52,7 @@ public class KeyChangeEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEMalformedException("Account id missing in protected header");
         }
 
-        AcmeAccount account = AcmeAccount.getAccount(accountId, getServerInstance());
+        AcmeAccount account = AcmeAccount.getAccount(accountId, getModuleInstance().getModule().getServerInstance());
         if (account == null) {
             throw new ACMEAccountNotFoundException("Account with id " + accountId + " not found");
         }
@@ -76,7 +77,7 @@ public class KeyChangeEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEMalformedException("Mandatory fields missing in key-change payload");
         }
 
-        String accountUrl = provisioner.getAcmeApiURL(getServerInstance()) + "/acme/acct/" + accountId;
+        String accountUrl = provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/acct/" + accountId;
         if (!accountUrl.equals(innerPayload.get("account").getAsString())) {
             throw new ACMEMalformedException("Account URL mismatch in key-change payload");
         }
@@ -114,7 +115,7 @@ public class KeyChangeEndpoint extends AbstractAcmeEndpoint {
 
         String newKeyPem = PemUtil.convertToPem(newKey.getPublicKey());
 
-        try (Session session = getServerInstance().getDatabaseSession()) {
+        try (Session session = getModuleInstance().getModule().getServerInstance().getDatabaseSession()) {
             Transaction tx = session.beginTransaction();
             account.setPublicKeyPEM(newKeyPem);
             session.merge(account);
@@ -122,7 +123,7 @@ public class KeyChangeEndpoint extends AbstractAcmeEndpoint {
         }
 
         ctx.status(HttpURLConnection.HTTP_OK);
-        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(getModuleInstance().getModule().getServerInstance()));
         ctx.header("Content-Type", "application/json");
         ctx.result("{}");
     }

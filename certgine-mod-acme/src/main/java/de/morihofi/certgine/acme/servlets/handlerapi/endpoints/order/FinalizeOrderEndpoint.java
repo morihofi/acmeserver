@@ -12,16 +12,17 @@ import de.morihofi.certgine.acme.types.entities.*;
 import de.morihofi.certgine.acme.certificate.queue.CertificateIssuer;
 import de.morihofi.certgine.acme.csr.AcmeCsrValidator;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
+import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order.objects.FinalizeOrderRequestPayload;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
 import de.morihofi.certgine.acme.types.events.AcmeCertificateIssuanceRequestedEvent;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeOrderState;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUnauthorizedException;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.types.server.StartupFlag;
 import de.morihofi.certgine.utils.base64.Base64Tools;
 import de.morihofi.certgine.utils.datetime.TimeTools;
@@ -44,11 +45,11 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
      * ACME Endpoint for finalize an order
      */
 
-    public FinalizeOrderEndpoint(IServerInstance serverInstance) {
-        super(serverInstance);
+    public FinalizeOrderEndpoint(CertgineModuleInstance moduleInstance) {
+        super(moduleInstance);
     }
 
-    void verifyAuthorizationsComplete(@NonNull List<AcmeOrderIdentifier> identifiers) throws ACMEUnauthorizedException {
+    void verifyAuthorizationsComplete(@NonNull List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> identifiers) throws ACMEUnauthorizedException {
         boolean allValid = identifiers.stream()
                 .allMatch(id -> id.getChallengeStatus() == AcmeStatus.VALID);
         if (!allValid) {
@@ -61,7 +62,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
     public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
         String orderId = ctx.pathParam("orderId");
 
-        AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getServerInstance());
+        AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getModuleInstance().getModule().getServerInstance());
         AcmeAccount account = order.getAccount();
 
         // Check signature and nonce
@@ -74,7 +75,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         String csr = reqBodyPayloadObj.getCsr();
 
         // Get our ACME identifiers
-        List<AcmeOrderIdentifier> identifiers = AcmeOrder.getAcmeOrder(orderId, getServerInstance()).getOrderIdentifiers();
+        List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> identifiers = AcmeOrder.getAcmeOrder(orderId, getModuleInstance().getModule().getServerInstance()).getOrderIdentifiers();
 
         // Ensure all authorizations are completed before processing the CSR
         verifyAuthorizationsComplete(identifiers);
@@ -83,13 +84,13 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         AcmeCsrValidator.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
 
         // Convert AcmeOrderIdentifier into simple identifier
-        List<Identifier> identifierList = identifiers.stream()
-                .map(id -> new Identifier(id.getType(), id.getDataValue()))
+        List<de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier> identifierList = identifiers.stream()
+                .map(id -> new AcmeOrderIdentifier(id.getType(), id.getDataValue()))
                 .toList();
 
         // One authorization per identifier
         List<String> authorizationsList = identifiers.stream()
-                .map(AcmeOrderIdentifier -> provisioner.getAcmeApiURL(getServerInstance()) + "/acme/authz/" + AcmeOrderIdentifier.getAuthorizationId())
+                .map(AcmeOrderIdentifier -> provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/authz/" + AcmeOrderIdentifier.getAuthorizationId())
                 .toList();
 
         try {
@@ -112,7 +113,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
         if (order.getCertificatePem() == null && order.getCertificateCSR() == null) {
 
-            try (Session session = getServerInstance().getDatabaseSession()) {
+            try (Session session = getModuleInstance().getModule().getServerInstance().getDatabaseSession()) {
 
                 // Save CSR in Database (and mark it that it needs a certificate)
                 Transaction transaction = session.beginTransaction();
@@ -123,14 +124,14 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
                 transaction.commit();
 
-                if (getServerInstance().getStartupFlags().contains(StartupFlag.USE_ASYNC_CERTIFICATE_ISSUING)) {
+                //TODO: May use properties for each module
+                if (getModuleInstance().getModule().getServerInstance().getStartupFlags().contains(StartupFlag.USE_ASYNC_CERTIFICATE_ISSUING)) {
                     // Use async certificate issuing via event bus
                     log.info("Saved CSR for order {} in database", order.getOrderId());
-                    getServerInstance().getEventBus().publish(new AcmeCertificateIssuanceRequestedEvent(order));
+                    getModuleInstance().getModule().getServerInstance().getEventBus().publish(new AcmeCertificateIssuanceRequestedEvent(order));
                     response.setStatus(AcmeStatus.PROCESSING.getRfcName());
                 } else {
-                    CertificateIssuer.generateCertificateForOrder(order, getServerInstance().getCryptoStoreManager(),
-                            session, getServerInstance()); // also resets need certificate status
+                    CertificateIssuer.generateCertificateForOrder(order,session, getModuleInstance().getModule().getServerInstance()); // also resets need certificate status
 
                     // Valid, cause due we generated the certificate in the request, we have now a certificate available
                     response.setStatus(AcmeStatus.VALID.getRfcName());
@@ -147,11 +148,11 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         }
 
         ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
-        ctx.header("Location", provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId);
+        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(getModuleInstance().getModule().getServerInstance()));
+        ctx.header("Location", provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId);
 
-        response.setFinalize(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId + "/finalize");
-        response.setCertificate(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId + "/cert");
+        response.setFinalize(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId + "/finalize");
+        response.setCertificate(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId + "/cert");
         response.setIdentifiers(identifierList);
         response.setAuthorizations(authorizationsList);
 

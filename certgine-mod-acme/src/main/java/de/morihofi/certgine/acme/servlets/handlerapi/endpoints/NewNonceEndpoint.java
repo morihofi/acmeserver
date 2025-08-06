@@ -8,9 +8,10 @@ package de.morihofi.certgine.acme.servlets.handlerapi.endpoints;
 
 import de.morihofi.certgine.server.common.intf.Handler;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.types.httpserver.HandlerType;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import lombok.NonNull;
@@ -28,15 +29,15 @@ public class NewNonceEndpoint implements Handler {
     /**
      * Instance for accessing the server instance.
      */
-    private final IServerInstance serverInstance;
+    private final CertgineModuleInstance moduleInstance;
 
     /**
      * Constructs a NewNonce handler with the specified ACME provisioner.
      *
      * @param serverInstance The server instance to use for generating nonces.
      */
-    public NewNonceEndpoint(IServerInstance serverInstance) {
-        this.serverInstance = serverInstance;
+    public NewNonceEndpoint(CertgineModuleInstance moduleInstance) {
+        this.moduleInstance = moduleInstance;
     }
 
     /**
@@ -61,6 +62,6 @@ public class NewNonceEndpoint implements Handler {
         ctx.header("Cache-Control", "no-store");
 
         // Generate a new Replay-Nonce using the ACMEProvisioner and set it in the header
-        ctx.header("Replay-Nonce", HttpNonces.createNonce(serverInstance));
+        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(moduleInstance.getModule().getServerInstance()));
     }
 }

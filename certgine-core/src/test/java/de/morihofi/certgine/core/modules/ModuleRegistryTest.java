@@ -18,7 +18,7 @@ class ModuleRegistryTest {
 
     static class SampleServiceImpl implements SampleService {}
 
-    static class ReloadableModule implements CertgineModule {
+    static class ReloadableModule extends CertgineModule {
         boolean unloaded = false;
 
         @Override
@@ -37,7 +37,7 @@ class ModuleRegistryTest {
         }
     }
 
-    static class FlagModule implements CertgineModule {
+    static class FlagModule extends CertgineModule {
         boolean registered = false;
 
         @Override

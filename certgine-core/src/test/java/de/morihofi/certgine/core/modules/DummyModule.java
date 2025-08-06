@@ -17,7 +17,7 @@ import java.util.Set;
  * Simple module used for testing the {@link ModuleLoader}.
  */
 @ModuleDescriptor(moduleName = "dummy", description = "Test module")
-public class DummyModule implements CertgineModule {
+public class DummyModule extends CertgineModule {
 
     @Override
     public Set<Class<?>> getEntityClasses() {

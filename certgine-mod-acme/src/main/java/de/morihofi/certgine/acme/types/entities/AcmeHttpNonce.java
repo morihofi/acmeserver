@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.types.database.entities;
+package de.morihofi.certgine.acme.types.entities;
 
 import de.morihofi.certgine.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -31,9 +31,9 @@ import java.util.Base64;
 @Slf4j
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 @NoArgsConstructor
-public class HttpNonces {
+public class AcmeHttpNonce {
 
-    public HttpNonces(String nonce) {
+    public AcmeHttpNonce(String nonce) {
         this.nonce = nonce;
     }
 
@@ -64,7 +64,7 @@ public class HttpNonces {
 
         try (Session session = serverInstance.getDatabaseSession()) {
             Transaction tx = session.beginTransaction();
-            session.persist(new HttpNonces(base64Nonce));
+            session.persist(new AcmeHttpNonce(base64Nonce));
             log.info("Nonce {} stored", base64Nonce);
             tx.commit();
         }

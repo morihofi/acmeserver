@@ -6,10 +6,10 @@
 package de.morihofi.certgine.cryptography.certificate;
 
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
 import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
+import de.morihofi.certgine.types.dns.DnsIdentifier;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -79,7 +79,7 @@ class X509GeneratorChainTest {
 
         // --- Server certificate ---
         KeyPair serverKey = KeyPairGenerator.generateRSAKeyPair(1024, BouncyCastleProvider.PROVIDER_NAME);
-        Identifier id = new Identifier(Identifier.IDENTIFIER_TYPE.DNS, "example.com");
+        DnsIdentifier id = new DnsIdentifier(DnsIdentifier.IDENTIFIER_TYPE.DNS, "example.com");
         Instant start = clock.instant();
         Instant end = start.plus(Duration.ofDays(1));
 

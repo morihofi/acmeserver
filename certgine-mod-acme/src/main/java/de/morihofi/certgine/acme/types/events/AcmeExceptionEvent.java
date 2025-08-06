@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.types.events;
+package de.morihofi.certgine.acme.types.events;
 
+import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.exception.ACMEException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

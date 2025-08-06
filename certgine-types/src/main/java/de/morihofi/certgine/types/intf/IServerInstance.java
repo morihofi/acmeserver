@@ -52,12 +52,6 @@ public interface IServerInstance {
     Config getAppConfig();
 
     /**
-     * Get the NonceManager for this server instance
-     */
-    @NonNull
-    INonceManager getNonceManager();
-
-    /**
      * Get the Root CA for this server instance
      */
     @NonNull

@@ -19,7 +19,11 @@ import java.util.Set;
  */
 @Slf4j
 @ModuleDescriptor(moduleName = "tsa", description = "RFC 3161 Time Stamp Authority")
-public class TsaModule implements CertgineModule {
+public class TsaModule extends CertgineModule {
+
+    public TsaModule(IServerInstance serverInstance) {
+        super(serverInstance);
+    }
 
     @Override
     public Set<Class<?>> getEntityClasses() {

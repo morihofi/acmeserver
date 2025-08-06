@@ -6,19 +6,21 @@
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order;
 
 import com.google.gson.Gson;
+import de.morihofi.certgine.acme.AcmeModuleInstance;
+import de.morihofi.certgine.acme.security.NonceManager;
 import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order.objects.AcmeOrderResponse;
 import de.morihofi.certgine.acme.security.SignatureCheck;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
 
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
-import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.utils.datetime.TimeTools;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -45,8 +47,8 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
      * @param serverInstance The server instance for managing server configurations and operations.
      * @param clock          Clock used for time calculations.
      */
-    public OrderInfoEndpoint(IServerInstance serverInstance, Clock clock) {
-        super(serverInstance);
+    public OrderInfoEndpoint(CertgineModuleInstance moduleInstance, Clock clock) {
+        super(moduleInstance);
         this.clock = clock;
     }
 
@@ -55,8 +57,8 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
      *
      * @param serverInstance The server instance for managing server configurations and operations.
      */
-    public OrderInfoEndpoint(IServerInstance serverInstance) {
-        this(serverInstance, Clock.systemUTC());
+    public OrderInfoEndpoint(CertgineModuleInstance moduleInstance) {
+        this(moduleInstance, Clock.systemUTC());
     }
 
     /**
@@ -73,27 +75,27 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(getModuleInstance().getModule().getServerInstance()));
 
-        AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getServerInstance());
-        List<AcmeOrderIdentifier> identifiers = order.getOrderIdentifiers();
+        AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getModuleInstance().getModule().getServerInstance());
+        List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> identifiers = order.getOrderIdentifiers();
         verifyIdentifiersPresent(orderId, identifiers);
 
         // Check signature and nonce
-        SignatureCheck.checkSignature(ctx, identifiers.getFirst().getOrder().getAccount(), gson, getServerInstance());
-        getServerInstance().getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        SignatureCheck.checkSignature(ctx, identifiers.getFirst().getOrder().getAccount(), gson, getModuleInstance().getModule().getServerInstance());
+        ((AcmeModuleInstance) getModuleInstance()).getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
         boolean allVerified = true;
-        List<Identifier> identifierList = new ArrayList<>();
+        List<AcmeOrderIdentifier> identifierList = new ArrayList<>();
         List<String> authorizationsList = new ArrayList<>();
 
-        for (AcmeOrderIdentifier identifier : identifiers) {
+        for (de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier identifier : identifiers) {
             if (identifier.getChallengeStatus() != AcmeStatus.VALID) {
                 allVerified = false;
             }
-            identifierList.add(new Identifier(identifier.getType(), identifier.getDataValue()));
+            identifierList.add(new AcmeOrderIdentifier(identifier.getType(), identifier.getDataValue()));
 
-            authorizationsList.add(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/authz/" + identifier.getAuthorizationId());
+            authorizationsList.add(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/authz/" + identifier.getAuthorizationId());
         }
 
         AcmeOrderResponse response = new AcmeOrderResponse();
@@ -112,8 +114,8 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
             }
         }
 
-        response.setFinalize(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId + "/finalize");
-        response.setCertificate(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/order/" + orderId + "/cert");
+        response.setFinalize(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId + "/finalize");
+        response.setCertificate(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId + "/cert");
         response.setIdentifiers(identifierList);
         response.setAuthorizations(authorizationsList);
 
@@ -137,7 +139,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
      * @param identifiers The list of identifiers associated with the order.
      * @throws ACMEResourceNotFoundException if no identifiers are present.
      */
-    void verifyIdentifiersPresent(@NonNull String orderId, @NonNull List<AcmeOrderIdentifier> identifiers) {
+    void verifyIdentifiersPresent(@NonNull String orderId, @NonNull List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> identifiers) {
         if (identifiers.isEmpty()) {
             log.error("Throwing API error: For the requested order {} was no identifier found", orderId);
             throw new ACMEResourceNotFoundException("For the requested order id was no identifier found");

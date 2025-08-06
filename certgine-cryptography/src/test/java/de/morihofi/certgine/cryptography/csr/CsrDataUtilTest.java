@@ -1,6 +1,6 @@
 package de.morihofi.certgine.cryptography.csr;
 
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
+import de.morihofi.certgine.types.dns.DnsIdentifier;
 import de.morihofi.certgine.utils.base64.Base64Tools;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.Extension;
@@ -53,7 +53,7 @@ class CsrDataUtilTest {
     @DisplayName("getDomainsAndIPsFromCSR returns identifiers")
     void testGetDomains() throws Exception {
         String csr = createCsr();
-        Set<Identifier> ids = CsrDataUtil.getDomainsAndIPsFromCSR(csr);
+        Set<DnsIdentifier> ids = CsrDataUtil.getDomainsAndIPsFromCSR(csr);
         assertTrue(ids.stream().anyMatch(i -> i.getValue().equals("example.com")));
         assertTrue(ids.stream().anyMatch(i -> i.getValue().equals("127.0.0.1")));
     }

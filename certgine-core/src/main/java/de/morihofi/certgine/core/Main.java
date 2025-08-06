@@ -8,7 +8,6 @@ package de.morihofi.certgine.core;
 import com.google.gson.Gson;
 import de.morihofi.certgine.types.json.GsonFactory;
 import de.morihofi.certgine.core.database.HibernateUtil;
-import de.morihofi.certgine.core.impl.NonceManager;
 import de.morihofi.certgine.core.impl.ServerInstance;
 import de.morihofi.certgine.core.modules.ModuleManager;
 import de.morihofi.certgine.core.modules.ModuleRegistry;
@@ -219,7 +218,7 @@ public class Main {
 
         log.info("Loading modules ...");
         ModuleManager moduleManager = new ModuleManager();
-        moduleManager.loadModulesFromClasspath();
+        moduleManager.loadModulesFromClasspath(null); //FIXME
 
         Path modulesDir = FILES_DIR.resolve("modules");
         if (Files.isDirectory(modulesDir)) {
@@ -259,7 +258,6 @@ public class Main {
                 .rootCa(root)
                 .buildMetadata(BuildMetadataImpl.getInstance())
                 .eventBus(eventBus)
-                .nonceManager(new NonceManager(hibernateUtil, eventBus))
                 .startupFlags(startupFlags)
                 .build();
 

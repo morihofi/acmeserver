@@ -1,6 +1,7 @@
 package de.morihofi.certgine.core.impl;
 
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.security.NonceManager;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
@@ -29,7 +30,7 @@ class NonceManagerTest {
         Set<Class<?>> entities = new HashSet<>(
                 new Reflections("de.morihofi.certgine.types.database")
                         .getTypesAnnotatedWith(Entity.class));
-        entities.add(HttpNonces.class);
+        entities.add(AcmeHttpNonce.class);
         return new HibernateUtil(cfg, true, new EventBus(), entities);
     }
 
@@ -40,7 +41,7 @@ class NonceManagerTest {
         String nonce = "knownNonce";
         try (Session s = hu.getSessionFactory().openSession()) {
             var tx = s.beginTransaction();
-            s.persist(new HttpNonces(nonce));
+            s.persist(new AcmeHttpNonce(nonce));
             tx.commit();
         }
         NonceManager manager = new NonceManager(hu, new EventBus());

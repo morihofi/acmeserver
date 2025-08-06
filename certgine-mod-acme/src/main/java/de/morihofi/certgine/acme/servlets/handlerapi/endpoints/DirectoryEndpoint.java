@@ -15,14 +15,15 @@ import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.json.GsonFactory;
 
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import lombok.NonNull;
 
 public class DirectoryEndpoint implements Handler {
 
-    private final IServerInstance serverInstance;
+    private final CertgineModuleInstance moduleInstance;
 
-    public DirectoryEndpoint(IServerInstance serverInstance) {
-        this.serverInstance = serverInstance;
+    public DirectoryEndpoint(CertgineModuleInstance moduleInstance) {
+        this.moduleInstance = moduleInstance;
     }
 
     /**
@@ -32,7 +33,7 @@ public class DirectoryEndpoint implements Handler {
      */
     @Override
     public void handle(@NonNull HandlerContext ctx) {
-        AcmeProvisioner provisioner = AbstractAcmeEndpoint.getProvisionerFromJavalin(serverInstance, ctx);
+        AcmeProvisioner provisioner = AbstractAcmeEndpoint.getProvisionerFromJavalin(moduleInstance.getModule().getServerInstance(), ctx);
 
         // Response is JSON
         ctx.header("Content-Type", "application/json");
@@ -55,6 +56,9 @@ public class DirectoryEndpoint implements Handler {
             metaObject.addProperty("website", website);
             metaObject.addProperty("termsOfService", tos);
         }
+
+        IServerInstance serverInstance = moduleInstance.getModule().getServerInstance();
+
         // Create the main JSON object
         JsonObject responseJSON = new JsonObject();
         responseJSON.add("meta", metaObject);

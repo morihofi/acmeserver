@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.types.api.acme.dns;
+package de.morihofi.certgine.acme.types.api.dns;
 
+import de.morihofi.certgine.types.dns.DnsIdentifier;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,7 @@ import java.util.Locale;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode
-public class Identifier {
+public class AcmeOrderIdentifier {
 
     /**
      * Type of the DNS identifier, mostly <code>dns</code>. Can also be <code>ip</code>
@@ -31,12 +32,12 @@ public class Identifier {
      */
     private String value;
 
-    public Identifier(IDENTIFIER_TYPE type, String value) {
+    public AcmeOrderIdentifier(IDENTIFIER_TYPE type, String value) {
         this.type = type.name().toLowerCase(Locale.ROOT);
         this.value = value;
     }
 
-    public Identifier(String type, String value) {
+    public AcmeOrderIdentifier(String type, String value) {
         this(IDENTIFIER_TYPE.getTypeByName(type), value);
     }
 
@@ -46,6 +47,13 @@ public class Identifier {
 
     public void setType(String type) {
         this.type = IDENTIFIER_TYPE.getTypeByName(type).name().toLowerCase(Locale.ROOT);
+    }
+
+    public DnsIdentifier toDnsIdentifier() {
+        return new DnsIdentifier(
+                DnsIdentifier.IDENTIFIER_TYPE.valueOf(IDENTIFIER_TYPE.getTypeByName(type).name()),
+                value
+        );
     }
 
     public enum IDENTIFIER_TYPE {

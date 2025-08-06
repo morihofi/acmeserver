@@ -3,6 +3,7 @@ package de.morihofi.certgine.types.modules;
 import de.morihofi.certgine.types.database.entities.authority.*;
 import de.morihofi.certgine.types.database.entities.user.UserSession;
 import de.morihofi.certgine.types.database.entities.user.Users;
+import de.morihofi.certgine.types.intf.IServerInstance;
 import jakarta.servlet.http.HttpServlet;
 
 import java.util.Set;
@@ -11,7 +12,11 @@ import java.util.Set;
  * Module exposing core Certgine entities shared across features.
  */
 @ModuleDescriptor(moduleName = "types-entities", description = "Core database entities")
-public class CoreEntitiesModule implements CertgineModule {
+public class CoreEntitiesModule extends CertgineModule {
+
+    public CoreEntitiesModule(IServerInstance serverInstance) {
+        super(serverInstance);
+    }
 
     /**
      * {@inheritDoc}

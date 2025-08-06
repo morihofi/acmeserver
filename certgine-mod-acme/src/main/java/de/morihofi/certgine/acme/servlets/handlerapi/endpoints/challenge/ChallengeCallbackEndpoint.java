@@ -16,15 +16,16 @@ import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.types.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.utils.datetime.TimeTools;
-import de.morihofi.certgine.types.events.BeforeChallengeEvent;
-import de.morihofi.certgine.types.events.AfterChallengeEvent;
-import de.morihofi.certgine.types.api.acme.challenge.AcmeChallengeType;
+import de.morihofi.certgine.acme.types.events.BeforeChallengeEvent;
+import de.morihofi.certgine.acme.types.events.AfterChallengeEvent;
+import de.morihofi.certgine.acme.types.api.AcmeChallengeType;
 import de.morihofi.certgine.utils.http.HttpHeaderUtil;
 import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
@@ -40,8 +41,8 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
      *
      * @param serverInstance The server instance.
      */
-    public ChallengeCallbackEndpoint(IServerInstance serverInstance) {
-        super(serverInstance);
+    public ChallengeCallbackEndpoint(CertgineModuleInstance moduleInstance) {
+        super(moduleInstance);
     }
 
     @Override
@@ -60,10 +61,10 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
 
         // Set response headers
         ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(getModuleInstance().getModule().getServerInstance()));
 
         // Check if challenge is valid
-        AcmeOrderIdentifierChallenge identifierChallenge = AcmeOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getServerInstance());
+        AcmeOrderIdentifierChallenge identifierChallenge = AcmeOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getModuleInstance().getModule().getServerInstance());
 
         if (identifierChallenge == null){
             throw new ACMEResourceNotFoundException("Challenge not found");
@@ -84,23 +85,23 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         }
 
         // move challenge into processing state before performing validation
-        AcmeOrderIdentifierChallenge.markChallenge(AcmeStatus.PROCESSING, challengeId, getServerInstance());
+        AcmeOrderIdentifierChallenge.markChallenge(AcmeStatus.PROCESSING, challengeId, getModuleInstance().getModule().getServerInstance());
 
         AcmeChallengeType typeEnum = "http-01".equals(challengeType) ? AcmeChallengeType.HTTP_01 : AcmeChallengeType.DNS_01;
-        getServerInstance().getEventBus().publish(new BeforeChallengeEvent(typeEnum, challengeId));
+        getModuleInstance().getModule().getServerInstance().getEventBus().publish(new BeforeChallengeEvent(typeEnum, challengeId));
 
         ChallengeResult result = switch (challengeType) {
             case "http-01" -> HTTPChallenge.check(
                     identifierChallenge.getAuthorizationToken(),
                     identifierChallenge.getIdentifier().getDataValue(),
                     identifierChallenge.getIdentifier().getOrder().getAccount(),
-                    getServerInstance()
+                    getModuleInstance().getModule().getServerInstance()
             );
             case "dns-01" -> DNSChallenge.check(
                     identifierChallenge.getAuthorizationToken(),
                     nonWildcardDomain,
                     identifierChallenge.getIdentifier().getOrder().getAccount(),
-                    getServerInstance()
+                    getModuleInstance().getModule().getServerInstance()
             );
             default -> {
                 log.error("Unsupported challenge type: {}", challengeType);
@@ -111,18 +112,19 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         log.info("Validating ownership of host {}", nonWildcardDomain);
         if (result.successful()) {
             // Mark challenge as passed
-            AcmeOrderIdentifierChallenge.passChallenge(challengeId, getServerInstance());
+            AcmeOrderIdentifierChallenge.passChallenge(challengeId, getModuleInstance().getModule().getServerInstance());
         } else {
-            AcmeOrderIdentifierChallenge.failChallenge(challengeId, getServerInstance());
+            AcmeOrderIdentifierChallenge.failChallenge(challengeId, getModuleInstance().getModule().getServerInstance());
 
             log.error("Throwing API error: Host verification failed with method {}", challengeType);
             throw new ACMEConnectionErrorException(result.errorReason());
         }
 
-        getServerInstance().getEventBus().publish(new AfterChallengeEvent(typeEnum, challengeId, result.successful()));
+        // TODO: Result is always true here, may the event needs adjustments
+        getModuleInstance().getModule().getServerInstance().getEventBus().publish(new AfterChallengeEvent(typeEnum, challengeId, result.successful()));
 
         // Reload identifier, e.g., host has validated
-        identifierChallenge = AcmeOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getServerInstance());
+        identifierChallenge = AcmeOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getModuleInstance().getModule().getServerInstance());
 
         // Creating response object
         ACMEChallengeResponse response = new ACMEChallengeResponse();
@@ -133,11 +135,11 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         } else {
             response.setStatus(AcmeStatus.PENDING.getRfcName());
         }
-        response.setUrl(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/chall/" + challengeId + "/" + challengeType);
+        response.setUrl(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/chall/" + challengeId + "/" + challengeType);
         response.setToken(identifierChallenge.getAuthorizationToken());
 
         // "Up"-Link header is required for certbot
-        ctx.header("Link", HttpHeaderUtil.buildLinkHeaderValue(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/authz/" + identifierChallenge.getIdentifier().getAuthorizationId(), "up"));
+        ctx.header("Link", HttpHeaderUtil.buildLinkHeaderValue(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/authz/" + identifierChallenge.getIdentifier().getAuthorizationId(), "up"));
 
         ctx.json(response);
     }

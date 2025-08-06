@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.types.api.acme.challenge;
+package de.morihofi.certgine.acme.types.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

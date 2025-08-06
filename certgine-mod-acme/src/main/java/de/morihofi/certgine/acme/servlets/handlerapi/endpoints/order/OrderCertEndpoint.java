@@ -13,8 +13,9 @@ import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 
@@ -39,8 +40,8 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
      *
      * @param serverInstance The server instance for managing server configurations and operations.
      */
-    public OrderCertEndpoint(IServerInstance serverInstance) {
-        super(serverInstance);
+    public OrderCertEndpoint(CertgineModuleInstance moduleInstance) {
+        super(moduleInstance);
     }
 
     /**
@@ -58,17 +59,18 @@ public class OrderCertEndpoint extends AbstractAcmeEndpoint {
         String orderId = ctx.pathParam("orderId");
 
         ctx.header("Content-Type", "application/pem-certificate-chain");
-        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(getModuleInstance().getModule().getServerInstance()));
         // ctx.header("Link", "<" + provisioner.getAcmeApiURL() + "/directory" + ">;rel=\"index\"");
 
-        AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getServerInstance());
+        AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getModuleInstance().getModule().getServerInstance());
 
 
         StringBuilder responseCertificateChainBuilder = new StringBuilder();
 
         List<X509Certificate> certChain = getCertificateChainOfACMEbyCertificateId(order,
                 provisioner,
-                getServerInstance());
+                getModuleInstance().getModule().getServerInstance()
+        );
 
         for (X509Certificate certificate : certChain) {
             responseCertificateChainBuilder.append(PemUtil.certificateToPEM(certificate.getEncoded()));

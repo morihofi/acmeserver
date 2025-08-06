@@ -6,9 +6,9 @@
 package de.morihofi.certgine.core.web;
 
 import de.morihofi.certgine.cryptography.certificate.X509CertificateTools;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
+import de.morihofi.certgine.types.dns.DnsIdentifier;
 import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
@@ -79,7 +79,7 @@ public class JettyCertificateHelper {
                         .issuerKeyPair(rootCaKeyPair)
                         .issuerCertificate(intermediateCertificate)
                         .serverPublicKeyBytes(acmeAPIKeyPair.getPublic().getEncoded())
-                        .identifier(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, serverInstance.getAppConfig().getServer().getDnsName()))
+                        .identifier(new DnsIdentifier(DnsIdentifier.IDENTIFIER_TYPE.DNS, serverInstance.getAppConfig().getServer().getDnsName()))
                         .startDate(java.util.Date.from(startInstant))
                         .endDate(java.util.Date.from(endInstant))
                         .serverInstance(serverInstance)

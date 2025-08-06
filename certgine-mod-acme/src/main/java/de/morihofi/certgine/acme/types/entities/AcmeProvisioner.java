@@ -34,7 +34,7 @@ public class AcmeProvisioner implements Serializable {
     private String internalUuid;
 
     @Embedded
-    private ProvisionerMeta meta;
+    private AcmeProvisionerMeta meta;
 
     @OneToOne(optional = false, cascade = CascadeType.ALL)
     @JoinColumn(name = "intermediate_id", nullable = false)

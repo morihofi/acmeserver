@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.types.events;
+package de.morihofi.certgine.acme.types.events;
 
+import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,6 +15,6 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public class AcmeTlsCertificateHotReloadEvent extends AbstractEvent{
+public class AcmeTlsCertificateHotReloadEvent extends AbstractEvent {
     private final IServerInstance serverInstance;
 }

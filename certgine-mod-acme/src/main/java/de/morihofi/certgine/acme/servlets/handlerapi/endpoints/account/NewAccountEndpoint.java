@@ -8,6 +8,7 @@ package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.account;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import de.morihofi.certgine.acme.AcmeModuleInstance;
 import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.account.objects.AccountResponse;
@@ -19,12 +20,13 @@ import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.acme.types.entities.AcmeExternalAccountBinding;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.types.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUserActionRequiredException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.utils.http.HttpHeaderUtil;
 import de.morihofi.certgine.utils.regex.EmailValidator;
 import de.morihofi.certgine.acme.types.events.AcmeAccountCreatedEvent;
@@ -53,10 +55,10 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
     /**
      * Constructs a new instance of the NewAccountEndpoint class.
      *
-     * @param serverInstance The server instance running this endpoint.
+     * @param moduleInstance The server instance running this endpoint.
      */
-    public NewAccountEndpoint(IServerInstance serverInstance) {
-        super(serverInstance);
+    public NewAccountEndpoint(CertgineModuleInstance moduleInstance) {
+        super(moduleInstance);
     }
 
     /**
@@ -71,7 +73,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
     @Override
     public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
         // Check nonce
-        getServerInstance().getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        ((AcmeModuleInstance) getModuleInstance()).getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
         // Deserialize payload and protected objects
         ACMEAccountRequestPayload payload = gson.fromJson(acmeRequestBody.getDecodedPayload(), ACMEAccountRequestPayload.class);
@@ -120,7 +122,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
 
         String publicKeyPEM = PemUtil.convertToPem(publicJsonWebKey.getPublicKey());
 
-        try (Session session = getServerInstance().getDatabaseSession()) {
+        try (Session session = getModuleInstance().getModule().getServerInstance().getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
             AcmeAccount account = new AcmeAccount();
             account.setAccountId(accountId);
@@ -134,23 +136,23 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
             session.persist(account);
             transaction.commit();
             log.info("New ACME account created with account id {}", accountId);
-            getServerInstance().getEventBus().publish(new AcmeAccountCreatedEvent(account));
+            getModuleInstance().getModule().getServerInstance().getEventBus().publish(new AcmeAccountCreatedEvent(account));
         } catch (Exception e) {
             log.error("Unable to create new ACME account", e);
             throw new ACMEServerInternalException(e.getMessage());
         }
 
         // Construct response
-        String nonce = HttpNonces.createNonce(getServerInstance());
+        String nonce = AcmeHttpNonce.createNonce(getModuleInstance().getModule().getServerInstance());
         ctx.header("Content-Type", "application/json");
-        ctx.header("Location", provisioner.getAcmeApiURL(getServerInstance()) + "/acme/acct/" + accountId);
+        ctx.header("Location", provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/acct/" + accountId);
         ctx.header("Replay-Nonce", nonce);
         ctx.status(201); // Created
 
         AccountResponse response = new AccountResponse();
         response.setStatus(AcmeStatus.VALID.getRfcName());
         response.setContact(emails);
-        response.setOrders(provisioner.getAcmeApiURL(getServerInstance()) + "/acme/acct/" + accountId + "/orders");
+        response.setOrders(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/acct/" + accountId + "/orders");
 
         ctx.json(response);
     }
@@ -184,7 +186,7 @@ public class NewAccountEndpoint extends AbstractAcmeEndpoint {
         }
 
         String kid = eabJws.getKeyIdHeaderValue();
-        AcmeExternalAccountBinding key = AcmeExternalAccountBinding.getForKid(getServerInstance(), kid);
+        AcmeExternalAccountBinding key = AcmeExternalAccountBinding.getForKid(getModuleInstance().getModule().getServerInstance(), kid);
         if (key == null) {
             throw new ACMEUserActionRequiredException("Unknown external account binding key");
         }

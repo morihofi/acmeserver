@@ -3,30 +3,31 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.types.api.acme.dns;
+package de.morihofi.certgine.acme.types;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * Tests for {@link Identifier} type resolution and validation.
+ * Tests for {@link AcmeOrderIdentifier} type resolution and validation.
  */
 class IdentifierTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"DNS", "dns", "DnS"})
     void getTypeAsEnumConstant_resolvesDnsCaseInsensitive(String input) {
-        Identifier identifier = new Identifier(input, "example.com");
-        assertEquals(Identifier.IDENTIFIER_TYPE.DNS, identifier.getTypeAsEnumConstant());
+        AcmeOrderIdentifier identifier = new AcmeOrderIdentifier(input, "example.com");
+        assertEquals(AcmeOrderIdentifier.IDENTIFIER_TYPE.DNS, identifier.getTypeAsEnumConstant());
     }
 
     @Test
     void getTypeByName_throwsOnUnknownType() {
-        assertThrows(IllegalArgumentException.class, () -> new Identifier("UNKNOWN", "example.com"));
+        assertThrows(IllegalArgumentException.class, () -> new AcmeOrderIdentifier("UNKNOWN", "example.com"));
     }
 }
 

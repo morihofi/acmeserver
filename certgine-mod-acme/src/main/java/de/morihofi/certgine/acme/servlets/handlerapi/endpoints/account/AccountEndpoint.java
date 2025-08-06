@@ -19,6 +19,7 @@ import de.morihofi.certgine.types.exception.exceptions.ACMEAccountNotFoundExcept
 import de.morihofi.certgine.types.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.certgine.acme.types.events.AcmeAccountDeactivatedEvent;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.utils.regex.EmailValidator;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +44,8 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
      *
      * @param serverInstance The server instance.
      */
-    public AccountEndpoint(IServerInstance serverInstance) {
-        super(serverInstance);
+    public AccountEndpoint(CertgineModuleInstance moduleInstance) {
+        super(moduleInstance);
     }
 
     /**
@@ -66,12 +67,12 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
         performSignatureAndNonceCheck(ctx, accountId, acmeRequestBody);
 
         // Check if account exists
-        AcmeAccount account = AcmeAccount.getAccount(accountId, getServerInstance());
+        AcmeAccount account = AcmeAccount.getAccount(accountId, getModuleInstance().getModule().getServerInstance());
         if (account == null) {
             throw new ACMEAccountNotFoundException("Account with ID " + accountId + " not found!");
         }
 
-        try (Session session = getServerInstance().getDatabaseSession()) {
+        try (Session session = getModuleInstance().getModule().getServerInstance().getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
 
             // Update Account Settings, e.g., Email change
@@ -107,7 +108,7 @@ public class AccountEndpoint extends AbstractAcmeEndpoint {
 
             transaction.commit();
             if (account.isDeactivated()) {
-                getServerInstance().getEventBus().publish(new AcmeAccountDeactivatedEvent(account));
+                getModuleInstance().getModule().getServerInstance().getEventBus().publish(new AcmeAccountDeactivatedEvent(account));
             }
         }
 

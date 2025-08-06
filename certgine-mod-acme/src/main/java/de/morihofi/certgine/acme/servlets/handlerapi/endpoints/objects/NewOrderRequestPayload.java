@@ -5,7 +5,7 @@
 
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.objects;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.NewOrderEndpoint;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
+import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Getter;
 
@@ -22,7 +22,7 @@ public class NewOrderRequestPayload {
     /**
      * List of identifiers, which the clients want to get certificates for
      */
-    private List<Identifier> identifiers;
+    private List<AcmeOrderIdentifier> identifiers;
 
     /**
      * the desired notAfter property for the certificate

@@ -63,8 +63,7 @@ public class CertificateIssuanceSubscriber implements EventSubscriber {
 
     private void issue(AcmeOrder order) {
         try (Session session = serverInstance.getDatabaseSession()) {
-            CertificateIssuer.generateCertificateForOrder(order,
-                    serverInstance.getCryptoStoreManager(), session, serverInstance);
+            CertificateIssuer.generateCertificateForOrder(order, session, serverInstance);
         } catch (Exception ex) {
             log.error("Error generating certificate for order {}", order.getOrderId(), ex);
         }

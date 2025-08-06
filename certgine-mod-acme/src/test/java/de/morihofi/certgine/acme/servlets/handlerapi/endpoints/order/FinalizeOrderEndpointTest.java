@@ -4,6 +4,7 @@
  */
 
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order;
+import de.morihofi.certgine.acme.security.INonceManager;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.events.EventBus;
@@ -40,7 +41,7 @@ class FinalizeOrderEndpointTest {
         @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
         @NotNull
         @NonNull
-        @Override public de.morihofi.certgine.types.intf.INonceManager getNonceManager() { return null; }
+        @Override public INonceManager getNonceManager() { return null; }
         @NotNull
         @NonNull
         @Override public RootCa getRootCa() { return null; }

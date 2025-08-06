@@ -7,9 +7,9 @@ package de.morihofi.certgine.cryptography.certificate;
 
 import de.morihofi.certgine.cryptography.keys.KeyHelper;
 import de.morihofi.certgine.cryptography.randomness.RandomGenerator;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
+import de.morihofi.certgine.types.dns.DnsIdentifier;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.Builder;
 import lombok.Getter;
@@ -76,7 +76,7 @@ public class X509Generator {
 
         /* ——— Server‑certificate specifics ——— */
         private final byte[] serverPublicKeyBytes;
-        @Singular private final List<Identifier> identifiers;
+        @Singular private final List<DnsIdentifier> identifiers;
         private final Date startDate;
         private final Date endDate;
 
@@ -202,7 +202,7 @@ public class X509Generator {
         // Subject Alternative Names
         List<GeneralName> altNames = new ArrayList<>();
         req.getIdentifiers().forEach(id -> {
-            switch (id.getTypeAsEnumConstant()) {
+            switch (id.getType()) {
                 case DNS -> altNames.add(new GeneralName(GeneralName.dNSName, id.getValue()));
                 case IP -> altNames.add(new GeneralName(GeneralName.iPAddress, id.getValue()));
             }

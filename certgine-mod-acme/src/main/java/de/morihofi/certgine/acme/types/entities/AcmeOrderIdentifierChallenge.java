@@ -5,7 +5,7 @@
 
 package de.morihofi.certgine.acme.types.entities;
 
-import de.morihofi.certgine.types.api.acme.challenge.AcmeChallengeType;
+import de.morihofi.certgine.acme.types.api.AcmeChallengeType;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;

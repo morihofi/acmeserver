@@ -19,11 +19,12 @@ import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.server.common.intf.RoutableHttpServlet;
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.server.common.intf.handler.AbstractExceptionHandler;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
-import de.morihofi.certgine.types.events.AcmeExceptionEvent;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
+import de.morihofi.certgine.acme.types.events.AcmeExceptionEvent;
 import de.morihofi.certgine.types.exception.ACMEException;
 import de.morihofi.certgine.types.httpserver.HandlerType;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import lombok.extern.slf4j.Slf4j;
 import java.time.Clock;
 
@@ -35,11 +36,11 @@ import java.time.Clock;
 @ServletMount(servletMountPoint = "/acme/*", protect = true)
 public class AcmeHttpServlet extends RoutableHttpServlet {
 
-    private final IServerInstance serverInstance;
+    private final CertgineModuleInstance moduleInstance;
     private final Clock clock;
 
-    public AcmeHttpServlet(IServerInstance serverInstance, Clock clock) {
-        this.serverInstance = serverInstance;
+    public AcmeHttpServlet(CertgineModuleInstance moduleInstance, Clock clock) {
+        this.moduleInstance = moduleInstance;
         this.clock = clock;
 
         setExceptionHandler(new AbstractExceptionHandler() {
@@ -47,58 +48,58 @@ public class AcmeHttpServlet extends RoutableHttpServlet {
             public void handle(Exception e, HandlerContext ctx) throws Exception {
                 if (e instanceof ACMEException acmeException) {
                     ctx.header("Content-Type", "application/problem+json");
-                    ctx.header("Replay-Nonce", HttpNonces.createNonce(serverInstance));
+                    ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(moduleInstance.getModule().getServerInstance()));
                     ctx.status(acmeException.getHttpStatusCode());
                     ctx.json(acmeException.getErrorResponse());
                     log.error("ACME Exception thrown {} : {} ({})", acmeException.getClass().getSimpleName(), acmeException.getErrorResponse().getDetail(),
                             acmeException.getErrorResponse().getType());
-                    serverInstance.getEventBus().publish(new AcmeExceptionEvent(acmeException));
+                    moduleInstance.getModule().getServerInstance().getEventBus().publish(new AcmeExceptionEvent(acmeException));
                 }
             }
         });
 
         // ACME Directory
-        getRouter().addHandler(new Endpoint(HandlerType.GET, "/acme/{provisioner}/directory", new DirectoryEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.GET, "/acme/{provisioner}/directory", new DirectoryEndpoint(moduleInstance)));
 
         // New account
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/new-acct", new NewAccountEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/new-acct", new NewAccountEndpoint(moduleInstance)));
 
         // Key Change Endpoint (Account key rollover)
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/key-change", new KeyChangeEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/key-change", new KeyChangeEndpoint(moduleInstance)));
 
         // New Nonce
-        getRouter().addHandler(new Endpoint(HandlerType.HEAD, "/acme/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance)));
-        getRouter().addHandler(new Endpoint(HandlerType.GET, "/acme/{provisioner}/acme/new-nonce", new NewNonceEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.HEAD, "/acme/{provisioner}/acme/new-nonce", new NewNonceEndpoint(moduleInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.GET, "/acme/{provisioner}/acme/new-nonce", new NewNonceEndpoint(moduleInstance)));
 
         // Account Update
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/acct/{id}", new AccountEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/acct/{id}", new AccountEndpoint(moduleInstance)));
 
         // Create new Order
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/new-order", new NewOrderEndpoint(serverInstance, clock)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/new-order", new NewOrderEndpoint(moduleInstance, clock)));
 
         // Challenge / Ownership verification
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(serverInstance, clock)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/authz/{authorizationId}", new AuthzOwnershipEndpoint(moduleInstance, clock)));
 
         // Challenge Callback
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/chall/{challengeId}/{challengeType}", new ChallengeCallbackEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/chall/{challengeId}/{challengeType}", new ChallengeCallbackEndpoint(moduleInstance)));
 
         // Finalize endpoint
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}/finalize", new FinalizeOrderEndpoint(moduleInstance)));
 
         // Order info Endpoint
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}", new OrderInfoEndpoint(serverInstance, clock)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}", new OrderInfoEndpoint(moduleInstance, clock)));
 
         // Get Order Certificate
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}/cert", new OrderCertEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/order/{orderId}/cert", new OrderCertEndpoint(moduleInstance)));
 
         // Revoke certificate
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/revoke-cert", new RevokeCertEndpoint(serverInstance, clock)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/acme/{provisioner}/acme/revoke-cert", new RevokeCertEndpoint(moduleInstance, clock)));
 
         getRouter().addBeforeHandler("/acme", new AcmeBeforeHandler());
 
     }
 
-    public AcmeHttpServlet(IServerInstance serverInstance) {
-        this(serverInstance, Clock.systemUTC());
+    public AcmeHttpServlet(CertgineModuleInstance moduleInstance) {
+        this(moduleInstance, Clock.systemUTC());
     }
 }

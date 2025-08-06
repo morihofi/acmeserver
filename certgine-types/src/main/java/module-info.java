@@ -10,7 +10,6 @@ open module certgine.types {
     exports de.morihofi.certgine.types.runtime;
     exports de.morihofi.certgine.types.intf;
     exports de.morihofi.certgine.types.json;
-    exports de.morihofi.certgine.types.api.acme.dns;
     exports de.morihofi.certgine.types.cryptography.keystore;
     exports de.morihofi.certgine.types.cryptography.revoke;
     exports de.morihofi.certgine.types.exception.exceptions;
@@ -21,6 +20,7 @@ open module certgine.types {
     exports de.morihofi.certgine.types.database.entities.user;
     exports de.morihofi.certgine.types.modules;
     exports de.morihofi.certgine.types.cryptography;
+    exports de.morihofi.certgine.types.dns;
 
     requires com.github.spotbugs.annotations;
     requires com.google.gson;
@@ -34,4 +34,5 @@ open module certgine.types {
     requires okhttp3;
     requires org.dnsjava;
     requires jakarta.servlet;
+    requires java.naming;
 }

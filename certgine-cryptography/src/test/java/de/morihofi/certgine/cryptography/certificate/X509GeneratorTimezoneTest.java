@@ -1,10 +1,10 @@
 package de.morihofi.certgine.cryptography.certificate;
 
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
 import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
+import de.morihofi.certgine.types.dns.DnsIdentifier;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ class X509GeneratorTimezoneTest {
                     .issuerKeyPair(rootKey)
                     .issuerCertificate(rootCert)
                     .serverPublicKeyBytes(serverKey.getPublic().getEncoded())
-                    .identifier(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, "example.com"))
+                    .identifier(new DnsIdentifier(DnsIdentifier.IDENTIFIER_TYPE.DNS, "example.com"))
                     .startDate(Date.from(start))
                     .endDate(Date.from(end))
                     .build());

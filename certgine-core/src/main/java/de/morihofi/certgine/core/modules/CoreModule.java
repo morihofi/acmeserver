@@ -16,9 +16,13 @@ import java.util.Set;
  * Module exposing core servlet handlers bundled with the server.
  */
 @ModuleDescriptor(moduleName = "core", description = "Core server handlers")
-public class CoreModule implements CertgineModule {
+public class CoreModule extends CertgineModule {
 
     private CertificateRenewScheduler certificateRenewScheduler;
+
+    public CoreModule(IServerInstance serverInstance) {
+        super(serverInstance);
+    }
 
     @Override
     public Set<Class<?>> getEntityClasses() {

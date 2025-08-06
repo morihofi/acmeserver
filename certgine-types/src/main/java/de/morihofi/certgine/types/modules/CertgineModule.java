@@ -7,7 +7,11 @@ package de.morihofi.certgine.types.modules;
 
 import de.morihofi.certgine.types.intf.IServerInstance;
 import jakarta.servlet.http.HttpServlet;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
+import javax.naming.OperationNotSupportedException;
 import java.util.Map;
 import java.util.Set;
 
@@ -18,38 +22,41 @@ import java.util.Set;
  * interfaces. Implementations are expected to provide the classes through the
  * corresponding getter methods.</p>
  */
-public interface CertgineModule {
+@RequiredArgsConstructor
+public abstract class CertgineModule {
+
+    @Getter
+    private final IServerInstance serverInstance;
 
     /**
      * Entity classes contributed by this module.
      *
      * @return immutable set of entity classes
      */
-    Set<Class<?>> getEntityClasses();
+    public abstract Set<Class<?>> getEntityClasses();
 
     /**
      * HTTP handler classes contributed by this module.
      *
      * @return immutable set of HTTP handler classes
      */
-    Set<Class<? extends HttpServlet>> getHttpServlets();
-
+    public abstract Set<Class<? extends HttpServlet>> getHttpServlets();
 
     /**
      * Runs on module gets registered
      */
-    default void onRegister() {}
+    public void onRegister() {}
 
     /**
      * Runs on module gets unloaded
      */
-    default void onUnLoad() {}
+    public void onUnLoad() {}
 
     /**
      * Runs as soon as serverinstance has been created
      * @param serverInstance server instance object
      */
-    default void onModuleInitialize(IServerInstance serverInstance){}
+    public void onModuleInitialize(IServerInstance serverInstance){}
 
     /**
      * Scheduled tasks contributed by this module.
@@ -60,8 +67,17 @@ public interface CertgineModule {
      *
      * @return immutable map of cron expression to scheduled task
      */
-    default Map<String, ModuleScheduledTask> getScheduledTasks() {
+    public Map<String, ModuleScheduledTask> getScheduledTasks() {
         return Map.of();
+    }
+
+    /**
+     * Get an instance for interfacing with the current module
+     * @return the module interface
+     */
+    @NonNull
+    public CertgineModuleInstance getModuleInstance() {
+        throw new IllegalArgumentException("This functionality is not implemented in your module");
     }
 }
 

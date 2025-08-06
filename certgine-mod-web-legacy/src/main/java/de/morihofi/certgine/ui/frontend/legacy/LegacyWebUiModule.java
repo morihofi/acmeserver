@@ -1,5 +1,6 @@
 package de.morihofi.certgine.ui.frontend.legacy;
 
+import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.ModuleDescriptor;
 import jakarta.servlet.http.HttpServlet;
@@ -10,7 +11,11 @@ import java.util.Set;
  * Certgine module providing the legacy web UI.
  */
 @ModuleDescriptor(moduleName = "web-legacy", description = "Legacy web user interface")
-public class LegacyWebUiModule implements CertgineModule {
+public class LegacyWebUiModule extends CertgineModule {
+
+    public LegacyWebUiModule(IServerInstance serverInstance) {
+        super(serverInstance);
+    }
 
     /**
      * {@inheritDoc}

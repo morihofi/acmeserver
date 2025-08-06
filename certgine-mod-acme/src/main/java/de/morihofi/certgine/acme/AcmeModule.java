@@ -1,10 +1,12 @@
 package de.morihofi.certgine.acme;
 
+import de.morihofi.certgine.acme.security.NonceManager;
 import de.morihofi.certgine.acme.servlets.AcmeHttpServlet;
 import de.morihofi.certgine.acme.servlets.GetHttpsForFreeServlet;
 import de.morihofi.certgine.acme.types.entities.*;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.types.modules.CertgineModule;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.types.modules.ModuleDescriptor;
 import de.morihofi.certgine.acme.tools.certificate.renew.watcher.ProvisionerRenewSubscriber;
 import de.morihofi.certgine.types.intf.IServerInstance;
@@ -15,6 +17,7 @@ import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
 import de.morihofi.certgine.types.database.entities.authority.*;
 import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
 import jakarta.servlet.http.HttpServlet;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.Session;
@@ -31,7 +34,11 @@ import java.util.UUID;
  */
 @Slf4j
 @ModuleDescriptor(moduleName = "acme", description = "ACME API and related entities")
-public class AcmeModule implements CertgineModule {
+public class AcmeModule extends CertgineModule {
+
+    public AcmeModule(IServerInstance serverInstance) {
+        super(serverInstance);
+    }
 
     /**
      * {@inheritDoc}
@@ -46,8 +53,8 @@ public class AcmeModule implements CertgineModule {
                 AcmeOrderIdentifierChallenge.class,
                 AcmeProvisioner.class,
                 AcmeProvisionerDomainNameRestriction.class,
-                HttpNonces.class,
-                ProvisionerMeta.class
+                AcmeHttpNonce.class,
+                AcmeProvisionerMeta.class
         );
     }
 
@@ -113,7 +120,7 @@ public class AcmeModule implements CertgineModule {
             intermediateCa.setCertificateConfig(intConfig);
             provisioner.setName("default");
             provisioner.setRootCa(rootCa);
-            provisioner.setMeta(new ProvisionerMeta("", ""));
+            provisioner.setMeta(new AcmeProvisionerMeta("", ""));
             provisioner.setIntermediateCa(intermediateCa);
             provisioner.setIssuedCertificateExpiration(new CertificateExpiration(0, 3, 0));
             provisioner.setWildcardAllowed(false);
@@ -140,5 +147,10 @@ public class AcmeModule implements CertgineModule {
         } catch (Exception e) {
             log.warn("Failed to create default ACME provisioner", e);
         }
+    }
+
+    @Override
+    public @NonNull CertgineModuleInstance getModuleInstance() {
+        return new AcmeModuleInstance(this);
     }
 }

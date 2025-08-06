@@ -15,7 +15,7 @@ import de.morihofi.certgine.types.config.ServerConfig;
 import de.morihofi.certgine.types.database.entities.authority.*;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
-import de.morihofi.certgine.types.intf.INonceManager;
+import de.morihofi.certgine.acme.security.INonceManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;

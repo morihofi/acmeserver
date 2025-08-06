@@ -49,10 +49,6 @@ class IServerInstanceTest {
         @Override
         public Config getAppConfig() { return null; }
 
-        @NotNull
-        @NonNull
-        @Override
-        public INonceManager getNonceManager() { return null; }
 
         @NotNull
         @NonNull

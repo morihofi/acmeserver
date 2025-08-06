@@ -5,6 +5,7 @@
 
 package de.morihofi.certgine.core.modules;
 
+import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.ModuleDescriptor;
 import lombok.Getter;
@@ -16,6 +17,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
@@ -74,8 +76,12 @@ public class ModuleManager {
      * Discovers and loads modules that are already present on the application
      * classpath using {@link ServiceLoader}.
      */
-    public void loadModulesFromClasspath() {
-        ServiceLoader<CertgineModule> serviceLoader = ServiceLoader.load(CertgineModule.class);
+    public void loadModulesFromClasspath(IServerInstance serverInstance) {
+        List<CertgineModule> serviceLoader = new ServiceLoaderWithArgs<>(
+                CertgineModule.class,
+                new Class<?>[]{IServerInstance.class},
+                new Object[]{serverInstance}
+        ).load();
         for (CertgineModule module : serviceLoader) {
             ModuleDescriptor descriptor = module.getClass().getAnnotation(ModuleDescriptor.class);
             if (descriptor == null) {

@@ -3,16 +3,15 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.core.impl;
+package de.morihofi.certgine.acme.security;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import de.morihofi.certgine.core.database.HibernateUtil;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.types.events.AcmeNonceRedeemedEvent;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadNonceException;
-import de.morihofi.certgine.types.intf.INonceManager;
-import de.morihofi.certgine.types.events.AcmeNonceRedeemedEvent;
+import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,12 +30,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NonceManager implements INonceManager {
 
-    /**
-    * Server.
-    */
-    private final HibernateUtil hibernateUtil;
-
-    private final EventBus eventBus;
+    private final IServerInstance serverInstance;
 
 
     /**
@@ -48,10 +42,9 @@ public class NonceManager implements INonceManager {
      * Constructs a new NonceManager instance
      *
      */
-    public NonceManager(@NonNull HibernateUtil hibernateUtil, @NonNull EventBus eventBus) {
+    public NonceManager(@NonNull IServerInstance serverInstance) {
         this.debug = false;
-        this.hibernateUtil = hibernateUtil;
-        this.eventBus = eventBus;
+        this.serverInstance = serverInstance;
     }
 
 
@@ -78,15 +71,15 @@ public class NonceManager implements INonceManager {
             return false;
         }
 
-        try (Session session = Objects.requireNonNull(hibernateUtil.getSessionFactory().openSession())) {
+        try (Session session = Objects.requireNonNull(serverInstance.getDatabaseSession())) {
             Transaction transaction = session.beginTransaction();
 
             // Check if the nonce exists in the database
-            String hql = "FROM HttpNonces hn WHERE hn.nonce = :nonce";
-            Query<HttpNonces> query = session.createQuery(hql, HttpNonces.class);
+            String hql = "FROM AcmeHttpNonce hn WHERE hn.nonce = :nonce";
+            Query<AcmeHttpNonce> query = session.createQuery(hql, AcmeHttpNonce.class);
             query.setParameter("nonce", nonce);
             query.setMaxResults(1);
-            Optional<HttpNonces> result = query.uniqueResultOptional();
+            Optional<AcmeHttpNonce> result = query.uniqueResultOptional();
 
             if (result.isEmpty()) {
                 // If the nonce does not exist
@@ -94,7 +87,7 @@ public class NonceManager implements INonceManager {
             }
 
             // Get our object
-            HttpNonces nonceObj = result.get();
+            AcmeHttpNonce nonceObj = result.get();
 
             if (nonceObj.getRedeemTimestamp() != null) {
                 return true; // Nonce already used
@@ -108,7 +101,7 @@ public class NonceManager implements INonceManager {
 
             // Apply
             transaction.commit();
-            eventBus.publish(new AcmeNonceRedeemedEvent(nonce));
+            serverInstance.getEventBus().publish(new AcmeNonceRedeemedEvent(nonce));
 
             return false;
 

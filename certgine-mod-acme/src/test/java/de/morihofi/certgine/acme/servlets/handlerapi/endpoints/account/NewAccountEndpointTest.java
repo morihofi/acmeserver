@@ -5,6 +5,7 @@
 
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.account;
 
+import de.morihofi.certgine.acme.security.INonceManager;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.account.objects.ExternalAccountBinding;
 import de.morihofi.certgine.acme.types.entities.AcmeExternalAccountBinding;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
@@ -35,7 +36,7 @@ class NewAccountEndpointTest {
         @Override public Session getDatabaseSession() { return null; }
         @Override public ICryptoStoreManager getCryptoStoreManager() { return null; }
         @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
-        @Override public de.morihofi.certgine.types.intf.INonceManager getNonceManager() { return null; }
+        @Override public INonceManager getNonceManager() { return null; }
         @Override public de.morihofi.certgine.types.database.entities.authority.RootCa getRootCa() { return null; }
         @Override public de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() { return null; }
         @Override public de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() { return null; }

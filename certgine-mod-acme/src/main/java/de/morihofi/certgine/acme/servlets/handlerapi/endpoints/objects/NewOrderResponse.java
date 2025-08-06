@@ -6,7 +6,7 @@
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.objects;
 
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.NewOrderEndpoint;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
+import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Data;
 
@@ -43,7 +43,7 @@ public class NewOrderResponse {
     /**
      * The list of identifiers for the order.
      */
-    private List<Identifier> identifiers;
+    private List<AcmeOrderIdentifier> identifiers;
 
     /**
      * The list of authorization URLs for the order.

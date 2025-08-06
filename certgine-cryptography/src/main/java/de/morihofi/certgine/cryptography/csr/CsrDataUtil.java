@@ -1,6 +1,6 @@
 package de.morihofi.certgine.cryptography.csr;
 
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
+import de.morihofi.certgine.types.dns.DnsIdentifier;
 import de.morihofi.certgine.utils.base64.Base64Tools;
 import lombok.NonNull;
 import org.bouncycastle.asn1.ASN1OctetString;
@@ -34,17 +34,17 @@ public final class CsrDataUtil {
      * @throws IOException if the CSR cannot be parsed
      */
     @NonNull
-    public static Set<@NonNull Identifier> getDomainsAndIPsFromCSR(@NonNull String csr) throws IOException {
+    public static Set<@NonNull DnsIdentifier> getDomainsAndIPsFromCSR(@NonNull String csr) throws IOException {
         byte[] csrBytes = Base64Tools.decodeBase64URLAsBytes(csr);
         PKCS10CertificationRequest certRequest = new PKCS10CertificationRequest(csrBytes);
 
-        Set<Identifier> domainAndIpList = new HashSet<>();
+        Set<DnsIdentifier> domainAndIpList = new HashSet<>();
 
         X500Name subject = certRequest.getSubject();
         RDN[] cnRDNs = subject.getRDNs(BCStyle.CN);
         if (cnRDNs.length != 0) {
             String commonName = cnRDNs[0].getFirst().getValue().toString();
-            domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, commonName));
+            domainAndIpList.add(new DnsIdentifier(DnsIdentifier.IDENTIFIER_TYPE.DNS, commonName));
         }
 
         Extension sanExtension = certRequest.getRequestedExtensions().getExtension(Extension.subjectAlternativeName);
@@ -52,10 +52,10 @@ public final class CsrDataUtil {
             GeneralNames san = GeneralNames.getInstance(sanExtension.getParsedValue());
             for (GeneralName name : san.getNames()) {
                 if (name.getTagNo() == GeneralName.dNSName) {
-                    domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.DNS, name.getName().toString()));
+                    domainAndIpList.add(new DnsIdentifier(DnsIdentifier.IDENTIFIER_TYPE.DNS, name.getName().toString()));
                 } else if (name.getTagNo() == GeneralName.iPAddress) {
                     byte[] ip = ASN1OctetString.getInstance(name.getName()).getOctets();
-                    domainAndIpList.add(new Identifier(Identifier.IDENTIFIER_TYPE.IP, convertToIP(ip)));
+                    domainAndIpList.add(new DnsIdentifier(DnsIdentifier.IDENTIFIER_TYPE.IP, convertToIP(ip)));
                 }
             }
         }

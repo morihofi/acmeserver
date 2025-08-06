@@ -8,7 +8,6 @@ package de.morihofi.certgine.core.impl;
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
-import de.morihofi.certgine.types.intf.INonceManager;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.config.Config;
@@ -73,12 +72,6 @@ public class ServerInstance implements IServerInstance {
      */
     @NonNull
     private final HibernateUtil hibernateUtil;
-
-    /**
-     * Manages nonce's for the ACME protocol.
-     */
-    @NonNull
-    private final INonceManager nonceManager;
 
     @Setter
     @NonNull

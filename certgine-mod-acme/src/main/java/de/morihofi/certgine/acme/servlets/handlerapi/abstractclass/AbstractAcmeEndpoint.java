@@ -6,6 +6,7 @@
 package de.morihofi.certgine.acme.servlets.handlerapi.abstractclass;
 
 import com.google.gson.Gson;
+import de.morihofi.certgine.acme.AcmeModuleInstance;
 import de.morihofi.certgine.acme.security.SignatureCheck;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
 
@@ -16,6 +17,7 @@ import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.json.GsonFactory;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
@@ -37,16 +39,16 @@ public abstract class AbstractAcmeEndpoint implements Handler {
      */
     private final Gson gson = GsonFactory.createGson();
 
-    private final IServerInstance serverInstance;
+    private final CertgineModuleInstance moduleInstance;
 
     /**
      * Constructs an AbstractAcmeEndpoint with the given provisioner and server instance.
      *
-     * @param serverInstance The server instance.
+     * @param moduleInstance The server instance.
      */
     @SuppressFBWarnings("CT_CONSTRUCTOR_THROW")
-    public AbstractAcmeEndpoint(@NonNull IServerInstance serverInstance) {
-        this.serverInstance = serverInstance;
+    public AbstractAcmeEndpoint(@NonNull CertgineModuleInstance moduleInstance) {
+        this.moduleInstance = moduleInstance;
     }
 
     public static AcmeProvisioner getProvisionerFromJavalin(IServerInstance serverInstance, @NonNull HandlerContext ctx) {
@@ -65,7 +67,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
      * @return The provisioner instance.
      */
     public AcmeProvisioner getProvisioner(@NonNull HandlerContext context) {
-        return getProvisionerFromJavalin(serverInstance, context);
+        return getProvisionerFromJavalin(moduleInstance.getModule().getServerInstance(), context);
     }
 
     /**
@@ -111,8 +113,8 @@ public abstract class AbstractAcmeEndpoint implements Handler {
      */
     public void performSignatureAndNonceCheck(@NonNull HandlerContext ctx, @NonNull String accountId, @NonNull ACMERequestBody acmeRequestBody) {
         // Check signature and nonce
-        SignatureCheck.checkSignature(ctx, accountId, gson, getServerInstance());
-        serverInstance.getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+        SignatureCheck.checkSignature(ctx, accountId, gson, getModuleInstance().getModule().getServerInstance());
+        ((AcmeModuleInstance) moduleInstance).getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
     }
 
     /**

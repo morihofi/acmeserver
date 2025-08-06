@@ -6,20 +6,19 @@
 package de.morihofi.certgine.acme.certificate.queue;
 
 import de.morihofi.certgine.acme.csr.AcmeCsrValidator;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
-
-import de.morihofi.certgine.acme.types.entities.enums.AcmeOrderState;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.entities.enums.AcmeOrderState;
+import de.morihofi.certgine.acme.types.events.AcmeCertificateCreatedEvent;
+import de.morihofi.certgine.acme.types.events.BeforeAcmeCertificateCreatedEvent;
+import de.morihofi.certgine.cryptography.certificate.X509Generator;
+import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
+import de.morihofi.certgine.types.dns.DnsIdentifier;
+import de.morihofi.certgine.types.exception.exceptions.ACMECaaException;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.utils.base64.Base64Tools;
-import de.morihofi.certgine.cryptography.pem.PemUtil;
-import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.utils.network.dns.CAAValidator;
-import de.morihofi.certgine.types.exception.exceptions.ACMECaaException;
-import de.morihofi.certgine.acme.types.events.BeforeAcmeCertificateCreatedEvent;
-import de.morihofi.certgine.acme.types.events.AcmeCertificateCreatedEvent;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -42,7 +41,7 @@ import java.util.Set;
 public class CertificateIssuer {
 
 
-    public static void generateCertificateForOrder(@NonNull AcmeOrder order, @NonNull ICryptoStoreManager cryptoStoreManager, @NonNull Session session, @NonNull IServerInstance serverInstance) throws
+    public static void generateCertificateForOrder(@NonNull AcmeOrder order, @NonNull Session session, @NonNull IServerInstance serverInstance) throws
             IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException,
             OperatorCreationException {
         String csr = order.getCertificateCSR();
@@ -51,13 +50,13 @@ public class CertificateIssuer {
         PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
         PemObject pkPemObject = new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
 
-        Set<Identifier> csrIdentifiers = AcmeCsrValidator.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
+        Set<DnsIdentifier> csrIdentifiers = AcmeCsrValidator.getCsrIdentifiersAndVerifyWithIdentifiers(csr, order.getOrderIdentifiers());
         AcmeProvisioner provisioner = order.getAccount().getAcmeProvisioner();
 
         // Perform CAA checks for each DNS identifier
         String caDomain = serverInstance.getAppConfig().getServer().getDnsName();
-        for (Identifier id : csrIdentifiers) {
-            if (id.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.DNS) {
+        for (DnsIdentifier id : csrIdentifiers) {
+            if (id.getType() == DnsIdentifier.IDENTIFIER_TYPE.DNS) {
                 boolean allowed = CAAValidator.isIssuanceAllowed(
                         id.getValue(),
                         caDomain,
@@ -78,7 +77,7 @@ public class CertificateIssuer {
 
         log.info("Creating Certificate for order \"{}\" with DNS Names {}", order.getOrderId(),
                 String.join(", ", csrIdentifiers.stream()
-                        .map(identifier -> identifier.getTypeAsEnumConstant().toString() + ":" + identifier.getValue())
+                        .map(identifier -> identifier.getType().toString() + ":" + identifier.getValue())
                         .toList()
                 )
         );
@@ -89,8 +88,8 @@ public class CertificateIssuer {
         X509Certificate acmeGeneratedCertificate = X509Generator.generate(
                 X509Generator.Request.builder()
                         .type(X509Generator.Type.SERVER)
-                        .issuerKeyPair(cryptoStoreManager.getIntermediateCertificateAuthorityKeyPair(provisioner.getInternalUuid()))
-                        .issuerCertificate(cryptoStoreManager.getIntermediateCertificate(provisioner.getInternalUuid()))
+                        .issuerKeyPair(serverInstance.getCryptoStoreManager().getIntermediateCertificateAuthorityKeyPair(provisioner.getInternalUuid()))
+                        .issuerCertificate(serverInstance.getCryptoStoreManager().getIntermediateCertificate(provisioner.getInternalUuid()))
                         .serverPublicKeyBytes(pkPemObject.getContent())
                         .identifiers(csrIdentifiers)
                         .startDate(java.util.Date.from(notBefore))

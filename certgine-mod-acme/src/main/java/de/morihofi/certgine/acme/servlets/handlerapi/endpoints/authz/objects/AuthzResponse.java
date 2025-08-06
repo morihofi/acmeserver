@@ -6,7 +6,7 @@
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.authz.objects;
 
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.authz.AuthzOwnershipEndpoint;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
+import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.List;
@@ -30,7 +30,7 @@ public class AuthzResponse {
     /**
      * Identifier associated with the authorization.
      */
-    private Identifier identifier;
+    private AcmeOrderIdentifier identifier;
 
     /**
      * List of challenges for the authorization.
@@ -83,18 +83,18 @@ public class AuthzResponse {
      * Retrieves the identifier associated with the authorization. The identifier typically represents the entity (such as a domain name)
      * being authorized.
      *
-     * @return The {@link Identifier} associated with the authorization.
+     * @return The {@link AcmeOrderIdentifier} associated with the authorization.
      */
-    public Identifier getIdentifier() {
+    public AcmeOrderIdentifier getIdentifier() {
         return identifier;
     }
 
     /**
      * Sets the identifier associated with the authorization. This method allows changing the entity being authorized.
      *
-     * @param identifier The {@link Identifier} to associate with the authorization.
+     * @param identifier The {@link AcmeOrderIdentifier} to associate with the authorization.
      */
-    public void setIdentifier(Identifier identifier) {
+    public void setIdentifier(AcmeOrderIdentifier identifier) {
         this.identifier = identifier;
     }
 

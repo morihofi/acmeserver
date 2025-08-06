@@ -8,6 +8,7 @@ package de.morihofi.certgine.acme.servlets.handlerapi.endpoints;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import de.morihofi.certgine.acme.AcmeModuleInstance;
 import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.certgine.acme.security.SignatureCheck;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
@@ -16,11 +17,12 @@ import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.acme.types.events.AcmeCertificateRevokedEvent;
 import de.morihofi.certgine.types.exception.exceptions.*;
 import de.morihofi.certgine.types.intf.IServerInstance;
 
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import lombok.NonNull;
@@ -56,8 +58,8 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
      * @param serverInstance The {@link IServerInstance} to use for this endpoint
      * @param clock          Clock used for time calculations.
      */
-    public RevokeCertEndpoint(IServerInstance serverInstance, Clock clock) {
-        super(serverInstance);
+    public RevokeCertEndpoint(CertgineModuleInstance moduleInstance, Clock clock) {
+        super(moduleInstance);
         this.clock = clock;
     }
 
@@ -66,10 +68,9 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
      *
      * @param serverInstance The server instance.
      */
-    public RevokeCertEndpoint(IServerInstance serverInstance) {
-        this(serverInstance, Clock.systemUTC());
+    public RevokeCertEndpoint(CertgineModuleInstance moduleInstance) {
+        this(moduleInstance, Clock.systemUTC());
     }
-
 
     @Override
     public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
@@ -99,13 +100,13 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
             jwkPublicKey = jwk.getPublicKey();
 
             SignatureCheck.checkSignature(ctx, jwkPublicKey, gson);
-            getServerInstance().getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
+            ((AcmeModuleInstance) getModuleInstance()).getNonceManager().checkNonceFromDecodedProtected(acmeRequestBody.getDecodedProtected());
 
             log.info("Certificate key wants to revoke a certificate");
         } else {
             // Account Key Method
             accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
-            account = AcmeAccount.getAccount(accountId, getServerInstance());
+            account = AcmeAccount.getAccount(accountId, getModuleInstance().getModule().getServerInstance());
             // Check if account exists
             if (account == null) {
                 log.error("Throwing API error: Account {} not found", accountId);
@@ -134,7 +135,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         }
 
         // Read in root certificate
-        X509Certificate intermediateCertificate = getServerInstance().getCryptoStoreManager().getIntermediateCertificate(provisioner.getInternalUuid());
+        X509Certificate intermediateCertificate = getModuleInstance().getModule().getServerInstance().getCryptoStoreManager().getIntermediateCertificate(provisioner.getInternalUuid());
 
         boolean isValid = true;
         // Validate given certificate against root certificate
@@ -166,7 +167,7 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         BigInteger serialNumber = certificate.getSerialNumber();
 
         // Get the identifier, where the certificate belongs to
-        AcmeOrder order = AcmeOrder.getAcmeOrderCertificateSerialNumber(serialNumber, getServerInstance());
+        AcmeOrder order = AcmeOrder.getAcmeOrderCertificateSerialNumber(serialNumber, getModuleInstance().getModule().getServerInstance());
 
         if (!usingJwkMethod && !order.getAccount().getAccountId().equals(accountId)) {
             throw new ACMEServerInternalException("Rejected: You cannot revoke a certificate, that belongs to another account.");
@@ -193,17 +194,17 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
 
         // Check reason code
         if (reason < 0 || reason > 8 || reason == 7) {
-            throw new ACMEBadRevocationReasonException("Invalid revokation reason: " + reason);
+            throw new ACMEBadRevocationReasonException("Invalid revocation reason: " + reason);
         }
 
         log.info("Revoking certificate for reason {}", reason);
 
         // Revoke it
-        AcmeOrder.revokeCertificate(order, reason, getServerInstance());
-        getServerInstance().getEventBus().publish(new AcmeCertificateRevokedEvent(order));
+        AcmeOrder.revokeCertificate(order, reason, getModuleInstance().getModule().getServerInstance());
+        getModuleInstance().getModule().getServerInstance().getEventBus().publish(new AcmeCertificateRevokedEvent(order));
 
         ctx.status(HttpURLConnection.HTTP_OK);
-        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(getModuleInstance().getModule().getServerInstance()));
         ctx.header("Content-Length", "0");
 
         ctx.result();

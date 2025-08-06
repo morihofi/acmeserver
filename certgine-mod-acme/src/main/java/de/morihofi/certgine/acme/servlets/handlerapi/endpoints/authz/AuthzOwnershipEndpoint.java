@@ -9,20 +9,20 @@ import com.google.gson.Gson;
 import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.authz.objects.AuthzResponse;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.authz.objects.ChallengeResponse;
+import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
 import de.morihofi.certgine.cryptography.randomness.RandomGenerator;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.types.api.acme.dns.Identifier;
-import de.morihofi.certgine.types.api.acme.challenge.AcmeChallengeType;
+import de.morihofi.certgine.acme.types.api.AcmeChallengeType;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
 
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
-import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.types.database.entities.HttpNonces;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.utils.base64.Base64Tools;
 import de.morihofi.certgine.utils.conversion.HexConverter;
 import de.morihofi.certgine.utils.datetime.TimeTools;
@@ -49,21 +49,21 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
     /**
      * Constructs a new endpoint for handling authorization ownership challenges.
      *
-     * @param serverInstance The server instance.
+     * @param moduleInstance The module instance.
      * @param clock          Clock used for time calculations.
      */
-    public AuthzOwnershipEndpoint(IServerInstance serverInstance, Clock clock) {
-        super(serverInstance);
+    public AuthzOwnershipEndpoint(CertgineModuleInstance moduleInstance, Clock clock) {
+        super(moduleInstance);
         this.clock = clock;
     }
 
     /**
      * Constructs a new endpoint using the system UTC clock.
      *
-     * @param serverInstance The server instance.
+     * @param moduleInstance The module instance.
      */
-    public AuthzOwnershipEndpoint(IServerInstance serverInstance) {
-        this(serverInstance, Clock.systemUTC());
+    public AuthzOwnershipEndpoint(CertgineModuleInstance moduleInstance) {
+        this(moduleInstance, Clock.systemUTC());
     }
 
     /**
@@ -92,10 +92,10 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         String authorizationId = ctx.pathParam("authorizationId");
 
         ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", HttpNonces.createNonce(getServerInstance()));
+        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(getModuleInstance().getModule().getServerInstance()));
         ctx.status(200);
 
-        AcmeOrderIdentifier identifier = AcmeOrderIdentifier.getACMEIdentifierByAuthorizationId(authorizationId, getServerInstance());
+        de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier identifier = de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier.getACMEIdentifierByAuthorizationId(authorizationId, getModuleInstance().getModule().getServerInstance());
 
         // Not found handling
         if (identifier == null) {
@@ -112,7 +112,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
             nonWildcardDomain = nonWildcardDomain.substring(2); // Remove wildcard part for validation
         }
 
-        Identifier idObj = new Identifier();
+        AcmeOrderIdentifier idObj = new AcmeOrderIdentifier();
         idObj.setType(identifier.getType());
         idObj.setValue(nonWildcardDomain);
 
@@ -121,7 +121,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         if (!identifier.isHasChallengesGenerated()) {
             // Challenges were not generated, so let's do that
 
-            if (idObj.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.DNS) {
+            if (idObj.getTypeAsEnumConstant() == AcmeOrderIdentifier.IDENTIFIER_TYPE.DNS) {
                 // HTTP-01 Challenge only for non-wildcard domains
 
 
@@ -135,7 +135,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
                 // DNS-01 Challenge
                 acmeChallenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.DNS_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
-            } else if (idObj.getTypeAsEnumConstant() == Identifier.IDENTIFIER_TYPE.IP) {
+            } else if (idObj.getTypeAsEnumConstant() == AcmeOrderIdentifier.IDENTIFIER_TYPE.IP) {
                 // HTTP-01 Challenge is the only allowed for IP addresses
                 acmeChallenges.add(new AcmeOrderIdentifierChallenge(AcmeChallengeType.HTTP_01, identifier, challengeIdSupplier.get(), authorizationTokenBase64UrlSupplier.get()));
 
@@ -144,7 +144,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
             }
 
             // Save in database
-            try (Session session = getServerInstance().getDatabaseSession()) {
+            try (Session session = getModuleInstance().getModule().getServerInstance().getDatabaseSession()) {
                 Transaction transaction = session.beginTransaction();
 
                 // Persist generated challenges in database
@@ -188,7 +188,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
      * @param identifier The ACME order identifier.
      * @return The expiration {@link Instant} of the authorization.
      */
-    Instant getAuthorizationExpiration(@NonNull AcmeOrderIdentifier identifier) {
+    Instant getAuthorizationExpiration(@NonNull de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier identifier) {
         return identifier.getOrder().getExpires();
     }
 
@@ -203,7 +203,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         ChallengeResponse challengeResponse = new ChallengeResponse();
         challengeResponse.setType(type.getName());
         challengeResponse.setUrl(
-                p.getAcmeApiURL(getServerInstance()) + "/acme/chall/" + identifierChallenge.getChallengeId() + "/" + type.getName());
+                p.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/chall/" + identifierChallenge.getChallengeId() + "/" + type.getName());
         challengeResponse.setToken(identifierChallenge.getAuthorizationToken());
         if (identifierChallenge.getStatus() == AcmeStatus.VALID) {
             challengeResponse.setStatus(AcmeStatus.VALID.getRfcName());

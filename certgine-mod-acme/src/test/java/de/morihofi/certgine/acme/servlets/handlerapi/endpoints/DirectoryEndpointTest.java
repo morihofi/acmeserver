@@ -6,11 +6,11 @@
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints;
 
 import com.google.gson.JsonObject;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisionerMeta;
 import de.morihofi.certgine.server.common.intf.*;
 import de.morihofi.certgine.server.common.intf.testing.MockRequest;
 import de.morihofi.certgine.server.common.intf.testing.MockResponse;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.acme.types.entities.ProvisionerMeta;
 import de.morihofi.certgine.types.httpserver.HandlerType;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.json.GsonFactory;
@@ -31,7 +31,7 @@ class DirectoryEndpointTest {
 
         AcmeProvisioner provisioner = new AcmeProvisioner();
         provisioner.setName("testprov");
-        provisioner.setMeta(new ProvisionerMeta("https://site", "https://tos"));
+        provisioner.setMeta(new AcmeProvisionerMeta("https://site", "https://tos"));
 
         try (MockedStatic<AcmeProvisioner> mocked = Mockito.mockStatic(AcmeProvisioner.class)) {
             mocked.when(() -> AcmeProvisioner.getForName(Mockito.any(), Mockito.eq("testprov")))

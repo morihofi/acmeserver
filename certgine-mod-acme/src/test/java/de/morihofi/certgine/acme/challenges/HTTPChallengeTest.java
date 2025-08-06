@@ -14,7 +14,7 @@ import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
-import de.morihofi.certgine.types.intf.INonceManager;
+import de.morihofi.certgine.acme.security.INonceManager;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.runtime.BuildMetadata;

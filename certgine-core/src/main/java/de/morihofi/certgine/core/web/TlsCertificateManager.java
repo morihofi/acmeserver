@@ -1,9 +1,8 @@
 package de.morihofi.certgine.core.web;
 
-import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.cryptography.CryptoStoreManagerConstants;
+import de.morihofi.certgine.types.events.TlsHttpCertificateHotReloadEvent;
 import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
-import de.morihofi.certgine.types.events.AcmeTlsCertificateHotReloadEvent;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.events.EventSubscriber;
 import de.morihofi.certgine.types.events.ServerShutdownEvent;
@@ -150,12 +149,12 @@ public class TlsCertificateManager implements EventSubscriber {
 
     @Override
     public List<Class<? extends AbstractEvent>> canHandle() {
-        return List.of(AcmeTlsCertificateHotReloadEvent.class, ServerShutdownEvent.class);
+        return List.of(TlsHttpCertificateHotReloadEvent.class, ServerShutdownEvent.class);
     }
 
     @Override
     public void onEvent(AbstractEvent event) throws Exception {
-        if (event instanceof AcmeTlsCertificateHotReloadEvent) {
+        if (event instanceof TlsHttpCertificateHotReloadEvent) {
             log.info("Reconfiguring TLS due to event: {}", event.getClass().getSimpleName());
             loadOrReloadTlsCertificate();
         } else if (event instanceof ServerShutdownEvent) {
