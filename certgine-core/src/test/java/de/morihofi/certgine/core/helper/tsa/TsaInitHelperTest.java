@@ -13,7 +13,7 @@ import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
+import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.types.events.EventBus;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;

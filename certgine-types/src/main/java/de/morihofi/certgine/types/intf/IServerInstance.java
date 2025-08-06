@@ -7,7 +7,6 @@ package de.morihofi.certgine.types.intf;
 
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
@@ -62,12 +61,6 @@ public interface IServerInstance {
      */
     @NonNull
     RootCa getRootCa();
-
-    /**
-     * Get the Timestamp Authority for this server instance
-     */
-    @NonNull
-    TsaAuthority getTsaAuthority();
 
     /**
      * Get the Build Metadata for this server instance

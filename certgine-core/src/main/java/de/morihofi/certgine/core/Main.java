@@ -15,7 +15,7 @@ import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.core.web.JettySslHelper;
 import de.morihofi.certgine.core.web.WebServer;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
+import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS11KeyStoreConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;

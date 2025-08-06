@@ -12,7 +12,7 @@ import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.database.entities.authority.RsaCertificateAlgorithm;
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
+import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.types.intf.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.INonceManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
@@ -52,8 +52,6 @@ class RootCaGetForUuidTest {
         @Override public INonceManager getNonceManager(){return null;}
         @NotNull
         @Override public RootCa getRootCa(){return ca;}
-        @NotNull
-        @Override public TsaAuthority getTsaAuthority(){return null;}
         @NotNull
         @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
         @NotNull

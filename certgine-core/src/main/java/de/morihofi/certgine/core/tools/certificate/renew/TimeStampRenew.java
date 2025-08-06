@@ -7,7 +7,7 @@ package de.morihofi.certgine.core.tools.certificate.renew;
 
 import de.morihofi.certgine.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
+import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;

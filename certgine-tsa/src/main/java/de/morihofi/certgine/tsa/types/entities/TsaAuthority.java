@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.types.database.entities.timestamp;
+package de.morihofi.certgine.tsa.types.entities;
 
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import jakarta.persistence.*;

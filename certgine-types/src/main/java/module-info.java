@@ -18,7 +18,6 @@ open module certgine.types {
     exports de.morihofi.certgine.types.config;
     exports de.morihofi.certgine.types.server;
     exports de.morihofi.certgine.types.database.entities.authority;
-    exports de.morihofi.certgine.types.database.entities.timestamp;
     exports de.morihofi.certgine.types.database.entities.user;
     exports de.morihofi.certgine.types.modules;
 

@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.tsa;
+package de.morihofi.certgine.tsa.servlets;
 
 import de.morihofi.certgine.server.common.intf.ServletMount;
+import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -43,13 +44,13 @@ public class TimeStampServlet extends HttpServlet {
      *
      * @param serverInstance running server instance
      */
-    public TimeStampServlet(IServerInstance serverInstance) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+    public TimeStampServlet(IServerInstance serverInstance, TsaAuthority authority) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         X509Certificate tsaCert = serverInstance
                 .getCryptoStoreManager()
-                .getTimestampAuthorityCertificate(serverInstance.getTsaAuthority().getInternalUuid());
+                .getTimestampAuthorityCertificate(authority.getInternalUuid());
         this.authority = new TimeStampAuthority(
                 serverInstance.getCryptoStoreManager()
-                        .getTimestampAuthorityKeyPair(serverInstance.getTsaAuthority().getInternalUuid())
+                        .getTimestampAuthorityKeyPair(authority.getInternalUuid())
                         .getPrivate(),
                 tsaCert,
                 List.of(tsaCert,

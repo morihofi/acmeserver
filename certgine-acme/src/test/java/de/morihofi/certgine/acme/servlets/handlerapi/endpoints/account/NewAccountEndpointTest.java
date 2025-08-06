@@ -36,7 +36,6 @@ class NewAccountEndpointTest {
         @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
         @Override public de.morihofi.certgine.types.intf.INonceManager getNonceManager() { return null; }
         @Override public de.morihofi.certgine.types.database.entities.authority.RootCa getRootCa() { return null; }
-        @Override public de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority getTsaAuthority() { return null; }
         @Override public de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() { return null; }
         @Override public de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() { return null; }
         @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }

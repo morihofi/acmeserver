@@ -1,7 +1,6 @@
 package de.morihofi.certgine.types.modules;
 
 import de.morihofi.certgine.types.database.entities.authority.*;
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.certgine.types.database.entities.user.UserSession;
 import de.morihofi.certgine.types.database.entities.user.Users;
 import jakarta.servlet.http.HttpServlet;
@@ -28,7 +27,6 @@ public class CoreEntitiesModule implements CertgineModule {
                 CertificateConfig.class,
                 CertificateExpiration.class,
                 CertificateMetadata.class,
-                TsaAuthority.class,
                 Users.class,
                 UserSession.class
         );

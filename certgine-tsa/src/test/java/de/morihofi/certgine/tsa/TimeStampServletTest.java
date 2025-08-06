@@ -6,6 +6,7 @@
 package de.morihofi.certgine.tsa;
 
 import de.morihofi.certgine.server.common.intf.ServletMount;
+import de.morihofi.certgine.tsa.servlets.TimeStampServlet;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;

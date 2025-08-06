@@ -6,7 +6,6 @@
 package de.morihofi.certgine.types.intf;
 
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
@@ -58,10 +57,6 @@ class IServerInstanceTest {
         @NonNull
         @Override
         public RootCa getRootCa() { return rootCa; }
-
-        @NotNull
-        @Override
-        public TsaAuthority getTsaAuthority() { return null; }
 
         @NotNull
         @NonNull

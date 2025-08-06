@@ -14,7 +14,6 @@ import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.certgine.acme.types.events.AcmeCertificateRevokedEvent;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.intf.ICryptoStoreManager;
@@ -57,9 +56,6 @@ class CrlUpdateSubscriberTest {
         @NotNull
         @NonNull
         @Override public RootCa getRootCa(){return null;}
-        @NotNull
-        @NonNull
-        @Override public TsaAuthority getTsaAuthority(){return null;}
         @NotNull
         @NonNull
         @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}

@@ -39,10 +39,14 @@ public class TlsCertificateManager implements EventSubscriber {
 
     private ServerConnector sslConnector;
 
-    public TlsCertificateManager(IServerInstance serverInstance, Server server, CertificateRenewScheduler scheduler) {
+    public TlsCertificateManager(IServerInstance serverInstance, Server server) {
         this.serverInstance = serverInstance;
         this.server = server;
-        this.certificateRenewScheduler = scheduler;
+        this.certificateRenewScheduler =
+                serverInstance.getModuleRegistry().getService(CertificateRenewScheduler.class);
+        if (certificateRenewScheduler == null) {
+            throw new IllegalStateException("CertificateRenewScheduler service is not available");
+        }
 
         certificateRenewScheduler.registerNewCertificateRenewWatcher(
                 CryptoStoreManager.KEYSTORE_ALIASPREFIX_SERVER,
@@ -54,8 +58,7 @@ public class TlsCertificateManager implements EventSubscriber {
                     } catch (Exception e) {
                         log.error("Failed to reload TLS certificate after renewal", e);
                     }
-                }
-        );
+                });
 
         this.provisionerWatcher = new ProvisionerRenewSubscriber(serverInstance, certificateRenewScheduler);
         this.tsaWatcher = new TsaRenewSubscriber(serverInstance, certificateRenewScheduler);

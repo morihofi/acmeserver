@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.types.events;
+package de.morihofi.certgine.tsa.types.events;
 
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
+import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
+import de.morihofi.certgine.types.events.AbstractEvent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

@@ -8,7 +8,6 @@ import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
 import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.certgine.types.events.EventBus;
 
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
@@ -50,9 +49,6 @@ class OrderCertEndpointTest {
         @NotNull
         @NonNull
         @Override public RootCa getRootCa() { return null; }
-        @NotNull
-        @NonNull
-        @Override public TsaAuthority getTsaAuthority() { return null; }
         @NotNull
         @NonNull
         @Override public de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() { return null; }

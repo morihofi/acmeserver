@@ -1,6 +1,7 @@
 package de.morihofi.certgine.tsa;
 
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
+import de.morihofi.certgine.tsa.servlets.TimeStampServlet;
+import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.ModuleDescriptor;
 import jakarta.servlet.http.HttpServlet;

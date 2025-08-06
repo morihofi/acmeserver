@@ -7,7 +7,6 @@ package de.morihofi.certgine.core.web;
 
 import de.morihofi.certgine.core.Main;
 import de.morihofi.certgine.acme.certificate.queue.CertificateIssuanceSubscriber;
-import de.morihofi.certgine.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.events.EventSubscriber;
 import de.morihofi.certgine.types.events.ServerShutdownEvent;
@@ -58,9 +57,7 @@ public class WebServer implements EventSubscriber {
 
         this.server = new Server(threadPool);
 
-        CertificateRenewScheduler scheduler =
-                serverInstance.getModuleRegistry().getService(CertificateRenewScheduler.class);
-        this.tlsManager = new TlsCertificateManager(serverInstance, server, scheduler);
+        this.tlsManager = new TlsCertificateManager(serverInstance, server);
         this.servletRegistrar = new ServletRegistrar(serverInstance, serverInstance.getModuleRegistry());
         serverInstance.getEventBus().register(tlsManager);
     }

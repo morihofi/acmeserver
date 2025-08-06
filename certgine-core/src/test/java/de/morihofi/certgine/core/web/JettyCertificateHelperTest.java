@@ -13,7 +13,7 @@ import de.morihofi.certgine.core.tools.certificate.renew.watcher.CertificateRene
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.ServerConfig;
 import de.morihofi.certgine.types.database.entities.authority.*;
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
+import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.intf.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.INonceManager;
@@ -57,8 +57,6 @@ class JettyCertificateHelperTest {
         @NonNull @Override public INonceManager getNonceManager(){return null;}
         @NotNull
         @NonNull @Override public RootCa getRootCa(){return rootCa;}
-        @NotNull
-        @NonNull @Override public TsaAuthority getTsaAuthority(){return null;}
         @NotNull
         @NonNull @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
         @NotNull

@@ -5,7 +5,6 @@
 
 package de.morihofi.certgine.acme.challenges;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.certgine.types.events.EventBus;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -71,9 +70,6 @@ class HTTPChallengeTest {
         @NotNull
         @NonNull
         @Override public RootCa getRootCa() { return null; }
-        @NotNull
-        @NonNull
-        @Override public TsaAuthority getTsaAuthority() { return null; }
         @NotNull
         @NonNull
         @Override public BuildMetadata getBuildMetadata() { return meta; }

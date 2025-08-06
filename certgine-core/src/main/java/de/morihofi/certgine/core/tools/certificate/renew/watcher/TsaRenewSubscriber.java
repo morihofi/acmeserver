@@ -7,10 +7,10 @@ package de.morihofi.certgine.core.tools.certificate.renew.watcher;
 
 import de.morihofi.certgine.core.tools.certificate.renew.TimeStampRenew;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
+import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.events.EventSubscriber;
-import de.morihofi.certgine.types.events.TsaAuthorityCreatedEvent;
+import de.morihofi.certgine.tsa.types.events.TsaAuthorityCreatedEvent;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
