@@ -3,7 +3,6 @@ package de.morihofi.certgine.core.web;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.certgine.core.tools.certificate.renew.watcher.ProvisionerRenewSubscriber;
-import de.morihofi.certgine.core.tools.certificate.renew.watcher.TsaRenewSubscriber;
 import de.morihofi.certgine.types.events.AcmeTlsCertificateHotReloadEvent;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.events.EventSubscriber;
@@ -35,7 +34,6 @@ public class TlsCertificateManager implements EventSubscriber {
     private final Server server;
     private final CertificateRenewScheduler certificateRenewScheduler;
     private final ProvisionerRenewSubscriber provisionerWatcher;
-    private final TsaRenewSubscriber tsaWatcher;
 
     private ServerConnector sslConnector;
 
@@ -61,7 +59,7 @@ public class TlsCertificateManager implements EventSubscriber {
                 });
 
         this.provisionerWatcher = new ProvisionerRenewSubscriber(serverInstance, certificateRenewScheduler);
-        this.tsaWatcher = new TsaRenewSubscriber(serverInstance, certificateRenewScheduler);
+
     }
 
     /**
@@ -70,10 +68,6 @@ public class TlsCertificateManager implements EventSubscriber {
     public void initialize() {
         serverInstance.getEventBus().register(provisionerWatcher);
         provisionerWatcher.initialize();
-
-        serverInstance.getEventBus().register(tsaWatcher);
-        tsaWatcher.initialize();
-
     }
 
     /**

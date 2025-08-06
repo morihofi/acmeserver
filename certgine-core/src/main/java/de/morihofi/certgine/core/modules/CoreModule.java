@@ -40,8 +40,8 @@ public class CoreModule implements CertgineModule {
                 serverInstance.getEventBus()
         );
         String moduleName = getClass().getAnnotation(ModuleDescriptor.class).moduleName();
-        serverInstance.getModuleRegistry().getModules().get(moduleName)
-                .getServices().put(CertificateRenewScheduler.class, certificateRenewScheduler);
+        ((ModuleRegistry) serverInstance.getModuleRegistry()).registerService(
+                moduleName, CertificateRenewScheduler.class, certificateRenewScheduler);
     }
 
     @Override

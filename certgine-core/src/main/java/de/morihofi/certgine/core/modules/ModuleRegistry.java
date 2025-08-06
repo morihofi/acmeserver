@@ -188,6 +188,31 @@ public class ModuleRegistry implements IModuleRegistry {
     }
 
     /**
+     * Registers a service implementation for a module after it has been loaded.
+     *
+     * <p>The service is stored both in the owning module's {@link ModuleInfo}
+     * and in the global service map so that it participates in module unload
+     * and reload operations.</p>
+     *
+     * @param moduleName name of the module that provides the service
+     * @param iface      service interface class
+     * @param impl       service implementation instance
+     * @param <T>        type of the service
+     */
+    public <T> void registerService(
+            @NonNull String moduleName,
+            @NonNull Class<T> iface,
+            @NonNull T impl) {
+        ModuleInfo info = modules.get(moduleName);
+        if (info == null) {
+            log.error("Cannot register service {} for unknown module {}", iface.getName(), moduleName);
+            return;
+        }
+        info.getServices().put(iface, impl);
+        services.put(iface, impl);
+    }
+
+    /**
      * Retrieves a service implementation by its interface type.
      *
      * @param serviceInterface the service interface class

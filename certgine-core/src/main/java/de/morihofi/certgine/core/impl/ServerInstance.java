@@ -13,7 +13,6 @@ import de.morihofi.certgine.types.runtime.BuildMetadata;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.server.StartupFlag;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -84,10 +83,6 @@ public class ServerInstance implements IServerInstance {
     @Setter
     @NonNull
     private RootCa rootCa;
-
-    @Setter
-    @NonNull
-    private TsaAuthority tsaAuthority;
 
     @NonNull
     private final BuildMetadata buildMetadata;

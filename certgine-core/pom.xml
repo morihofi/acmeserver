@@ -162,11 +162,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>de.morihofi.certgine</groupId>
-            <artifactId>certgine-revocation</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
@@ -182,21 +177,36 @@
             <artifactId>jimfs</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>de.morihofi.certgine</groupId>
             <artifactId>certgine-acme</artifactId>
             <version>${project.version}</version>
+            <!-- TODO: Separate core so we can just use acme as runtime dep -->
+            <!--scope>runtime</scope-->
         </dependency>
         <dependency>
             <groupId>de.morihofi.certgine</groupId>
             <artifactId>certgine-web-legacy</artifactId>
             <version>${project.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>de.morihofi.certgine</groupId>
+            <artifactId>certgine-revocation</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- TODO: Make TSA runnable again -->
+        <!--dependency>
+            <groupId>de.morihofi.certgine</groupId>
             <artifactId>certgine-tsa</artifactId>
             <version>${project.version}</version>
-        </dependency>
+
+            <scope>runtime</scope>
+        </dependency-->
+
         <dependency>
             <groupId>de.morihofi.certgine</groupId>
             <artifactId>certgine-web-ui</artifactId>

@@ -15,12 +15,10 @@ import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.core.web.JettySslHelper;
 import de.morihofi.certgine.core.web.WebServer;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS11KeyStoreConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.certgine.core.helper.cert.CaInitHelper;
-import de.morihofi.certgine.core.helper.tsa.TsaInitHelper;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.helper.KeyStoreParamsDeserializer;
 import de.morihofi.certgine.types.config.keyStoreHelpers.KeyStoreParams;
@@ -245,9 +243,8 @@ public class Main {
                 moduleRegistry.getEntityClasses());
         hibernateUtil.initDatabase();
 
-        log.info("Initializing certificate authorities ...");
+        log.info("Initializing certificate authority ...");
         RootCa root = CaInitHelper.initializeCA(hibernateUtil, cryptoStoreManager, eventBus);
-        TsaAuthority tsa = TsaInitHelper.initializeTsa(hibernateUtil, cryptoStoreManager, root, eventBus);
 
         log.info("Creating new server instance ...");
 
@@ -260,7 +257,6 @@ public class Main {
                 .hibernateUtil(hibernateUtil)
                 .moduleRegistry(moduleRegistry)
                 .rootCa(root)
-                .tsaAuthority(tsa)
                 .buildMetadata(BuildMetadataImpl.getInstance())
                 .eventBus(eventBus)
                 .nonceManager(new NonceManager(hibernateUtil, eventBus))

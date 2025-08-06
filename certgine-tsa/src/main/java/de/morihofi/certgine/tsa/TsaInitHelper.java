@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.core.helper.tsa;
+package de.morihofi.certgine.tsa;
 
-import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
@@ -28,13 +27,13 @@ import java.util.UUID;
 /** Helper for initializing Timestamp Authority. */
 @Slf4j
 public class TsaInitHelper {
-    public static TsaAuthority initializeTsa(@NonNull HibernateUtil hu,
+    public static TsaAuthority initializeTsa(@NonNull Session s,
                                              CryptoStoreManager csm,
                                              RootCa root,
                                              EventBus bus) throws NoSuchAlgorithmException,
             CertificateException, IOException, OperatorCreationException,
             KeyStoreException, UnrecoverableKeyException, NoSuchProviderException {
-        try (Session s = hu.getSessionFactory().openSession()) {
+
             TsaAuthority tsa;
             if (TsaAuthority.getAll(s).length == 0) {
                 Transaction tx = s.beginTransaction();
@@ -73,5 +72,4 @@ public class TsaInitHelper {
             }
             return tsa;
         }
-    }
 }

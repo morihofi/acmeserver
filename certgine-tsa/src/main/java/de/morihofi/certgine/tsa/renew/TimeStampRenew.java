@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.core.tools.certificate.renew;
+package de.morihofi.certgine.tsa.renew;
 
-import de.morihofi.certgine.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.types.intf.IServerInstance;
@@ -21,6 +20,7 @@ import java.security.cert.X509Certificate;
 @Slf4j
 public class TimeStampRenew {
 
+    /*
     public static CertificateRenewScheduler.CertificateData renew(KeyPair tsaKeyPair,
                                                                   TsaAuthority tsa,
                                                                   IServerInstance si,
@@ -39,4 +39,6 @@ public class TimeStampRenew {
         X509Certificate[] chain = new X509Certificate[]{renewed, rootCert};
         return new CertificateRenewScheduler.CertificateData(chain, tsaKeyPair);
     }
+
+     */
 }

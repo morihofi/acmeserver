@@ -135,4 +135,27 @@ class ModuleRegistryTest {
         assertEquals(2, registry.getModules().size());
         assertTrue(moduleB.registered);
     }
+
+    @Test
+    void dynamicServicesSurviveReloadAndUnregister() {
+        ModuleRegistry registry = new ModuleRegistry();
+        FlagModule module = new FlagModule();
+
+        ModuleRegistry.ModuleInfo info = ModuleRegistry.ModuleInfo.builder()
+                .moduleName("dyn")
+                .module(module)
+                .build();
+
+        registry.registerModule(info);
+        SampleServiceImpl impl = new SampleServiceImpl();
+        registry.registerService("dyn", SampleService.class, impl);
+
+        assertSame(impl, registry.getService(SampleService.class));
+
+        registry.unregisterModule("dyn");
+        assertNull(registry.getService(SampleService.class));
+
+        registry.registerModule(info);
+        assertSame(impl, registry.getService(SampleService.class));
+    }
 }
