@@ -9,12 +9,19 @@ import de.morihofi.certgine.server.common.intf.RoutableHttpServlet;
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.intf.IServerInstance;
 
+/**
+ * Servlet responsible for handling API requests mounted under {@code /api}.
+ */
 @ServletMount(servletMountPoint = "/api/*", protect = true)
 public class ApiServlet extends RoutableHttpServlet {
     private final IServerInstance serverInstance;
 
+    /**
+     * Constructs a new {@code ApiServlet}.
+     *
+     * @param serverInstance the server instance used to access shared services
+     */
     public ApiServlet(IServerInstance serverInstance) {
         this.serverInstance = serverInstance;
-        // getRouter().addHandler(new Endpoint(HandlerType.POST, "/api/graphql", new GraphQLEndpoint(null /* TODO: Fixme */)));
     }
 }
