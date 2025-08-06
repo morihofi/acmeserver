@@ -13,6 +13,7 @@ import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUnauthorizedException;
+import de.morihofi.certgine.types.modules.IModuleRegistry;
 import org.hibernate.Session;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
@@ -58,6 +59,11 @@ class FinalizeOrderEndpointTest {
         @NotNull
         @NonNull
         @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
+        }
     }
 
     private static AcmeOrderIdentifierChallenge challengeWithStatus(AcmeOrderIdentifier id, AcmeStatus status) {

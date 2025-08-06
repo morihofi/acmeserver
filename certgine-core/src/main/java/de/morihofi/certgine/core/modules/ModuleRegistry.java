@@ -7,6 +7,7 @@ package de.morihofi.certgine.core.modules;
 
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.modules.CertgineModule;
+import de.morihofi.certgine.types.modules.IModuleRegistry;
 import jakarta.persistence.Entity;
 import jakarta.servlet.http.HttpServlet;
 import lombok.Builder;
@@ -25,7 +26,7 @@ import java.util.Set;
  */
 @Data
 @Slf4j
-public class ModuleRegistry {
+public class ModuleRegistry implements IModuleRegistry {
 
     /**
      * Loaded modules keyed by their unique name.
@@ -108,31 +109,6 @@ public class ModuleRegistry {
      */
     public Set<Class<?>> getServiceInterfaces() {
         return Collections.unmodifiableSet(services.keySet());
-    }
-
-    /**
-     * Metadata about a loaded module.
-     */
-    @Data
-    @Builder
-    public static class ModuleInfo {
-
-        /**
-         * Unique name of the module.
-         */
-        @NonNull
-        private final String moduleName;
-
-        /**
-         * Short description of the module.
-         */
-        private final String description;
-
-        /**
-         * The module implementation instance.
-         */
-        @NonNull
-        private final CertgineModule module;
     }
 }
 

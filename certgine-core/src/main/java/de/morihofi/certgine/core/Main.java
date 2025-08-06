@@ -194,9 +194,6 @@ public class Main {
 
     }
 
-
-
-
     public static IServerInstance getServerInstance(Config config, boolean debug, Path configPath, EventBus eventBus) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvalidAlgorithmParameterException, OperatorCreationException, UnrecoverableKeyException {
         if (Objects.equals(System.getenv("DEBUG"), "TRUE")) {
             debug = true;
@@ -262,7 +259,7 @@ public class Main {
         log.info("All modules initialized");
 
         // ... and all is done, time to continue
-        return serverInstance;
+        return preServerInstance;
     }
 
     /**

@@ -17,10 +17,12 @@ import de.morihofi.certgine.types.intf.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.INonceManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
+import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.server.StartupFlag;
 import jakarta.persistence.Entity;
+import lombok.NonNull;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
@@ -60,6 +62,11 @@ class RootCaGetForUuidTest {
         @Override public EventBus getEventBus(){return new EventBus();}
         @NotNull
         @Override public Set<StartupFlag> getStartupFlags(){return Collections.emptySet();}
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
+        }
     }
 
     @Test

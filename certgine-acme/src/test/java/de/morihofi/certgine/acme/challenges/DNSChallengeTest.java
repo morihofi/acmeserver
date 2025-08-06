@@ -10,6 +10,7 @@ import de.morihofi.certgine.types.events.EventBus;
 
 import de.morihofi.certgine.cryptography.acme.AcmeTokenCryptography;
 import de.morihofi.certgine.cryptography.pem.PemUtil;
+import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.utils.crypto.Hashing;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.network.DNSConfig;
@@ -96,6 +97,11 @@ class DNSChallengeTest {
         @NotNull
         @NonNull
         @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
+        }
     }
 
 

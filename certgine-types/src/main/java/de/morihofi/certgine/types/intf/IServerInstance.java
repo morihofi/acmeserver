@@ -9,6 +9,7 @@ import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
+import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
 import de.morihofi.certgine.types.server.StartupFlag;
 import lombok.NonNull;
@@ -95,4 +96,8 @@ public interface IServerInstance {
      */
     @NonNull
     Set<StartupFlag> getStartupFlags();
+
+
+    @NonNull
+    IModuleRegistry getModuleRegistry();
 }

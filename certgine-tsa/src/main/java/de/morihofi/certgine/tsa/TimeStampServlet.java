@@ -6,6 +6,7 @@
 package de.morihofi.certgine.tsa;
 
 import de.morihofi.certgine.server.common.intf.ServletMount;
+import de.morihofi.certgine.types.intf.IServerInstance;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +17,11 @@ import org.bouncycastle.tsp.TimeStampRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.X509Certificate;
+import java.util.List;
 
 /**
  * Servlet providing RFC 3161 timestamping service.
@@ -27,6 +33,28 @@ public class TimeStampServlet extends HttpServlet {
 
     public TimeStampServlet(TimeStampAuthority authority) {
         this.authority = authority;
+    }
+
+    /**
+     * Creates a new servlet instance using the given server instance.
+     * <p>
+     * The {@link TimeStampAuthority} is constructed using the TSA key pair and
+     * certificate available from the provided {@link IServerInstance}.
+     *
+     * @param serverInstance running server instance
+     */
+    public TimeStampServlet(IServerInstance serverInstance) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+        X509Certificate tsaCert = serverInstance
+                .getCryptoStoreManager()
+                .getTimestampAuthorityCertificate(serverInstance.getTsaAuthority().getInternalUuid());
+        this.authority = new TimeStampAuthority(
+                serverInstance.getCryptoStoreManager()
+                        .getTimestampAuthorityKeyPair(serverInstance.getTsaAuthority().getInternalUuid())
+                        .getPrivate(),
+                tsaCert,
+                List.of(tsaCert,
+                        serverInstance.getCryptoStoreManager()
+                                .getCertificateAuthorityX509Certificate(serverInstance.getRootCa())));
     }
 
     @Override

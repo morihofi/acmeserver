@@ -74,7 +74,7 @@ public class WebServer implements EventSubscriber {
                         timedScheduler,
                         Clock.systemUTC());
         this.tlsManager = new TlsCertificateManager(serverInstance, server, scheduler);
-        this.servletRegistrar = new ServletRegistrar(serverInstance);
+        this.servletRegistrar = new ServletRegistrar(serverInstance, serverInstance.getModuleRegistry());
         serverInstance.getEventBus().register(tlsManager);
     }
 

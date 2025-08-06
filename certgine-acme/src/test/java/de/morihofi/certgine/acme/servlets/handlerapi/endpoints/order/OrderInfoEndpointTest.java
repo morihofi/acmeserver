@@ -12,6 +12,7 @@ import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;
+import de.morihofi.certgine.types.modules.IModuleRegistry;
 import org.hibernate.Session;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +63,11 @@ class OrderInfoEndpointTest {
         @NotNull
         @NonNull
         @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
+        }
     }
 
     @Test

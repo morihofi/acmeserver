@@ -1,9 +1,9 @@
 package de.morihofi.certgine.core.web;
 
-import de.morihofi.certgine.acme.servlets.AcmeHttpServlet;
-import de.morihofi.certgine.acme.servlets.GetHttpsForFreeServlet;
+import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.IModuleRegistry;
 import jakarta.servlet.http.HttpServlet;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
@@ -12,7 +12,6 @@ import org.eclipse.jetty.ee10.servlet.ServletMapping;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,34 +22,25 @@ import java.util.List;
 public class ServletRegistrar {
 
     private final IServerInstance serverInstance;
+    private final IModuleRegistry moduleRegistry;
     private final List<MountedServlet> mountedServlets = new ArrayList<>();
 
     private record MountedServlet(ServletHolder holder, ServletMapping mapping, boolean protect) {}
 
-    public ServletRegistrar(IServerInstance serverInstance) {
+    public ServletRegistrar(IServerInstance serverInstance, IModuleRegistry moduleRegistry) {
         this.serverInstance = serverInstance;
+        this.moduleRegistry = moduleRegistry;
     }
 
     /**
-     * Registers all bundled servlets to the given context.
+     * Registers all servlet handlers provided by loaded modules.
+     *
+     * @param context servlet context to register handlers on
      */
     public void addBundledServlets(ServletContextHandler context) throws Exception {
-        addServlet(context, AcmeHttpServlet.class);
-        addServlet(context, GetHttpsForFreeServlet.class);
-        addServlet(context, de.morihofi.certgine.ui.frontend.legacy.LegacyWebUiServlet.class);
-        addServlet(context, de.morihofi.certgine.ui.frontend.modern.WebUiServlet.class);
-        addServlet(context, de.morihofi.certgine.core.servlet.download.RootCaDownloadServlet.class);
-
-        X509Certificate tsaCert = serverInstance
-                .getCryptoStoreManager()
-                .getTimestampAuthorityCertificate(serverInstance.getTsaAuthority().getInternalUuid());
-        de.morihofi.certgine.cryptography.tsa.TimeStampAuthority auth = new de.morihofi.certgine.cryptography.tsa.TimeStampAuthority(
-                serverInstance.getCryptoStoreManager().getTimestampAuthorityKeyPair(serverInstance.getTsaAuthority().getInternalUuid()).getPrivate(),
-                tsaCert,
-                List.of(tsaCert,
-                        serverInstance.getCryptoStoreManager().getCertificateAuthorityX509Certificate(serverInstance.getRootCa())));
-        addServlet(context, new de.morihofi.certgine.tsa.TimeStampServlet(auth));
-        addServlet(context, de.morihofi.certgine.revocation.RevocationHttpServlet.class);
+        for (Class<? extends HttpServlet> servletClass : moduleRegistry.getHttpHandlerClasses()) {
+            addServlet(context, servletClass);
+        }
     }
 
     public void addServlet(ServletContextHandler context, HttpServlet servlet, String mountPath, boolean protect) {

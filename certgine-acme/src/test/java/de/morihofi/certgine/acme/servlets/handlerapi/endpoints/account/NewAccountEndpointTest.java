@@ -10,6 +10,8 @@ import de.morihofi.certgine.acme.types.entities.AcmeExternalAccountBinding;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUserActionRequiredException;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.IModuleRegistry;
+import lombok.NonNull;
 import org.hibernate.Session;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,6 +40,12 @@ class NewAccountEndpointTest {
         @Override public de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() { return null; }
         @Override public de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() { return null; }
         @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
+        }
+
         @Override public de.morihofi.certgine.types.events.EventBus getEventBus() { return new de.morihofi.certgine.types.events.EventBus(); }
     }
 

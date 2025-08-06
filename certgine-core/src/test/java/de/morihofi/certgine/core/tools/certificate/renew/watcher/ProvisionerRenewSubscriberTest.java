@@ -18,6 +18,7 @@ import de.morihofi.certgine.types.intf.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.INonceManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
+import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -78,6 +79,11 @@ class ProvisionerRenewSubscriberTest {
         @NotNull
         @NonNull
         @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
+        }
     }
 
     @BeforeAll

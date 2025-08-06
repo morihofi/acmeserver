@@ -13,6 +13,7 @@ import de.morihofi.certgine.types.events.EventBus;
 
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.IModuleRegistry;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hibernate.Session;
 import lombok.NonNull;
@@ -64,6 +65,11 @@ class OrderCertEndpointTest {
         @NotNull
         @NonNull
         @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
+        }
     }
 
     private static CertificateConfig cfg(String cn) {
