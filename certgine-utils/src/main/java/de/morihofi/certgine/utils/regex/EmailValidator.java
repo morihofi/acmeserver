@@ -17,6 +17,9 @@ import java.util.regex.Pattern;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EmailValidator {
 
+    private static final Pattern EMAIL_PATTERN =
+            Pattern.compile("^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$");
+
     /**
      * Check if an email has a valid syntax.
      *
@@ -24,14 +27,7 @@ public class EmailValidator {
      * @return True if it is a valid email address, otherwise false.
      */
     public static boolean isValidEmail(@NonNull String email) {
-        // Regular expression pattern to match an email address
-        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-
-        // Compile the pattern
-        Pattern pattern = Pattern.compile(emailRegex);
-
-        // Check if the input string matches the pattern
-        return pattern.matcher(email).matches();
+        return EMAIL_PATTERN.matcher(email).matches();
     }
 
 }
