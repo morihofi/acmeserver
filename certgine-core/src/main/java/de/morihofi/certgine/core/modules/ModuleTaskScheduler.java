@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import lombok.NonNull;
 
 /**
@@ -18,10 +20,26 @@ import lombok.NonNull;
  */
 public class ModuleTaskScheduler {
 
-    private final TimedScheduler timedScheduler = new TimedScheduler();
+    private final TimedScheduler timedScheduler;
     private final Map<String, List<TimedScheduler.ScheduledHandle>> scheduledHandles =
             new HashMap<>();
     private final Map<String, List<ModuleScheduledTask>> moduleTasks = new HashMap<>();
+
+    /**
+     * Creates a task scheduler using a thread pool sized for the available processors.
+     */
+    public ModuleTaskScheduler() {
+        this(Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors()));
+    }
+
+    /**
+     * Creates a task scheduler using the provided executor.
+     *
+     * @param executor executor used for scheduling module tasks
+     */
+    public ModuleTaskScheduler(@NonNull ScheduledExecutorService executor) {
+        this.timedScheduler = new TimedScheduler(executor);
+    }
 
     /**
      * Registers all scheduled tasks of a module.

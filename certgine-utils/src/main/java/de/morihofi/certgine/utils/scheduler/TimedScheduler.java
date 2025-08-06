@@ -23,9 +23,25 @@ import java.util.concurrent.*;
  */
 @Slf4j
 public class TimedScheduler {
-    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService executor;
     private final CopyOnWriteArrayList<ScheduledHandle> tasks = new CopyOnWriteArrayList<>();
     private final CronParser parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX));
+
+    /**
+     * Creates a scheduler using a single-threaded executor.
+     */
+    public TimedScheduler() {
+        this(Executors.newSingleThreadScheduledExecutor());
+    }
+
+    /**
+     * Creates a scheduler using the provided executor.
+     *
+     * @param executor executor used to schedule tasks
+     */
+    public TimedScheduler(ScheduledExecutorService executor) {
+        this.executor = executor;
+    }
 
     /**
      * Registers a new task to be executed according to the given cron expression.
@@ -48,12 +64,13 @@ public class TimedScheduler {
             return;
         }
         ExecutionTime executionTime = ExecutionTime.forCron(task.cron());
-        Optional<ZonedDateTime> next = executionTime.nextExecution(ZonedDateTime.now());
+        ZonedDateTime now = ZonedDateTime.now();
+        Optional<ZonedDateTime> next = executionTime.nextExecution(now);
         if (next.isEmpty()) {
             log.warn("Cron expression {} does not yield future execution", task.cron().asString());
             return;
         }
-        Duration delay = Duration.between(ZonedDateTime.now(), next.get());
+        Duration delay = Duration.between(now, next.get());
         ScheduledFuture<?> future = executor.schedule(() -> {
             try {
                 task.task().run();
