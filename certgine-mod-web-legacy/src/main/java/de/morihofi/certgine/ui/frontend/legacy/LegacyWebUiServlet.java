@@ -20,12 +20,20 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.BiConsumer;
 
+/**
+ * Servlet providing the legacy web user interface.
+ */
 @Slf4j
 @ServletMount(servletMountPoint = "/legacy/*", protect = true)
 public class LegacyWebUiServlet extends AbstractJteRouterServlet {
 
     private final IServerInstance serverInstance;
 
+    /**
+     * Creates a new legacy web UI servlet.
+     *
+     * @param serverInstance the server instance used to access core services
+     */
     public LegacyWebUiServlet(IServerInstance serverInstance) {
         this.serverInstance = serverInstance;
     }
@@ -45,41 +53,21 @@ public class LegacyWebUiServlet extends AbstractJteRouterServlet {
     }
 
     private void handleIndex(HttpServletRequest req, HttpServletResponse resp) {
-        try {
-            Map<String, Object> params = getBaseParams(req);
-            params.put("cas", getRootCertList());
-            render(resp, "legacy/index.jte", params);
-        } catch (IOException e) {
-            log.error("Error rendering index", e);
-        }
+        Map<String, Object> params = Map.of("cas", getRootCertList());
+        renderPage("legacy/index.jte", req, resp, params);
     }
 
     private void handleAbout(HttpServletRequest req, HttpServletResponse resp) {
-        try {
-            Map<String, Object> params = getBaseParams(req);
-            render(resp, "legacy/about.jte", params);
-        } catch (IOException e) {
-            log.error("Error rendering about page", e);
-        }
+        renderPage("legacy/about.jte", req, resp);
     }
 
     private void handleHelp(HttpServletRequest req, HttpServletResponse resp) {
-        try {
-            Map<String, Object> params = getBaseParams(req);
-            render(resp, "legacy/help.jte", params);
-        } catch (IOException e) {
-            log.error("Error rendering help page", e);
-        }
+        renderPage("legacy/help.jte", req, resp);
     }
 
     private void handleCaList(HttpServletRequest req, HttpServletResponse resp) {
-        try {
-            Map<String, Object> params = getBaseParams(req);
-            params.put("cas", getRootCertList());
-            render(resp, "legacy/ca-list.jte", params);
-        } catch (IOException e) {
-            log.error("Error rendering CA list", e);
-        }
+        Map<String, Object> params = Map.of("cas", getRootCertList());
+        renderPage("legacy/ca-list.jte", req, resp, params);
     }
 
     private void handleCaDetails(HttpServletRequest req, HttpServletResponse resp) {
@@ -129,6 +117,24 @@ public class LegacyWebUiServlet extends AbstractJteRouterServlet {
             render(resp, "legacy/ca-details.jte", params);
         } catch (IOException e) {
             log.error("Error rendering CA details", e);
+        }
+    }
+
+    private void renderPage(String template, HttpServletRequest req, HttpServletResponse resp) {
+        renderPage(template, req, resp, Collections.emptyMap());
+    }
+
+    private void renderPage(
+            String template,
+            HttpServletRequest req,
+            HttpServletResponse resp,
+            Map<String, Object> additionalParams) {
+        try {
+            Map<String, Object> params = getBaseParams(req);
+            params.putAll(additionalParams);
+            render(resp, template, params);
+        } catch (IOException e) {
+            log.error("Error rendering {}", template, e);
         }
     }
 
