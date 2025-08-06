@@ -1,5 +1,6 @@
 package de.morihofi.certgine.tsa;
 
+import de.morihofi.certgine.types.database.entities.timestamp.TsaAuthority;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.ModuleDescriptor;
 import jakarta.servlet.http.HttpServlet;
@@ -14,7 +15,7 @@ public class TsaModule implements CertgineModule {
 
     @Override
     public Set<Class<?>> getEntityClasses() {
-        return Set.of();
+        return Set.of(TsaAuthority.class);
     }
 
     @Override
