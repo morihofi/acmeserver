@@ -19,6 +19,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 
 /**
@@ -35,7 +36,7 @@ public class ModuleManager {
      * Registry containing metadata about the loaded modules.
      */
     @Getter
-    private final ModuleRegistry moduleRegistry = new ModuleRegistry();
+    private ModuleRegistry moduleRegistry = new ModuleRegistry();
 
     /**
      * Class loaders keyed by module name.
@@ -79,23 +80,7 @@ public class ModuleManager {
      * classpath using {@link ServiceLoader}.
      */
     public void loadModulesFromClasspath(IServerInstance serverInstance) {
-        ServiceLoader<CertgineModuleFactory> serviceLoader =
-                ServiceLoader.load(CertgineModuleFactory.class);
-        for (CertgineModuleFactory factory : serviceLoader) {
-            CertgineModule module = factory.create(serverInstance);
-            ModuleDescriptor descriptor = module.getClass().getAnnotation(ModuleDescriptor.class);
-            if (descriptor == null) {
-                log.warn("Ignoring module {} without @ModuleDescriptor", module.getClass().getName());
-                continue;
-            }
-            ModuleRegistry.ModuleInfo info = ModuleRegistry.ModuleInfo.builder()
-                    .moduleName(descriptor.moduleName())
-                    .description(descriptor.description())
-                    .module(module)
-                    .build();
-            moduleRegistry.registerModule(info);
-            log.info("Loaded module {}", descriptor.moduleName());
-        }
+        moduleRegistry = ModuleServiceLoader.loadModules(Optional.ofNullable(serverInstance));
     }
 
     /**

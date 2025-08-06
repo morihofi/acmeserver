@@ -1,2 +1,2 @@
 de.morihofi.certgine.core.modules.DummyModuleFactory
-
+de.morihofi.certgine.core.modules.ServerAwareModuleFactory
