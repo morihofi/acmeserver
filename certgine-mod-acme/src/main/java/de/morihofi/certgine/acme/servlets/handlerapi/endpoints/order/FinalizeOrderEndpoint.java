@@ -23,6 +23,7 @@ import de.morihofi.certgine.acme.types.events.AcmeCertificateIssuanceRequestedEv
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUnauthorizedException;
+import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.types.server.StartupFlag;
 import de.morihofi.certgine.utils.base64.Base64Tools;
@@ -60,9 +61,10 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
     public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
+        IServerInstance serverInstance = getModuleInstance().getModule().getServerInstance();
         String orderId = ctx.pathParam("orderId");
 
-        AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, getModuleInstance().getModule().getServerInstance());
+        AcmeOrder order = AcmeOrder.getAcmeOrder(orderId, serverInstance);
         AcmeAccount account = order.getAccount();
 
         // Check signature and nonce
@@ -75,13 +77,9 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
         String csr = reqBodyPayloadObj.getCsr();
 
         // Get our ACME identifiers
-        List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> identifiers = AcmeOrder.getAcmeOrder(orderId, getModuleInstance().getModule().getServerInstance()).getOrderIdentifiers();
+        List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> identifiers = order.getOrderIdentifiers();
 
-        // Ensure all authorizations are completed before processing the CSR
-        verifyAuthorizationsComplete(identifiers);
-
-        // We just use the verification, that throws exceptions, here not the resulting identifiers
-        AcmeCsrValidator.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
+        verifyCsrAndAuthorizations(csr, identifiers);
 
         // Convert AcmeOrderIdentifier into simple identifier
         List<de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier> identifierList = identifiers.stream()
@@ -90,69 +88,109 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
 
         // One authorization per identifier
         List<String> authorizationsList = identifiers.stream()
-                .map(AcmeOrderIdentifier -> provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/authz/" + AcmeOrderIdentifier.getAuthorizationId())
+                .map(AcmeOrderIdentifier -> provisioner.getAcmeApiURL(serverInstance) + "/acme/authz/" + AcmeOrderIdentifier.getAuthorizationId())
                 .toList();
 
+        parseCsr(csr);
+
+        AcmeOrderResponse response = issueCertificate(order, csr, provisioner, serverInstance);
+
+        constructResponse(ctx, provisioner, serverInstance, response, identifierList, authorizationsList, orderId);
+    }
+
+    /**
+     * Parses and validates the provided CSR string.
+     *
+     * @param csr CSR encoded as Base64URL string
+     * @throws ACMEBadCsrException if the CSR cannot be parsed
+     */
+    private void parseCsr(String csr) throws ACMEBadCsrException {
         try {
-
-            // Decode the CSR from the Request, we're just try to decode it to verify it is vaild
             byte[] csrBytes = Base64Tools.decodeBase64URLAsBytes(csr);
-
             if (csrBytes.length == 0) {
                 throw new ACMEBadCsrException("CSR bytes are 0 -> Invalid CSR");
             }
-
-            // Try if we can deserialize the CSR
             PKCS10CertificationRequest csrObj = new PKCS10CertificationRequest(csrBytes);
             new PemObject("PUBLIC KEY", csrObj.getSubjectPublicKeyInfo().getEncoded());
         } catch (Exception ex) {
             throw new ACMEBadCsrException("Unable to process requested CSR. Is the CSR valid and deserializable?");
         }
+    }
 
+    /**
+     * Ensures that all authorizations are valid and match the CSR.
+     *
+     * @param csr         CSR encoded as Base64URL string
+     * @param identifiers order identifiers to verify against
+     * @throws ACMEUnauthorizedException if any authorization is incomplete
+     */
+    private void verifyCsrAndAuthorizations(String csr, List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> identifiers) throws Exception {
+        verifyAuthorizationsComplete(identifiers);
+        AcmeCsrValidator.getCsrIdentifiersAndVerifyWithIdentifiers(csr, identifiers);
+    }
+
+    /**
+     * Issues a certificate if required and builds the response skeleton.
+     *
+     * @param order          ACME order being finalized
+     * @param csr            CSR encoded as Base64URL string
+     * @param provisioner    provisioner handling the request
+     * @param serverInstance current server instance
+     * @return response with issuance status
+     */
+    private AcmeOrderResponse issueCertificate(AcmeOrder order, String csr, AcmeProvisioner provisioner, IServerInstance serverInstance) {
         AcmeOrderResponse response = new AcmeOrderResponse();
 
         if (order.getCertificatePem() == null && order.getCertificateCSR() == null) {
-
-            try (Session session = getModuleInstance().getModule().getServerInstance().getDatabaseSession()) {
-
-                // Save CSR in Database (and mark it that it needs a certificate)
+            try (Session session = serverInstance.getDatabaseSession()) {
                 Transaction transaction = session.beginTransaction();
-
                 order.setCertificateCSR(csr);
                 order.setOrderState(AcmeOrderState.NEED_A_CERTIFICATE);
                 session.merge(order);
-
                 transaction.commit();
 
-                //TODO: May use properties for each module
-                if (getModuleInstance().getModule().getServerInstance().getStartupFlags().contains(StartupFlag.USE_ASYNC_CERTIFICATE_ISSUING)) {
-                    // Use async certificate issuing via event bus
+                if (serverInstance.getStartupFlags().contains(StartupFlag.USE_ASYNC_CERTIFICATE_ISSUING)) {
                     log.info("Saved CSR for order {} in database", order.getOrderId());
-                    getModuleInstance().getModule().getServerInstance().getEventBus().publish(new AcmeCertificateIssuanceRequestedEvent(order));
+                    serverInstance.getEventBus().publish(new AcmeCertificateIssuanceRequestedEvent(order));
                     response.setStatus(AcmeStatus.PROCESSING.getRfcName());
                 } else {
-                    CertificateIssuer.generateCertificateForOrder(order, session, getModuleInstance().getModule().getServerInstance()); // also resets need certificate status
-
-                    // Valid, cause due we generated the certificate in the request, we have now a certificate available
+                    CertificateIssuer.generateCertificateForOrder(order, session, serverInstance);
                     response.setStatus(AcmeStatus.VALID.getRfcName());
                 }
             } catch (Exception e) {
                 log.error("Unable to process CSR for order {} and save in database", order.getOrderId(), e);
             }
         } else {
-            // We have a certificate
-
             response.setStatus(AcmeStatus.VALID.getRfcName());
             response.setExpires(TimeTools.formatInstantForAcme(order.getCertificateExpires()));
             response.setIssued(TimeTools.formatInstantForAcme(order.getCertificateIssued()));
         }
 
-        ctx.header("Content-Type", "application/json");
-        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(getModuleInstance().getModule().getServerInstance()));
-        ctx.header("Location", provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId);
+        return response;
+    }
 
-        response.setFinalize(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId + "/finalize");
-        response.setCertificate(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId + "/cert");
+    /**
+     * Populates headers and writes the response object to the client.
+     *
+     * @param ctx               request/response context
+     * @param provisioner       provisioner handling the request
+     * @param serverInstance    current server instance
+     * @param response          response to send
+     * @param identifierList    identifiers associated with the order
+     * @param authorizationsList authorization URLs
+     * @param orderId           id of the order
+     */
+    private void constructResponse(HandlerContext ctx, AcmeProvisioner provisioner, IServerInstance serverInstance,
+                                   AcmeOrderResponse response,
+                                   List<de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier> identifierList,
+                                   List<String> authorizationsList,
+                                   String orderId) {
+        ctx.header("Content-Type", "application/json");
+        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(serverInstance));
+        ctx.header("Location", provisioner.getAcmeApiURL(serverInstance) + "/acme/order/" + orderId);
+
+        response.setFinalize(provisioner.getAcmeApiURL(serverInstance) + "/acme/order/" + orderId + "/finalize");
+        response.setCertificate(provisioner.getAcmeApiURL(serverInstance) + "/acme/order/" + orderId + "/cert");
         response.setIdentifiers(identifierList);
         response.setAuthorizations(authorizationsList);
 
