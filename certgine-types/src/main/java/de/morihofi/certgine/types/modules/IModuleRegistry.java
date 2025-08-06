@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,6 +18,20 @@ public interface IModuleRegistry {
      * @param info module metadata and instance
      */
     void registerModule(ModuleInfo info);
+
+    /**
+     * Unregisters a module and removes all of its contributions.
+     *
+     * @param moduleName unique name of the module to unload
+     */
+    void unregisterModule(String moduleName);
+
+    /**
+     * Reloads a module by unloading and registering it again.
+     *
+     * @param moduleName unique name of the module to reload
+     */
+    void reloadModule(String moduleName);
 
     /**
      * Retrieves a service implementation by its interface.
@@ -77,6 +93,27 @@ public interface IModuleRegistry {
          */
         @NonNull
         private final CertgineModule module;
+
+        /**
+         * Entity classes contributed by this module.
+         */
+        @Builder.Default
+        @NonNull
+        private final Set<Class<?>> entityClasses = new HashSet<>();
+
+        /**
+         * HTTP handler classes contributed by this module.
+         */
+        @Builder.Default
+        @NonNull
+        private final Set<Class<? extends HttpServlet>> httpHandlerClasses = new HashSet<>();
+
+        /**
+         * Service implementations contributed by this module keyed by their interface.
+         */
+        @Builder.Default
+        @NonNull
+        private final Map<Class<?>, Object> services = new HashMap<>();
     }
 }
 

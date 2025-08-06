@@ -60,6 +60,10 @@ public class ModuleRegistry implements IModuleRegistry {
     public void registerModule(@NonNull ModuleInfo info) {
         CertgineModule module = info.getModule();
 
+        // Reset tracked classes to reflect this registration cycle
+        info.getEntityClasses().clear();
+        info.getHttpHandlerClasses().clear();
+
         // Register entity classes with @Entity annotation
         for (Class<?> entityClass : module.getEntityClasses()) {
             if (entityClass.getAnnotation(Entity.class) == null) {
@@ -67,6 +71,7 @@ public class ModuleRegistry implements IModuleRegistry {
                 continue;
             }
             entityClasses.add(entityClass);
+            info.getEntityClasses().add(entityClass);
         }
 
         // Register valid HTTP servlet classes
@@ -80,8 +85,11 @@ public class ModuleRegistry implements IModuleRegistry {
                 continue;
             }
             httpHandlerClasses.add(servletClass);
+            info.getHttpHandlerClasses().add(servletClass);
         }
 
+        // Register services contributed by the module
+        services.putAll(info.getServices());
 
         modules.put(info.getModuleName(), info);
         module.onRegister();
@@ -98,19 +106,37 @@ public class ModuleRegistry implements IModuleRegistry {
         if (info == null) {
             return;
         }
-        CertgineModule module = info.getModule();
 
         // Remove entity classes contributed by the module
-        for (Class<?> entityClass : module.getEntityClasses()) {
+        for (Class<?> entityClass : info.getEntityClasses()) {
             entityClasses.remove(entityClass);
         }
 
         // Remove HTTP servlets contributed by the module
-        for (Class<? extends HttpServlet> servletClass : module.getHttpServlets()) {
+        for (Class<? extends HttpServlet> servletClass : info.getHttpHandlerClasses()) {
             httpHandlerClasses.remove(servletClass);
         }
 
-        module.onUnLoad();
+        // Remove services contributed by the module
+        for (Class<?> serviceInterface : info.getServices().keySet()) {
+            services.remove(serviceInterface);
+        }
+
+        info.getModule().onUnLoad();
+    }
+
+    /**
+     * Reloads a module by unloading and registering it again.
+     *
+     * @param moduleName unique name of the module to reload
+     */
+    public void reloadModule(@NonNull String moduleName) {
+        ModuleInfo info = modules.get(moduleName);
+        if (info == null) {
+            return;
+        }
+        unregisterModule(moduleName);
+        registerModule(info);
     }
 
     /**
