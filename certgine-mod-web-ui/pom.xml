@@ -9,7 +9,9 @@
         <version>3.0.0</version>
         <relativePath>../certgine-parent/pom.xml</relativePath>
     </parent>
-    <artifactId>certgine-tsa</artifactId>
+
+    <artifactId>certgine-mod-web-ui</artifactId>
+
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
@@ -19,35 +21,24 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.morihofi.certgine</groupId>
-            <artifactId>certgine-cryptography</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty.ee10</groupId>
-            <artifactId>jetty-ee10-servlet</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>de.morihofi.certgine</groupId>
             <artifactId>certgine-httpserver-intf</artifactId>
+            <version>3.0.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.morihofi.certgine</groupId>
+            <artifactId>certgine-types</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
+
+
 </project>

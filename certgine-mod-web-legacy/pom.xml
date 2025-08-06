@@ -10,7 +10,7 @@
         <relativePath>../certgine-parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>certgine-web-legacy</artifactId>
+    <artifactId>certgine-mod-web-legacy</artifactId>
 
     <properties>
         <jte.version>3.2.1</jte.version>

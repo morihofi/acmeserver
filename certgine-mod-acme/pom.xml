@@ -10,7 +10,7 @@
         <relativePath>../certgine-parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>certgine-acme</artifactId>
+    <artifactId>certgine-mod-acme</artifactId>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

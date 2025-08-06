@@ -14,13 +14,13 @@
         <module>certgine-utils</module>
         <module>certgine-parent</module>
         <module>certgine-types</module>
-        <module>certgine-revocation</module>
+        <module>certgine-mod-revocation</module>
         <module>certgine-cryptography</module>
         <module>certgine-httpserver-intf</module>
-        <module>certgine-acme</module>
-        <module>certgine-web-legacy</module>
-        <module>certgine-tsa</module>
-        <module>certgine-web-ui</module>
+        <module>certgine-mod-acme</module>
+        <module>certgine-mod-web-legacy</module>
+        <module>certgine-mod-tsa</module>
+        <module>certgine-mod-web-ui</module>
     </modules>
 
     <licenses>

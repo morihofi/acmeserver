@@ -186,25 +186,25 @@
         <!-- optional runtime modules -->
         <dependency>
             <groupId>de.morihofi.certgine</groupId>
-            <artifactId>certgine-acme</artifactId>
+            <artifactId>certgine-mod-acme</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>de.morihofi.certgine</groupId>
-            <artifactId>certgine-web-ui</artifactId>
+            <artifactId>certgine-mod-web-ui</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>de.morihofi.certgine</groupId>
-            <artifactId>certgine-web-legacy</artifactId>
+            <artifactId>certgine-mod-web-legacy</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>de.morihofi.certgine</groupId>
-            <artifactId>certgine-revocation</artifactId>
+            <artifactId>certgine-mod-revocation</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>

@@ -68,7 +68,7 @@ public class TemplateHelper {
         if (isDev) {
             log.info("Looks like this application is running from an IDE or outside a jar, using a JRE compiler resolver");
 
-            DirectoryCodeResolver codeResolver = new DirectoryCodeResolver(resolveModulePath("certgine-web-legacy/src/main/jte"));
+            DirectoryCodeResolver codeResolver = new DirectoryCodeResolver(resolveModulePath("certgine-mod-web-legacy/src/main/jte"));
             return TemplateEngine.create(codeResolver, ContentType.Html);
         } else {
             log.info("Running inside a JAR, using a precompiled template engine");
