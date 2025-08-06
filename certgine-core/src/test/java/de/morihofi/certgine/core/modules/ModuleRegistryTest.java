@@ -21,6 +21,10 @@ class ModuleRegistryTest {
     static class ReloadableModule extends CertgineModule {
         boolean unloaded = false;
 
+        ReloadableModule() {
+            super(null);
+        }
+
         @Override
         public Set<Class<?>> getEntityClasses() {
             return Set.of(DummyModule.DummyEntity.class);
@@ -39,6 +43,10 @@ class ModuleRegistryTest {
 
     static class FlagModule extends CertgineModule {
         boolean registered = false;
+
+        FlagModule() {
+            super(null);
+        }
 
         @Override
         public Set<Class<?>> getEntityClasses() {
@@ -157,5 +165,17 @@ class ModuleRegistryTest {
 
         registry.registerModule(info);
         assertSame(impl, registry.getService(SampleService.class));
+    }
+
+    @Test
+    void moduleInstanceStoredOnRegistration() {
+        ModuleRegistry registry = new ModuleRegistry();
+        ModuleWithInstance module = new ModuleWithInstance();
+        registry.registerModule(ModuleRegistry.ModuleInfo.builder()
+                .moduleName("inst")
+                .module(module)
+                .build());
+        assertSame(module.getModuleInstance(),
+                registry.getModules().get("inst").getModuleInstance());
     }
 }

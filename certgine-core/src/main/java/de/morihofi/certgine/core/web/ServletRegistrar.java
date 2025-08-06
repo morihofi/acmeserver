@@ -3,6 +3,7 @@ package de.morihofi.certgine.core.web;
 import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
 import jakarta.servlet.http.HttpServlet;
 import lombok.extern.slf4j.Slf4j;
@@ -38,8 +39,10 @@ public class ServletRegistrar {
      * @param context servlet context to register handlers on
      */
     public void addBundledServlets(ServletContextHandler context) throws Exception {
-        for (Class<? extends HttpServlet> servletClass : moduleRegistry.getHttpHandlerClasses()) {
-            addServlet(context, servletClass);
+        for (IModuleRegistry.ModuleInfo info : moduleRegistry.getModules().values()) {
+            for (Class<? extends HttpServlet> servletClass : info.getHttpHandlerClasses()) {
+                addServlet(context, servletClass, info.getModuleInstance());
+            }
         }
     }
 
@@ -56,16 +59,46 @@ public class ServletRegistrar {
         addServlet(context, servlet, s.servletMountPoint(), s.protect());
     }
 
-    public void addServlet(ServletContextHandler context, Class<? extends HttpServlet> servletClazz) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public void addServlet(ServletContextHandler context, Class<? extends HttpServlet> servletClazz)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        CertgineModuleInstance moduleInstance = null;
+        for (IModuleRegistry.ModuleInfo info : moduleRegistry.getModules().values()) {
+            if (info.getHttpHandlerClasses().contains(servletClazz)) {
+                moduleInstance = info.getModuleInstance();
+                break;
+            }
+        }
+        addServlet(context, servletClazz, moduleInstance);
+    }
+
+    private void addServlet(
+            ServletContextHandler context,
+            Class<? extends HttpServlet> servletClazz,
+            CertgineModuleInstance moduleInstance)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Constructor<? extends HttpServlet> servletClazzConstructor;
+        if (moduleInstance != null) {
+            try {
+                servletClazzConstructor = servletClazz.getConstructor(CertgineModuleInstance.class);
+                HttpServlet servlet = servletClazzConstructor.newInstance(moduleInstance);
+                addServlet(context, servlet);
+                return;
+            } catch (NoSuchMethodException ignored) {
+                // fall through to other constructors
+            }
+        }
+
         try {
             servletClazzConstructor = servletClazz.getConstructor(IServerInstance.class);
-        } catch (NoSuchMethodException e) {
-            servletClazzConstructor = servletClazz.getConstructor();
+            HttpServlet servlet = servletClazzConstructor.newInstance(serverInstance);
+            addServlet(context, servlet);
+            return;
+        } catch (NoSuchMethodException ignored) {
+            // fall through to no-arg
         }
-        HttpServlet servlet = servletClazzConstructor.getParameterCount() == 0
-                ? servletClazzConstructor.newInstance()
-                : servletClazzConstructor.newInstance(serverInstance);
+
+        servletClazzConstructor = servletClazz.getConstructor();
+        HttpServlet servlet = servletClazzConstructor.newInstance();
         addServlet(context, servlet);
     }
 

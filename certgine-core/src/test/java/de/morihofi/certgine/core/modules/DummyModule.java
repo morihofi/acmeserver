@@ -19,6 +19,11 @@ import java.util.Set;
 @ModuleDescriptor(moduleName = "dummy", description = "Test module")
 public class DummyModule extends CertgineModule {
 
+    /** Default constructor for tests. */
+    public DummyModule() {
+        super(null);
+    }
+
     @Override
     public Set<Class<?>> getEntityClasses() {
         return Set.of(DummyEntity.class);

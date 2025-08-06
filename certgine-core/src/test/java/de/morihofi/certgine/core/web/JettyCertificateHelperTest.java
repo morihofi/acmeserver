@@ -15,7 +15,6 @@ import de.morihofi.certgine.types.config.ServerConfig;
 import de.morihofi.certgine.types.database.entities.authority.*;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
-import de.morihofi.certgine.acme.security.INonceManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
@@ -52,8 +51,6 @@ class JettyCertificateHelperTest {
         @NonNull @Override public ICryptoStoreManager getCryptoStoreManager(){return mgr;}
         @NotNull
         @NonNull @Override public Config getAppConfig(){Config c=new Config();c.setServer(new ServerConfig());return c;}
-        @NotNull
-        @NonNull @Override public INonceManager getNonceManager(){return null;}
         @NotNull
         @NonNull @Override public RootCa getRootCa(){return rootCa;}
         @NotNull

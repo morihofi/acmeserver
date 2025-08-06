@@ -13,7 +13,6 @@ import de.morihofi.certgine.types.database.entities.authority.CertificateMetadat
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.database.entities.authority.RsaCertificateAlgorithm;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
-import de.morihofi.certgine.acme.security.INonceManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
@@ -47,8 +46,6 @@ class RootCaGetForUuidTest {
         @Override public ICryptoStoreManager getCryptoStoreManager(){return null;}
         @NotNull
         @Override public Config getAppConfig(){return cfg;}
-        @NotNull
-        @Override public INonceManager getNonceManager(){return null;}
         @NotNull
         @Override public RootCa getRootCa(){return ca;}
         @NotNull

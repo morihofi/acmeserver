@@ -103,6 +103,13 @@ public interface IModuleRegistry {
         private final CertgineModule module;
 
         /**
+         * Instance object returned by {@link CertgineModule#getModuleInstance()} for
+         * module specific interactions. May be {@code null} if the module does not
+         * expose an instance.
+         */
+        private CertgineModuleInstance moduleInstance;
+
+        /**
          * Names of modules this module depends on.
          */
         @Builder.Default

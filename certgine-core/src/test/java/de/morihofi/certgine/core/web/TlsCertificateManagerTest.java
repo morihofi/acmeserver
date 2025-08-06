@@ -13,7 +13,6 @@ import de.morihofi.certgine.types.config.ServerConfig;
 import de.morihofi.certgine.types.database.entities.authority.*;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
-import de.morihofi.certgine.acme.security.INonceManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
@@ -78,11 +77,6 @@ class TlsCertificateManagerTest {
             return config;
         }
 
-        @NotNull
-        @Override
-        public INonceManager getNonceManager() {
-            return null;
-        }
 
         @NotNull
         @Override
@@ -131,7 +125,7 @@ class TlsCertificateManagerTest {
         cfg.setServer(new ServerConfig());
         EventBus bus = new EventBus();
         ModuleRegistry registry = new ModuleRegistry();
-        CoreModule core = new CoreModule();
+        CoreModule core = new CoreModule(null);
         registry.registerModule(ModuleRegistry.ModuleInfo.builder()
                 .moduleName("core")
                 .module(core)
