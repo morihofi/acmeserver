@@ -1,9 +1,12 @@
 package de.morihofi.certgine.core.modules;
 
+import de.morihofi.certgine.core.modules.MissingDependencyException;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import jakarta.servlet.http.HttpServlet;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -93,6 +96,48 @@ class ModuleRegistryTest {
         registry.registerModule(infoB);
         assertEquals(2, registry.getModules().size());
         assertTrue(moduleB.registered);
+    }
+
+    @Test
+    void validateDependenciesThrowsForMissing() throws Exception {
+        ModuleRegistry registry = new ModuleRegistry();
+        ModuleRegistry.ModuleInfo info = ModuleRegistry.ModuleInfo.builder()
+                .moduleName("B")
+                .module(new FlagModule())
+                .dependencies(Set.of("A"))
+                .build();
+        Method method = ModuleRegistry.class.getDeclaredMethod("validateDependencies", ModuleRegistry.ModuleInfo.class);
+        method.setAccessible(true);
+        assertThrows(MissingDependencyException.class, () -> {
+            try {
+                method.invoke(registry, info);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
+        });
+    }
+
+    @Test
+    void validateDependenciesPassesWhenSatisfied() throws Exception {
+        ModuleRegistry registry = new ModuleRegistry();
+        registry.registerModule(ModuleRegistry.ModuleInfo.builder()
+                .moduleName("A")
+                .module(new FlagModule())
+                .build());
+        ModuleRegistry.ModuleInfo info = ModuleRegistry.ModuleInfo.builder()
+                .moduleName("B")
+                .module(new FlagModule())
+                .dependencies(Set.of("A"))
+                .build();
+        Method method = ModuleRegistry.class.getDeclaredMethod("validateDependencies", ModuleRegistry.ModuleInfo.class);
+        method.setAccessible(true);
+        assertDoesNotThrow(() -> {
+            try {
+                method.invoke(registry, info);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e.getCause());
+            }
+        });
     }
 
     @Test

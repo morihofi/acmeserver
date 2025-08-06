@@ -70,18 +70,13 @@ public class ModuleRegistry implements IModuleRegistry {
      * @param info module metadata and instance
      */
     public void registerModule(@NonNull ModuleInfo info) {
-        String moduleName = info.getModuleName();
-        if (modules.containsKey(moduleName)) {
-            log.error("Module {} is already registered", moduleName);
+        try {
+            validateDependencies(info);
+        } catch (MissingDependencyException e) {
             return;
         }
-        for (String dependency : info.getDependencies()) {
-            if (!modules.containsKey(dependency)) {
-                log.error("Cannot register module {}: missing dependency {}", moduleName, dependency);
-                return;
-            }
-        }
 
+        String moduleName = info.getModuleName();
         CertgineModule module = info.getModule();
 
         // Reset tracked classes to reflect this registration cycle
@@ -130,6 +125,29 @@ public class ModuleRegistry implements IModuleRegistry {
 
         modules.put(moduleName, info);
         module.onRegister();
+    }
+
+    /**
+     * Ensures the module is not already registered and all required dependencies are present.
+     *
+     * @param info module metadata and instance
+     * @throws MissingDependencyException if the module is already registered or a dependency is missing
+     */
+    private void validateDependencies(@NonNull ModuleInfo info) {
+        String moduleName = info.getModuleName();
+        if (modules.containsKey(moduleName)) {
+            String message = String.format("Module %s is already registered", moduleName);
+            log.error(message);
+            throw new MissingDependencyException(message);
+        }
+        for (String dependency : info.getDependencies()) {
+            if (!modules.containsKey(dependency)) {
+                String message = String.format(
+                        "Cannot register module %s: missing dependency %s", moduleName, dependency);
+                log.error(message);
+                throw new MissingDependencyException(message);
+            }
+        }
     }
 
     /**
