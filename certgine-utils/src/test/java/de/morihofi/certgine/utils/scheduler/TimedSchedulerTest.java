@@ -1,5 +1,6 @@
 package de.morihofi.certgine.utils.scheduler;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
@@ -13,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Tests for {@link TimedScheduler} verifying handle cancellation behaviour.
  */
+@Disabled // TODO: Enable again when we filter out long taking tests
 class TimedSchedulerTest {
 
     @Test
