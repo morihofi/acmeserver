@@ -11,12 +11,15 @@ import de.morihofi.certgine.utils.network.dns.OkHttpDnsLookupHandler;
 import de.morihofi.certgine.utils.network.dns.internal.DoHClient;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Authenticator;
+import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 @Slf4j
@@ -47,53 +50,55 @@ public class NetworkClient implements INetworkClient {
     public NetworkClient(NetworkConfig networkConfig) {
         this.networkConfig = networkConfig;
         this.dnsServer.addAll(networkConfig.getDnsConfig().getDnsServers());
-        this.doHClient = new DoHClient(networkConfig.getDnsConfig().getDohEndpoint(), this);
-        this.okHttpClient = new OkHttpClient.Builder()
+
+        Optional<Proxy> proxyOptional = getProxy();
+        this.doHClient = new DoHClient(networkConfig.getDnsConfig().getDohEndpoint(), proxyOptional, this);
+
+        OkHttpClient.Builder builder = new OkHttpClient.Builder()
                 .dns(new OkHttpDnsLookupHandler(doHClient, networkConfig.getDnsConfig()))
-                .proxy(getProxy())
-                .build();
+                .proxy(proxyOptional.orElse(Proxy.NO_PROXY));
+
+        if (proxyOptional.isPresent() && networkConfig.getProxy().getAuthentication().isEnabled()) {
+            String proxyUser = networkConfig.getProxy().getAuthentication().getUsername();
+            String proxyPassword = networkConfig.getProxy().getAuthentication().getPassword();
+            builder.proxyAuthenticator(new Authenticator() {
+                @Override
+                public okhttp3.Request authenticate(okhttp3.Route route, okhttp3.Response response) {
+                    String credential = Credentials.basic(proxyUser, proxyPassword);
+                    return response.request().newBuilder()
+                            .header("Proxy-Authorization", credential)
+                            .build();
+                }
+            });
+        }
+
+        this.okHttpClient = builder.build();
     }
 
     public List<String> getDnsServer() {
         return Collections.unmodifiableList(dnsServer);
     }
 
-    public Proxy getProxy() {
-        Proxy.Type proxyType = switch (networkConfig.getProxy().getType()) {
-            case "socks", "socks4", "socks5" -> Proxy.Type.SOCKS;
-            case "http" -> Proxy.Type.HTTP;
-            default -> Proxy.Type.DIRECT;
-        };
-        Proxy proxy = Proxy.NO_PROXY;
-
+    private Optional<Proxy> getProxy() {
         try {
+            if (!networkConfig.getProxy().getEnabled()) {
+                return Optional.empty();
+            }
+
             int proxyPort = networkConfig.getProxy().getPort();
             String proxyHost = networkConfig.getProxy().getHost();
 
-            if (networkConfig.getProxy().getEnabled()) {
-                SocketAddress socketAddress = new InetSocketAddress(proxyHost, proxyPort);
-                proxy = new Proxy(proxyType, socketAddress);
-            }
+            Optional<ProxyScheme> scheme = ProxyScheme.fromString(networkConfig.getProxy().getType());
+            Proxy.Type proxyType = scheme.map(s -> switch (s) {
+                case SOCKS -> Proxy.Type.SOCKS;
+                case HTTP -> Proxy.Type.HTTP;
+            }).orElse(Proxy.Type.DIRECT);
 
-            if (networkConfig.getProxy().getAuthentication().isEnabled()) {
-                String proxyUser = networkConfig.getProxy().getAuthentication().getUsername();
-                String proxyPassword = networkConfig.getProxy().getAuthentication().getPassword();
-
-                Authenticator.setDefault(new Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        if (getRequestingHost().equalsIgnoreCase(proxyHost) && proxyPort == getRequestingPort()) {
-                            return new PasswordAuthentication(proxyUser, proxyPassword.toCharArray());
-                        }
-                        return null;
-                    }
-                });
-            }
+            SocketAddress socketAddress = new InetSocketAddress(proxyHost, proxyPort);
+            return Optional.of(new Proxy(proxyType, socketAddress));
         } catch (Exception ex) {
             log.error("Failed to initialize proxy configuration, returning a no-proxy configuration", ex);
-            return Proxy.NO_PROXY;
+            return Optional.empty();
         }
-
-        return proxy;
     }
 }

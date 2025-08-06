@@ -20,8 +20,10 @@ import org.xbill.DNS.Record;
 import org.xbill.DNS.Section;
 
 import java.io.IOException;
+import java.net.Proxy;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * DoHClient is a client that performs DNS queries over HTTPS (DoH). It uses the specified DoH URL and a network client to configure its
@@ -36,12 +38,13 @@ public class DoHClient implements IDoHClient {
      * Constructs a DoHClient with the specified DoH URL and network client.
      *
      * @param dohUrl    the URL of the DNS over HTTPS server.
+     * @param proxy     the proxy to use for DoH requests
      * @param netClient the network client used to configure the HTTP client.
      */
-    public DoHClient(String dohUrl, NetworkClient netClient) {
+    public DoHClient(String dohUrl, Optional<Proxy> proxy, NetworkClient netClient) {
         this.dohUrl = dohUrl;
         this.client = new OkHttpClient.Builder()
-                .proxy(netClient.getProxy())
+                .proxy(proxy.orElse(java.net.Proxy.NO_PROXY))
                 // Needed to resolve DoH DNS Host
                 .dns(hostname -> DNSLookup.lookupHostname(hostname, new DnsServerResolver(netClient.getDnsServer())))
                 .build();
