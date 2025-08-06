@@ -46,6 +46,22 @@ public class NonceManager implements INonceManager {
     }
 
 
+    /**
+     * Validates the nonce contained in the decoded JWS protected header.
+     * <p>The {@code decodedProtected} parameter must be a JSON object containing a
+     * {@code nonce} property as defined by the ACME specification, e.g.
+     * <pre>
+     * {
+     *   "nonce": "&lt;base64url-encoded nonce&gt;",
+     *   ...
+     * }
+     * </pre>
+     * If the nonce is not known to the server or has already been redeemed, an
+     * {@link ACMEBadNonceException} is thrown.
+     *
+     * @param decodedProtected the decoded JWS protected header in JSON format containing the nonce
+     * @throws ACMEBadNonceException if the nonce is unknown or has already been used
+     */
     public void checkNonceFromDecodedProtected(@NonNull String decodedProtected) {
         JsonObject reqBodyProtectedObj = JsonParser.parseString(decodedProtected).getAsJsonObject();
         String nonce = reqBodyProtectedObj.get("nonce").getAsString();
