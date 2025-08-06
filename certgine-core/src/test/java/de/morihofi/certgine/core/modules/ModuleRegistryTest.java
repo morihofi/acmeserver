@@ -37,6 +37,25 @@ class ModuleRegistryTest {
         }
     }
 
+    static class FlagModule implements CertgineModule {
+        boolean registered = false;
+
+        @Override
+        public Set<Class<?>> getEntityClasses() {
+            return Set.of();
+        }
+
+        @Override
+        public Set<Class<? extends HttpServlet>> getHttpServlets() {
+            return Set.of();
+        }
+
+        @Override
+        public void onRegister() {
+            registered = true;
+        }
+    }
+
     @Test
     void unregisterAndReloadModuleRemovesAndRestoresArtifacts() {
         ModuleRegistry registry = new ModuleRegistry();
@@ -64,5 +83,56 @@ class ModuleRegistryTest {
         assertTrue(registry.getEntityClasses().isEmpty());
         assertTrue(registry.getHttpHandlerClasses().isEmpty());
         assertNull(registry.getService(SampleService.class));
+    }
+
+    @Test
+    void duplicateModulesAreRejected() {
+        ModuleRegistry registry = new ModuleRegistry();
+        FlagModule first = new FlagModule();
+        FlagModule second = new FlagModule();
+
+        registry.registerModule(ModuleRegistry.ModuleInfo.builder()
+                .moduleName("dup")
+                .module(first)
+                .build());
+        registry.registerModule(ModuleRegistry.ModuleInfo.builder()
+                .moduleName("dup")
+                .module(second)
+                .build());
+
+        assertTrue(first.registered);
+        assertFalse(second.registered);
+        assertEquals(1, registry.getModules().size());
+    }
+
+    @Test
+    void modulesRespectDependencyOrder() {
+        ModuleRegistry registry = new ModuleRegistry();
+        FlagModule moduleA = new FlagModule();
+        FlagModule moduleB = new FlagModule();
+
+        ModuleRegistry.ModuleInfo infoB = ModuleRegistry.ModuleInfo.builder()
+                .moduleName("B")
+                .module(moduleB)
+                .dependencies(Set.of("A"))
+                .build();
+
+        // Attempt to register B before A should be rejected
+        registry.registerModule(infoB);
+        assertEquals(0, registry.getModules().size());
+        assertFalse(moduleB.registered);
+
+        // Register dependency A first
+        registry.registerModule(ModuleRegistry.ModuleInfo.builder()
+                .moduleName("A")
+                .module(moduleA)
+                .build());
+        assertEquals(1, registry.getModules().size());
+        assertTrue(moduleA.registered);
+
+        // Register B again now that dependency is satisfied
+        registry.registerModule(infoB);
+        assertEquals(2, registry.getModules().size());
+        assertTrue(moduleB.registered);
     }
 }

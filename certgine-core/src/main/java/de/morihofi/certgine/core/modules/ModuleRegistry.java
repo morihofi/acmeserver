@@ -58,6 +58,18 @@ public class ModuleRegistry implements IModuleRegistry {
      * @param info module metadata and instance
      */
     public void registerModule(@NonNull ModuleInfo info) {
+        String moduleName = info.getModuleName();
+        if (modules.containsKey(moduleName)) {
+            log.error("Module {} is already registered", moduleName);
+            return;
+        }
+        for (String dependency : info.getDependencies()) {
+            if (!modules.containsKey(dependency)) {
+                log.error("Cannot register module {}: missing dependency {}", moduleName, dependency);
+                return;
+            }
+        }
+
         CertgineModule module = info.getModule();
 
         // Reset tracked classes to reflect this registration cycle
@@ -91,7 +103,7 @@ public class ModuleRegistry implements IModuleRegistry {
         // Register services contributed by the module
         services.putAll(info.getServices());
 
-        modules.put(info.getModuleName(), info);
+        modules.put(moduleName, info);
         module.onRegister();
     }
 

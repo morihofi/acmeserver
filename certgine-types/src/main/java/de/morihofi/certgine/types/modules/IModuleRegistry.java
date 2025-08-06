@@ -95,6 +95,13 @@ public interface IModuleRegistry {
         private final CertgineModule module;
 
         /**
+         * Names of modules this module depends on.
+         */
+        @Builder.Default
+        @NonNull
+        private final Set<String> dependencies = new HashSet<>();
+
+        /**
          * Entity classes contributed by this module.
          */
         @Builder.Default
