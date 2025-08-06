@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -27,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class TimedScheduler {
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    private final CopyOnWriteArrayList<ScheduledTask> tasks = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<ScheduledHandle> tasks = new CopyOnWriteArrayList<>();
     private final CronParser parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX));
 
     /**
@@ -57,19 +58,24 @@ public class TimedScheduler {
             return;
         }
         Duration delay = Duration.between(ZonedDateTime.now(), next.get());
-        executor.schedule(() -> {
+        ScheduledFuture<?> future = executor.schedule(() -> {
             try {
                 task.task().run();
             } finally {
                 scheduleNextExecution(task);
             }
         }, delay.toMillis(), TimeUnit.MILLISECONDS);
+        task.setFuture(future);
+        if (task.cancelled) {
+            future.cancel(false);
+        }
     }
 
     /**
      * Stops the scheduler and clears all registered tasks.
      */
     public void shutdown() {
+        tasks.forEach(ScheduledHandle::cancel);
         executor.shutdownNow();
         tasks.clear();
     }
@@ -84,6 +90,7 @@ public class TimedScheduler {
         private final Cron cron;
         private final Runnable task;
         private volatile boolean cancelled = false;
+        private volatile ScheduledFuture<?> future;
 
         ScheduledTask(Cron cron, Runnable task) {
             this.cron = cron;
@@ -98,9 +105,16 @@ public class TimedScheduler {
             return task;
         }
 
+        void setFuture(ScheduledFuture<?> future) {
+            this.future = future;
+        }
+
         @Override
         public void cancel() {
             cancelled = true;
+            if (future != null) {
+                future.cancel(false);
+            }
             tasks.remove(this);
         }
     }
