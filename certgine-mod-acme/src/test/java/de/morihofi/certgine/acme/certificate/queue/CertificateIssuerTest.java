@@ -110,6 +110,7 @@ class CertificateIssuerTest {
         IServerInstance server = mock(IServerInstance.class);
         EventBus bus = mock(EventBus.class);
         when(server.getEventBus()).thenReturn(bus);
+        when(server.getCryptoStoreManager()).thenReturn(csm);
         Config cfg = new Config();
         cfg.setServer(new ServerConfig());
         cfg.setNetwork(new NetworkConfig());
@@ -119,7 +120,7 @@ class CertificateIssuerTest {
         try (MockedStatic<CAAValidator> mockCaa = mockStatic(CAAValidator.class)) {
             mockCaa.when(() -> CAAValidator.isIssuanceAllowed(any(), any(), any(), any())).thenReturn(false);
             assertThrows(ACMECaaException.class,
-                    () -> CertificateIssuer.generateCertificateForOrder(order, csm, session, server));
+                    () -> CertificateIssuer.generateCertificateForOrder(order, session, server));
         }
     }
 
@@ -155,6 +156,7 @@ class CertificateIssuerTest {
         IServerInstance server = mock(IServerInstance.class);
         EventBus bus = mock(EventBus.class);
         when(server.getEventBus()).thenReturn(bus);
+        when(server.getCryptoStoreManager()).thenReturn(csm);
         Config cfg = new Config();
         cfg.setServer(new ServerConfig());
         cfg.getServer().setDnsName("ca.example.com");
@@ -165,7 +167,7 @@ class CertificateIssuerTest {
 
         try (MockedStatic<CAAValidator> mockCaa = mockStatic(CAAValidator.class)) {
             mockCaa.when(() -> CAAValidator.isIssuanceAllowed(any(), any(), any(), any())).thenReturn(true);
-            CertificateIssuer.generateCertificateForOrder(order, csm, session, server);
+            CertificateIssuer.generateCertificateForOrder(order, session, server);
         }
 
         assertNotNull(order.getCertificateSerialNumber());

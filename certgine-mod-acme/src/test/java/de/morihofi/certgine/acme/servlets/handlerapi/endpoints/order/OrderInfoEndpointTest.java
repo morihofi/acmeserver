@@ -4,16 +4,14 @@
  */
 
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order;
-import de.morihofi.certgine.acme.security.INonceManager;
-import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
-import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.events.EventBus;
-
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
+import de.morihofi.certgine.acme.AcmeModule;
+import de.morihofi.certgine.acme.AcmeModuleInstance;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
+import de.morihofi.certgine.types.events.EventBus;
 import org.hibernate.Session;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
@@ -31,36 +29,15 @@ import static org.junit.jupiter.api.Assertions.*;
 class OrderInfoEndpointTest {
 
     static class DummyServerInstance implements IServerInstance {
-        @NotNull
-        @NonNull
-        @Override public String getServerURL() { return ""; }
-        @NotNull
-        @NonNull
-        @Override public Session getDatabaseSession() { return null; }
-        @NotNull
-        @NonNull
-        @Override public ICryptoStoreManager getCryptoStoreManager() { return null; }
-        @NotNull
-        @NonNull
-        @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
-        @NotNull
-        @NonNull
-        @Override public INonceManager getNonceManager() { return null; }
-        @NotNull
-        @NonNull
-        @Override public RootCa getRootCa() { return null; }
-        @NotNull
-        @NonNull
-        @Override public de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() { return null; }
-        @NotNull
-        @NonNull
-        @Override public de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() { return null; }
-            @NotNull
-            @NonNull
-        @Override public EventBus getEventBus() { return new EventBus(); }
-        @NotNull
-        @NonNull
-        @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
+        @Override public @NonNull String getServerURL() { return ""; }
+        @Override public @NonNull Session getDatabaseSession() { return null; }
+        @Override public @NonNull de.morihofi.certgine.types.cryptography.ICryptoStoreManager getCryptoStoreManager() { return null; }
+        @Override public @NonNull de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
+        @Override public @NonNull de.morihofi.certgine.types.database.entities.authority.RootCa getRootCa() { return null; }
+        @Override public @NonNull de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() { return null; }
+        @Override public @NonNull de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() { return null; }
+        @Override public @NonNull EventBus getEventBus() { return new EventBus(); }
+        @Override public @NonNull java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
 
         @Override
         public @NonNull IModuleRegistry getModuleRegistry() {
@@ -68,12 +45,17 @@ class OrderInfoEndpointTest {
         }
     }
 
+    private static AcmeModuleInstance moduleInstance() {
+        DummyServerInstance server = new DummyServerInstance();
+        return new AcmeModuleInstance(new AcmeModule(server));
+    }
+
     @Test
     @DisplayName("Order expiration comes from stored order")
     void testOrderExpiration() {
         Instant now = Instant.parse("2024-01-01T00:00:00Z");
         Clock clock = Clock.fixed(now, ZoneOffset.UTC);
-        OrderInfoEndpoint endpoint = new OrderInfoEndpoint(new DummyServerInstance(), clock);
+        OrderInfoEndpoint endpoint = new OrderInfoEndpoint(moduleInstance(), clock);
         AcmeOrder order = new AcmeOrder();
         Instant expires = now.plus(Duration.ofHours(1));
         order.setExpires(expires);
@@ -91,7 +73,7 @@ class OrderInfoEndpointTest {
     @Test
     @DisplayName("verifyIdentifiersPresent throws when list empty")
     void testVerifyIdentifiersPresentThrows() {
-        OrderInfoEndpoint endpoint = new OrderInfoEndpoint(new DummyServerInstance(), Clock.systemUTC());
+        OrderInfoEndpoint endpoint = new OrderInfoEndpoint(moduleInstance(), Clock.systemUTC());
         java.lang.reflect.Method m;
         try {
             m = OrderInfoEndpoint.class.getDeclaredMethod("verifyIdentifiersPresent", String.class, List.class);
@@ -106,7 +88,7 @@ class OrderInfoEndpointTest {
     @Test
     @DisplayName("verifyIdentifiersPresent passes with identifiers")
     void testVerifyIdentifiersPresentOk() {
-        OrderInfoEndpoint endpoint = new OrderInfoEndpoint(new DummyServerInstance(), Clock.systemUTC());
+        OrderInfoEndpoint endpoint = new OrderInfoEndpoint(moduleInstance(), Clock.systemUTC());
         AcmeOrderIdentifier id = new AcmeOrderIdentifier("dns", "example.com");
         java.lang.reflect.Method m;
         try {

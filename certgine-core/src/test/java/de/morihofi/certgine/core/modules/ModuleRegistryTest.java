@@ -168,13 +168,19 @@ class ModuleRegistryTest {
     }
 
     @Test
-    void moduleInstanceStoredOnRegistration() {
+    void moduleInstanceCanBeAssignedLater() {
         ModuleRegistry registry = new ModuleRegistry();
         ModuleWithInstance module = new ModuleWithInstance();
-        registry.registerModule(ModuleRegistry.ModuleInfo.builder()
+        ModuleRegistry.ModuleInfo info = ModuleRegistry.ModuleInfo.builder()
                 .moduleName("inst")
                 .module(module)
-                .build());
+                .build();
+
+        registry.registerModule(info);
+
+        assertNull(registry.getModules().get("inst").getModuleInstance());
+
+        info.setModuleInstance(module.getModuleInstance());
         assertSame(module.getModuleInstance(),
                 registry.getModules().get("inst").getModuleInstance());
     }

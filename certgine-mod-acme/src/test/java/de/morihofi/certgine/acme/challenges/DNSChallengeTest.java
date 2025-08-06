@@ -77,9 +77,6 @@ class DNSChallengeTest {
         @Override public Config getAppConfig() { return cfg; }
         @NotNull
         @NonNull
-        @Override public INonceManager getNonceManager() { return null; }
-        @NotNull
-        @NonNull
         @Override public RootCa getRootCa() { return null; }
         @NotNull
         @NonNull

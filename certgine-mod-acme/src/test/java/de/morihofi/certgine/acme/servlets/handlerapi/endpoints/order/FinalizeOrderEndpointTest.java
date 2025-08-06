@@ -4,17 +4,17 @@
  */
 
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order;
-import de.morihofi.certgine.acme.security.INonceManager;
-import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
-import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.events.EventBus;
-
+import de.morihofi.certgine.acme.AcmeModule;
+import de.morihofi.certgine.acme.AcmeModuleInstance;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUnauthorizedException;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
+import de.morihofi.certgine.types.database.entities.authority.RootCa;
+import de.morihofi.certgine.types.events.EventBus;
 import org.hibernate.Session;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
@@ -27,41 +27,24 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FinalizeOrderEndpointTest {
     static class DummyServerInstance implements IServerInstance {
-        @NotNull
-        @NonNull
-        @Override public String getServerURL() { return ""; }
-        @NotNull
-        @NonNull
-        @Override public Session getDatabaseSession() { return null; }
-        @NotNull
-        @NonNull
-        @Override public ICryptoStoreManager getCryptoStoreManager() { return null; }
-        @NotNull
-        @NonNull
-        @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
-        @NotNull
-        @NonNull
-        @Override public INonceManager getNonceManager() { return null; }
-        @NotNull
-        @NonNull
-        @Override public RootCa getRootCa() { return null; }
-        @NotNull
-        @NonNull
-        @Override public de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() { return null; }
-        @NotNull
-        @NonNull
-        @Override public de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() { return null; }
-        @NotNull
-        @NonNull
-        @Override public EventBus getEventBus() { return new EventBus(); }
-        @NotNull
-        @NonNull
-        @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
+        @Override public @NonNull String getServerURL() { return ""; }
+        @Override public @NonNull Session getDatabaseSession() { return null; }
+        @Override public @NonNull ICryptoStoreManager getCryptoStoreManager() { return null; }
+        @Override public @NonNull de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
+        @Override public @NonNull RootCa getRootCa() { return null; }
+        @Override public @NonNull de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() { return null; }
+        @Override public @NonNull de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() { return null; }
+        @Override public @NonNull EventBus getEventBus() { return new EventBus(); }
+        @Override public @NonNull java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
 
         @Override
         public @NonNull IModuleRegistry getModuleRegistry() {
             return null;
         }
+    }
+
+    private static AcmeModuleInstance moduleInstance() {
+        return new AcmeModuleInstance(new AcmeModule(new DummyServerInstance()));
     }
 
     private static AcmeOrderIdentifierChallenge challengeWithStatus(AcmeOrderIdentifier id, AcmeStatus status) {
@@ -74,7 +57,7 @@ class FinalizeOrderEndpointTest {
     @Test
     @DisplayName("verifyAuthorizationsComplete throws when any identifier invalid")
     void testVerifyAuthorizationsIncomplete() {
-        FinalizeOrderEndpoint endpoint = new FinalizeOrderEndpoint(new DummyServerInstance());
+        FinalizeOrderEndpoint endpoint = new FinalizeOrderEndpoint(moduleInstance());
         AcmeOrderIdentifier id1 = new AcmeOrderIdentifier("dns", "example.com");
         AcmeOrderIdentifier id2 = new AcmeOrderIdentifier("dns", "example.org");
         id1.setChallenges(List.of(challengeWithStatus(id1, AcmeStatus.VALID)));
@@ -95,7 +78,7 @@ class FinalizeOrderEndpointTest {
     @Test
     @DisplayName("verifyAuthorizationsComplete passes when all identifiers valid")
     void testVerifyAuthorizationsComplete() {
-        FinalizeOrderEndpoint endpoint = new FinalizeOrderEndpoint(new DummyServerInstance());
+        FinalizeOrderEndpoint endpoint = new FinalizeOrderEndpoint(moduleInstance());
         AcmeOrderIdentifier id1 = new AcmeOrderIdentifier("dns", "example.com");
         AcmeOrderIdentifier id2 = new AcmeOrderIdentifier("dns", "example.org");
         id1.setChallenges(List.of(challengeWithStatus(id1, AcmeStatus.VALID)));

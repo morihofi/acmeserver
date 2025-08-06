@@ -7,6 +7,7 @@ package de.morihofi.certgine.core.modules;
 
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModule;
+import de.morihofi.certgine.types.modules.CertgineModuleFactory;
 import de.morihofi.certgine.types.modules.ModuleDescriptor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -17,7 +18,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
@@ -52,8 +52,10 @@ public class ModuleManager {
         URL url = jar.toUri().toURL();
         URLClassLoader cl = new URLClassLoader(new URL[]{url}, getClass().getClassLoader());
 
-        ServiceLoader<CertgineModule> serviceLoader = ServiceLoader.load(CertgineModule.class, cl);
-        for (CertgineModule module : serviceLoader) {
+        ServiceLoader<CertgineModuleFactory> serviceLoader =
+                ServiceLoader.load(CertgineModuleFactory.class, cl);
+        for (CertgineModuleFactory factory : serviceLoader) {
+            CertgineModule module = factory.create(null);
             ModuleDescriptor descriptor = module.getClass().getAnnotation(ModuleDescriptor.class);
             if (descriptor == null) {
                 log.warn("Ignoring module {} without @ModuleDescriptor", module.getClass().getName());
@@ -77,12 +79,10 @@ public class ModuleManager {
      * classpath using {@link ServiceLoader}.
      */
     public void loadModulesFromClasspath(IServerInstance serverInstance) {
-        List<CertgineModule> serviceLoader = new ServiceLoaderWithArgs<>(
-                CertgineModule.class,
-                new Class<?>[]{IServerInstance.class},
-                new Object[]{serverInstance}
-        ).load();
-        for (CertgineModule module : serviceLoader) {
+        ServiceLoader<CertgineModuleFactory> serviceLoader =
+                ServiceLoader.load(CertgineModuleFactory.class);
+        for (CertgineModuleFactory factory : serviceLoader) {
+            CertgineModule module = factory.create(serverInstance);
             ModuleDescriptor descriptor = module.getClass().getAnnotation(ModuleDescriptor.class);
             if (descriptor == null) {
                 log.warn("Ignoring module {} without @ModuleDescriptor", module.getClass().getName());

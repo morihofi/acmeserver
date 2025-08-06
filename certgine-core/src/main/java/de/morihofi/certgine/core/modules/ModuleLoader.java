@@ -6,6 +6,7 @@
 package de.morihofi.certgine.core.modules;
 
 import de.morihofi.certgine.types.modules.CertgineModule;
+import de.morihofi.certgine.types.modules.CertgineModuleFactory;
 import de.morihofi.certgine.types.modules.ModuleDescriptor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,8 +26,10 @@ public class ModuleLoader {
      */
     public ModuleRegistry loadModules() {
         ModuleRegistry registry = new ModuleRegistry();
-        ServiceLoader<CertgineModule> serviceLoader = ServiceLoader.load(CertgineModule.class);
-        for (CertgineModule module : serviceLoader) {
+        ServiceLoader<CertgineModuleFactory> serviceLoader =
+                ServiceLoader.load(CertgineModuleFactory.class);
+        for (CertgineModuleFactory factory : serviceLoader) {
+            CertgineModule module = factory.create(null);
             ModuleDescriptor descriptor = module.getClass().getAnnotation(ModuleDescriptor.class);
             if (descriptor == null) {
                 log.warn("Ignoring module {} without @ModuleDescriptor", module.getClass().getName());

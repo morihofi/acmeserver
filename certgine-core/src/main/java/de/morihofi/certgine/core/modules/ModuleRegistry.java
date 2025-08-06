@@ -85,13 +85,6 @@ public class ModuleRegistry implements IModuleRegistry {
 
         CertgineModule module = info.getModule();
 
-        // Capture module instance if provided
-        try {
-            info.setModuleInstance(module.getModuleInstance());
-        } catch (IllegalArgumentException e) {
-            log.debug("Module {} does not provide a module instance", moduleName);
-        }
-
         // Reset tracked classes to reflect this registration cycle
         info.getEntityClasses().clear();
         info.getHttpHandlerClasses().clear();

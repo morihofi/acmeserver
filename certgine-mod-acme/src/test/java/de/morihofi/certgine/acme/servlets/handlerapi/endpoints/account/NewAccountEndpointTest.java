@@ -5,7 +5,8 @@
 
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.account;
 
-import de.morihofi.certgine.acme.security.INonceManager;
+import de.morihofi.certgine.acme.AcmeModule;
+import de.morihofi.certgine.acme.AcmeModuleInstance;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.account.objects.ExternalAccountBinding;
 import de.morihofi.certgine.acme.types.entities.AcmeExternalAccountBinding;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
@@ -36,7 +37,6 @@ class NewAccountEndpointTest {
         @Override public Session getDatabaseSession() { return null; }
         @Override public ICryptoStoreManager getCryptoStoreManager() { return null; }
         @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
-        @Override public INonceManager getNonceManager() { return null; }
         @Override public de.morihofi.certgine.types.database.entities.authority.RootCa getRootCa() { return null; }
         @Override public de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() { return null; }
         @Override public de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() { return null; }
@@ -50,10 +50,14 @@ class NewAccountEndpointTest {
         @Override public de.morihofi.certgine.types.events.EventBus getEventBus() { return new de.morihofi.certgine.types.events.EventBus(); }
     }
 
+    private static AcmeModuleInstance moduleInstance() {
+        return new AcmeModuleInstance(new AcmeModule(new DummyServer()));
+    }
+
     @Test
     @DisplayName("throws when binding required and missing")
     void testBindingRequiredMissing() throws Exception {
-        NewAccountEndpoint endpoint = new NewAccountEndpoint(new DummyServer());
+        NewAccountEndpoint endpoint = new NewAccountEndpoint(moduleInstance());
         AcmeProvisioner p = new AcmeProvisioner();
         p.setExternalAccountBindingRequired(true);
         Method m = NewAccountEndpoint.class.getDeclaredMethod("validateExternalAccountBinding",
@@ -67,7 +71,7 @@ class NewAccountEndpointTest {
     @Test
     @DisplayName("valid binding returns key")
     void testValidBinding() throws Exception {
-        NewAccountEndpoint endpoint = new NewAccountEndpoint(new DummyServer());
+        NewAccountEndpoint endpoint = new NewAccountEndpoint(moduleInstance());
         AcmeProvisioner p = new AcmeProvisioner();
         p.setExternalAccountBindingRequired(false);
 

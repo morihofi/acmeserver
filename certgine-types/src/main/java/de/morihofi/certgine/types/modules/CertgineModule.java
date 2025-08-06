@@ -9,7 +9,6 @@ import de.morihofi.certgine.types.intf.IServerInstance;
 import jakarta.servlet.http.HttpServlet;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 import javax.naming.OperationNotSupportedException;
 import java.util.Map;
@@ -22,11 +21,35 @@ import java.util.Set;
  * interfaces. Implementations are expected to provide the classes through the
  * corresponding getter methods.</p>
  */
-@RequiredArgsConstructor
 public abstract class CertgineModule {
 
+    /**
+     * Reference to the active server instance. This may initially be {@code null}
+     * when modules are loaded before the server has been fully constructed and
+     * is populated later once the server instance becomes available.
+     */
     @Getter
-    private final IServerInstance serverInstance;
+    private IServerInstance serverInstance;
+
+    /**
+     * Constructs a module with an optional server instance reference.
+     *
+     * @param serverInstance current server instance or {@code null} if not yet available
+     */
+    protected CertgineModule(IServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
+    }
+
+    /**
+     * Updates the server instance reference once the server has been
+     * constructed. Called by the core during startup to provide modules with the
+     * fully initialised {@link IServerInstance}.
+     *
+     * @param serverInstance active server instance
+     */
+    public void setServerInstance(IServerInstance serverInstance) {
+        this.serverInstance = serverInstance;
+    }
 
     /**
      * Entity classes contributed by this module.

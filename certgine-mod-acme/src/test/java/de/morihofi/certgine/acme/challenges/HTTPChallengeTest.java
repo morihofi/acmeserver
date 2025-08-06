@@ -66,9 +66,6 @@ class HTTPChallengeTest {
         @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
         @NotNull
         @NonNull
-        @Override public INonceManager getNonceManager() { return null; }
-        @NotNull
-        @NonNull
         @Override public RootCa getRootCa() { return null; }
         @NotNull
         @NonNull

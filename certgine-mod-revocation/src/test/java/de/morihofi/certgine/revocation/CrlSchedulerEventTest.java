@@ -10,7 +10,6 @@ import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.acme.types.events.ProvisionerCreatedEvent;
 import de.morihofi.certgine.acme.types.events.ProvisionerDeletedEvent;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
-import de.morihofi.certgine.acme.security.INonceManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
@@ -41,9 +40,6 @@ class CrlSchedulerEventTest {
         @NotNull
         @NonNull
         @Override public Config getAppConfig(){return new Config();}
-        @NotNull
-        @NonNull
-        @Override public INonceManager getNonceManager(){return null;}
 
         @NotNull
         @NonNull

@@ -4,7 +4,8 @@
  */
 
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.authz;
-import de.morihofi.certgine.acme.security.INonceManager;
+import de.morihofi.certgine.acme.AcmeModule;
+import de.morihofi.certgine.acme.AcmeModuleInstance;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.events.EventBus;
@@ -43,9 +44,6 @@ class AuthzOwnershipEndpointTest {
         @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
         @NotNull
         @NonNull
-        @Override public INonceManager getNonceManager() { return null; }
-        @NotNull
-        @NonNull
         @Override public RootCa getRootCa() { return null; }
         @NotNull
         @NonNull
@@ -72,7 +70,7 @@ class AuthzOwnershipEndpointTest {
     void testAuthorizationExpiration() {
         Instant now = Instant.parse("2024-01-01T00:00:00Z");
         Clock clock = Clock.fixed(now, ZoneOffset.UTC);
-        AuthzOwnershipEndpoint endpoint = new AuthzOwnershipEndpoint(new DummyServerInstance(), clock);
+        AuthzOwnershipEndpoint endpoint = new AuthzOwnershipEndpoint(new AcmeModuleInstance(new AcmeModule(new DummyServerInstance())), clock);
         AcmeOrder order = new AcmeOrder();
         Instant expires = now.plus(Duration.ofHours(1));
         order.setExpires(expires);

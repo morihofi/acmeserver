@@ -218,7 +218,9 @@ public class Main {
 
         log.info("Loading modules ...");
         ModuleManager moduleManager = new ModuleManager();
-        moduleManager.loadModulesFromClasspath(null); //FIXME
+        // Modules are initially loaded without a server instance. The instance is
+        // injected once the server is fully constructed further below.
+        moduleManager.loadModulesFromClasspath(null);
 
         Path modulesDir = FILES_DIR.resolve("modules");
         if (Files.isDirectory(modulesDir)) {
@@ -260,6 +262,17 @@ public class Main {
                 .eventBus(eventBus)
                 .startupFlags(startupFlags)
                 .build();
+
+        // Inject the fully constructed server instance into loaded modules and
+        // capture their optional module interfaces.
+        for (ModuleRegistry.ModuleInfo moduleInfo : moduleRegistry.getModules().values()) {
+            moduleInfo.getModule().setServerInstance(preServerInstance);
+            try {
+                moduleInfo.setModuleInstance(moduleInfo.getModule().getModuleInstance());
+            } catch (Exception e) {
+                log.debug("Module {} does not provide a module instance", moduleInfo.getModuleName());
+            }
+        }
 
         log.info("Initializing modules ...");
         for (Map.Entry<String, ModuleRegistry.ModuleInfo> m : moduleRegistry.getModules().entrySet()){

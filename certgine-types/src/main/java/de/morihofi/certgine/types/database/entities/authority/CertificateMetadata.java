@@ -30,20 +30,6 @@ public class CertificateMetadata implements Serializable {
      * Custom builder to validate inputs before object creation.
      */
     public static class CertificateMetadataBuilder {
-        /**
-         * Builds the {@link CertificateMetadata} instance and validates all
-         * fields for correct format and length.
-         *
-         * @return validated {@link CertificateMetadata}
-         * @throws IllegalArgumentException when validation fails
-         */
-        public CertificateMetadata build() {
-            CertificateMetadata meta = new CertificateMetadata(commonName, organisation,
-                    organisationalUnit, countryCode, email);
-            validate(meta);
-            return meta;
-        }
-
         private static void validate(CertificateMetadata m) {
             if (m.commonName == null || m.commonName.isEmpty()) {
                 throw new IllegalArgumentException("commonName must not be empty");
@@ -67,6 +53,20 @@ public class CertificateMetadata implements Serializable {
                     throw new IllegalArgumentException("email has invalid format");
                 }
             }
+        }
+
+        /**
+         * Builds the {@link CertificateMetadata} instance and validates all
+         * fields for correct format and length.
+         *
+         * @return validated {@link CertificateMetadata}
+         * @throws IllegalArgumentException when validation fails
+         */
+        public CertificateMetadata build() {
+            CertificateMetadata meta = new CertificateMetadata(commonName, organisation,
+                    organisationalUnit, countryCode, email);
+            validate(meta);
+            return meta;
         }
     }
 }

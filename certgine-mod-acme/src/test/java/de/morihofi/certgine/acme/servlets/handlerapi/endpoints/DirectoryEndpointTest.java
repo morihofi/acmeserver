@@ -12,6 +12,8 @@ import de.morihofi.certgine.server.common.intf.testing.MockRequest;
 import de.morihofi.certgine.server.common.intf.testing.MockResponse;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.types.httpserver.HandlerType;
+import de.morihofi.certgine.acme.AcmeModule;
+import de.morihofi.certgine.acme.AcmeModuleInstance;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.json.GsonFactory;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +39,7 @@ class DirectoryEndpointTest {
             mocked.when(() -> AcmeProvisioner.getForName(Mockito.any(), Mockito.eq("testprov")))
                     .thenReturn(provisioner);
 
-            DirectoryEndpoint endpoint = new DirectoryEndpoint(server);
+            DirectoryEndpoint endpoint = new DirectoryEndpoint(new AcmeModuleInstance(new AcmeModule(server)));
 
             Router router = new Router();
             router.addHandler(new Endpoint(HandlerType.GET, "/acme/{provisioner}/directory", ctx -> {

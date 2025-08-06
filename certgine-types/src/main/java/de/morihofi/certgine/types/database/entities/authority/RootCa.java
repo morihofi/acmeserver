@@ -30,7 +30,7 @@ public class RootCa implements Serializable {
 
     private String internalUuid;
 
-    public static RootCa getForId(@NonNull IServerInstance si, long id){
+    public static RootCa getForId(@NonNull IServerInstance si, long id) {
         RootCa provisioner;
         try (Session s = si.getDatabaseSession()) {
             provisioner = s.createQuery("FROM RootCa r WHERE r.id = :id", RootCa.class)

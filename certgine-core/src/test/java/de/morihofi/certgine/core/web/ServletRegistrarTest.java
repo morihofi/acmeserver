@@ -37,12 +37,17 @@ class ServletRegistrarTest {
     void servletConstructorReceivesModuleInstance() throws Exception {
         ModuleRegistry registry = new ModuleRegistry();
         ModuleWithInstance module = new ModuleWithInstance();
-        registry.registerModule(ModuleRegistry.ModuleInfo.builder()
+        ModuleRegistry.ModuleInfo info = ModuleRegistry.ModuleInfo.builder()
                 .moduleName("inst")
                 .module(module)
-                .build());
+                .build();
+        registry.registerModule(info);
 
-        ServletRegistrar registrar = new ServletRegistrar(Mockito.mock(IServerInstance.class), registry);
+        IServerInstance serverInstance = Mockito.mock(IServerInstance.class);
+        module.setServerInstance(serverInstance);
+        info.setModuleInstance(module.getModuleInstance());
+
+        ServletRegistrar registrar = new ServletRegistrar(serverInstance, registry);
         ServletContextHandler context = new ServletContextHandler();
         registrar.addBundledServlets(context);
 
