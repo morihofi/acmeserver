@@ -137,11 +137,23 @@ public class WebServer implements EventSubscriber {
                     host = "127.0.0.1";
                 }
                 int port = sc.getLocalPort();
-                log.info("Jetty listening on {}:{}", host, port);
+
+                // Determine the scheme based on connection factories
+                String scheme = "http";
+                for (ConnectionFactory factory : sc.getConnectionFactories()) {
+                    if (factory.getProtocol().toLowerCase().contains("ssl")) {
+                        scheme = "https";
+                        break;
+                    }
+                }
+
+                String url = String.format("%s://%s:%d", scheme, host, port);
+                log.info("Jetty listening on {}", url);
                 waitUntilAccepting(host, port, Duration.ofSeconds(10));
             }
         }
     }
+
 
     /**
      * Waits until a TCP connection to the given host and port succeeds within the specified timeout.
