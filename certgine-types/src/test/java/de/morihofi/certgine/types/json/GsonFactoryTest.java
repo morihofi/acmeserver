@@ -5,20 +5,18 @@
 
 package de.morihofi.certgine.types.json;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.google.gson.Gson;
+import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.TimeZone;
 
-import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for {@link GsonFactory} and its timezone aware instant adapter.

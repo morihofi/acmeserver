@@ -28,6 +28,10 @@ import java.util.Map;
 public class GraphQLEndpoint implements Handler {
 
     /**
+     * A Gson instance for serializing GraphQL execution results to JSON.
+     */
+    public static final Gson gson = GsonFactory.createGson();
+    /**
      * The GraphQL instance used to execute GraphQL queries.
      */
     private final GraphQL graphQL;
@@ -43,11 +47,6 @@ public class GraphQLEndpoint implements Handler {
         graphQL = GraphQL.newGraphQL(schema).build();
         this.schema = schema;
     }
-
-    /**
-     * A Gson instance for serializing GraphQL execution results to JSON.
-     */
-    public static final Gson gson = GsonFactory.createGson();
 
     /**
      * Handles the incoming HTTP request as a GraphQL query and returns the JSON response.

@@ -14,7 +14,8 @@ import org.mockito.Mockito;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class HttpRequestWrapperTest {
     @Test
@@ -28,10 +29,25 @@ class HttpRequestWrapperTest {
         Mockito.when(servlet.getRemoteAddr()).thenReturn("ip");
         class TestInputStream extends ServletInputStream {
             private final ByteArrayInputStream in = new ByteArrayInputStream(body);
-            @Override public int read(){return in.read();}
-            @Override public boolean isFinished(){return in.available() == 0;}
-            @Override public boolean isReady(){return true;}
-            @Override public void setReadListener(ReadListener readListener){}
+
+            @Override
+            public int read() {
+                return in.read();
+            }
+
+            @Override
+            public boolean isFinished() {
+                return in.available() == 0;
+            }
+
+            @Override
+            public boolean isReady() {
+                return true;
+            }
+
+            @Override
+            public void setReadListener(ReadListener readListener) {
+            }
         }
         Mockito.when(servlet.getInputStream()).thenAnswer(i -> new TestInputStream());
         HttpRequestWrapper wrapper = new HttpRequestWrapper(servlet);

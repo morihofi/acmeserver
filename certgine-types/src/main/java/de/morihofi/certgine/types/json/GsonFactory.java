@@ -1,6 +1,7 @@
 package de.morihofi.certgine.types.json;
 
 import com.google.gson.*;
+
 import java.lang.reflect.Type;
 import java.time.Instant;
 import java.time.ZoneOffset;

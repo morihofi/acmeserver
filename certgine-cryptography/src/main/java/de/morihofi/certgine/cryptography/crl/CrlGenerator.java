@@ -7,7 +7,10 @@ package de.morihofi.certgine.cryptography.crl;
 
 import de.morihofi.certgine.cryptography.keys.KeyHelper;
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509v2CRLBuilder;
@@ -35,21 +38,7 @@ import java.util.List;
 @Slf4j
 public class CrlGenerator {
 
-    /**
-     * Request parameters for CRL generation.
-     */
-    @Getter
-    @Builder
-    public static class Request {
-        /** List of certificates to revoke. */
-        @Singular
-        @NonNull private final List<RevokedCertificate> revokedCertificates;
-        /** Issuer certificate used to sign the CRL. */
-        @NonNull private final X509Certificate caCert;
-        /** Private key of the issuer. */
-        @NonNull private final PrivateKey caPrivateKey;
-        /** Minutes after which the CRL should be updated. */
-        private final int updateMinutes;
+    private CrlGenerator() {
     }
 
     /**
@@ -81,6 +70,31 @@ public class CrlGenerator {
         return converter.getCRL(crlHolder);
     }
 
-    private CrlGenerator() {
+    /**
+     * Request parameters for CRL generation.
+     */
+    @Getter
+    @Builder
+    public static class Request {
+        /**
+         * List of certificates to revoke.
+         */
+        @Singular
+        @NonNull
+        private final List<RevokedCertificate> revokedCertificates;
+        /**
+         * Issuer certificate used to sign the CRL.
+         */
+        @NonNull
+        private final X509Certificate caCert;
+        /**
+         * Private key of the issuer.
+         */
+        @NonNull
+        private final PrivateKey caPrivateKey;
+        /**
+         * Minutes after which the CRL should be updated.
+         */
+        private final int updateMinutes;
     }
 }

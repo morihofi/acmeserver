@@ -27,9 +27,9 @@ public class CAAValidator {
     /**
      * Determines if issuance is permitted for the given domain based on CAA records.
      *
-     * @param domain       Domain to check.
-     * @param caDomain     Domain name of this CA used in CAA issue tags.
-     * @param dnsConfig    DNS configuration of the server.
+     * @param domain        Domain to check.
+     * @param caDomain      Domain name of this CA used in CAA issue tags.
+     * @param dnsConfig     DNS configuration of the server.
      * @param networkClient Network client for performing lookups.
      * @return {@code true} if issuance is allowed, otherwise {@code false}.
      */
@@ -47,8 +47,8 @@ public class CAAValidator {
     /**
      * Evaluates the provided CAA records.
      *
-     * @param records   List of DNS records.
-     * @param caDomain  Domain name of this CA.
+     * @param records  List of DNS records.
+     * @param caDomain Domain name of this CA.
      * @return {@code true} if issuance is allowed.
      */
     public static boolean evaluateCaaRecords(List<Record> records, @NonNull String caDomain) {

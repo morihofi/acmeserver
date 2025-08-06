@@ -5,19 +5,21 @@
 
 package de.morihofi.certgine.tsa;
 
+import de.morihofi.certgine.tsa.renew.TimeStampRenew;
 import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.tsa.types.events.TsaAuthorityCreatedEvent;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.events.EventSubscriber;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
-import de.morihofi.certgine.tsa.renew.TimeStampRenew;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-/** Subscriber registering renew watcher for TSA certificates. */
+/**
+ * Subscriber registering renew watcher for TSA certificates.
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class TsaRenewSubscriber implements EventSubscriber {

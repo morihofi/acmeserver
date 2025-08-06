@@ -7,10 +7,10 @@ package de.morihofi.certgine.revocation.crl;
 
 
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.types.events.AbstractEvent;
-import de.morihofi.certgine.types.events.EventSubscriber;
 import de.morihofi.certgine.acme.types.events.ProvisionerCreatedEvent;
 import de.morihofi.certgine.acme.types.events.ProvisionerDeletedEvent;
+import de.morihofi.certgine.types.events.AbstractEvent;
+import de.morihofi.certgine.types.events.EventSubscriber;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,9 @@ import java.util.List;
 @Slf4j
 public class CrlScheduler implements EventSubscriber {
 
-    /** Update interval in minutes used for scheduled CRL generation. */
+    /**
+     * Update interval in minutes used for scheduled CRL generation.
+     */
     public static final int UPDATE_MINUTES = 720; // 12 hours
     public static final String CRON_EXPRESSION = "0 */12 * * *";
 

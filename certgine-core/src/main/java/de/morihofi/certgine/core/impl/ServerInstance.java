@@ -7,19 +7,19 @@ package de.morihofi.certgine.core.impl;
 
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.core.modules.ModuleRegistry;
-import de.morihofi.certgine.types.intf.network.INetworkClient;
-import de.morihofi.certgine.types.runtime.BuildMetadata;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
+import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.intf.network.INetworkClient;
+import de.morihofi.certgine.types.runtime.BuildMetadata;
 import de.morihofi.certgine.types.server.StartupFlag;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import de.morihofi.certgine.types.events.EventBus;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,22 +72,17 @@ public class ServerInstance implements IServerInstance {
      */
     @NonNull
     private final HibernateUtil hibernateUtil;
-
+    @NonNull
+    private final BuildMetadata buildMetadata;
+    @NonNull
+    private final EventBus eventBus;
+    @NonNull
+    private final Set<StartupFlag> startupFlags;
+    @NonNull
+    private final ModuleRegistry moduleRegistry;
     @Setter
     @NonNull
     private RootCa rootCa;
-
-    @NonNull
-    private final BuildMetadata buildMetadata;
-
-    @NonNull
-    private final EventBus eventBus;
-
-    @NonNull
-    private final Set<StartupFlag> startupFlags;
-
-    @NonNull
-    private final ModuleRegistry moduleRegistry;
 
     /**
      * Retrieves the server URL constructed from the application's configuration. This method combines the DNS name and HTTPS port specified

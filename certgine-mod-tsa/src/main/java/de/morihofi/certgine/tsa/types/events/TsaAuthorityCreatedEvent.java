@@ -10,7 +10,9 @@ import de.morihofi.certgine.types.events.AbstractEvent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/** Event published when a new TSA authority is created. */
+/**
+ * Event published when a new TSA authority is created.
+ */
 @AllArgsConstructor
 @Getter
 public class TsaAuthorityCreatedEvent extends AbstractEvent {

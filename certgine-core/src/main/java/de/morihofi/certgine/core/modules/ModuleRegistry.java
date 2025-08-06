@@ -12,18 +12,11 @@ import de.morihofi.certgine.types.modules.ModuleScheduledTask;
 import de.morihofi.certgine.utils.scheduler.TimedScheduler;
 import jakarta.persistence.Entity;
 import jakarta.servlet.http.HttpServlet;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Registry containing all loaded modules and the classes they expose.
@@ -52,13 +45,19 @@ public class ModuleRegistry implements IModuleRegistry {
      */
     private final Map<Class<?>, Object> services = new HashMap<>();
 
-    /** Scheduler used for module-provided timed tasks. */
+    /**
+     * Scheduler used for module-provided timed tasks.
+     */
     private final TimedScheduler timedScheduler = new TimedScheduler();
 
-    /** Handles of scheduled tasks keyed by module name. */
+    /**
+     * Handles of scheduled tasks keyed by module name.
+     */
     private final Map<String, List<TimedScheduler.ScheduledHandle>> scheduledHandles = new HashMap<>();
 
-    /** Original task instances keyed by module name. */
+    /**
+     * Original task instances keyed by module name.
+     */
     private final Map<String, List<ModuleScheduledTask>> moduleTasks = new HashMap<>();
 
     /**

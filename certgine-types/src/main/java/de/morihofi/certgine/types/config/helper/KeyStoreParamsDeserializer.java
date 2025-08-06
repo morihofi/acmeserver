@@ -64,7 +64,7 @@ public class KeyStoreParamsDeserializer implements JsonDeserializer<KeyStorePara
         KeyStoreParams params = switch (type.toLowerCase()) {
             case "pkcs11" -> context.deserialize(jsonObject, PKCS11KeyStoreParams.class);
             case "pkcs12" -> context.deserialize(jsonObject, PKCS12KeyStoreParams.class);
-            default       -> throw new JsonParseException("Unknown keyStore type: " + type);
+            default -> throw new JsonParseException("Unknown keyStore type: " + type);
         };
 
         // 3. inject the password we converted

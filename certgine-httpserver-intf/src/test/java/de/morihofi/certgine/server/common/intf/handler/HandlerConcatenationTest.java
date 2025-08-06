@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class HandlerConcatenationTest {
     @Test
@@ -19,7 +19,7 @@ class HandlerConcatenationTest {
         AtomicInteger counter = new AtomicInteger();
         Handler h1 = ctx -> counter.incrementAndGet();
         Handler h2 = ctx -> counter.addAndGet(2);
-        HandlerConcatenation concat = new HandlerConcatenation(List.of(h1,h2));
+        HandlerConcatenation concat = new HandlerConcatenation(List.of(h1, h2));
         concat.handle(null);
         assertEquals(3, counter.get());
     }

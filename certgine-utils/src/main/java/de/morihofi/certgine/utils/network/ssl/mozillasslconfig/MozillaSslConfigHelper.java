@@ -8,6 +8,8 @@ package de.morihofi.certgine.utils.network.ssl.mozillasslconfig;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import de.morihofi.certgine.types.intf.network.INetworkClient;
+import de.morihofi.certgine.types.json.GsonFactory;
 import de.morihofi.certgine.utils.network.ssl.mozillasslconfig.response.version4dot0up.Configuration;
 import de.morihofi.certgine.utils.network.ssl.mozillasslconfig.response.version4dot0up.MozillaSslConfiguration4dot4upResponse;
 import de.morihofi.certgine.utils.network.ssl.mozillasslconfig.response.version5dot1up.MozillaSslConfiguration5dot1upResponse;
@@ -16,8 +18,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import de.morihofi.certgine.types.intf.network.INetworkClient;
-import de.morihofi.certgine.types.json.GsonFactory;
 import okhttp3.Request;
 import okhttp3.Response;
 
@@ -53,7 +53,7 @@ public class MozillaSslConfigHelper {
      * @throws IOException if an I/O error occurs.
      */
     public static BasicConfiguration getLatestConfigurationGuidelines(@NonNull CONFIGURATION configuration,
-                                                                     @NonNull INetworkClient networkClient) throws IOException {
+                                                                      @NonNull INetworkClient networkClient) throws IOException {
         return getConfigurationGuidelinesForVersion("latest", configuration, networkClient);
     }
 
@@ -66,8 +66,8 @@ public class MozillaSslConfigHelper {
      * @throws IOException if an I/O error occurs.
      */
     public static BasicConfiguration getConfigurationGuidelinesForVersion(@NonNull String version,
-                                                                         @NonNull CONFIGURATION configuration,
-                                                                         @NonNull INetworkClient networkClient) throws IOException {
+                                                                          @NonNull CONFIGURATION configuration,
+                                                                          @NonNull INetworkClient networkClient) throws IOException {
         // 1) try bundled resources
         String guidelineJson = readGuidelineFromClasspath(version);
 

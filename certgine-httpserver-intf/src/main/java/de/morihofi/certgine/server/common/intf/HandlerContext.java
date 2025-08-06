@@ -172,7 +172,7 @@ public record HandlerContext(Request request, Response response, Router router) 
         return gson.fromJson(requestBody, targetClazz);
     }
 
-    public HandlerType method(){
-       return HandlerType.valueOf(request.getMethod());
+    public HandlerType method() {
+        return HandlerType.valueOf(request.getMethod());
     }
 }

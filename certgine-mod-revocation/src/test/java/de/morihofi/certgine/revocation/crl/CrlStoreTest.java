@@ -5,8 +5,8 @@
 
 package de.morihofi.certgine.revocation.crl;
 
-import de.morihofi.certgine.cryptography.crl.CrlGenerator;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
+import de.morihofi.certgine.cryptography.crl.CrlGenerator;
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CrlStoreTest {
 
     @BeforeAll
-    static void setup(){
+    static void setup() {
         Security.addProvider(new BouncyCastleProvider());
     }
 

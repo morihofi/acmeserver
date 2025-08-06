@@ -4,19 +4,19 @@
  */
 
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order;
+
+import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
 import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.events.EventBus;
-
-import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
+import lombok.NonNull;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hibernate.Session;
-import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -29,43 +29,6 @@ class OrderCertEndpointTest {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    static class DummyServerInstance implements IServerInstance {
-        private final CryptoStoreManager mgr;
-        DummyServerInstance(CryptoStoreManager mgr) { this.mgr = mgr; }
-        @NotNull
-        @NonNull
-        @Override public String getServerURL() { return ""; }
-        @NotNull
-        @NonNull
-        @Override public Session getDatabaseSession() { return null; }
-        @NotNull
-        @NonNull
-        @Override public ICryptoStoreManager getCryptoStoreManager() { return mgr; }
-        @NotNull
-        @NonNull
-        @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
-        @NotNull
-        @NonNull
-        @Override public RootCa getRootCa() { return null; }
-        @NotNull
-        @NonNull
-        @Override public de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() { return null; }
-        @NotNull
-        @NonNull
-        @Override public de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() { return null; }
-            @NotNull
-            @NonNull
-        @Override public EventBus getEventBus() { return new EventBus(); }
-        @NotNull
-        @NonNull
-        @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
-
-        @Override
-        public @NonNull IModuleRegistry getModuleRegistry() {
-            return null;
-        }
-    }
-
     private static CertificateConfig cfg(String cn) {
         CertificateMetadata meta = CertificateMetadata.builder()
                 .commonName(cn)
@@ -74,5 +37,81 @@ class OrderCertEndpointTest {
                 .build();
         CertificateExpiration exp = new CertificateExpiration(0, 0, 1);
         return new CertificateConfig(meta, exp, null);
+    }
+
+    static class DummyServerInstance implements IServerInstance {
+        private final CryptoStoreManager mgr;
+
+        DummyServerInstance(CryptoStoreManager mgr) {
+            this.mgr = mgr;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public String getServerURL() {
+            return "";
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public Session getDatabaseSession() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public ICryptoStoreManager getCryptoStoreManager() {
+            return mgr;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public de.morihofi.certgine.types.config.Config getAppConfig() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public RootCa getRootCa() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public EventBus getEventBus() {
+            return new EventBus();
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() {
+            return java.util.Collections.emptySet();
+        }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
+        }
     }
 }

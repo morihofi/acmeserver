@@ -4,12 +4,12 @@
  */
 
 package de.morihofi.certgine.revocation.endpoints;
+
+import de.morihofi.certgine.revocation.crl.CrlStore;
 import de.morihofi.certgine.server.common.intf.Handler;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.intf.IServerInstance;
-import de.morihofi.certgine.revocation.crl.CrlStore;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import lombok.NonNull;
 
 import java.io.OutputStream;

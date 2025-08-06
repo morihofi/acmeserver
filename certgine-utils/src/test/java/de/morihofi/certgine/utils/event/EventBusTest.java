@@ -5,36 +5,14 @@
 
 package de.morihofi.certgine.utils.event;
 
-import de.morihofi.certgine.types.events.AbstractEvent;
-import de.morihofi.certgine.types.events.EventBus;
-import de.morihofi.certgine.types.events.EventSubscriber;
-import de.morihofi.certgine.types.events.ServerShutdownEvent;
-import de.morihofi.certgine.types.events.ServerStartedEvent;
+import de.morihofi.certgine.types.events.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class EventBusTest {
-
-    static class DummySubscriber implements EventSubscriber {
-        int count;
-        AbstractEvent last;
-
-        @Override
-        public List<Class<? extends AbstractEvent>> canHandle() {
-            return List.of(ServerStartedEvent.class, ServerShutdownEvent.class);
-        }
-
-        @Override
-        public void onEvent(AbstractEvent event) {
-            count++;
-            last = event;
-        }
-    }
-    static class UnregisteredEvent extends AbstractEvent {}
-
 
     @Test
     void testRegisterAndPublish() {
@@ -59,5 +37,24 @@ class EventBusTest {
         bus.unregister(sub);
         bus.publish(new ServerStartedEvent(null));
         assertEquals(2, sub.count);
+    }
+
+    static class DummySubscriber implements EventSubscriber {
+        int count;
+        AbstractEvent last;
+
+        @Override
+        public List<Class<? extends AbstractEvent>> canHandle() {
+            return List.of(ServerStartedEvent.class, ServerShutdownEvent.class);
+        }
+
+        @Override
+        public void onEvent(AbstractEvent event) {
+            count++;
+            last = event;
+        }
+    }
+
+    static class UnregisteredEvent extends AbstractEvent {
     }
 }

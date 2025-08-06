@@ -4,23 +4,22 @@
  */
 
 package de.morihofi.certgine.acme.challenges;
-import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.events.EventBus;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
-import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
-import de.morihofi.certgine.acme.security.INonceManager;
+import de.morihofi.certgine.types.database.entities.authority.RootCa;
+import de.morihofi.certgine.types.events.EventBus;
+import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
+import lombok.NonNull;
 import okhttp3.OkHttpClient;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 
@@ -37,57 +36,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class HTTPChallengeTest {
 
+    private HttpServer server;
+    private int port;
+
     @BeforeAll
     static void addProvider() {
         Security.addProvider(new BouncyCastleProvider());
     }
-    static class DummyNetworkClient implements INetworkClient {
-        private final OkHttpClient client = new OkHttpClient();
-        @Override public OkHttpClient getOkHttpClient() { return client; }
-        @Override public de.morihofi.certgine.types.intf.network.dns.IDoHClient getDoHClient() { return null; }
-        @Override public java.util.List<String> getDnsServer() { return Collections.emptyList(); }
-        @Override public Proxy getProxy() { return Proxy.NO_PROXY; }
-    }
-
-    static class DummyServerInstance implements IServerInstance {
-        private final INetworkClient net = new DummyNetworkClient();
-        private final BuildMetadata meta = BuildMetadata.builder().buildVersion("test").gitCommit("abc").build();
-        @NotNull
-        @NonNull
-        @Override public String getServerURL() { return ""; }
-        @NotNull
-        @NonNull
-        @Override public org.hibernate.Session getDatabaseSession() { return null; }
-        @NotNull
-        @NonNull
-        @Override public ICryptoStoreManager getCryptoStoreManager() { return null; }
-        @NotNull
-        @NonNull
-        @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
-        @NotNull
-        @NonNull
-        @Override public RootCa getRootCa() { return null; }
-        @NotNull
-        @NonNull
-        @Override public BuildMetadata getBuildMetadata() { return meta; }
-        @NotNull
-        @NonNull
-        @Override public INetworkClient getNetworkClient() { return net; }
-        @NotNull
-        @NonNull
-        @Override public EventBus getEventBus() { return new EventBus(); }
-        @NotNull
-        @NonNull
-        @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
-
-        @Override
-        public @NonNull IModuleRegistry getModuleRegistry() {
-            return null;
-        }
-    }
-
-    private HttpServer server;
-    private int port;
 
     @BeforeEach
     void startServer() throws IOException {
@@ -147,6 +102,103 @@ class HTTPChallengeTest {
         ChallengeResult result = HTTPChallenge.check(token, "localhost:" + port, account, new DummyServerInstance());
         assertFalse(result.successful());
         assertNotNull(result.errorReason());
+    }
+
+    static class DummyNetworkClient implements INetworkClient {
+        private final OkHttpClient client = new OkHttpClient();
+
+        @Override
+        public OkHttpClient getOkHttpClient() {
+            return client;
+        }
+
+        @Override
+        public de.morihofi.certgine.types.intf.network.dns.IDoHClient getDoHClient() {
+            return null;
+        }
+
+        @Override
+        public java.util.List<String> getDnsServer() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public Proxy getProxy() {
+            return Proxy.NO_PROXY;
+        }
+    }
+
+    static class DummyServerInstance implements IServerInstance {
+        private final INetworkClient net = new DummyNetworkClient();
+        private final BuildMetadata meta = BuildMetadata.builder().buildVersion("test").gitCommit("abc").build();
+
+        @NotNull
+        @NonNull
+        @Override
+        public String getServerURL() {
+            return "";
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public org.hibernate.Session getDatabaseSession() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public ICryptoStoreManager getCryptoStoreManager() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public de.morihofi.certgine.types.config.Config getAppConfig() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public RootCa getRootCa() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public BuildMetadata getBuildMetadata() {
+            return meta;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public INetworkClient getNetworkClient() {
+            return net;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public EventBus getEventBus() {
+            return new EventBus();
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() {
+            return java.util.Collections.emptySet();
+        }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
+        }
     }
 }
 

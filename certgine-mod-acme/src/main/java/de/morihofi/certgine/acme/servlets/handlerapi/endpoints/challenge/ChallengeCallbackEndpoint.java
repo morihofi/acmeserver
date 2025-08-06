@@ -6,29 +6,28 @@
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.challenge;
 
 import com.google.gson.Gson;
-import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeEndpoint;
-import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.challenge.objects.ACMEChallengeResponse;
 import de.morihofi.certgine.acme.challenges.ChallengeResult;
 import de.morihofi.certgine.acme.challenges.DNSChallenge;
 import de.morihofi.certgine.acme.challenges.HTTPChallenge;
+import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.challenge.objects.ACMEChallengeResponse;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
-import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.acme.types.api.AcmeChallengeType;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
+import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.acme.types.events.AfterChallengeEvent;
+import de.morihofi.certgine.acme.types.events.BeforeChallengeEvent;
+import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;
-import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.utils.datetime.TimeTools;
-import de.morihofi.certgine.acme.types.events.BeforeChallengeEvent;
-import de.morihofi.certgine.acme.types.events.AfterChallengeEvent;
-import de.morihofi.certgine.acme.types.api.AcmeChallengeType;
 import de.morihofi.certgine.utils.http.HttpHeaderUtil;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A handler endpoint for processing challenge callbacks.
@@ -66,7 +65,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         // Check if challenge is valid
         AcmeOrderIdentifierChallenge identifierChallenge = AcmeOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getModuleInstance().getModule().getServerInstance());
 
-        if (identifierChallenge == null){
+        if (identifierChallenge == null) {
             throw new ACMEResourceNotFoundException("Challenge not found");
         }
 

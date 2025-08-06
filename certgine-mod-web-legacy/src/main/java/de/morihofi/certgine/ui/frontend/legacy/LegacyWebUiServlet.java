@@ -6,8 +6,8 @@
 package de.morihofi.certgine.ui.frontend.legacy;
 
 import de.morihofi.certgine.server.common.intf.ServletMount;
-import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.database.entities.authority.EcdsaCertificateAlgorithm;
+import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.database.entities.authority.RsaCertificateAlgorithm;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.ui.frontend.legacy.type.CaEntry;

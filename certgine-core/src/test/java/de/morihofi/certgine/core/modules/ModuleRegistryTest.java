@@ -14,56 +14,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class ModuleRegistryTest {
 
-    interface SampleService {}
-
-    static class SampleServiceImpl implements SampleService {}
-
-    static class ReloadableModule extends CertgineModule {
-        boolean unloaded = false;
-
-        ReloadableModule() {
-            super(null);
-        }
-
-        @Override
-        public Set<Class<?>> getEntityClasses() {
-            return Set.of(DummyModule.DummyEntity.class);
-        }
-
-        @Override
-        public Set<Class<? extends HttpServlet>> getHttpServlets() {
-            return Set.of(DummyModule.DummyServlet.class);
-        }
-
-        @Override
-        public void onUnLoad() {
-            unloaded = true;
-        }
-    }
-
-    static class FlagModule extends CertgineModule {
-        boolean registered = false;
-
-        FlagModule() {
-            super(null);
-        }
-
-        @Override
-        public Set<Class<?>> getEntityClasses() {
-            return Set.of();
-        }
-
-        @Override
-        public Set<Class<? extends HttpServlet>> getHttpServlets() {
-            return Set.of();
-        }
-
-        @Override
-        public void onRegister() {
-            registered = true;
-        }
-    }
-
     @Test
     void unregisterAndReloadModuleRemovesAndRestoresArtifacts() {
         ModuleRegistry registry = new ModuleRegistry();
@@ -183,5 +133,57 @@ class ModuleRegistryTest {
         info.setModuleInstance(module.getModuleInstance());
         assertSame(module.getModuleInstance(),
                 registry.getModules().get("inst").getModuleInstance());
+    }
+
+    interface SampleService {
+    }
+
+    static class SampleServiceImpl implements SampleService {
+    }
+
+    static class ReloadableModule extends CertgineModule {
+        boolean unloaded = false;
+
+        ReloadableModule() {
+            super(null);
+        }
+
+        @Override
+        public Set<Class<?>> getEntityClasses() {
+            return Set.of(DummyModule.DummyEntity.class);
+        }
+
+        @Override
+        public Set<Class<? extends HttpServlet>> getHttpServlets() {
+            return Set.of(DummyModule.DummyServlet.class);
+        }
+
+        @Override
+        public void onUnLoad() {
+            unloaded = true;
+        }
+    }
+
+    static class FlagModule extends CertgineModule {
+        boolean registered = false;
+
+        FlagModule() {
+            super(null);
+        }
+
+        @Override
+        public Set<Class<?>> getEntityClasses() {
+            return Set.of();
+        }
+
+        @Override
+        public Set<Class<? extends HttpServlet>> getHttpServlets() {
+            return Set.of();
+        }
+
+        @Override
+        public void onRegister() {
+            registered = true;
+        }
     }
 }

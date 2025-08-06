@@ -34,7 +34,7 @@ class CertificateUtilTest {
                 .commonName("Test")
                 .countryCode("DE")
                 .build();
-        CertificateConfig cfg = new CertificateConfig(meta, new CertificateExpiration(0,0,1), new RsaCertificateAlgorithm(1024));
+        CertificateConfig cfg = new CertificateConfig(meta, new CertificateExpiration(0, 0, 1), new RsaCertificateAlgorithm(1024));
         KeyPair kp = KeyPairGenerator.generateRSAKeyPair(1024, BouncyCastleProvider.PROVIDER_NAME);
         return X509Generator.generate(X509Generator.Request.builder()
                 .type(X509Generator.Type.ROOT_CA)

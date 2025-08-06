@@ -14,7 +14,9 @@ import de.morihofi.certgine.types.modules.CertgineModuleFactory;
  */
 public class WebUiModuleFactory implements CertgineModuleFactory {
 
-    /** Default constructor. */
+    /**
+     * Default constructor.
+     */
     public WebUiModuleFactory() {
     }
 

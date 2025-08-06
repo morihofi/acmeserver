@@ -5,9 +5,10 @@
 
 package de.morihofi.certgine.types.dns;
 
-import lombok.*;
-
-import java.util.Locale;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 /**
  * DNS Identifier used for Certificate Generation and other DNS related stuff

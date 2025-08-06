@@ -19,7 +19,9 @@ import java.util.Set;
 @ModuleDescriptor(moduleName = "dummy", description = "Test module")
 public class DummyModule extends CertgineModule {
 
-    /** Default constructor for tests. */
+    /**
+     * Default constructor for tests.
+     */
     public DummyModule() {
         super(null);
     }
@@ -35,12 +37,18 @@ public class DummyModule extends CertgineModule {
     }
 
 
-    /** Dummy entity class. */
+    /**
+     * Dummy entity class.
+     */
     @Entity
-    public static class DummyEntity {}
+    public static class DummyEntity {
+    }
 
-    /** Dummy servlet class. */
+    /**
+     * Dummy servlet class.
+     */
     @ServletMount(servletMountPoint = "/dummy")
-    public static class DummyServlet extends HttpServlet {}
+    public static class DummyServlet extends HttpServlet {
+    }
 }
 

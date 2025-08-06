@@ -4,27 +4,26 @@
  */
 
 package de.morihofi.certgine.acme.challenges;
-import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.events.EventBus;
 
+import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.cryptography.acme.AcmeTokenCryptography;
 import de.morihofi.certgine.cryptography.pem.PemUtil;
-import de.morihofi.certgine.types.modules.IModuleRegistry;
-import de.morihofi.certgine.utils.crypto.Hashing;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.network.DNSConfig;
 import de.morihofi.certgine.types.config.network.NetworkConfig;
-import de.morihofi.certgine.acme.types.entities.AcmeAccount;
-import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
-import de.morihofi.certgine.acme.security.INonceManager;
+import de.morihofi.certgine.types.database.entities.authority.RootCa;
+import de.morihofi.certgine.types.events.EventBus;
+import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.intf.network.dns.IDoHClient;
+import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
 import de.morihofi.certgine.utils.base64.Base64Tools;
+import de.morihofi.certgine.utils.crypto.Hashing;
 import de.morihofi.certgine.utils.network.dns.DNSLookup;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import lombok.NonNull;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -36,68 +35,19 @@ import org.xbill.DNS.Record;
 import org.xbill.DNS.TXTRecord;
 import org.xbill.DNS.Type;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.Security;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 class DNSChallengeTest {
     @BeforeAll
     static void addProvider() {
         Security.addProvider(new BouncyCastleProvider());
     }
-    static class DummyServerInstance implements IServerInstance {
-        private final INetworkClient net = new INetworkClient() {
-            @Override public okhttp3.OkHttpClient getOkHttpClient() { return new okhttp3.OkHttpClient(); }
-            @Override public IDoHClient getDoHClient() { return null; }
-            @Override public List<String> getDnsServer() { return Collections.emptyList(); }
-            @Override public java.net.Proxy getProxy() { return java.net.Proxy.NO_PROXY; }
-        };
-        private final Config cfg;
-        DummyServerInstance() {
-            cfg = new Config();
-            NetworkConfig nc = new NetworkConfig();
-            nc.setDnsConfig(new DNSConfig());
-            cfg.setNetwork(nc);
-        }
-        @NotNull
-        @NonNull
-        @Override public String getServerURL() { return ""; }
-        @NotNull
-        @NonNull
-        @Override public org.hibernate.Session getDatabaseSession() { return null; }
-        @NotNull
-        @NonNull
-        @Override public ICryptoStoreManager getCryptoStoreManager() { return null; }
-        @NotNull
-        @NonNull
-        @Override public Config getAppConfig() { return cfg; }
-        @NotNull
-        @NonNull
-        @Override public RootCa getRootCa() { return null; }
-        @NotNull
-        @NonNull
-        @Override public BuildMetadata getBuildMetadata() { return BuildMetadata.builder().build(); }
-        @NotNull
-        @NonNull
-        @Override public INetworkClient getNetworkClient() { return net; }
-        @NotNull
-        @NonNull
-        @Override public EventBus getEventBus() { return new EventBus(); }
-        @NotNull
-        @NonNull
-        @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
-
-        @Override
-        public @NonNull IModuleRegistry getModuleRegistry() {
-            return null;
-        }
-    }
-
-
 
     @Test
     @DisplayName("getDigest computes expected value")
@@ -146,6 +96,106 @@ class DNSChallengeTest {
             mock.when(() -> DNSLookup.performDnsServerLookup(Mockito.anyString(), Mockito.eq(Type.TXT), Mockito.anyList())).thenReturn(List.of(rec));
             ChallengeResult result = DNSChallenge.check(token, "example.com", acc, new DummyServerInstance());
             assertFalse(result.successful());
+        }
+    }
+
+    static class DummyServerInstance implements IServerInstance {
+        private final INetworkClient net = new INetworkClient() {
+            @Override
+            public okhttp3.OkHttpClient getOkHttpClient() {
+                return new okhttp3.OkHttpClient();
+            }
+
+            @Override
+            public IDoHClient getDoHClient() {
+                return null;
+            }
+
+            @Override
+            public List<String> getDnsServer() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public java.net.Proxy getProxy() {
+                return java.net.Proxy.NO_PROXY;
+            }
+        };
+        private final Config cfg;
+
+        DummyServerInstance() {
+            cfg = new Config();
+            NetworkConfig nc = new NetworkConfig();
+            nc.setDnsConfig(new DNSConfig());
+            cfg.setNetwork(nc);
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public String getServerURL() {
+            return "";
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public org.hibernate.Session getDatabaseSession() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public ICryptoStoreManager getCryptoStoreManager() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public Config getAppConfig() {
+            return cfg;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public RootCa getRootCa() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public BuildMetadata getBuildMetadata() {
+            return BuildMetadata.builder().build();
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public INetworkClient getNetworkClient() {
+            return net;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public EventBus getEventBus() {
+            return new EventBus();
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() {
+            return java.util.Collections.emptySet();
+        }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
         }
     }
 }

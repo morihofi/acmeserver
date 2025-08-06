@@ -8,16 +8,16 @@ package de.morihofi.certgine.core.entities;
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.database.entities.authority.RsaCertificateAlgorithm;
-import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
+import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
-import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.server.StartupFlag;
 import jakarta.persistence.Entity;
 import lombok.NonNull;
@@ -30,39 +30,10 @@ import org.reflections.Reflections;
 import java.util.Collections;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class RootCaGetForUuidTest {
-    static class DummySI implements IServerInstance {
-        private final HibernateUtil hu;
-        private final RootCa ca;
-        private final Config cfg;
-        DummySI(HibernateUtil hu, RootCa ca, Config cfg){this.hu=hu;this.ca=ca;this.cfg=cfg;}
-        @NotNull
-        @Override public String getServerURL(){return "";}
-        @NotNull
-        @Override public Session getDatabaseSession(){return hu.getSessionFactory().openSession();}
-        @NotNull
-        @Override public ICryptoStoreManager getCryptoStoreManager(){return null;}
-        @NotNull
-        @Override public Config getAppConfig(){return cfg;}
-        @NotNull
-        @Override public RootCa getRootCa(){return ca;}
-        @NotNull
-        @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
-        @NotNull
-        @Override public INetworkClient getNetworkClient(){return null;}
-        @NotNull
-        @Override public EventBus getEventBus(){return new EventBus();}
-        @NotNull
-        @Override public Set<StartupFlag> getStartupFlags(){return Collections.emptySet();}
-
-        @Override
-        public @NonNull IModuleRegistry getModuleRegistry() {
-            return null;
-        }
-    }
-
     @Test
     @DisplayName("getForUuid returns CA by UUID")
     void testGetForUuid() throws Exception {
@@ -97,5 +68,76 @@ class RootCaGetForUuidTest {
         RootCa loaded = RootCa.getForUuid(si, "abc");
         assertNotNull(loaded);
         assertEquals("abc", loaded.getInternalUuid());
+    }
+
+    static class DummySI implements IServerInstance {
+        private final HibernateUtil hu;
+        private final RootCa ca;
+        private final Config cfg;
+
+        DummySI(HibernateUtil hu, RootCa ca, Config cfg) {
+            this.hu = hu;
+            this.ca = ca;
+            this.cfg = cfg;
+        }
+
+        @NotNull
+        @Override
+        public String getServerURL() {
+            return "";
+        }
+
+        @NotNull
+        @Override
+        public Session getDatabaseSession() {
+            return hu.getSessionFactory().openSession();
+        }
+
+        @NotNull
+        @Override
+        public ICryptoStoreManager getCryptoStoreManager() {
+            return null;
+        }
+
+        @NotNull
+        @Override
+        public Config getAppConfig() {
+            return cfg;
+        }
+
+        @NotNull
+        @Override
+        public RootCa getRootCa() {
+            return ca;
+        }
+
+        @NotNull
+        @Override
+        public BuildMetadata getBuildMetadata() {
+            return BuildMetadata.builder().build();
+        }
+
+        @NotNull
+        @Override
+        public INetworkClient getNetworkClient() {
+            return null;
+        }
+
+        @NotNull
+        @Override
+        public EventBus getEventBus() {
+            return new EventBus();
+        }
+
+        @NotNull
+        @Override
+        public Set<StartupFlag> getStartupFlags() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
+        }
     }
 }

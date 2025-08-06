@@ -86,14 +86,6 @@ public enum HttpStatusCode {
         this.message = message;
     }
 
-    public int getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
     public static String getMessageFromCode(int code) {
         for (HttpStatusCode status : HttpStatusCode.values()) {
             if (status.getCode() == code) {
@@ -101,5 +93,13 @@ public enum HttpStatusCode {
             }
         }
         return UNKNOWN.getMessage();
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }

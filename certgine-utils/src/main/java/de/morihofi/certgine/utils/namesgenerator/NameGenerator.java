@@ -35,8 +35,8 @@ public class NameGenerator {
     };
 
     public static String generateFurryName() {
-        String adjective = ADJECTIVES[(int)(Math.random() * ADJECTIVES.length)];
-        String species = SPECIES[(int)(Math.random() * SPECIES.length)];
+        String adjective = ADJECTIVES[(int) (Math.random() * ADJECTIVES.length)];
+        String species = SPECIES[(int) (Math.random() * SPECIES.length)];
         return adjective + "_" + species;
     }
 

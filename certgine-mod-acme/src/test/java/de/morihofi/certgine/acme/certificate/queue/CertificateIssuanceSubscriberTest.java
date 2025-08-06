@@ -20,9 +20,35 @@ import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 class CertificateIssuanceSubscriberTest {
+
+    @Test
+    @DisplayName("initialize publishes events for waiting orders")
+    void testInitializePublishesEvents() {
+        EventBus bus = new EventBus();
+        IServerInstance server = Mockito.mock(IServerInstance.class);
+        Mockito.when(server.getEventBus()).thenReturn(bus);
+
+        CertificateIssuanceSubscriber sub = new CertificateIssuanceSubscriber(server);
+
+        List<AcmeCertificateIssuanceRequestedEvent> events = new ArrayList<>();
+        bus.subscribe(AcmeCertificateIssuanceRequestedEvent.class, events::add);
+
+        AcmeOrder o1 = new AcmeOrder();
+        AcmeOrder o2 = new AcmeOrder();
+        try (MockedStatic<AcmeOrder> mock = Mockito.mockStatic(AcmeOrder.class)) {
+            mock.when(() -> AcmeOrder.getAllAcmeOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE, server))
+                    .thenReturn(List.of(o1, o2));
+            sub.initialize();
+        }
+
+        assertEquals(2, events.size());
+        assertSame(o1, events.get(0).getOrder());
+        assertSame(o2, events.get(1).getOrder());
+    }
 
     private static class RecordingExecutor extends AbstractExecutorService {
         private Runnable lastCommand;
@@ -58,31 +84,6 @@ class CertificateIssuanceSubscriberTest {
         public void execute(Runnable command) {
             this.lastCommand = command;
         }
-    }
-
-    @Test
-    @DisplayName("initialize publishes events for waiting orders")
-    void testInitializePublishesEvents() {
-        EventBus bus = new EventBus();
-        IServerInstance server = Mockito.mock(IServerInstance.class);
-        Mockito.when(server.getEventBus()).thenReturn(bus);
-
-        CertificateIssuanceSubscriber sub = new CertificateIssuanceSubscriber(server);
-
-        List<AcmeCertificateIssuanceRequestedEvent> events = new ArrayList<>();
-        bus.subscribe(AcmeCertificateIssuanceRequestedEvent.class, events::add);
-
-        AcmeOrder o1 = new AcmeOrder();
-        AcmeOrder o2 = new AcmeOrder();
-        try (MockedStatic<AcmeOrder> mock = Mockito.mockStatic(AcmeOrder.class)) {
-            mock.when(() -> AcmeOrder.getAllAcmeOrdersWithState(AcmeOrderState.NEED_A_CERTIFICATE, server))
-                    .thenReturn(List.of(o1, o2));
-            sub.initialize();
-        }
-
-        assertEquals(2, events.size());
-        assertSame(o1, events.get(0).getOrder());
-        assertSame(o2, events.get(1).getOrder());
     }
 
 }

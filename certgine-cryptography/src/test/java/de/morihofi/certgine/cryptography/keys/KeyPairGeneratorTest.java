@@ -13,7 +13,8 @@ import org.junit.jupiter.api.Test;
 import java.security.KeyPair;
 import java.security.Security;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class KeyPairGeneratorTest {
 

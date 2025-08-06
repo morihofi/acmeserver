@@ -12,42 +12,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class AbstractStaticServletTest {
-
-    static class ByteArrayServletOutputStream extends ServletOutputStream {
-        private final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        @Override
-        public void write(int b) {
-            bos.write(b);
-        }
-        @Override
-        public boolean isReady() {
-            return true;
-        }
-        @Override
-        public void setWriteListener(WriteListener writeListener) {
-        }
-        String getContent() {
-            return bos.toString(StandardCharsets.UTF_8);
-        }
-    }
-
-    static class TestServlet extends AbstractStaticServlet {
-        @Override
-        protected String getBasePath() {
-            return "/test-static";
-        }
-    }
-
-    static class InvalidServlet extends AbstractStaticServlet {
-        @Override
-        protected String getBasePath() {
-            return "/missing";
-        }
-    }
 
     private HttpServletResponse mockResponse(ByteArrayServletOutputStream out) throws IOException {
         HttpServletResponse resp = mock(HttpServletResponse.class);
@@ -97,5 +66,41 @@ class AbstractStaticServletTest {
         servlet.service(req, resp);
 
         verify(resp).sendError(HttpServletResponse.SC_NOT_FOUND);
+    }
+
+    static class ByteArrayServletOutputStream extends ServletOutputStream {
+        private final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        @Override
+        public void write(int b) {
+            bos.write(b);
+        }
+
+        @Override
+        public boolean isReady() {
+            return true;
+        }
+
+        @Override
+        public void setWriteListener(WriteListener writeListener) {
+        }
+
+        String getContent() {
+            return bos.toString(StandardCharsets.UTF_8);
+        }
+    }
+
+    static class TestServlet extends AbstractStaticServlet {
+        @Override
+        protected String getBasePath() {
+            return "/test-static";
+        }
+    }
+
+    static class InvalidServlet extends AbstractStaticServlet {
+        @Override
+        protected String getBasePath() {
+            return "/missing";
+        }
     }
 }

@@ -8,18 +8,18 @@ package de.morihofi.certgine.server.common.intf;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class HttpStatusCodeTest {
     @Test
     @DisplayName("message from code returns known message")
-    void testKnown(){
+    void testKnown() {
         assertEquals("OK", HttpStatusCode.getMessageFromCode(200));
     }
 
     @Test
     @DisplayName("unknown code returns default")
-    void testUnknown(){
+    void testUnknown() {
         assertEquals("Unknown", HttpStatusCode.getMessageFromCode(9999));
     }
 }

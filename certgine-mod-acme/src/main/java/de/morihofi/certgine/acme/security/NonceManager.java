@@ -7,9 +7,8 @@ package de.morihofi.certgine.acme.security;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import de.morihofi.certgine.acme.types.events.AcmeNonceRedeemedEvent;
 import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
-import de.morihofi.certgine.types.events.EventBus;
+import de.morihofi.certgine.acme.types.events.AcmeNonceRedeemedEvent;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadNonceException;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.NonNull;
@@ -40,7 +39,6 @@ public class NonceManager implements INonceManager {
 
     /**
      * Constructs a new NonceManager instance
-     *
      */
     public NonceManager(@NonNull IServerInstance serverInstance) {
         this.debug = false;

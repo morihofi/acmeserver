@@ -12,7 +12,9 @@ import de.morihofi.certgine.types.intf.IServerInstance;
  */
 public class CoreEntitiesModuleFactory implements CertgineModuleFactory {
 
-    /** Default constructor. */
+    /**
+     * Default constructor.
+     */
     public CoreEntitiesModuleFactory() {
     }
 

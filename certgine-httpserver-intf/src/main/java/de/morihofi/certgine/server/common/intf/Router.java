@@ -61,7 +61,7 @@ public class Router {
     /**
      * Retrieves the handler for a given path and method.
      *
-     * @param path  The request path.
+     * @param path   The request path.
      * @param method The HTTP method as a {@code String}.
      * @return The corresponding {@code Handler}, or {@code null} if no handler matches.
      */
@@ -108,7 +108,7 @@ public class Router {
      */
     private void invokeHandlers(Map<String, Handler> handlers, String path, HandlerContext context) throws Exception {
 
-        for (Map.Entry<String, Handler> handlerEntry : handlers.entrySet()){
+        for (Map.Entry<String, Handler> handlerEntry : handlers.entrySet()) {
             Handler handler = handlerEntry.getValue();
             String prefix = handlerEntry.getKey();
 
@@ -204,6 +204,7 @@ public class Router {
 
     /**
      * Checks if any handler is registered for a specific path.
+     *
      * @param path The path to check for registered handlers.
      * @return {@code true} if any handler is registered for the path, {@code false} otherwise.
      */

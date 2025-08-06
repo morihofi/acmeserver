@@ -14,7 +14,8 @@ import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.Security;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class KeyHelperTest {
 
@@ -62,9 +63,20 @@ class KeyHelperTest {
     @DisplayName("Unsupported key throws exception")
     void testUnsupportedKey() {
         PrivateKey dummy = new PrivateKey() {
-            @Override public String getAlgorithm() { return "DUMMY"; }
-            @Override public String getFormat() { return null; }
-            @Override public byte[] getEncoded() { return new byte[0]; }
+            @Override
+            public String getAlgorithm() {
+                return "DUMMY";
+            }
+
+            @Override
+            public String getFormat() {
+                return null;
+            }
+
+            @Override
+            public byte[] getEncoded() {
+                return new byte[0];
+            }
         };
         assertThrows(IllegalArgumentException.class, () -> KeyHelper.getSignatureAlgorithmBasedOnKeyType(dummy));
     }

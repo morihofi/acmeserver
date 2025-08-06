@@ -13,7 +13,7 @@ public class HexConverter {
 
 
     @NonNull
-    public static String bigIntegerAsHexString(@NonNull BigInteger input){
+    public static String bigIntegerAsHexString(@NonNull BigInteger input) {
         return input.toString(32);
     }
 

@@ -12,19 +12,19 @@ import de.morihofi.certgine.server.common.intf.Router;
 import de.morihofi.certgine.server.common.intf.testing.MockRequest;
 import de.morihofi.certgine.server.common.intf.testing.MockResponse;
 import de.morihofi.certgine.types.json.GsonFactory;
-import org.jose4j.jws.JsonWebSignature;
-import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jwk.PublicJsonWebKey;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RevokeCertEndpointTest {
-
 
 
     @Test

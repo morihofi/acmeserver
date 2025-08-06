@@ -13,11 +13,7 @@ import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoGeneratorBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
-import org.bouncycastle.tsp.TimeStampRequest;
-import org.bouncycastle.tsp.TimeStampResponse;
-import org.bouncycastle.tsp.TimeStampResponseGenerator;
-import org.bouncycastle.tsp.TimeStampTokenGenerator;
-import org.bouncycastle.tsp.TSPAlgorithms;
+import org.bouncycastle.tsp.*;
 
 import java.io.IOException;
 import java.security.PrivateKey;
@@ -32,13 +28,7 @@ import java.util.Set;
  * Simple RFC 3161 timestamp authority.
  */
 public class TimeStampAuthority {
-    private final PrivateKey privateKey;
-    private final X509Certificate signingCert;
-    private final List<X509Certificate> certificateChain;
-    private final ASN1ObjectIdentifier policy;
-
     private static final ASN1ObjectIdentifier TIME_STAMPING_AUTHORITY_POLICY = new ASN1ObjectIdentifier("1.3.6.1.4.1.13762.3");
-
     private static final Set<ASN1ObjectIdentifier> ALLOWED_ALGORITHMS = Set.of(
             TSPAlgorithms.MD5,
             TSPAlgorithms.RIPEMD160,
@@ -48,6 +38,10 @@ public class TimeStampAuthority {
             TSPAlgorithms.SHA384,
             TSPAlgorithms.SHA512
     );
+    private final PrivateKey privateKey;
+    private final X509Certificate signingCert;
+    private final List<X509Certificate> certificateChain;
+    private final ASN1ObjectIdentifier policy;
 
     /**
      * Create a new instance.
@@ -75,6 +69,19 @@ public class TimeStampAuthority {
     public TimeStampAuthority(PrivateKey privateKey, X509Certificate signingCert,
                               List<X509Certificate> certificateChain) {
         this(privateKey, signingCert, certificateChain, TIME_STAMPING_AUTHORITY_POLICY.getId());
+    }
+
+    public static String getHashAlgorithmName(ASN1ObjectIdentifier alg) {
+        return switch (alg.getId()) {
+            case "1.2.840.113549.2.5" -> "MD5";
+            case "1.3.36.3.2.1" -> "RIPEMD160";
+            case "1.3.14.3.2.26" -> "SHA-1";
+            case "2.16.840.1.101.3.4.2.4" -> "SHA-224";
+            case "2.16.840.1.101.3.4.2.1" -> "SHA-256";
+            case "2.16.840.1.101.3.4.2.2" -> "SHA-384";
+            case "2.16.840.1.101.3.4.2.3" -> "SHA-512";
+            default -> throw new IllegalArgumentException("Unsupported hash algorithm: " + alg);
+        };
     }
 
     /**
@@ -127,19 +134,6 @@ public class TimeStampAuthority {
             case "1.3.36.3.2.1" -> "RIPEMD160withRSA";        // RIPEMD160
             case "1.2.840.113549.2.5" -> "MD5withRSA";         // MD5
             default -> throw new IllegalArgumentException("Unsupported hash algorithm: " + hashAlg);
-        };
-    }
-
-    public static String getHashAlgorithmName(ASN1ObjectIdentifier alg) {
-        return switch (alg.getId()) {
-            case "1.2.840.113549.2.5" -> "MD5";
-            case "1.3.36.3.2.1" -> "RIPEMD160";
-            case "1.3.14.3.2.26" -> "SHA-1";
-            case "2.16.840.1.101.3.4.2.4" -> "SHA-224";
-            case "2.16.840.1.101.3.4.2.1" -> "SHA-256";
-            case "2.16.840.1.101.3.4.2.2" -> "SHA-384";
-            case "2.16.840.1.101.3.4.2.3" -> "SHA-512";
-            default -> throw new IllegalArgumentException("Unsupported hash algorithm: " + alg);
         };
     }
 

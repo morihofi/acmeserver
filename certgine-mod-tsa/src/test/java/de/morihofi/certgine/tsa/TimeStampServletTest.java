@@ -5,18 +5,18 @@
 
 package de.morihofi.certgine.tsa;
 
+import de.morihofi.certgine.cryptography.tsa.TimeStampAuthority;
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.tsa.servlets.TimeStampServlet;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
+import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import de.morihofi.certgine.cryptography.tsa.TimeStampAuthority;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.tsp.TSPAlgorithms;
@@ -40,17 +40,19 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TimeStampServletTest {
     private static final Clock clock = Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC);
+
     @BeforeAll
     static void addProvider() {
         Security.addProvider(new BouncyCastleProvider());
     }
 
     private static X509Certificate createCert(KeyPair kp) throws Exception {
-        X500Name name = new X500Name("CN=TSA" );
+        X500Name name = new X500Name("CN=TSA");
         Instant now = clock.instant();
         Instant tomorrow = now.plus(Duration.ofDays(1));
         X509v3CertificateBuilder builder = new X509v3CertificateBuilder(

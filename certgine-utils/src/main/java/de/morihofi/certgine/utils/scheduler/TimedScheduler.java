@@ -6,20 +6,16 @@
 package de.morihofi.certgine.utils.scheduler;
 
 import com.cronutils.model.Cron;
+import com.cronutils.model.CronType;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
-import com.cronutils.model.CronType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Simple scheduler based on cron expressions. Tasks registered here are executed
@@ -80,9 +76,13 @@ public class TimedScheduler {
         tasks.clear();
     }
 
-    /** Handle allowing cancellation of a scheduled task. */
+    /**
+     * Handle allowing cancellation of a scheduled task.
+     */
     public interface ScheduledHandle {
-        /** Cancel future executions of the task. */
+        /**
+         * Cancel future executions of the task.
+         */
         void cancel();
     }
 

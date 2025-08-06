@@ -6,13 +6,13 @@
 package de.morihofi.certgine.core.web;
 
 import de.morihofi.certgine.cryptography.certificate.X509CertificateTools;
-import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
-import de.morihofi.certgine.types.dns.DnsIdentifier;
-import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
+import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
+import de.morihofi.certgine.types.dns.DnsIdentifier;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.utils.datetime.TimeTools;
+import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -42,7 +42,7 @@ public class JettyCertificateHelper {
     public static CertificateRenewScheduler.CertificateData generateAcmeApiClientCertificate(
             IServerInstance serverInstance, Clock clock)
             throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
-                    OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
+            OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
 
         ICryptoStoreManager cryptoStoreManager = serverInstance.getCryptoStoreManager();
 
@@ -104,7 +104,7 @@ public class JettyCertificateHelper {
     public static CertificateRenewScheduler.CertificateData generateAcmeApiClientCertificate(
             IServerInstance serverInstance)
             throws CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException,
-                    OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
+            OperatorCreationException, KeyStoreException, UnrecoverableKeyException {
         return generateAcmeApiClientCertificate(serverInstance, Clock.systemUTC());
     }
 }

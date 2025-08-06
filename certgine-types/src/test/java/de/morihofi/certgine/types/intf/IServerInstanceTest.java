@@ -5,13 +5,13 @@
 
 package de.morihofi.certgine.types.intf;
 
+import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.config.Config;
+import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
-import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.server.StartupFlag;
 import lombok.NonNull;
 import org.hibernate.Session;
@@ -32,43 +32,59 @@ class IServerInstanceTest {
         @NotNull
         @NonNull
         @Override
-        public String getServerURL() { return ""; }
+        public String getServerURL() {
+            return "";
+        }
 
         @NotNull
         @NonNull
         @Override
-        public Session getDatabaseSession() { return null; }
+        public Session getDatabaseSession() {
+            return null;
+        }
 
         @NotNull
         @NonNull
         @Override
-        public ICryptoStoreManager getCryptoStoreManager() { return null; }
+        public ICryptoStoreManager getCryptoStoreManager() {
+            return null;
+        }
 
         @NotNull
         @NonNull
         @Override
-        public Config getAppConfig() { return null; }
+        public Config getAppConfig() {
+            return null;
+        }
 
 
         @NotNull
         @NonNull
         @Override
-        public RootCa getRootCa() { return rootCa; }
+        public RootCa getRootCa() {
+            return rootCa;
+        }
 
         @NotNull
         @NonNull
         @Override
-        public BuildMetadata getBuildMetadata() { return null; }
+        public BuildMetadata getBuildMetadata() {
+            return null;
+        }
 
         @NotNull
         @NonNull
         @Override
-        public INetworkClient getNetworkClient() { return null; }
+        public INetworkClient getNetworkClient() {
+            return null;
+        }
 
         @NotNull
         @NonNull
         @Override
-        public EventBus getEventBus() { return null; }
+        public EventBus getEventBus() {
+            return null;
+        }
 
         @NotNull
         @Override

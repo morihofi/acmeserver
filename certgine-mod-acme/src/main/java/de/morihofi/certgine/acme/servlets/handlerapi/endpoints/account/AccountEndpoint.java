@@ -10,22 +10,19 @@ import com.google.gson.JsonObject;
 import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.account.objects.ACMEAccountRequestPayload;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
-
-import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.acme.types.events.AcmeAccountDeactivatedEvent;
+import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.ACMEAccountNotFoundException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEInvalidContactException;
-import de.morihofi.certgine.acme.types.events.AcmeAccountDeactivatedEvent;
-import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.utils.regex.EmailValidator;
-
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import lombok.NonNull;
 
 import java.util.List;
 

@@ -6,34 +6,34 @@
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order;
 
 import com.google.gson.Gson;
-import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeEndpoint;
-import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order.objects.AcmeOrderResponse;
-import de.morihofi.certgine.acme.types.entities.*;
 import de.morihofi.certgine.acme.certificate.queue.CertificateIssuer;
 import de.morihofi.certgine.acme.csr.AcmeCsrValidator;
-import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
+import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order.objects.AcmeOrderResponse;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order.objects.FinalizeOrderRequestPayload;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
-import de.morihofi.certgine.acme.types.events.AcmeCertificateIssuanceRequestedEvent;
+import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
+import de.morihofi.certgine.acme.types.entities.AcmeAccount;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
+import de.morihofi.certgine.acme.types.entities.AcmeOrder;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeOrderState;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
-import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
+import de.morihofi.certgine.acme.types.events.AcmeCertificateIssuanceRequestedEvent;
+import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUnauthorizedException;
-import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.types.server.StartupFlag;
 import de.morihofi.certgine.utils.base64.Base64Tools;
 import de.morihofi.certgine.utils.datetime.TimeTools;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import lombok.NonNull;
 
 import java.util.List;
 
@@ -131,7 +131,7 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
                     getModuleInstance().getModule().getServerInstance().getEventBus().publish(new AcmeCertificateIssuanceRequestedEvent(order));
                     response.setStatus(AcmeStatus.PROCESSING.getRfcName());
                 } else {
-                    CertificateIssuer.generateCertificateForOrder(order,session, getModuleInstance().getModule().getServerInstance()); // also resets need certificate status
+                    CertificateIssuer.generateCertificateForOrder(order, session, getModuleInstance().getModule().getServerInstance()); // also resets need certificate status
 
                     // Valid, cause due we generated the certificate in the request, we have now a certificate available
                     response.setStatus(AcmeStatus.VALID.getRfcName());

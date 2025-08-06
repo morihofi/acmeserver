@@ -5,11 +5,11 @@
 
 package de.morihofi.certgine.revocation.crl;
 
-import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.cryptography.crl.CrlGenerator;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
+import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;

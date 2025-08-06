@@ -1,8 +1,7 @@
 package de.morihofi.certgine.acme.csr;
 
-import de.morihofi.certgine.cryptography.csr.CsrDataUtil;
-import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.cryptography.csr.CsrDataUtil;
 import de.morihofi.certgine.types.dns.DnsIdentifier;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEServerInternalException;
@@ -23,8 +22,8 @@ public final class AcmeCsrValidator {
     /**
      * Extracts identifiers from the CSR and verifies them against the ACME order identifiers.
      *
-     * @param csr          CSR encoded as Base64URL string
-     * @param identifiers  identifiers associated with the ACME order
+     * @param csr         CSR encoded as Base64URL string
+     * @param identifiers identifiers associated with the ACME order
      * @return set of identifiers contained in the CSR
      * @throws IOException if the CSR cannot be parsed
      */

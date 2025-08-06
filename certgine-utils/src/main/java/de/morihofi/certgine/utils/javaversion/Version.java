@@ -7,7 +7,6 @@
 package de.morihofi.certgine.utils.javaversion;
 
 
-
 import lombok.NonNull;
 
 import java.io.Serial;

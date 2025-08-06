@@ -13,7 +13,6 @@ import de.morihofi.certgine.acme.types.events.AcmeCertificateCreatedEvent;
 import de.morihofi.certgine.acme.types.events.BeforeAcmeCertificateCreatedEvent;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.cryptography.pem.PemUtil;
-import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.dns.DnsIdentifier;
 import de.morihofi.certgine.types.exception.exceptions.ACMECaaException;
 import de.morihofi.certgine.types.intf.IServerInstance;

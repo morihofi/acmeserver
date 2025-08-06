@@ -6,8 +6,8 @@
 package de.morihofi.certgine.acme.types.entities;
 
 
-import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeOrderState;
+import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.certgine.types.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -24,7 +24,8 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents an ACME order entity used for managing certificate orders.
@@ -35,6 +36,95 @@ import java.util.*;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class AcmeOrder implements Serializable {
 
+
+    /**
+     * Internal ID
+     */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    /**
+     * ACME Order ID
+     */
+    @Column(name = "orderId", unique = true)
+    private String orderId;
+    /**
+     * ACME Account ID where the order belongs to
+     */
+    @ManyToOne
+    @JoinColumn(name = "accountId", referencedColumnName = "accountId")
+    private AcmeAccount account;
+    /**
+     * Creation of the order
+     */
+    @Column(name = "created", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant created;
+    /**
+     * Expiring of the order
+     */
+    @Column(name = "expires", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant expires;
+    /**
+     * Not before for the generated certificate
+     */
+    @Column(name = "notBefore", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant notBefore;
+    /**
+     * Not after for the generated certificate
+     */
+    @Column(name = "notAfter", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant notAfter;
+    /**
+     * Order Identifiers (Domains, IPs) of this Order
+     */
+    @OneToMany(mappedBy = "order")
+    private List<AcmeOrderIdentifier> orderIdentifiers;
+    /**
+     * Order state, used for background certificate generation
+     */
+    @Column(name = "orderState", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AcmeOrderState orderState = AcmeOrderState.IDLE;
+    /**
+     * Certificate Id for downloading the certificate after generation
+     */
+    @Column(name = "certificateId", columnDefinition = "TEXT", unique = true)
+    private String certificateId;
+    /**
+     * Certificate signing request containing the public key for signing and domains/ips
+     */
+    @Column(name = "certificateCSR", columnDefinition = "TEXT")
+    private String certificateCSR;
+    /**
+     * Timestamp when the certificate was issued
+     */
+    @Column(name = "certificateIssued", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant certificateIssued;
+    /**
+     * Time when the certificate will expire
+     */
+    @Column(name = "certificateExpires", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant certificateExpires;
+    /**
+     * The certificate without the full chain
+     */
+    @Column(name = "certificatePem", columnDefinition = "TEXT")
+    private String certificatePem;
+    /**
+     * Serial number of the certificate
+     */
+    @Column(name = "certificateSerialNumber", precision = 50)
+    private BigInteger certificateSerialNumber;
+    /**
+     * Revokation status of the certificate. Defaults to null if not revoked
+     */
+    @Column(name = "revokeStatusCode")
+    private Integer revokeStatusCode;
+    /**
+     * Revokation timestamp of the certificate. Defaults to null if not revoked
+     */
+    @Column(name = "revokeTimestamp", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant revokeTimestamp;
 
     /**
      * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated certificate serial number.
@@ -96,7 +186,6 @@ public class AcmeOrder implements Serializable {
         return orders;
     }
 
-    
     /**
      * Retrieves a list of revoked certificates from the database. Revoked certificates are identified by having both a revoke status code
      * and a revoke timestamp in their associated ACME identifiers.
@@ -150,7 +239,7 @@ public class AcmeOrder implements Serializable {
      * @param provisionerName Name of the provisioner issuing the certificate.
      * @param serverInstance  Server instance for database access.
      * @return Revocation data or {@code null} if the certificate is not revoked
-     *         or could not be found.
+     * or could not be found.
      */
     public static RevokedCertificate getRevokedCertificate(BigInteger serialNumber,
                                                            String provisionerName,
@@ -215,101 +304,5 @@ public class AcmeOrder implements Serializable {
             throw new ACMEServerInternalException("Unable to revoke certificate");
         }
     }
-
-    /**
-     * Internal ID
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    /**
-     * ACME Order ID
-     */
-    @Column(name = "orderId", unique = true)
-    private String orderId;
-
-    /**
-     * ACME Account ID where the order belongs to
-     */
-    @ManyToOne
-    @JoinColumn(name = "accountId", referencedColumnName = "accountId")
-    private AcmeAccount account;
-
-    /**
-     * Creation of the order
-     */
-    @Column(name = "created", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private Instant created;
-
-    /**
-     * Expiring of the order
-     */
-    @Column(name = "expires", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private Instant expires;
-
-    /**
-     * Not before for the generated certificate
-     */
-    @Column(name = "notBefore", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private Instant notBefore;
-    /**
-     * Not after for the generated certificate
-     */
-    @Column(name = "notAfter", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private Instant notAfter;
-    /**
-     * Order Identifiers (Domains, IPs) of this Order
-     */
-    @OneToMany(mappedBy = "order")
-    private List<AcmeOrderIdentifier> orderIdentifiers;
-
-    /**
-     * Order state, used for background certificate generation
-     */
-    @Column(name = "orderState", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private AcmeOrderState orderState = AcmeOrderState.IDLE;
-
-    /**
-     * Certificate Id for downloading the certificate after generation
-     */
-    @Column(name = "certificateId", columnDefinition = "TEXT", unique = true)
-    private String certificateId;
-    /**
-     * Certificate signing request containing the public key for signing and domains/ips
-     */
-    @Column(name = "certificateCSR", columnDefinition = "TEXT")
-    private String certificateCSR;
-    /**
-     * Timestamp when the certificate was issued
-     */
-    @Column(name = "certificateIssued", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private Instant certificateIssued;
-    /**
-     * Time when the certificate will expire
-     */
-    @Column(name = "certificateExpires", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private Instant certificateExpires;
-    /**
-     * The certificate without the full chain
-     */
-    @Column(name = "certificatePem", columnDefinition = "TEXT")
-    private String certificatePem;
-    /**
-     * Serial number of the certificate
-     */
-    @Column(name = "certificateSerialNumber", precision = 50)
-    private BigInteger certificateSerialNumber;
-    /**
-     * Revokation status of the certificate. Defaults to null if not revoked
-     */
-    @Column(name = "revokeStatusCode")
-    private Integer revokeStatusCode;
-    /**
-     * Revokation timestamp of the certificate. Defaults to null if not revoked
-     */
-    @Column(name = "revokeTimestamp", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private Instant revokeTimestamp;
 
 }

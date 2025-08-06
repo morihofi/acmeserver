@@ -10,16 +10,15 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
-import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
+import de.morihofi.certgine.cryptography.pem.PemUtil;
+import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadSignatureAlgorithmException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUnauthorizedException;
-import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
 
@@ -35,6 +34,12 @@ import java.security.spec.InvalidKeySpecException;
  */
 @Slf4j
 public class SignatureCheck {
+
+    /**
+     * Private constructor to prevent object instantiation
+     */
+    private SignatureCheck() {
+    }
 
     /**
      * Verifies the signature of an ACME request using an ACME account's public key. The method checks the signature against the public key
@@ -53,9 +58,9 @@ public class SignatureCheck {
     /**
      * Verifies the signature of an ACME request using a raw public key.
      *
-     * @param ctx      The Javalin context containing the request data.
+     * @param ctx       The Javalin context containing the request data.
      * @param publicKey The public key used for signature verification.
-     * @param gson     The Gson instance for JSON parsing.
+     * @param gson      The Gson instance for JSON parsing.
      * @throws ACMEBadSignatureAlgorithmException If the signature does not match.
      */
     public static void checkSignature(@NonNull HandlerContext ctx, @NonNull PublicKey publicKey, @NonNull Gson gson) {
@@ -167,11 +172,5 @@ public class SignatureCheck {
      */
     public static String getAccountIdFromProtectedKID(@NonNull String protectedJsonString) {
         return getAccountIdFromProtectedKID(JsonParser.parseString(protectedJsonString).getAsJsonObject());
-    }
-
-    /**
-     * Private constructor to prevent object instantiation
-     */
-    private SignatureCheck() {
     }
 }

@@ -5,16 +5,18 @@
 
 package de.morihofi.certgine.revocation.endpoints;
 
+import de.morihofi.certgine.cryptography.crl.CrlGenerator;
 import de.morihofi.certgine.revocation.crl.CrlStore;
-import de.morihofi.certgine.server.common.intf.*;
+import de.morihofi.certgine.server.common.intf.Endpoint;
+import de.morihofi.certgine.server.common.intf.HandlerContext;
+import de.morihofi.certgine.server.common.intf.Router;
 import de.morihofi.certgine.server.common.intf.testing.MockRequest;
 import de.morihofi.certgine.server.common.intf.testing.MockResponse;
-import de.morihofi.certgine.cryptography.crl.CrlGenerator;
-import de.morihofi.certgine.types.httpserver.HandlerType;
-import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
 import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
+import de.morihofi.certgine.types.httpserver.HandlerType;
+import de.morihofi.certgine.types.intf.IServerInstance;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import java.io.IOException;
 import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509CRL;
@@ -33,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CRLEndpointTest {
 
     @BeforeAll
-    static void setup(){
+    static void setup() {
         Security.addProvider(new BouncyCastleProvider());
     }
 
@@ -48,7 +49,7 @@ class CRLEndpointTest {
                                         .organisation("Org")
                                         .countryCode("DE")
                                         .build(),
-                                new CertificateExpiration(0,0,1), null))
+                                new CertificateExpiration(0, 0, 1), null))
                         .ownKeyPair(kp)
                         .build());
         return CrlGenerator.generate(

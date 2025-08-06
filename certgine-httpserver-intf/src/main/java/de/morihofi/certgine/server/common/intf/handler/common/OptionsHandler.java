@@ -23,9 +23,9 @@ public class OptionsHandler implements Handler {
      */
     @Override
     public void handle(HandlerContext context) {
-        if(context.router().isAnyHandlerRegisteredForPath(context.path())) {
+        if (context.router().isAnyHandlerRegisteredForPath(context.path())) {
             context.status(HttpStatusCode.NO_CONTENT);
-        }else{
+        } else {
             context.status(HttpStatusCode.NOT_FOUND);
         }
         context.result();

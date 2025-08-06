@@ -16,15 +16,15 @@ import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
 import lombok.NonNull;
 import org.hibernate.Session;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.keys.HmacKey;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.jose4j.jws.JsonWebSignature;
-import org.jose4j.jws.AlgorithmIdentifiers;
-import org.jose4j.keys.HmacKey;
-import java.lang.reflect.InvocationTargetException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -32,24 +32,6 @@ import java.util.Base64;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NewAccountEndpointTest {
-    static class DummyServer implements IServerInstance {
-        @Override public String getServerURL() { return ""; }
-        @Override public Session getDatabaseSession() { return null; }
-        @Override public ICryptoStoreManager getCryptoStoreManager() { return null; }
-        @Override public de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
-        @Override public de.morihofi.certgine.types.database.entities.authority.RootCa getRootCa() { return null; }
-        @Override public de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() { return null; }
-        @Override public de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() { return null; }
-        @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
-
-        @Override
-        public @NonNull IModuleRegistry getModuleRegistry() {
-            return null;
-        }
-
-        @Override public de.morihofi.certgine.types.events.EventBus getEventBus() { return new de.morihofi.certgine.types.events.EventBus(); }
-    }
-
     private static AcmeModuleInstance moduleInstance() {
         return new AcmeModuleInstance(new AcmeModule(new DummyServer()));
     }
@@ -93,17 +75,72 @@ class NewAccountEndpointTest {
             ExternalAccountBinding eab = new ExternalAccountBinding();
             java.lang.reflect.Field f;
             f = ExternalAccountBinding.class.getDeclaredField("protectedHeader");
-            f.setAccessible(true); f.set(eab, parts[0]);
+            f.setAccessible(true);
+            f.set(eab, parts[0]);
             f = ExternalAccountBinding.class.getDeclaredField("payload");
-            f.setAccessible(true); f.set(eab, parts[1]);
+            f.setAccessible(true);
+            f.set(eab, parts[1]);
             f = ExternalAccountBinding.class.getDeclaredField("signature");
-            f.setAccessible(true); f.set(eab, parts[2]);
+            f.setAccessible(true);
+            f.set(eab, parts[2]);
 
             Method m = NewAccountEndpoint.class.getDeclaredMethod("validateExternalAccountBinding",
                     ExternalAccountBinding.class, AcmeProvisioner.class, String.class);
             m.setAccessible(true);
             Object result = m.invoke(endpoint, eab, p, "{}");
             assertSame(binding, result);
+        }
+    }
+
+    static class DummyServer implements IServerInstance {
+        @Override
+        public String getServerURL() {
+            return "";
+        }
+
+        @Override
+        public Session getDatabaseSession() {
+            return null;
+        }
+
+        @Override
+        public ICryptoStoreManager getCryptoStoreManager() {
+            return null;
+        }
+
+        @Override
+        public de.morihofi.certgine.types.config.Config getAppConfig() {
+            return null;
+        }
+
+        @Override
+        public de.morihofi.certgine.types.database.entities.authority.RootCa getRootCa() {
+            return null;
+        }
+
+        @Override
+        public de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() {
+            return null;
+        }
+
+        @Override
+        public de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() {
+            return null;
+        }
+
+        @Override
+        public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() {
+            return java.util.Collections.emptySet();
+        }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
+        }
+
+        @Override
+        public de.morihofi.certgine.types.events.EventBus getEventBus() {
+            return new de.morihofi.certgine.types.events.EventBus();
         }
     }
 }

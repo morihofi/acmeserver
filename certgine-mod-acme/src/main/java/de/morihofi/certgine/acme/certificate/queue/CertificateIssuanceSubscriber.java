@@ -42,7 +42,9 @@ public class CertificateIssuanceSubscriber implements EventSubscriber {
         }
     }
 
-    /** Shutdown the executor. */
+    /**
+     * Shutdown the executor.
+     */
     public void shutdown() {
         executor.shutdown();
     }

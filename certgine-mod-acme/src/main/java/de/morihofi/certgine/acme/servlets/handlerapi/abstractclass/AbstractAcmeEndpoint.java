@@ -9,11 +9,10 @@ import com.google.gson.Gson;
 import de.morihofi.certgine.acme.AcmeModuleInstance;
 import de.morihofi.certgine.acme.security.SignatureCheck;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
-
-import de.morihofi.certgine.server.common.intf.Handler;
-import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
+import de.morihofi.certgine.server.common.intf.Handler;
+import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.ACMEMalformedException;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.json.GsonFactory;
@@ -83,7 +82,7 @@ public abstract class AbstractAcmeEndpoint implements Handler {
         HttpServletRequest req = ctx.request().getHttpServletRequest();
 
         // We want to make sure, that all the certificate requests are use done using HTTPS
-        if(!req.isSecure()){
+        if (!req.isSecure()) {
             throw new ACMEMalformedException("Requests must be sent over HTTPS for the ACME API");
         }
 

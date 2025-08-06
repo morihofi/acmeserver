@@ -1,6 +1,5 @@
 package de.morihofi.certgine.core.web;
 
-import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModuleInstance;
@@ -25,8 +24,6 @@ public class ServletRegistrar {
     private final IServerInstance serverInstance;
     private final IModuleRegistry moduleRegistry;
     private final List<MountedServlet> mountedServlets = new ArrayList<>();
-
-    private record MountedServlet(ServletHolder holder, ServletMapping mapping, boolean protect) {}
 
     public ServletRegistrar(IServerInstance serverInstance, IModuleRegistry moduleRegistry) {
         this.serverInstance = serverInstance;
@@ -156,5 +153,8 @@ public class ServletRegistrar {
 
         handler.setServlets(keepHolders.toArray(new ServletHolder[0]));
         handler.setServletMappings(keepMappings.toArray(new ServletMapping[0]));
+    }
+
+    private record MountedServlet(ServletHolder holder, ServletMapping mapping, boolean protect) {
     }
 }

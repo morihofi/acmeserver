@@ -5,6 +5,7 @@
 
 package de.morihofi.certgine.tsa.servlets;
 
+import de.morihofi.certgine.cryptography.tsa.TimeStampAuthority;
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.types.intf.IServerInstance;
@@ -13,7 +14,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import de.morihofi.certgine.cryptography.tsa.TimeStampAuthority;
 import org.bouncycastle.tsp.TimeStampRequest;
 
 import java.io.IOException;

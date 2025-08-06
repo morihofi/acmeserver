@@ -31,7 +31,7 @@ public final class CertificateUtil {
      */
     @NonNull
     public static String getFingerprint(@NonNull X509Certificate certificate,
-                                         @NonNull String algorithm)
+                                        @NonNull String algorithm)
             throws CertificateEncodingException {
         try {
             MessageDigest md = MessageDigest.getInstance(algorithm);

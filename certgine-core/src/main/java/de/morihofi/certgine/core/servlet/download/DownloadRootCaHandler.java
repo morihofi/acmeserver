@@ -13,11 +13,14 @@ import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.NonNull;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.transform.*;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.PrintWriter;
@@ -25,7 +28,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
@@ -39,13 +41,6 @@ public class DownloadRootCaHandler implements Handler {
         this.serverInstance = serverInstance;
         this.format = format;
     }
-
-    public enum CertificateFormat {
-        PEM,
-        DER,
-        CAB
-    }
-
 
     @Override
     public void handle(@NonNull HandlerContext ctx) throws Exception {
@@ -133,5 +128,11 @@ public class DownloadRootCaHandler implements Handler {
     private String getPEMWithoutHeaderAndFooter(X509Certificate certificate) throws Exception {
         Base64.Encoder encoder = Base64.getMimeEncoder(64, "\r\n".getBytes(StandardCharsets.UTF_8));
         return encoder.encodeToString(certificate.getEncoded());
+    }
+
+    public enum CertificateFormat {
+        PEM,
+        DER,
+        CAB
     }
 }

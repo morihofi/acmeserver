@@ -28,10 +28,53 @@ import java.util.List;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class AcmeAccount implements Serializable {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    /**
+     * Unique ACME Account Id
+     */
+    @Column(name = "accountId", unique = true)
+    private String accountId;
+    /**
+     * Public Key of the ACME Account Client
+     */
+    @Column(name = "publicKeyPEM", columnDefinition = "TEXT")
+    private String publicKeyPEM;
+    /**
+     * E-Mails associated to this ACME Account
+     */
+    @ElementCollection
+    @CollectionTable(name = "account_emails", joinColumns = @JoinColumn(name = "account_id"))
+    @Column(name = "email")
+    private List<String> emails;
+    /**
+     * Deactivated status
+     */
+    @Column(name = "deactivated")
+    private boolean deactivated;
+    /**
+     * Provisioner where this ACME account was registered in.
+     */
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "provisioner_id", nullable = false)
+    private AcmeProvisioner acmeProvisioner;
+    /**
+     * External Account Binding used during account creation.
+     */
+    @ManyToOne
+    @JoinColumn(name = "eab_id")
+    private AcmeExternalAccountBinding externalAccountBinding;
+    /**
+     * Orders for this ACME Account
+     */
+    @OneToMany(mappedBy = "account")
+    private List<AcmeOrder> orders;
+
     /**
      * Retrieves an ACME (Automated Certificate Management Environment) account by its unique account ID.
      *
-     * @param accountId The unique identifier of the ACME account to be retrieved.
+     * @param accountId      The unique identifier of the ACME account to be retrieved.
      * @param serverInstance The server instance for database connection.
      * @return The ACME account matching the provided account ID, or null if not found.
      */
@@ -84,7 +127,7 @@ public class AcmeAccount implements Serializable {
     /**
      * Retrieves the ACME account associated with a specific order ID.
      *
-     * @param orderId The unique identifier of the ACME order for which the associated account is to be retrieved.
+     * @param orderId        The unique identifier of the ACME order for which the associated account is to be retrieved.
      * @param serverInstance The server instance for database connection.
      * @return The ACME account associated with the provided order ID, or null if not found.
      */
@@ -105,7 +148,7 @@ public class AcmeAccount implements Serializable {
     /**
      * Retrieves all ACME accounts associated with a specific email.
      *
-     * @param email The email address to search for associated ACME accounts.
+     * @param email          The email address to search for associated ACME accounts.
      * @param serverInstance The server instance for database connection.
      * @return A list of ACME accounts associated with the provided email address.
      */
@@ -119,54 +162,4 @@ public class AcmeAccount implements Serializable {
             return query.getResultList();
         }
     }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    /**
-     * Unique ACME Account Id
-     */
-    @Column(name = "accountId", unique = true)
-    private String accountId;
-
-    /**
-     * Public Key of the ACME Account Client
-     */
-    @Column(name = "publicKeyPEM", columnDefinition = "TEXT")
-    private String publicKeyPEM;
-
-    /**
-     * E-Mails associated to this ACME Account
-     */
-    @ElementCollection
-    @CollectionTable(name = "account_emails", joinColumns = @JoinColumn(name = "account_id"))
-    @Column(name = "email")
-    private List<String> emails;
-
-    /**
-     * Deactivated status
-     */
-    @Column(name = "deactivated")
-    private boolean deactivated;
-
-    /**
-     * Provisioner where this ACME account was registered in.
-     */
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "provisioner_id", nullable = false)
-    private AcmeProvisioner acmeProvisioner;
-
-    /**
-     * External Account Binding used during account creation.
-     */
-    @ManyToOne
-    @JoinColumn(name = "eab_id")
-    private AcmeExternalAccountBinding externalAccountBinding;
-
-    /**
-     * Orders for this ACME Account
-     */
-    @OneToMany(mappedBy = "account")
-    private List<AcmeOrder> orders;
 }

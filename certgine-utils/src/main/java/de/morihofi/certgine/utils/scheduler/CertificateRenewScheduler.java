@@ -165,10 +165,10 @@ public class CertificateRenewScheduler {
                     } else {
                         cryptoStoreManager.addServerCertificate(newCertificateData.certificateChain(), newCertificateData.keyPair(), alias);
                     }
-                      if (renewEntry.triggerAfterRegeneration != null) {
-                          log.info("Running post configuration runnable");
-                          renewEntry.triggerAfterRegeneration.run();
-                      }
+                    if (renewEntry.triggerAfterRegeneration != null) {
+                        log.info("Running post configuration runnable");
+                        renewEntry.triggerAfterRegeneration.run();
+                    }
                 } else {
                     ZonedDateTime notAfter = certificateFromKeyStore.getNotAfter()
                             .toInstant()

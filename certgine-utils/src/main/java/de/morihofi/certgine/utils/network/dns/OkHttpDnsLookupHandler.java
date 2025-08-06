@@ -12,7 +12,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Dns;
 
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -49,7 +48,7 @@ public class OkHttpDnsLookupHandler implements Dns {
     @NonNull
     @Override
     public List<InetAddress> lookup(@NonNull String hostname) throws UnknownHostException {
-        if(hostname.equals("localhost")){
+        if (hostname.equals("localhost")) {
             return Collections.singletonList(InetAddress.getLocalHost());
         }
 

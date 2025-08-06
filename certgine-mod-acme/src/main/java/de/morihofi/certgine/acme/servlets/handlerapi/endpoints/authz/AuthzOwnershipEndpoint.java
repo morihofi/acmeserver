@@ -9,27 +9,25 @@ import com.google.gson.Gson;
 import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeEndpoint;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.authz.objects.AuthzResponse;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.authz.objects.ChallengeResponse;
-import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
-import de.morihofi.certgine.cryptography.randomness.RandomGenerator;
-import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.acme.types.api.AcmeChallengeType;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
-
-import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.acme.types.api.AcmeChallengeType;
+import de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier;
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
+import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.cryptography.randomness.RandomGenerator;
+import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEServerInternalException;
-import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.utils.base64.Base64Tools;
 import de.morihofi.certgine.utils.conversion.HexConverter;
 import de.morihofi.certgine.utils.datetime.TimeTools;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import lombok.NonNull;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
@@ -45,6 +43,16 @@ import java.util.function.Supplier;
 public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
     private final Clock clock;
+    /**
+     * A supplier for generating a random challenge ID in hexadecimal format.
+     * This is used to create unique identifiers for each challenge.
+     */
+    private final Supplier<String> challengeIdSupplier = () -> HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId());
+    /**
+     * A supplier for generating a base64 URL-encoded authorization token.
+     * This token is used in the ACME challenge process to verify ownership of the domain.
+     */
+    private final Supplier<String> authorizationTokenBase64UrlSupplier = () -> Base64Tools.base64UrlEncode(HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId()).getBytes(StandardCharsets.UTF_8));
 
     /**
      * Constructs a new endpoint for handling authorization ownership challenges.
@@ -65,18 +73,6 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
     public AuthzOwnershipEndpoint(CertgineModuleInstance moduleInstance) {
         this(moduleInstance, Clock.systemUTC());
     }
-
-    /**
-     * A supplier for generating a random challenge ID in hexadecimal format.
-     * This is used to create unique identifiers for each challenge.
-     */
-    private final Supplier<String> challengeIdSupplier = () -> HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId());
-
-    /**
-     * A supplier for generating a base64 URL-encoded authorization token.
-     * This token is used in the ACME challenge process to verify ownership of the domain.
-     */
-    private final Supplier<String> authorizationTokenBase64UrlSupplier = () -> Base64Tools.base64UrlEncode(HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId()).getBytes(StandardCharsets.UTF_8));
 
     /**
      * Handles the request for authorization ownership challenges.

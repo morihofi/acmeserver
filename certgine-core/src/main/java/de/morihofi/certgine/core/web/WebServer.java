@@ -12,7 +12,10 @@ import de.morihofi.certgine.types.events.ServerShutdownEvent;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
-import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.server.ConnectionFactory;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import java.io.IOException;
@@ -61,6 +64,28 @@ public class WebServer implements EventSubscriber {
     }
 
     /**
+     * Waits until a TCP connection to the given host and port succeeds within the specified timeout.
+     *
+     * @param host    host to connect to
+     * @param port    port to connect to
+     * @param timeout maximum time to wait
+     * @throws InterruptedException  if the thread is interrupted while waiting
+     * @throws IllegalStateException if the connection could not be established within the timeout
+     */
+    static void waitUntilAccepting(String host, int port, Duration timeout) throws InterruptedException {
+        long end = System.currentTimeMillis() + timeout.toMillis();
+        while (System.currentTimeMillis() < end) {
+            try (Socket s = new Socket()) {
+                s.connect(new InetSocketAddress(host, port), (int) Math.min(timeout.toMillis(), 1000));
+                return;
+            } catch (IOException e) {
+                Thread.sleep(100);
+            }
+        }
+        throw new IllegalStateException("Jetty not accepting connections on " + host + ":" + port);
+    }
+
+    /**
      * Method to start the Web and API Server
      *
      * @throws Exception thrown when startup fails
@@ -100,7 +125,6 @@ public class WebServer implements EventSubscriber {
         Main.startupTime = (System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime()) / 1000L;
         log.info("Startup took {} seconds", Main.startupTime);
     }
-
 
     @Override
     public List<Class<? extends AbstractEvent>> canHandle() {
@@ -142,28 +166,5 @@ public class WebServer implements EventSubscriber {
                 waitUntilAccepting(host, port, Duration.ofSeconds(10));
             }
         }
-    }
-
-
-    /**
-     * Waits until a TCP connection to the given host and port succeeds within the specified timeout.
-     *
-     * @param host    host to connect to
-     * @param port    port to connect to
-     * @param timeout maximum time to wait
-     * @throws InterruptedException          if the thread is interrupted while waiting
-     * @throws IllegalStateException         if the connection could not be established within the timeout
-     */
-    static void waitUntilAccepting(String host, int port, Duration timeout) throws InterruptedException {
-        long end = System.currentTimeMillis() + timeout.toMillis();
-        while (System.currentTimeMillis() < end) {
-            try (Socket s = new Socket()) {
-                s.connect(new InetSocketAddress(host, port), (int) Math.min(timeout.toMillis(), 1000));
-                return;
-            } catch (IOException e) {
-                Thread.sleep(100);
-            }
-        }
-        throw new IllegalStateException("Jetty not accepting connections on " + host + ":" + port);
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<initial-setup xmlns="urn:example:initial-setup:1.2"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<initial-setup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="urn:example:initial-setup:1.2"
                xsi:schemaLocation="urn:example:initial-setup:1.2 initial-setup-1.2.xsd"
                version="1.2">
 
@@ -114,11 +114,11 @@
                     </metadata>
                     <policies>
                         <policy template="allow-ip" value="true">
-                           <subnets>
-                               <ipv4>
-                                   <entry>192.168.178.0/24</entry>
-                               </ipv4>
-                           </subnets>
+                            <subnets>
+                                <ipv4>
+                                    <entry>192.168.178.0/24</entry>
+                                </ipv4>
+                            </subnets>
                         </policy>
                         <policy template="domain-restriction">
                             <require-suffix>

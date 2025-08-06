@@ -33,6 +33,57 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
 
 
     /**
+     * Unique identifier for the ACME order identifier challenge.
+     */
+    @Id
+    @Column(name = "challengeId", nullable = false)
+    private String challengeId;
+    /**
+     * The timestamp when the verification of this ACME order identifier occurred.
+     */
+    @Column(name = "verifiedTime", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant verifiedTime;
+    /**
+     * The type of the challenge (e.g., "http-01", "dns-01").
+     */
+    @Column(name = "challengeType", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AcmeChallengeType challengeType;
+    /**
+     * The ACME order identifier associated with this challenge.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "identifierId", referencedColumnName = "identifierId")
+    private AcmeOrderIdentifier identifier;
+    /**
+     * The authorization token for this challenge.
+     */
+    @Column(name = "authorizationToken", nullable = false)
+    private String authorizationToken;
+    /**
+     * The status of this challenge (e.g., "pending", "valid").
+     */
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AcmeStatus status = AcmeStatus.PENDING;
+
+    /**
+     * Creates an instance of ACME order identifier challenge with a specified challenge type and identifier.
+     *
+     * @param challengeType The type of the challenge.
+     * @param identifier    The ACME order identifier associated with this challenge.
+     */
+    public AcmeOrderIdentifierChallenge(AcmeChallengeType challengeType, AcmeOrderIdentifier identifier, String challengeId, String authorizationTokenBase64Url) {
+        this.challengeType = challengeType;
+        this.identifier = identifier;
+
+        // random values
+        this.challengeId = challengeId;
+        this.authorizationToken = authorizationTokenBase64Url;
+
+    }
+
+    /**
      * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated challenge ID.
      *
      * @param challengeId    The unique identifier of the challenge associated with the ACME identifier.
@@ -65,7 +116,6 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
         return challenge;
     }
 
-
     public static void markChallenge(AcmeStatus newState, String challengeId, IServerInstance serverInstance) {
         Transaction transaction = null;
         try (Session session = serverInstance.getDatabaseSession()) {
@@ -74,15 +124,15 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
             AcmeOrderIdentifierChallenge orderIdentifierChallenge = session.get(AcmeOrderIdentifierChallenge.class, challengeId);
             if (orderIdentifierChallenge != null) {
 
-                if(
+                if (
                         !isChallengeTransitionAllowed(orderIdentifierChallenge.getStatus(), newState)
-                ){
+                ) {
                     throw new IllegalStateException("The challenge transition from " + orderIdentifierChallenge.getStatus() + " to " + newState + " is not allowed");
                 }
 
                 orderIdentifierChallenge.setStatus(newState);
 
-                if(newState.equals(AcmeStatus.VALID)){
+                if (newState.equals(AcmeStatus.VALID)) {
                     orderIdentifierChallenge.setVerifiedTime(Instant.now());
                 }
 
@@ -104,14 +154,14 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
 
     /**
      * Returns {@code true} iff the requested state change is permitted by the ACME
-     *  challenge-status state machine (RFC 8555 §7.1.5).
+     * challenge-status state machine (RFC 8555 §7.1.5).
      *
      * <pre>
      *              pending ──► processing ──┬─────► valid
      *                        │             └─────► invalid
      *                        └─────────────► invalid
      * </pre>
-     *
+     * <p>
      * Once a challenge is in {@code valid} or {@code invalid}, it is a terminal state and can no longer transition.
      */
     public static boolean isChallengeTransitionAllowed(@NonNull AcmeStatus currentState,
@@ -119,12 +169,12 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
 
         return switch (currentState) {
             /* -------------------------------- pending --------------------------- */
-            case PENDING -> newState == AcmeStatus.PROCESSING 
+            case PENDING -> newState == AcmeStatus.PROCESSING
                     || newState == AcmeStatus.INVALID;
 
             /* -------------------------------- processing --------------------- */
-            case PROCESSING -> newState == AcmeStatus.PROCESSING 
-                    || newState == AcmeStatus.VALID 
+            case PROCESSING -> newState == AcmeStatus.PROCESSING
+                    || newState == AcmeStatus.VALID
                     || newState == AcmeStatus.INVALID;
 
             case VALID, INVALID -> false;
@@ -137,7 +187,6 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
             }
         };
     }
-
 
     public static void failChallenge(String challengeId, IServerInstance serverInstance) {
         markChallenge(AcmeStatus.INVALID, challengeId, serverInstance);
@@ -153,63 +202,6 @@ public class AcmeOrderIdentifierChallenge implements Serializable {
     public static void passChallenge(String challengeId, IServerInstance serverInstance) {
         markChallenge(AcmeStatus.VALID, challengeId, serverInstance);
     }
-
-    /**
-     * Unique identifier for the ACME order identifier challenge.
-     */
-    @Id
-    @Column(name = "challengeId", nullable = false)
-    private String challengeId;
-
-    /**
-     * The timestamp when the verification of this ACME order identifier occurred.
-     */
-    @Column(name = "verifiedTime", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private Instant verifiedTime;
-
-    /**
-     * The type of the challenge (e.g., "http-01", "dns-01").
-     */
-    @Column(name = "challengeType", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private AcmeChallengeType challengeType;
-
-    /**
-     * The ACME order identifier associated with this challenge.
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "identifierId", referencedColumnName = "identifierId")
-    private AcmeOrderIdentifier identifier;
-
-    /**
-     * The authorization token for this challenge.
-     */
-    @Column(name = "authorizationToken", nullable = false)
-    private String authorizationToken;
-
-    /**
-     * The status of this challenge (e.g., "pending", "valid").
-     */
-    @Column(name = "status", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private AcmeStatus status = AcmeStatus.PENDING;
-
-    /**
-     * Creates an instance of ACME order identifier challenge with a specified challenge type and identifier.
-     *
-     * @param challengeType The type of the challenge.
-     * @param identifier    The ACME order identifier associated with this challenge.
-     */
-    public AcmeOrderIdentifierChallenge(AcmeChallengeType challengeType, AcmeOrderIdentifier identifier, String challengeId, String authorizationTokenBase64Url) {
-        this.challengeType = challengeType;
-        this.identifier = identifier;
-
-        // random values
-        this.challengeId = challengeId;
-        this.authorizationToken = authorizationTokenBase64Url;
-
-    }
-
 
 
 }

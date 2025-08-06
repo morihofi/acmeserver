@@ -6,14 +6,12 @@
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints;
 
 
+import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.server.common.intf.Handler;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.types.httpserver.HandlerType;
-import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import lombok.NonNull;
 
 import java.net.HttpURLConnection;

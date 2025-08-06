@@ -6,34 +6,34 @@
 package de.morihofi.certgine.core;
 
 import com.google.gson.Gson;
-import de.morihofi.certgine.types.json.GsonFactory;
 import de.morihofi.certgine.core.database.HibernateUtil;
+import de.morihofi.certgine.core.helper.cert.CaInitHelper;
 import de.morihofi.certgine.core.impl.ServerInstance;
 import de.morihofi.certgine.core.modules.ModuleManager;
 import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.core.web.JettySslHelper;
 import de.morihofi.certgine.core.web.WebServer;
-import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
-import de.morihofi.certgine.types.cryptography.keystore.PKCS11KeyStoreConfig;
-import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
-import de.morihofi.certgine.core.helper.cert.CaInitHelper;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.helper.KeyStoreParamsDeserializer;
 import de.morihofi.certgine.types.config.keyStoreHelpers.KeyStoreParams;
 import de.morihofi.certgine.types.config.keyStoreHelpers.PKCS11KeyStoreParams;
 import de.morihofi.certgine.types.config.keyStoreHelpers.PKCS12KeyStoreParams;
+import de.morihofi.certgine.types.cryptography.keystore.PKCS11KeyStoreConfig;
+import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
+import de.morihofi.certgine.types.database.entities.authority.RootCa;
+import de.morihofi.certgine.types.events.EventBus;
+import de.morihofi.certgine.types.events.ServerInitializedEvent;
+import de.morihofi.certgine.types.events.ServerShutdownEvent;
+import de.morihofi.certgine.types.events.ServerStartedEvent;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.json.GsonFactory;
 import de.morihofi.certgine.types.server.StartupFlag;
 import de.morihofi.certgine.utils.cli.CLIArgument;
 import de.morihofi.certgine.utils.meta.BuildMetadataImpl;
 import de.morihofi.certgine.utils.network.http.NetworkClient;
 import de.morihofi.certgine.utils.network.ssl.mozillasslconfig.MozillaSslConfigHelper;
 import de.morihofi.certgine.utils.path.AppDirectoryHelper;
-import de.morihofi.certgine.types.events.EventBus;
-import de.morihofi.certgine.types.events.ServerInitializedEvent;
-import de.morihofi.certgine.types.events.ServerStartedEvent;
-import de.morihofi.certgine.types.events.ServerShutdownEvent;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -49,7 +49,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Main class for the Certgine application. This class handles the initialization and startup of the server.
@@ -62,6 +65,30 @@ public class Main {
      * overridden using the {@code SERVERDATA_DIR} environment variable.
      */
     public static final Path FILES_DIR;
+    /**
+     * Path to the configuration file.
+     */
+    public static final Path CONFIG_PATH = FILES_DIR.resolve("settings.json");
+    /**
+     * Set of server options.
+     */
+    private static final Set<StartupFlag> startupFlags = new HashSet<>();
+    /**
+     * Gson instance for configuration deserialization.
+     */
+    private static final Gson CONFIG_GSON = GsonFactory.baseBuilder()
+            .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())
+            .setPrettyPrinting()
+            .create();
+    /**
+     * Application startup time.
+     */
+    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
+    public static long startupTime = 0; // Set after all routes are ready
+    /**
+     * Instance of the server.
+     */
+    private static IServerInstance serverInstance;
 
     static {
         String envDir = System.getenv("SERVERDATA_DIR");
@@ -75,39 +102,6 @@ public class Main {
     }
 
     /**
-     * Path to the configuration file.
-     */
-    public static final Path CONFIG_PATH = FILES_DIR.resolve("settings.json");
-
-    /**
-     * Set of server options.
-     */
-    private static final Set<StartupFlag> startupFlags = new HashSet<>();
-
-    /**
-     * Gson instance for configuration deserialization.
-     */
-    private static final Gson CONFIG_GSON = GsonFactory.baseBuilder()
-            .registerTypeAdapter(KeyStoreParams.class, new KeyStoreParamsDeserializer())
-            .setPrettyPrinting()
-            .create();
-
-
-
-    /**
-     * Application startup time.
-     */
-    @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
-    public static long startupTime = 0; // Set after all routes are ready
-
-    /**
-     * Instance of the server.
-     */
-    private static IServerInstance serverInstance;
-
-
-
-    /**
      * Main application startup method.
      *
      * @param args arguments passed to the application.
@@ -118,7 +112,6 @@ public class Main {
 
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
-
 
 
         log.info("Initializing directories");
@@ -275,7 +268,7 @@ public class Main {
         }
 
         log.info("Initializing modules ...");
-        for (Map.Entry<String, ModuleRegistry.ModuleInfo> m : moduleRegistry.getModules().entrySet()){
+        for (Map.Entry<String, ModuleRegistry.ModuleInfo> m : moduleRegistry.getModules().entrySet()) {
             ModuleRegistry.ModuleInfo moduleInfo = m.getValue();
             String name = m.getKey();
             log.debug("Initializing module {} ...", name);

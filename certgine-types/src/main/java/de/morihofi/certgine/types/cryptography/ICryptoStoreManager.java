@@ -10,7 +10,10 @@ import lombok.NonNull;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 

@@ -32,15 +32,12 @@ import java.util.List;
 import java.util.Set;
 
 import static de.morihofi.certgine.cryptography.tsa.TimeStampAuthority.getHashAlgorithmName;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class TimeStampAuthorityTest {
 
-    private static PrivateKey privateKey;
-    private static X509Certificate cert;
-    private static List<X509Certificate> certChain;
     private static final Clock clock = Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC);
-
     private static final Set<ASN1ObjectIdentifier> ALGORITHMS = Set.of(
             TSPAlgorithms.MD5,
             TSPAlgorithms.RIPEMD160,
@@ -50,6 +47,9 @@ public class TimeStampAuthorityTest {
             TSPAlgorithms.SHA384,
             TSPAlgorithms.SHA512
     );
+    private static PrivateKey privateKey;
+    private static X509Certificate cert;
+    private static List<X509Certificate> certChain;
 
     @BeforeAll
     static void setup() throws Exception {
@@ -81,7 +81,7 @@ public class TimeStampAuthorityTest {
         KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature);
         certBuilder.addExtension(Extension.keyUsage, true, keyUsage);
 
-        ExtendedKeyUsage eku = new ExtendedKeyUsage(new KeyPurposeId[] {
+        ExtendedKeyUsage eku = new ExtendedKeyUsage(new KeyPurposeId[]{
                 KeyPurposeId.id_kp_timeStamping
         });
         certBuilder.addExtension(Extension.extendedKeyUsage, true, eku);

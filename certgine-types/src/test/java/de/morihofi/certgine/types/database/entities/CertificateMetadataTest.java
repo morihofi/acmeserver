@@ -9,7 +9,8 @@ import de.morihofi.certgine.types.database.entities.authority.CertificateMetadat
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("CertificateMetadata builder")
 class CertificateMetadataTest {

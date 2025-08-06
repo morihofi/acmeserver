@@ -22,9 +22,9 @@ import java.security.Security;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
 

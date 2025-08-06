@@ -40,54 +40,6 @@ import java.util.*;
 public class X509Generator {
 
     /**
-     * Describes the certificate flavour that should be produced.
-     */
-    public enum Type {
-        ROOT_CA,
-        INTERMEDIATE_CA,
-        SERVER,
-        TIMESTAMPING,
-        CODE_SIGNING
-    }
-
-    /**
-     * Immutable request object that gathers **all** inputs required by the three generation
-     * paths. Only the relevant subset must be filled for a concrete {@link Type}. Validation
-     * happens at runtime to keep the public API minimal.
-     */
-    @Getter
-    @Builder
-    public static class Request {
-        /** Certificate flavour that shall be generated. */
-        @NonNull private final Type type;
-
-        /* ——— Common parameters ——— */
-        private final CertificateConfig certificateConfig;
-        private final IServerInstance serverInstance;
-
-        /* ——— Key material ——— */
-        private final KeyPair ownKeyPair;                 // generated key‑pair for the certificate itself (ROOT + INTERMEDIATE)
-        private final KeyPair issuerKeyPair;              // key‑pair of the issuer/parent (INTERMEDIATE + SERVER)
-        private final X509Certificate issuerCertificate;  // cert of the issuer/parent (INTERMEDIATE + SERVER)
-
-        /* ——— ROOT/INTERMEDIATE specific ——— */
-        private final String crlDistributionUrl;          // INTERMEDIATE (optional for ROOT)
-        private final String ocspServiceEndpoint;         // INTERMEDIATE (optional for ROOT)
-
-        /* ——— Server‑certificate specifics ——— */
-        private final byte[] serverPublicKeyBytes;
-        @Singular private final List<DnsIdentifier> identifiers;
-        private final Date startDate;
-        private final Date endDate;
-
-    }
-
-
-    // -------------------------------------------------------------------------------------------------
-    // Public façade
-    // -------------------------------------------------------------------------------------------------
-
-    /**
      * Creates the requested X509 certificate.
      */
     public static X509Certificate generate(@NonNull Request req)
@@ -100,10 +52,6 @@ public class X509Generator {
             case CODE_SIGNING -> generateCodeSigning(req);
         };
     }
-
-    // -------------------------------------------------------------------------------------------------
-    // Concrete generators
-    // -------------------------------------------------------------------------------------------------
 
     private static X509Certificate generateRootCa(Request req)
             throws CertificateException, OperatorCreationException, CertIOException {
@@ -135,6 +83,11 @@ public class X509Generator {
 
         return toCertificate(builder, signer, req.getOwnKeyPair());
     }
+
+
+    // -------------------------------------------------------------------------------------------------
+    // Public façade
+    // -------------------------------------------------------------------------------------------------
 
     private static X509Certificate generateIntermediateCa(Request req)
             throws CertificateException, OperatorCreationException, CertIOException {
@@ -171,6 +124,10 @@ public class X509Generator {
 
         return toCertificate(builder, signer, req.getIssuerKeyPair());
     }
+
+    // -------------------------------------------------------------------------------------------------
+    // Concrete generators
+    // -------------------------------------------------------------------------------------------------
 
     private static X509Certificate generateServer(Request req)
             throws CertificateException, OperatorCreationException, CertIOException {
@@ -288,10 +245,6 @@ public class X509Generator {
         return toCertificate(builder, signer, req.getIssuerKeyPair());
     }
 
-    // -------------------------------------------------------------------------------------------------
-    // Helper methods
-    // -------------------------------------------------------------------------------------------------
-
     private static void validateIssuerIsCa(X509Certificate issuer) {
         if (issuer.getBasicConstraints() < 0) {
             throw new IllegalArgumentException("issuerCertificate is not a CA certificate");
@@ -306,6 +259,10 @@ public class X509Generator {
                     "issuerCertificate path length constraint prohibits issuing an intermediate certificate");
         }
     }
+
+    // -------------------------------------------------------------------------------------------------
+    // Helper methods
+    // -------------------------------------------------------------------------------------------------
 
     private static Date[] calculateValidity(CertificateConfig config) {
         Calendar cal = Calendar.getInstance();
@@ -365,6 +322,53 @@ public class X509Generator {
             sb.append(", C=").append(meta.getCountryCode());
         }
         return new X500Name(sb.toString());
+    }
+
+    /**
+     * Describes the certificate flavour that should be produced.
+     */
+    public enum Type {
+        ROOT_CA,
+        INTERMEDIATE_CA,
+        SERVER,
+        TIMESTAMPING,
+        CODE_SIGNING
+    }
+
+    /**
+     * Immutable request object that gathers **all** inputs required by the three generation
+     * paths. Only the relevant subset must be filled for a concrete {@link Type}. Validation
+     * happens at runtime to keep the public API minimal.
+     */
+    @Getter
+    @Builder
+    public static class Request {
+        /**
+         * Certificate flavour that shall be generated.
+         */
+        @NonNull
+        private final Type type;
+
+        /* ——— Common parameters ——— */
+        private final CertificateConfig certificateConfig;
+        private final IServerInstance serverInstance;
+
+        /* ——— Key material ——— */
+        private final KeyPair ownKeyPair;                 // generated key‑pair for the certificate itself (ROOT + INTERMEDIATE)
+        private final KeyPair issuerKeyPair;              // key‑pair of the issuer/parent (INTERMEDIATE + SERVER)
+        private final X509Certificate issuerCertificate;  // cert of the issuer/parent (INTERMEDIATE + SERVER)
+
+        /* ——— ROOT/INTERMEDIATE specific ——— */
+        private final String crlDistributionUrl;          // INTERMEDIATE (optional for ROOT)
+        private final String ocspServiceEndpoint;         // INTERMEDIATE (optional for ROOT)
+
+        /* ——— Server‑certificate specifics ——— */
+        private final byte[] serverPublicKeyBytes;
+        @Singular
+        private final List<DnsIdentifier> identifiers;
+        private final Date startDate;
+        private final Date endDate;
+
     }
 }
 

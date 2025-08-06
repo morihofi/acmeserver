@@ -1,21 +1,16 @@
 package de.morihofi.certgine.core.web;
 
 import de.morihofi.certgine.types.cryptography.CryptoStoreManagerConstants;
-import de.morihofi.certgine.types.events.TlsHttpCertificateHotReloadEvent;
-import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.events.EventSubscriber;
 import de.morihofi.certgine.types.events.ServerShutdownEvent;
+import de.morihofi.certgine.types.events.TlsHttpCertificateHotReloadEvent;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.utils.network.ssl.mozillasslconfig.MozillaSslConfigHelper;
+import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.SecureRequestCustomizer;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;

@@ -8,16 +8,8 @@ package de.morihofi.certgine.utils.network.dns;
 import de.morihofi.certgine.types.intf.network.dns.IDoHClient;
 import de.morihofi.certgine.utils.network.dns.internal.DoHClient;
 import lombok.extern.slf4j.Slf4j;
-import org.xbill.DNS.AAAARecord;
-import org.xbill.DNS.ARecord;
-import org.xbill.DNS.DClass;
-import org.xbill.DNS.Lookup;
-import org.xbill.DNS.Message;
-import org.xbill.DNS.Name;
+import org.xbill.DNS.*;
 import org.xbill.DNS.Record;
-import org.xbill.DNS.Resolver;
-import org.xbill.DNS.SimpleResolver;
-import org.xbill.DNS.Type;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -108,7 +100,7 @@ public class DNSLookup {
         try {
             log.info("Resolving {} of type {} using DNS over HTTPS", hostname, Type.string(type));
 
-            if(!hostname.endsWith(".")){
+            if (!hostname.endsWith(".")) {
                 hostname = hostname + ".";
             }
 
@@ -171,7 +163,7 @@ public class DNSLookup {
     public static List<Record> performDnsServerLookup(String hostname, int type, List<String> dnsServers) {
         if (dnsServers.isEmpty()) {
 
-            if(!hostname.endsWith(".")){
+            if (!hostname.endsWith(".")) {
                 hostname = hostname + ".";
             }
 

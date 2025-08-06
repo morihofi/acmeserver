@@ -22,13 +22,15 @@ import java.nio.charset.StandardCharsets;
 public class HttpRequestWrapper implements Request {
 
     private final HttpServletRequest request;
-    /** enthält den komplett eingelesenen Body */
+    /**
+     * enthält den komplett eingelesenen Body
+     */
     @Getter
     private final byte[] body;
 
     public HttpRequestWrapper(HttpServletRequest request) throws IOException {
         this.request = request;
-        this.body    = request.getInputStream().readAllBytes();   // nur EINMAL lesen
+        this.body = request.getInputStream().readAllBytes();   // nur EINMAL lesen
     }
 
     // ------------------------------------------------------------------------

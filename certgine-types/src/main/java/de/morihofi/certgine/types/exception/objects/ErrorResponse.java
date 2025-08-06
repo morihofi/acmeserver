@@ -20,7 +20,7 @@ public class ErrorResponse {
      */
     private String type;
     /**
-     *  Get additional details about the error.
+     * Get additional details about the error.
      */
     private String detail;
 }

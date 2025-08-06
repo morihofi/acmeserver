@@ -20,14 +20,14 @@
         </RollingFile>
         <!-- Console Appender -->
         <Console name="StdOut" target="SYSTEM_OUT">
-            <PatternLayout pattern="%-5p | %d{yyyy-MM-dd HH:mm:ss} | [%t] %C{2} (%F:%L) - %m%n" />
+            <PatternLayout pattern="%-5p | %d{yyyy-MM-dd HH:mm:ss} | [%t] %C{2} (%F:%L) - %m%n"/>
         </Console>
     </Appenders>
     <Loggers>
-        <Logger name="de.morihofi.certgine" level="debug" />
+        <Logger name="de.morihofi.certgine" level="debug"/>
         <Root level="info">
-            <AppenderRef ref="StdOut" />
-            <AppenderRef ref="RollingFile" />
+            <AppenderRef ref="StdOut"/>
+            <AppenderRef ref="RollingFile"/>
         </Root>
     </Loggers>
 </Configuration>

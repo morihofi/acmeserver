@@ -6,21 +6,19 @@
 package de.morihofi.certgine.revocation.endpoints;
 
 
+import de.morihofi.certgine.acme.types.entities.AcmeOrder;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
+import de.morihofi.certgine.cryptography.ocsp.OcspProcessor;
 import de.morihofi.certgine.server.common.intf.Handler;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
-import de.morihofi.certgine.cryptography.ocsp.OcspProcessor;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.Req;
-
 
 import java.math.BigInteger;
 
@@ -34,6 +32,7 @@ public class OcspEndpointPost implements Handler {
      * Instance for accessing the current provisioner
      */
     final IServerInstance serverInstance;
+
     /**
      * Constructor for OcspEndpointPost class. Processes POST Requests. Initializes an instance with a specified Provisioner and CRL
      * generator.

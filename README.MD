@@ -82,6 +82,7 @@ Server.
   Note: Version before 5.1 might be a bit buggy). This is useful for homelab use with older legacy devices
 
 ## In development
+
 - GraphQL API
 
 ## Features in the future

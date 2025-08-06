@@ -101,41 +101,36 @@ public interface IModuleRegistry {
          */
         @NonNull
         private final CertgineModule module;
-
-        /**
-         * Instance object returned by {@link CertgineModule#getModuleInstance()} for
-         * module specific interactions. May be {@code null} if the module does not
-         * expose an instance.
-         */
-        private CertgineModuleInstance moduleInstance;
-
         /**
          * Names of modules this module depends on.
          */
         @Builder.Default
         @NonNull
         private final Set<String> dependencies = new HashSet<>();
-
         /**
          * Entity classes contributed by this module.
          */
         @Builder.Default
         @NonNull
         private final Set<Class<?>> entityClasses = new HashSet<>();
-
         /**
          * HTTP handler classes contributed by this module.
          */
         @Builder.Default
         @NonNull
         private final Set<Class<? extends HttpServlet>> httpHandlerClasses = new HashSet<>();
-
         /**
          * Service implementations contributed by this module keyed by their interface.
          */
         @Builder.Default
         @NonNull
         private final Map<Class<?>, Object> services = new HashMap<>();
+        /**
+         * Instance object returned by {@link CertgineModule#getModuleInstance()} for
+         * module specific interactions. May be {@code null} if the module does not
+         * expose an instance.
+         */
+        private CertgineModuleInstance moduleInstance;
     }
 }
 

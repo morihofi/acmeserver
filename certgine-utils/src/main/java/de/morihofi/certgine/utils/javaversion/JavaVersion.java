@@ -12,7 +12,6 @@ package de.morihofi.certgine.utils.javaversion;
 import lombok.Getter;
 import lombok.NonNull;
 
-
 import java.text.MessageFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,23 +55,6 @@ public class JavaVersion implements Comparable<Object> {
     private static final String VERSION_FORMAT = "^" + VERSION_NUMBER_REGEXP + REST_REGEXP + "$";
     private static final Pattern VERSION_STRING_PATTERN = Pattern.compile(VERSION_FORMAT);
     private static JavaVersion jreVersion;
-
-    /**
-     * Get the current JRE version.
-     *
-     * @return The JRE version.
-     * @throws VersionException If JRE's version is not parseable
-     */
-    public static JavaVersion getJreVersion() {
-        if (jreVersion == null) {
-            String jreVersionProp = System.getProperty("java.version");
-
-            jreVersion = new JavaVersion(jreVersionProp);
-        }
-
-        return jreVersion;
-    }
-
     private final String javaVersion;
     /**
      * Get Java version's major number.
@@ -95,7 +77,6 @@ public class JavaVersion implements Comparable<Object> {
      */
     @Getter
     private final int security;
-
     /**
      * Construct a JavaVersion object for the current Java environment.
      *
@@ -126,6 +107,22 @@ public class JavaVersion implements Comparable<Object> {
         this.major = version.getMajor();
         this.minor = version.getMinor();
         this.security = version.getBugfix();
+    }
+
+    /**
+     * Get the current JRE version.
+     *
+     * @return The JRE version.
+     * @throws VersionException If JRE's version is not parseable
+     */
+    public static JavaVersion getJreVersion() {
+        if (jreVersion == null) {
+            String jreVersionProp = System.getProperty("java.version");
+
+            jreVersion = new JavaVersion(jreVersionProp);
+        }
+
+        return jreVersion;
     }
 
     /**

@@ -6,14 +6,16 @@
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints;
 
 import com.google.gson.JsonObject;
-import de.morihofi.certgine.acme.types.entities.AcmeProvisionerMeta;
-import de.morihofi.certgine.server.common.intf.*;
-import de.morihofi.certgine.server.common.intf.testing.MockRequest;
-import de.morihofi.certgine.server.common.intf.testing.MockResponse;
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.types.httpserver.HandlerType;
 import de.morihofi.certgine.acme.AcmeModule;
 import de.morihofi.certgine.acme.AcmeModuleInstance;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisionerMeta;
+import de.morihofi.certgine.server.common.intf.Endpoint;
+import de.morihofi.certgine.server.common.intf.HandlerContext;
+import de.morihofi.certgine.server.common.intf.Router;
+import de.morihofi.certgine.server.common.intf.testing.MockRequest;
+import de.morihofi.certgine.server.common.intf.testing.MockResponse;
+import de.morihofi.certgine.types.httpserver.HandlerType;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.json.GsonFactory;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DirectoryEndpointTest {
 

@@ -14,5 +14,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 public @interface ServletMount {
     String servletMountPoint();
+
     boolean protect() default false;
 }

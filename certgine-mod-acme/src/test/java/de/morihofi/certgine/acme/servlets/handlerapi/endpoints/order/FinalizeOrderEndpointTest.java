@@ -4,20 +4,20 @@
  */
 
 package de.morihofi.certgine.acme.servlets.handlerapi.endpoints.order;
+
 import de.morihofi.certgine.acme.AcmeModule;
 import de.morihofi.certgine.acme.AcmeModuleInstance;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
-import de.morihofi.certgine.types.intf.IServerInstance;
-import de.morihofi.certgine.types.exception.exceptions.ACMEUnauthorizedException;
-import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.events.EventBus;
-import org.hibernate.Session;
+import de.morihofi.certgine.types.exception.exceptions.ACMEUnauthorizedException;
+import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.modules.IModuleRegistry;
 import lombok.NonNull;
-import org.jetbrains.annotations.NotNull;
+import org.hibernate.Session;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -26,23 +26,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FinalizeOrderEndpointTest {
-    static class DummyServerInstance implements IServerInstance {
-        @Override public @NonNull String getServerURL() { return ""; }
-        @Override public @NonNull Session getDatabaseSession() { return null; }
-        @Override public @NonNull ICryptoStoreManager getCryptoStoreManager() { return null; }
-        @Override public @NonNull de.morihofi.certgine.types.config.Config getAppConfig() { return null; }
-        @Override public @NonNull RootCa getRootCa() { return null; }
-        @Override public @NonNull de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() { return null; }
-        @Override public @NonNull de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() { return null; }
-        @Override public @NonNull EventBus getEventBus() { return new EventBus(); }
-        @Override public @NonNull java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() { return java.util.Collections.emptySet(); }
-
-        @Override
-        public @NonNull IModuleRegistry getModuleRegistry() {
-            return null;
-        }
-    }
-
     private static AcmeModuleInstance moduleInstance() {
         return new AcmeModuleInstance(new AcmeModule(new DummyServerInstance()));
     }
@@ -91,6 +74,58 @@ class FinalizeOrderEndpointTest {
             assertDoesNotThrow(() -> m.invoke(endpoint, List.of(id1, id2)));
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    static class DummyServerInstance implements IServerInstance {
+        @Override
+        public @NonNull String getServerURL() {
+            return "";
+        }
+
+        @Override
+        public @NonNull Session getDatabaseSession() {
+            return null;
+        }
+
+        @Override
+        public @NonNull ICryptoStoreManager getCryptoStoreManager() {
+            return null;
+        }
+
+        @Override
+        public @NonNull de.morihofi.certgine.types.config.Config getAppConfig() {
+            return null;
+        }
+
+        @Override
+        public @NonNull RootCa getRootCa() {
+            return null;
+        }
+
+        @Override
+        public @NonNull de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() {
+            return null;
+        }
+
+        @Override
+        public @NonNull de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() {
+            return null;
+        }
+
+        @Override
+        public @NonNull EventBus getEventBus() {
+            return new EventBus();
+        }
+
+        @Override
+        public @NonNull java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() {
+            return java.util.Collections.emptySet();
+        }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
         }
     }
 }

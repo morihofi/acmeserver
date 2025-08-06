@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServlet;
 import lombok.Getter;
 import lombok.NonNull;
 
-import javax.naming.OperationNotSupportedException;
 import java.util.Map;
 import java.util.Set;
 
@@ -68,18 +67,22 @@ public abstract class CertgineModule {
     /**
      * Runs on module gets registered
      */
-    public void onRegister() {}
+    public void onRegister() {
+    }
 
     /**
      * Runs on module gets unloaded
      */
-    public void onUnLoad() {}
+    public void onUnLoad() {
+    }
 
     /**
      * Runs as soon as serverinstance has been created
+     *
      * @param serverInstance server instance object
      */
-    public void onModuleInitialize(IServerInstance serverInstance){}
+    public void onModuleInitialize(IServerInstance serverInstance) {
+    }
 
     /**
      * Scheduled tasks contributed by this module.
@@ -96,6 +99,7 @@ public abstract class CertgineModule {
 
     /**
      * Get an instance for interfacing with the current module
+     *
      * @return the module interface
      */
     @NonNull

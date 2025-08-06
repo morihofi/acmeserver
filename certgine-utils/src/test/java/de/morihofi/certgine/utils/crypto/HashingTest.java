@@ -2,9 +2,9 @@ package de.morihofi.certgine.utils.crypto;
 
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,7 +21,7 @@ class HashingTest {
     void sha256hashMatchesMessageDigest() throws NoSuchAlgorithmException {
         String input = "certgine";
         byte[] expected = MessageDigest.getInstance("SHA-256")
-            .digest(input.getBytes(StandardCharsets.UTF_8));
+                .digest(input.getBytes(StandardCharsets.UTF_8));
         assertArrayEquals(expected, Hashing.sha256hash(input));
     }
 

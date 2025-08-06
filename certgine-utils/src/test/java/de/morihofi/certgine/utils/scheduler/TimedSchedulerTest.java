@@ -17,6 +17,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Disabled // TODO: Enable again when we filter out long taking tests
 class TimedSchedulerTest {
 
+    private static void waitUntilNearNextMinute() throws InterruptedException {
+        int sec = ZonedDateTime.now().getSecond();
+        if (sec < 55) {
+            Thread.sleep((55 - sec) * 1000L);
+        }
+    }
+
     @Test
     void cancelHandleStopsFutureExecutions() throws Exception {
         TimedScheduler scheduler = new TimedScheduler();
@@ -43,12 +50,5 @@ class TimedSchedulerTest {
         assertEquals(1, firstCount.get());
         assertTrue(secondCount.get() >= 2);
         scheduler.shutdown();
-    }
-
-    private static void waitUntilNearNextMinute() throws InterruptedException {
-        int sec = ZonedDateTime.now().getSecond();
-        if (sec < 55) {
-            Thread.sleep((55 - sec) * 1000L);
-        }
     }
 }

@@ -14,35 +14,31 @@ import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.account.objects.A
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.account.objects.AccountResponse;
 import de.morihofi.certgine.acme.servlets.handlerapi.endpoints.account.objects.ExternalAccountBinding;
 import de.morihofi.certgine.acme.servlets.handlerapi.objects.ACMERequestBody;
-
-import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.acme.types.entities.AcmeExternalAccountBinding;
 import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
-import de.morihofi.certgine.types.exception.exceptions.ACMEInvalidContactException;
-import de.morihofi.certgine.types.exception.exceptions.ACMEUserActionRequiredException;
-import de.morihofi.certgine.types.exception.exceptions.ACMEServerInternalException;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
+import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.acme.types.events.AcmeAccountCreatedEvent;
 import de.morihofi.certgine.cryptography.pem.PemUtil;
-import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.server.common.intf.HandlerContext;
+import de.morihofi.certgine.types.exception.exceptions.ACMEInvalidContactException;
+import de.morihofi.certgine.types.exception.exceptions.ACMEServerInternalException;
+import de.morihofi.certgine.types.exception.exceptions.ACMEUserActionRequiredException;
 import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.utils.http.HttpHeaderUtil;
 import de.morihofi.certgine.utils.regex.EmailValidator;
-import de.morihofi.certgine.acme.types.events.AcmeAccountCreatedEvent;
-
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import lombok.NonNull;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.PublicJsonWebKey;
-import org.jose4j.lang.JoseException;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.keys.HmacKey;
+import org.jose4j.lang.JoseException;
 
 import java.util.Base64;
-
 import java.util.List;
 import java.util.UUID;
 

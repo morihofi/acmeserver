@@ -6,20 +6,16 @@
 package de.morihofi.certgine.acme.challenges;
 
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
+import de.morihofi.certgine.cryptography.acme.AcmeTokenCryptography;
+import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.utils.base64.Base64Tools;
-import de.morihofi.certgine.cryptography.pem.PemUtil;
-import de.morihofi.certgine.cryptography.acme.AcmeTokenCryptography;
 import de.morihofi.certgine.utils.crypto.Hashing;
 import de.morihofi.certgine.utils.network.dns.DNSLookup;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-
-import org.xbill.DNS.Lookup;
+import org.xbill.DNS.*;
 import org.xbill.DNS.Record;
-import org.xbill.DNS.SimpleResolver;
-import org.xbill.DNS.TXTRecord;
-import org.xbill.DNS.Type;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -34,6 +30,9 @@ import java.util.List;
  */
 @Slf4j
 public class DNSChallenge {
+
+    private DNSChallenge() {
+    }
 
     /**
      * Validates a DNS challenge by querying DNS TXT records for the specified domain. The method checks if the TXT records contain a token
@@ -123,8 +122,5 @@ public class DNSChallenge {
         // This is achieved by setting the DefaultResolver to null, since dnsjava
         // then uses the system's resolver configuration
         Lookup.setDefaultResolver(null);
-    }
-
-    private DNSChallenge() {
     }
 }

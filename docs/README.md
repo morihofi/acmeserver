@@ -27,11 +27,13 @@ capitals, as shown here.
 ### ... using Docker (recommended)
 
 1. Install [Docker Engine](https://docs.docker.com/engine/install/) with `docker compose` plugin, if you haven't already
-2. Create two directories called `serverdata` and `logs` in this directory. You can override the `serverdata` location using the `SERVERDATA_DIR` environment variable.
+2. Create two directories called `serverdata` and `logs` in this directory. You can override the `serverdata` location
+   using the `SERVERDATA_DIR` environment variable.
 3. Copy the `settings.sample.json` into the new `serverdata` directory and rename it to `settings.json`
 4. Adjust the settings, especially the `dnsName` (of your host), and the `http`/`https` ports. (Don't forget to change
    these also in the `docker-compose.yml`-file) You can't change these later, because they will be written into the
-   certificateConfig/client certificates for finding revokation list etc. and ACME client configuration will be get broken.
+   certificateConfig/client certificates for finding revokation list etc. and ACME client configuration will be get
+   broken.
 5. Run `docker compose up -d` in this directory. That's all!
 
 > You can run `docker compose logs -f` if you want to see the logs of the server. Press `Ctrl`+`C` to quit
@@ -72,7 +74,8 @@ You'll need the following prerequisites to be able to build ACME Server
 
 ### Initiating the build
 
-Run the following command to build ACME Server from the root directory of this repository (the directory where the `pom.xml` file is
+Run the following command to build ACME Server from the root directory of this repository (the directory where the
+`pom.xml` file is
 located)
 
 ```bash
@@ -85,7 +88,8 @@ You'll find then the jar file, you've built in the `target/` folder.
 
 You'll find a sample configuration in the root of this repository with the name `settings.sample.json`.
 It provides a sample configuration you should customize to work with this instance.
-Copy the sample file into the `serverdata` directory and call it `settings.json`. If you changed the location using `SERVERDATA_DIR`, place the file in that directory instead.
+Copy the sample file into the `serverdata` directory and call it `settings.json`. If you changed the location using
+`SERVERDATA_DIR`, place the file in that directory instead.
 
 ### Basic configuration
 
@@ -93,7 +97,8 @@ You MUST change the `dnsName` value to a DNS name (Not an IP-Address -> won't wo
 server. It will be written into certificates, and also served in the ACME API.
 You MAY change the ports serving the API and Website. If you set the `http`-Port to `0`, HTTP will be disabled.
 
-It is RECOMMENDED to **not run** ACME Server behind a reverse proxy. If you run it behind a reverse proxy, the ports MUST match.
+It is RECOMMENDED to **not run** ACME Server behind a reverse proxy. If you run it behind a reverse proxy, the ports
+MUST match.
 
 ```json
 {
@@ -121,8 +126,10 @@ It is RECOMMENDED to **not run** ACME Server behind a reverse proxy. If you run 
 }
 ```
 
-The path to `loggingDirectory` can be null. The log files created in this directory have an Nginx like `access.log` syntax.
-All paths in the configuration file assume the default `serverdata` directory. If you override the base directory using `SERVERDATA_DIR`, update these paths accordingly.
+The path to `loggingDirectory` can be null. The log files created in this directory have an Nginx like `access.log`
+syntax.
+All paths in the configuration file assume the default `serverdata` directory. If you override the base directory using
+`SERVERDATA_DIR`, update these paths accordingly.
 
 #### Information for standalone
 
@@ -177,7 +184,9 @@ below:
 }
 
 ```
-> **Warning:** `CHANGE_ME` is a placeholder. Using default passwords puts your keystore at risk. Replace it with a strong secret. If `SERVERDATA_DIR` is used, adjust the `location` path accordingly.
+
+> **Warning:** `CHANGE_ME` is a placeholder. Using default passwords puts your keystore at risk. Replace it with a
+> strong secret. If `SERVERDATA_DIR` is used, adjust the `location` path accordingly.
 
 #### PKCS#11 (HSM based)
 
@@ -207,7 +216,9 @@ x86 and x64.
   /* ... */
 }
 ```
-> **Warning:** `CHANGE_ME` is a placeholder. Using default passwords puts your keystore at risk. Replace it with a strong secret.
+
+> **Warning:** `CHANGE_ME` is a placeholder. Using default passwords puts your keystore at risk. Replace it with a
+> strong secret.
 
 ### Database
 
@@ -217,12 +228,12 @@ The database location is specified in the `jdbcUrl` field and MUST start with `j
 
 Following a table with a few JDBC configuration strings for the configuration. You have to edit it to make it work.
 
-|                                           | JDBC Driver Built-in | Test status | JDBC URL                                                           | Notes                                                                                                 |
-|-------------------------------------------|----------------------|-------------|--------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
-| [MariaDB](https://mariadb.org)            | Yes                  | ✅           | `jdbc:mariadb://localhost:3306/database_name`                      |                                                                                                       |
+|                                           | JDBC Driver Built-in | Test status | JDBC URL                                                                                                        | Notes                                                                                                 |
+|-------------------------------------------|----------------------|-------------|-----------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| [MariaDB](https://mariadb.org)            | Yes                  | ✅           | `jdbc:mariadb://localhost:3306/database_name`                                                                   |                                                                                                       |
 | [H2](https://h2database.com)              | Yes                  | ✅           | `jdbc:h2:./serverdata/acme;DB_CLOSE_DELAY=-1` (database in a file; update the path when using `SERVERDATA_DIR`) |                                                                                                       |
-| [PostgreSQL](https://www.postgresql.org/) | Yes                  | ✅           | `jdbc:postgresql://localhost:5740/database_name`                   | Use a up-to-date database version. Tested with PostgreSQL 16.2, older version may won't work properly |
-| [MySQL](https://mysql.com/)               | No                   | ❓           | `jdbc:mysql://localhost:3306/database_name`                        | Hibernate configuration has been prepared, but not tested yet                                         |
+| [PostgreSQL](https://www.postgresql.org/) | Yes                  | ✅           | `jdbc:postgresql://localhost:5740/database_name`                                                                | Use a up-to-date database version. Tested with PostgreSQL 16.2, older version may won't work properly |
+| [MySQL](https://mysql.com/)               | No                   | ❓           | `jdbc:mysql://localhost:3306/database_name`                                                                     | Hibernate configuration has been prepared, but not tested yet                                         |
 
 If you want to use a database engine, where the JDBC driver isn't built in,
 you have to add the driver manually to the classpath and specify the Main-Class manually.
@@ -241,6 +252,7 @@ If you're just searching the JDBC URL you have to use, try googling `jdbc dbms_n
   /* ... */
 }
 ```
+
 > **Warning:** Replace the placeholder password before deployment. Default credentials leave your database vulnerable.
 
 ### Root CA
@@ -304,7 +316,8 @@ You MUST specify a key size. It SHOULD higher or equal than 2048 bit. It is high
 
 ##### ECDSA
 
-You MUST specify a curve name. You can find a list [here](https://github.com/bcgit/bc-java/wiki/Support-for-ECDSA,-ECGOST-Curves).
+You MUST specify a curve name. You can find a
+list [here](https://github.com/bcgit/bc-java/wiki/Support-for-ECDSA,-ECGOST-Curves).
 Please note that the selected curve must be compatible with BouncyCastle. NIST curves are RECOMMENDED.
 
 ```json
@@ -385,17 +398,19 @@ For configuration see how the Root CA configuration above works, it uses the sam
     - `website`: Website of the CA responsible for this provisioner, probably your website
     - `tos`: Terms of Service for this provisioner, probably the CA terms of server subpage of your website
 - `certificateConfig`: See Root CA above
-- `issuedCertificateExpiration`: How long should a certificate, issued by the ACME Protocol, live after its after creation.
+- `issuedCertificateExpiration`: How long should a certificate, issued by the ACME Protocol, live after its after
+  creation.
 - `wildcardAllowed`: Should be issuing wildcards for DNS Domains allowed, e.g. `*.example.com`?
 - `ipAllowed`: Should be issuing for IP Addresses enabled for both IPv4 and IPv6?
-- `domainNameRestriction`: Restrict domain names allowed for issuing. This does not apply for the reverse DNS of an IP address, because
+- `domainNameRestriction`: Restrict domain names allowed for issuing. This does not apply for the reverse DNS of an IP
+  address, because
   reverse DNS isn't supported at the moment.
     - `enabled`: Enable this policy ìf set to `true`, otherwise it is disabled
     - `mustEndWith`: These are the names the domains must end with. Add as many as you wish.
         - For example all domains must end with `.test.example.com`:
 
           | Domain                       | Would accept |
-                                    |------------------------------|--------------|
+                                              |------------------------------|--------------|
           | hello.world.test.example.com | Yes          |
           | hello.test.example.com       | Yes          |
           | hellotest.example.com        | No           |
@@ -404,7 +419,7 @@ For configuration see how the Root CA configuration above works, it uses the sam
         - For example all domains must end with `test.example.com` (without the dot at the beginning):
 
           | Domain                       | Would accept |
-                                    |------------------------------|--------------|
+                                              |------------------------------|--------------|
           | hello.world.test.example.com | Yes          |
           | hello.test.example.com       | Yes          |
           | hellotest.example.com        | Yes          |
@@ -485,11 +500,13 @@ This feature is essential for routing ACME challenge traffic through a specified
 
 ## Custom DNS Resolver
 
-ACME Server supports using custom DNS Servers, like internal ones or one of OpenNICs community DNS Resolvers or any other server. DNS
+ACME Server supports using custom DNS Servers, like internal ones or one of OpenNICs community DNS Resolvers or any
+other server. DNS
 over HTTPS is also supported. If the list of DNS Servers is empty, the default system resolver will be used.
 
 **Please note that ACME Server does currently (Version 2.1) only support the DNS Wireformat over HTTPS (Content Type
-`application/dns-message`), not the DNS-JSON Format (Content Type `application/dns-json`). Maybe this feature will be implemented in
+`application/dns-message`), not the DNS-JSON Format (Content Type `application/dns-json`). Maybe this feature will be
+implemented in
 further versions. **
 
 ```json
@@ -515,4 +532,5 @@ further versions. **
 
 ## Event Flow
 
-Developers can subscribe to lifecycle and ACME events to integrate additional features. The order in which events occur is illustrated in [developer/EventFlow.md](developer/EventFlow.md).
+Developers can subscribe to lifecycle and ACME events to integrate additional features. The order in which events occur
+is illustrated in [developer/EventFlow.md](developer/EventFlow.md).

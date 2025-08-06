@@ -7,22 +7,21 @@ package de.morihofi.certgine.cryptography.keystore;
 
 import com.google.common.jimfs.Jimfs;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import java.security.KeyPair;
-import java.security.cert.X509Certificate;
-
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
 import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyPair;
 import java.security.Security;
+import java.security.cert.X509Certificate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -63,7 +62,7 @@ class CryptoStoreManagerTest {
             KeyPair kp = de.morihofi.certgine.cryptography.keys.KeyPairGenerator.generateRSAKeyPair(512, BouncyCastleProvider.PROVIDER_NAME);
             CertificateConfig conf = new CertificateConfig(
                     CertificateMetadata.builder().commonName("root").build(),
-                    new CertificateExpiration(0,0,1),
+                    new CertificateExpiration(0, 0, 1),
                     null);
             rc.setCertificateConfig(conf);
             X509Certificate cert = de.morihofi.certgine.cryptography.certificate.X509Generator.generate(

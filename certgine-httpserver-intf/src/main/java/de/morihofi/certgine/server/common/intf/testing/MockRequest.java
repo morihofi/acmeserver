@@ -2,6 +2,7 @@ package de.morihofi.certgine.server.common.intf.testing;
 
 import de.morihofi.certgine.server.common.intf.Request;
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,10 +15,10 @@ import java.util.Map;
  */
 public class MockRequest implements Request {
 
-    private String path = "/";
-    private String method = "GET";
     private final Map<String, String> headers = new HashMap<>();
     private final Map<String, String> queryParams = new HashMap<>();
+    private String path = "/";
+    private String method = "GET";
     private byte[] body = new byte[0];
     private String ip = "127.0.0.1";
     private HttpServletRequest httpServletRequest;

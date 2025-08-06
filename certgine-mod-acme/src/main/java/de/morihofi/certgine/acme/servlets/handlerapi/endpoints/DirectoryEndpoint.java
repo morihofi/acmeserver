@@ -7,14 +7,12 @@ package de.morihofi.certgine.acme.servlets.handlerapi.endpoints;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-
 import de.morihofi.certgine.acme.servlets.handlerapi.abstractclass.AbstractAcmeEndpoint;
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.server.common.intf.Handler;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.json.GsonFactory;
-
 import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import lombok.NonNull;
 
@@ -46,10 +44,10 @@ public class DirectoryEndpoint implements Handler {
         {
             String website = "about:blank";
             String tos = "about:blank";
-            if(provisioner.getMeta().getWebsite() != null && !provisioner.getMeta().getWebsite().isEmpty()){
+            if (provisioner.getMeta().getWebsite() != null && !provisioner.getMeta().getWebsite().isEmpty()) {
                 website = provisioner.getMeta().getWebsite().trim();
             }
-            if(provisioner.getMeta().getTos() != null && !provisioner.getMeta().getTos().isEmpty()){
+            if (provisioner.getMeta().getTos() != null && !provisioner.getMeta().getTos().isEmpty()) {
                 tos = provisioner.getMeta().getTos().trim();
             }
 

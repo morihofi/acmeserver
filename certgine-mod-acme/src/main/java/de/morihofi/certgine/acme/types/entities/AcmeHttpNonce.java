@@ -33,10 +33,7 @@ import java.util.Base64;
 @NoArgsConstructor
 public class AcmeHttpNonce {
 
-    public AcmeHttpNonce(String nonce) {
-        this.nonce = nonce;
-    }
-
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     @Id
     @Column(name = "nonce", nullable = false)
     private String nonce;
@@ -47,7 +44,9 @@ public class AcmeHttpNonce {
     @Column(name = "generated")
     private LocalDateTime generationTimestamp = LocalDateTime.now();
 
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    public AcmeHttpNonce(String nonce) {
+        this.nonce = nonce;
+    }
 
     /**
      * Generates and stores a new nonce.

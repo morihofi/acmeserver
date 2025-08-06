@@ -7,21 +7,21 @@ package de.morihofi.certgine.core.web;
 
 import com.google.common.jimfs.Jimfs;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
-import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
-import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
+import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.ServerConfig;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
+import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.certgine.types.database.entities.authority.*;
 import de.morihofi.certgine.types.events.EventBus;
-import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
-import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
 import lombok.NonNull;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -39,37 +39,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class JettyCertificateHelperTest {
 
-    static class DummyServer implements IServerInstance {
-        private final CryptoStoreManager mgr;
-        private final RootCa rootCa;
-        DummyServer(CryptoStoreManager mgr, RootCa rootCa){this.mgr=mgr;this.rootCa=rootCa;}
-        @NotNull
-        @NonNull @Override public String getServerURL(){return "";}
-        @NotNull
-        @NonNull @Override public org.hibernate.Session getDatabaseSession(){return null;}
-        @NotNull
-        @NonNull @Override public ICryptoStoreManager getCryptoStoreManager(){return mgr;}
-        @NotNull
-        @NonNull @Override public Config getAppConfig(){Config c=new Config();c.setServer(new ServerConfig());return c;}
-        @NotNull
-        @NonNull @Override public RootCa getRootCa(){return rootCa;}
-        @NotNull
-        @NonNull @Override public BuildMetadata getBuildMetadata(){return BuildMetadata.builder().build();}
-        @NotNull
-        @NonNull @Override public INetworkClient getNetworkClient(){return null;}
-        @NotNull
-        @NonNull @Override public EventBus getEventBus(){return new EventBus();}
-        @NotNull
-        @NonNull @Override public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags(){return Collections.emptySet();}
-
-        @Override
-        public @NonNull IModuleRegistry getModuleRegistry() {
-            return null;
-        }
-    }
-
     @BeforeAll
-    static void addProvider(){
+    static void addProvider() {
         Security.addProvider(new BouncyCastleProvider());
     }
 
@@ -83,7 +54,7 @@ class JettyCertificateHelperTest {
         CertificateMetadata meta = CertificateMetadata.builder()
                 .commonName("root")
                 .build();
-        CertificateConfig cfg = new CertificateConfig(meta, new CertificateExpiration(0,0,1), new RsaCertificateAlgorithm(1024));
+        CertificateConfig cfg = new CertificateConfig(meta, new CertificateExpiration(0, 0, 1), new RsaCertificateAlgorithm(1024));
         RootCa root = new RootCa();
         root.setInternalUuid("root");
         root.setCertificateConfig(cfg);
@@ -108,5 +79,85 @@ class JettyCertificateHelperTest {
 
         assertTrue(csm.containsServerCertificate("main"));
         assertNull(JettyCertificateHelper.generateAcmeApiClientCertificate(si, Clock.systemUTC()));
+    }
+
+    static class DummyServer implements IServerInstance {
+        private final CryptoStoreManager mgr;
+        private final RootCa rootCa;
+
+        DummyServer(CryptoStoreManager mgr, RootCa rootCa) {
+            this.mgr = mgr;
+            this.rootCa = rootCa;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public String getServerURL() {
+            return "";
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public org.hibernate.Session getDatabaseSession() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public ICryptoStoreManager getCryptoStoreManager() {
+            return mgr;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public Config getAppConfig() {
+            Config c = new Config();
+            c.setServer(new ServerConfig());
+            return c;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public RootCa getRootCa() {
+            return rootCa;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public BuildMetadata getBuildMetadata() {
+            return BuildMetadata.builder().build();
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public INetworkClient getNetworkClient() {
+            return null;
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public EventBus getEventBus() {
+            return new EventBus();
+        }
+
+        @NotNull
+        @NonNull
+        @Override
+        public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public @NonNull IModuleRegistry getModuleRegistry() {
+            return null;
+        }
     }
 }

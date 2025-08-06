@@ -6,9 +6,9 @@
 package de.morihofi.certgine.tsa.types.entities;
 
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
+import de.morihofi.certgine.types.intf.IServerInstance;
 import jakarta.persistence.*;
 import lombok.Data;
-import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.hibernate.Session;

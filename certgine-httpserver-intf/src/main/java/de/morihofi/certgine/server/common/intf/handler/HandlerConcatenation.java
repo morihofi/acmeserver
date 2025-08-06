@@ -24,7 +24,7 @@ public class HandlerConcatenation implements Handler {
 
     @Override
     public void handle(HandlerContext context) throws Exception {
-        for (Handler h : handlers){
+        for (Handler h : handlers) {
             h.handle(context);
         }
     }

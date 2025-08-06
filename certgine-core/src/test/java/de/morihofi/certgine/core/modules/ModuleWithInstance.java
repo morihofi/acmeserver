@@ -37,14 +37,18 @@ public class ModuleWithInstance extends CertgineModule {
         return instance;
     }
 
-    /** Simple module instance used for testing. */
+    /**
+     * Simple module instance used for testing.
+     */
     static class TestModuleInstance extends CertgineModuleInstance {
         TestModuleInstance(CertgineModule module) {
             super(module);
         }
     }
 
-    /** Servlet capturing the passed module instance for assertions. */
+    /**
+     * Servlet capturing the passed module instance for assertions.
+     */
     @ServletMount(servletMountPoint = "/inst")
     public static class TestServlet extends HttpServlet {
         public static CertgineModuleInstance capturedInstance;

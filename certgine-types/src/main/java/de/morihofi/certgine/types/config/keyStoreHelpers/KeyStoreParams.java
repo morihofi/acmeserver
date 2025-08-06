@@ -31,7 +31,7 @@ public abstract class KeyStoreParams implements Serializable {
             Arrays.fill(password, '\0');
             password = null;
             log.info("In-Memory config keystore password cleared successfully.");
-        }else {
+        } else {
             log.warn("Attempted to clear in-memory keystore password, but it was already null.");
         }
     }

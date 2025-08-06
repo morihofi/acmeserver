@@ -20,7 +20,9 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-/** Utility to renew TSA certificates. */
+/**
+ * Utility to renew TSA certificates.
+ */
 @Slf4j
 public class TimeStampRenew {
 

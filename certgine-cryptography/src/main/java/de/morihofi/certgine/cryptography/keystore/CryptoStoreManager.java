@@ -6,11 +6,11 @@
 package de.morihofi.certgine.cryptography.keystore;
 
 import de.morihofi.certgine.types.cryptography.CryptoStoreManagerConstants;
-import de.morihofi.certgine.types.database.entities.authority.RootCa;
+import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.cryptography.keystore.IKeyStoreConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS11KeyStoreConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
-import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
+import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -41,33 +41,17 @@ public class CryptoStoreManager implements ICryptoStoreManager {
 
 
     /**
-     * Returns the key store alias for a timestamp authority certificate.
-     * The alias is constructed by appending the UUID to the predefined prefix.
-     * The return value is not null, but it is possible that the alias does not exist in the keystore.
-     *
-     * @param uuid The UUID of the timestamp authority.
-     * @return The key store alias for the timestamp authority certificate.
-     */
-    @NonNull
-    public String getKeyStoreAliasForTimestampAuthority(@NonNull String uuid) {
-        return CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA + uuid;
-    }
-
-    /**
      * Key store configuration, including type and parameters.
      */
     private final IKeyStoreConfig keyStoreConfig;
-
     /**
      * Password for the key store, used for loading and saving the keystore. This will be cleared from the in-memory configuration after loading the keystore.
      */
     private final char[] keyStorePassword;
-
     /**
      * The loaded key store instance for cryptographic operations.
      */
     private final KeyStore keyStore;
-
 
     /**
      * Constructs a CryptoStoreManager with the specified key store configuration.
@@ -124,6 +108,25 @@ public class CryptoStoreManager implements ICryptoStoreManager {
 
     }
 
+    private static boolean isAllZero(char[] array) {
+        for (char c : array) {          // fast & allocation-free
+            if (c != '\0') return false;
+        }
+        return true;
+    }
+
+    /**
+     * Returns the key store alias for a timestamp authority certificate.
+     * The alias is constructed by appending the UUID to the predefined prefix.
+     * The return value is not null, but it is possible that the alias does not exist in the keystore.
+     *
+     * @param uuid The UUID of the timestamp authority.
+     * @return The key store alias for the timestamp authority certificate.
+     */
+    @NonNull
+    public String getKeyStoreAliasForTimestampAuthority(@NonNull String uuid) {
+        return CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA + uuid;
+    }
 
     /**
      * Returns the key pair from the keystore for the root certificate authority provided.
@@ -141,7 +144,6 @@ public class CryptoStoreManager implements ICryptoStoreManager {
         return KeyStoreUtil.getKeyPair(rootCa.getInternalUuid(), keyStore);
     }
 
-
     /**
      * Returns the X509 certificate from the keystore for the root certificate authority provided.
      * This method retrieves the certificate associated with the root CA's internal UUID.
@@ -155,7 +157,6 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     public X509Certificate getCertificateAuthorityX509Certificate(@NonNull RootCa rootCa) throws KeyStoreException {
         return (X509Certificate) keyStore.getCertificate(rootCa.getInternalUuid());
     }
-
 
     /**
      * Returns the key pair for an intermediate certificate authority from the keystore.
@@ -173,7 +174,6 @@ public class CryptoStoreManager implements ICryptoStoreManager {
             NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid, keyStore);
     }
-
 
     /**
      * Saves the current state of the keystore to the configured file path.
@@ -353,13 +353,6 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     @NonNull
     public String getKeyStoreAliasForProvisionerIntermediate(@NonNull String uuid) {
         return CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid;
-    }
-
-    private static boolean isAllZero(char[] array) {
-        for (char c : array) {          // fast & allocation-free
-            if (c != '\0') return false;
-        }
-        return true;
     }
 
 }

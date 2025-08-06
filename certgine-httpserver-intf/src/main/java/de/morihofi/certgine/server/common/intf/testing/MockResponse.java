@@ -1,6 +1,7 @@
 package de.morihofi.certgine.server.common.intf.testing;
 
 import de.morihofi.certgine.server.common.intf.Response;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;

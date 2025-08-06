@@ -1,6 +1,7 @@
 # Event Bus Flow
 
-This document explains how lifecycle and ACME events are emitted by the server. The diagram below shows the typical order in which events are published.
+This document explains how lifecycle and ACME events are emitted by the server. The diagram below shows the typical
+order in which events are published.
 
 ```mermaid
 sequenceDiagram

@@ -70,23 +70,25 @@
     - com.github.spotbugs:spotbugs-annotations from 4.8.4 to 4.8.5.
 
 ## 2.1.1
+
 - Database:
-  - **httpnonces**-Table:
-    - Change column `timestamp` to be nullable
+    - **httpnonces**-Table:
+        - Change column `timestamp` to be nullable
 - Backend Updates:
-  - Nonce generation and handling should now be RFC compliant 
-  - Many internal refactors
-  - CAB File generation should work now
+    - Nonce generation and handling should now be RFC compliant
+    - Many internal refactors
+    - CAB File generation should work now
 
 ## 3.0.0
+
 - Overall
-  - Modular design
-  - fixed multiple security issues
+    - Modular design
+    - fixed multiple security issues
 - Webserver
-  - Direct Jetty usage instead of Javalin for allowing more flexibility and extension
+    - Direct Jetty usage instead of Javalin for allowing more flexibility and extension
 - Server data directory can now be overridden using the `SERVERDATA_DIR` environment variable.
 - ACME
-  - External account binding support
-  - Account Key Rollover support
-  - CAA-Lookup in ACME Process
- - More Coming soon ...
+    - External account binding support
+    - Account Key Rollover support
+    - CAA-Lookup in ACME Process
+- More Coming soon ...

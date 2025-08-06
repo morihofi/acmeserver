@@ -8,13 +8,7 @@ package de.morihofi.certgine.acme.types.entities;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -35,9 +29,47 @@ import java.util.List;
 @NoArgsConstructor
 public class AcmeOrderIdentifier implements Serializable {
 
+    /**
+     * Unique identifier for the ACME order identifier.
+     */
+    @Id
+    @Column(name = "identifierId", nullable = false)
+    private String identifierId;
+    /**
+     * The type of the ACME order identifier (e.g., "dns", "ip").
+     */
+    @Column(name = "type")
+    private String type;
+    /**
+     * The data value of the ACME order identifier (e.g., the domain name or IP address).
+     */
+    @Column(name = "dataValue")
+    private String dataValue;
+    /**
+     * The ACME order associated with this identifier.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "orderId", referencedColumnName = "orderId")
+    private AcmeOrder order;
+    /**
+     * Indicates whether challenges have been generated for this identifier.
+     */
+    @Column(name = "hasChallengesGenerated", nullable = false)
+    private boolean hasChallengesGenerated = false;
+    /**
+     * The list of challenges associated with this identifier.
+     */
+    @OneToMany(mappedBy = "identifier")
+    private List<AcmeOrderIdentifierChallenge> challenges;
+    /**
+     * The unique authorization ID for this identifier.
+     */
+    @Column(name = "authorizationId", nullable = false)
+    private String authorizationId;
+
     public AcmeOrderIdentifier(String type, String dataValue) {
 
-        if(!(type.equals("dns") || type.equals("ip"))){
+        if (!(type.equals("dns") || type.equals("ip"))) {
             throw new IllegalArgumentException("Invalid type for ACME identifier: " + type);
         }
 
@@ -51,7 +83,6 @@ public class AcmeOrderIdentifier implements Serializable {
             return session.createQuery("FROM AcmeOrderIdentifier", AcmeOrderIdentifier.class).getResultList();
         }
     }
-
 
     /**
      * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated authorization ID.
@@ -82,50 +113,6 @@ public class AcmeOrderIdentifier implements Serializable {
         }
         return identifier;
     }
-
-    /**
-     * Unique identifier for the ACME order identifier.
-     */
-    @Id
-    @Column(name = "identifierId", nullable = false)
-    private String identifierId;
-
-    /**
-     * The type of the ACME order identifier (e.g., "dns", "ip").
-     */
-    @Column(name = "type")
-    private String type;
-
-    /**
-     * The data value of the ACME order identifier (e.g., the domain name or IP address).
-     */
-    @Column(name = "dataValue")
-    private String dataValue;
-
-    /**
-     * The ACME order associated with this identifier.
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "orderId", referencedColumnName = "orderId")
-    private AcmeOrder order;
-
-    /**
-     * Indicates whether challenges have been generated for this identifier.
-     */
-    @Column(name = "hasChallengesGenerated", nullable = false)
-    private boolean hasChallengesGenerated = false;
-
-    /**
-     * The list of challenges associated with this identifier.
-     */
-    @OneToMany(mappedBy = "identifier")
-    private List<AcmeOrderIdentifierChallenge> challenges;
-
-    /**
-     * The unique authorization ID for this identifier.
-     */
-    @Column(name = "authorizationId", nullable = false)
-    private String authorizationId;
 
     /**
      * Gets the challenge status for this identifier.

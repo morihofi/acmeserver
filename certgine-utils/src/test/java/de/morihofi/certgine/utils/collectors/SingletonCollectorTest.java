@@ -48,7 +48,7 @@ class SingletonCollectorTest {
 
     @Test
     void combinerThrowsExceptionWithMultiplePartialResults() {
-        List<String> left  = List.of("left");
+        List<String> left = List.of("left");
         List<String> right = List.of("right");
 
         Collector<String, List<String>, String> collector = SingletonCollector.toSingleton();

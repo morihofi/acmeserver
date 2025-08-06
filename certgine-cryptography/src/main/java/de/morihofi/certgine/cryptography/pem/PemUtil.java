@@ -39,6 +39,12 @@ import java.util.List;
 public class PemUtil {
 
     /**
+     * Private constructor to prevent instantiation.
+     */
+    private PemUtil() {
+    }
+
+    /**
      * Saves a KeyPair to PEM-encoded files.
      *
      * @param keyPair            The KeyPair to be saved.
@@ -61,7 +67,7 @@ public class PemUtil {
      *
      * @param pem PEM string including BEGIN/END lines
      * @return X509Certificate instance
-     * @throws IOException if reading fails
+     * @throws IOException          if reading fails
      * @throws CertificateException if conversion fails
      */
     public static X509Certificate parseCertificatePem(String pem) throws IOException, CertificateException {
@@ -272,11 +278,5 @@ public class PemUtil {
         pemReader.close();
 
         return content;
-    }
-
-    /**
-     * Private constructor to prevent instantiation.
-     */
-    private PemUtil() {
     }
 }

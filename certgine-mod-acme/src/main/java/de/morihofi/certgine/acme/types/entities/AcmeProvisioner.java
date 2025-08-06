@@ -6,13 +6,13 @@
 package de.morihofi.certgine.acme.types.entities;
 
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
+import de.morihofi.certgine.types.database.entities.authority.IntermediateCa;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import de.morihofi.certgine.types.database.entities.authority.IntermediateCa;
 import org.hibernate.Session;
 
 import java.io.Serializable;
@@ -64,6 +64,24 @@ public class AcmeProvisioner implements Serializable {
 
     @Embedded
     private AcmeProvisionerDomainNameRestriction acmeProvisionerDomainNameRestriction;
+
+    public static AcmeProvisioner getForName(@NonNull IServerInstance si, @NonNull String name) {
+        AcmeProvisioner provisioner;
+        try (Session s = si.getDatabaseSession()) {
+            provisioner = s.createQuery("FROM AcmeProvisioner p WHERE p.name = :name", AcmeProvisioner.class)
+                    .setParameter("name", name)
+                    .uniqueResult();
+        }
+        return provisioner;
+    }
+
+    public static AcmeProvisioner[] getAllProvisioners(@NonNull IServerInstance si) {
+        List<AcmeProvisioner> provisioners;
+        try (Session s = si.getDatabaseSession()) {
+            provisioners = s.createQuery("FROM AcmeProvisioner", AcmeProvisioner.class).list();
+        }
+        return provisioners.toArray(new AcmeProvisioner[0]);
+    }
 
     /**
      * Get the Certgine URL, reachable from other Hosts
@@ -118,27 +136,6 @@ public class AcmeProvisioner implements Serializable {
     @NonNull
     public String getOcspPath() {
         return "/revocation/" + getName() + "/ocsp";
-    }
-
-
-
-
-    public static AcmeProvisioner getForName(@NonNull IServerInstance si, @NonNull String name){
-        AcmeProvisioner provisioner;
-        try (Session s = si.getDatabaseSession()) {
-            provisioner = s.createQuery("FROM AcmeProvisioner p WHERE p.name = :name", AcmeProvisioner.class)
-                    .setParameter("name", name)
-                    .uniqueResult();
-        }
-        return provisioner;
-    }
-
-    public static AcmeProvisioner[] getAllProvisioners(@NonNull IServerInstance si) {
-        List<AcmeProvisioner> provisioners;
-        try (Session s = si.getDatabaseSession()) {
-            provisioners = s.createQuery("FROM AcmeProvisioner", AcmeProvisioner.class).list();
-        }
-        return provisioners.toArray(new AcmeProvisioner[0]);
     }
 
 }

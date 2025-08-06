@@ -1,18 +1,16 @@
 package de.morihofi.certgine.types.modules;
 
-import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 @Getter
 
 public abstract class CertgineModuleInstance {
 
+    @NonNull
+    private final CertgineModule module;
+
     public CertgineModuleInstance(@NonNull CertgineModule module) {
         this.module = module;
     }
-
-    @NonNull
-    private final CertgineModule module;
 }

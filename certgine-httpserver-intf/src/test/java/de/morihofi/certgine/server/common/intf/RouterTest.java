@@ -21,16 +21,8 @@ class RouterTest {
     private Router router;
     private TestHandler handler;
 
-    static class TestHandler implements Handler {
-        boolean called = false;
-        @Override
-        public void handle(HandlerContext context) {
-            called = true;
-        }
-    }
-
     @BeforeEach
-    void setup(){
+    void setup() {
         router = new Router();
         handler = new TestHandler();
     }
@@ -76,11 +68,20 @@ class RouterTest {
 
     @Test
     @DisplayName("isAnyHandlerRegisteredForPath works")
-    void testIsAnyHandlerRegisteredForPath(){
+    void testIsAnyHandlerRegisteredForPath() {
         router.addHandler(new Endpoint(HandlerType.GET, "/static", handler));
         router.addHandler(new Endpoint(HandlerType.GET, "/var/{id}", handler));
         assertTrue(router.isAnyHandlerRegisteredForPath("/static"));
         assertTrue(router.isAnyHandlerRegisteredForPath("/var/1"));
         assertFalse(router.isAnyHandlerRegisteredForPath("/none"));
+    }
+
+    static class TestHandler implements Handler {
+        boolean called = false;
+
+        @Override
+        public void handle(HandlerContext context) {
+            called = true;
+        }
     }
 }

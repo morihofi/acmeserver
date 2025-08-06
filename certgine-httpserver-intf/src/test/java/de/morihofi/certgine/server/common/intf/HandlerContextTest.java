@@ -13,7 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,8 +21,6 @@ class HandlerContextTest {
     private Router router;
     private MockRequest request;
     private MockResponse response;
-
-    static class Data {int x;}
 
     @BeforeEach
     void setup() {
@@ -82,6 +79,10 @@ class HandlerContextTest {
         request.method("POST");
         HandlerContext ctx = ctx();
         assertEquals(HandlerType.POST, ctx.method());
+    }
+
+    static class Data {
+        int x;
     }
 }
 

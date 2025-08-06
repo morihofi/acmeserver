@@ -7,6 +7,8 @@ package de.morihofi.certgine.core.database;
 
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
+import de.morihofi.certgine.types.events.EventBus;
+import de.morihofi.certgine.types.events.ServerShutdownEvent;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +16,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
-import de.morihofi.certgine.types.events.EventBus;
-import de.morihofi.certgine.types.events.ServerShutdownEvent;
 
 import java.util.Collection;
 
@@ -25,16 +25,15 @@ import java.util.Collection;
 @Slf4j
 public class HibernateUtil {
 
-    @Getter
-    private SessionFactory sessionFactory;
-
     private final Config appConfig;
     private final boolean debug;
     private final EventBus eventBus;
     private final Collection<Class<?>> entityClasses;
+    @Getter
+    private SessionFactory sessionFactory;
 
     public HibernateUtil(@NonNull Config appConfig, boolean debug, EventBus eventBus,
-            @NonNull Collection<Class<?>> entityClasses) {
+                         @NonNull Collection<Class<?>> entityClasses) {
         this.appConfig = appConfig;
         this.debug = debug;
         this.eventBus = eventBus;
