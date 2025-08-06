@@ -21,7 +21,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.hibernate.Session;
-import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
 import java.util.Set;
@@ -90,7 +89,6 @@ public class ServerInstance implements IServerInstance {
      *
      * @return a String representing the full HTTPS URL of the server
      */
-    @NotNull
     @NonNull
     public String getServerURL() {
         return "https://" + this.getAppConfig().getServer().getDnsName() + (this.getAppConfig().getServer().getPorts().getHttps() != 443 ? ":"
@@ -98,7 +96,12 @@ public class ServerInstance implements IServerInstance {
     }
 
 
-    @NotNull
+    /**
+     * Opens a new Hibernate {@link Session} for interacting with the database.
+     *
+     * @return a new session connected to the configured database
+     * @throws IllegalStateException if the Hibernate {@code SessionFactory} has not been initialized
+     */
     @NonNull
     @Override
     @SuppressFBWarnings("NP_NONNULL_RETURN_VIOLATION") // Suppress false positive for non-null return value
@@ -110,7 +113,11 @@ public class ServerInstance implements IServerInstance {
         return getHibernateUtil().getSessionFactory().openSession();
     }
 
-    @NotNull
+    /**
+     * Provides access to the application's event bus for publishing and subscribing to events.
+     *
+     * @return the non-null event bus instance used throughout the application
+     */
     @NonNull
     @Override
     public EventBus getEventBus() {
