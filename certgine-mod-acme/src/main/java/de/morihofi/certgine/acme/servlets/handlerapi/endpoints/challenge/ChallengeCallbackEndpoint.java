@@ -114,13 +114,14 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
             AcmeOrderIdentifierChallenge.passChallenge(challengeId, getModuleInstance().getModule().getServerInstance());
         } else {
             AcmeOrderIdentifierChallenge.failChallenge(challengeId, getModuleInstance().getModule().getServerInstance());
+        }
 
+        getModuleInstance().getModule().getServerInstance().getEventBus().publish(new AfterChallengeEvent(typeEnum, challengeId, result));
+
+        if (!result.successful()) {
             log.error("Throwing API error: Host verification failed with method {}", challengeType);
             throw new ACMEConnectionErrorException(result.errorReason());
         }
-
-        // TODO: Result is always true here, may the event needs adjustments
-        getModuleInstance().getModule().getServerInstance().getEventBus().publish(new AfterChallengeEvent(typeEnum, challengeId, result.successful()));
 
         // Reload identifier, e.g., host has validated
         identifierChallenge = AcmeOrderIdentifierChallenge.getACMEIdentifierChallenge(challengeId, getModuleInstance().getModule().getServerInstance());

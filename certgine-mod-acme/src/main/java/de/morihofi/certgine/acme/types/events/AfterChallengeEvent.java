@@ -5,19 +5,21 @@
 
 package de.morihofi.certgine.acme.types.events;
 
+import de.morihofi.certgine.acme.challenges.ChallengeResult;
 import de.morihofi.certgine.acme.types.api.AcmeChallengeType;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Fired after the ownership challenge has been processed. Contains the result
- * indicating whether validation succeeded.
+ * Fired after the ownership challenge has been processed. Contains the
+ * {@link ChallengeResult} indicating whether validation succeeded or failed
+ * and the optional error reason.
  */
 @AllArgsConstructor
 @Getter
 public class AfterChallengeEvent extends AbstractEvent {
     private final AcmeChallengeType method;
     private final String challengeId;
-    private final boolean successful;
+    private final ChallengeResult result;
 }
