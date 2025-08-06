@@ -8,11 +8,15 @@ package de.morihofi.certgine.tsa.renew;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.tsa.types.entities.TsaAuthority;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.utils.scheduler.CertificateRenewScheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -20,12 +24,12 @@ import java.security.cert.X509Certificate;
 @Slf4j
 public class TimeStampRenew {
 
-    /*
     public static CertificateRenewScheduler.CertificateData renew(KeyPair tsaKeyPair,
                                                                   TsaAuthority tsa,
                                                                   IServerInstance si,
-                                                                  String alias) throws CertificateException,
-            OperatorCreationException, IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+                                                                  String alias)
+            throws CertificateException, OperatorCreationException, IOException,
+            UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         X509Certificate renewed = X509Generator.generate(
                 X509Generator.Request.builder()
                         .type(X509Generator.Type.TIMESTAMPING)
@@ -35,10 +39,9 @@ public class TimeStampRenew {
                         .ownKeyPair(tsaKeyPair)
                         .build()
         );
-        X509Certificate rootCert = si.getCryptoStoreManager().getCertificateAuthorityX509Certificate(si.getRootCa());
+        X509Certificate rootCert =
+                si.getCryptoStoreManager().getCertificateAuthorityX509Certificate(si.getRootCa());
         X509Certificate[] chain = new X509Certificate[]{renewed, rootCert};
         return new CertificateRenewScheduler.CertificateData(chain, tsaKeyPair);
     }
-
-     */
 }

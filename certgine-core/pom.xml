@@ -208,15 +208,12 @@
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
-
-        <!-- TODO: Make TSA runnable again -->
-        <!--dependency>
+        <dependency>
             <groupId>de.morihofi.certgine</groupId>
-            <artifactId>certgine-tsa</artifactId>
+            <artifactId>certgine-mod-tsa</artifactId>
             <version>${project.version}</version>
-
             <scope>runtime</scope>
-        </dependency-->
+        </dependency>
 
     </dependencies>
 

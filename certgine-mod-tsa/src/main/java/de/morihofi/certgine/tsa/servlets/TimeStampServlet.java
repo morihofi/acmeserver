@@ -37,6 +37,16 @@ public class TimeStampServlet extends HttpServlet {
     }
 
     /**
+     * Creates a servlet instance using the given server instance and the first registered TSA authority.
+     *
+     * @param serverInstance running server instance
+     */
+    public TimeStampServlet(IServerInstance serverInstance) throws UnrecoverableKeyException,
+            KeyStoreException, NoSuchAlgorithmException {
+        this(serverInstance, TsaAuthority.getAll(serverInstance)[0]);
+    }
+
+    /**
      * Creates a new servlet instance using the given server instance.
      * <p>
      * The {@link TimeStampAuthority} is constructed using the TSA key pair and
