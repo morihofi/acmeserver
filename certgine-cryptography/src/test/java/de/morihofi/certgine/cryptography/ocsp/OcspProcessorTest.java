@@ -3,6 +3,9 @@ package de.morihofi.certgine.cryptography.ocsp;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
+import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
+import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
+import de.morihofi.certgine.types.database.entities.authority.CertificateMetadata;
 import org.bouncycastle.cert.ocsp.*;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,9 +31,20 @@ class OcspProcessorTest {
         Security.addProvider(new BouncyCastleProvider());
     }
 
+    private static CertificateConfig cfg(String cn) {
+        CertificateMetadata meta = CertificateMetadata.builder()
+                .commonName(cn)
+                .organisation("Org")
+                .countryCode("DE")
+                .build();
+        CertificateExpiration exp = new CertificateExpiration(0, 0, 1);
+        return new CertificateConfig(meta, exp, null);
+    }
+
     private static X509Certificate createCaCert(KeyPair kp) throws Exception {
         return X509Generator.generate(X509Generator.Request.builder()
                 .type(X509Generator.Type.ROOT_CA)
+                .certificateConfig(cfg("Test CA"))
                 .ownKeyPair(kp)
                 .build());
     }

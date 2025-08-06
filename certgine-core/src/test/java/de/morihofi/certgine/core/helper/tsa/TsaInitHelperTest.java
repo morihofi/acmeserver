@@ -5,6 +5,7 @@
 
 package de.morihofi.certgine.core.helper.tsa;
 
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.core.helper.cert.CaInitHelper;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
@@ -25,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Security;
 import java.util.Set;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,8 +47,10 @@ class TsaInitHelperTest {
         cfg.setDatabase(db);
 
         EventBus bus = new EventBus();
-        Set<Class<?>> entities = new Reflections("de.morihofi.certgine.types.database")
-                .getTypesAnnotatedWith(Entity.class);
+        Set<Class<?>> entities = new HashSet<>(
+                new Reflections("de.morihofi.certgine.types.database")
+                        .getTypesAnnotatedWith(Entity.class));
+        entities.add(AcmeProvisioner.class);
         HibernateUtil hu = new HibernateUtil(cfg, true, bus, entities);
 
         Path ks = Files.createTempDirectory("ks").resolve("store.p12");

@@ -5,13 +5,13 @@
 
 package de.morihofi.certgine.core.helper.cert;
 
+import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.types.events.EventBus;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Security;
 import java.util.Set;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -44,8 +45,10 @@ class CaInitHelperTest {
         cfg.setDatabase(db);
 
         EventBus bus = new EventBus();
-        Set<Class<?>> entities = new Reflections("de.morihofi.certgine.types.database")
-                .getTypesAnnotatedWith(Entity.class);
+        Set<Class<?>> entities = new HashSet<>(
+                new Reflections("de.morihofi.certgine.types.database")
+                        .getTypesAnnotatedWith(Entity.class));
+        entities.add(AcmeProvisioner.class);
         HibernateUtil hu = new HibernateUtil(cfg, true, bus, entities);
 
         Path ks = Files.createTempDirectory("ks").resolve("store.p12");
@@ -69,8 +72,10 @@ class CaInitHelperTest {
         cfg.setDatabase(db);
 
         EventBus bus = new EventBus();
-        Set<Class<?>> entities = new Reflections("de.morihofi.certgine.types.database")
-                .getTypesAnnotatedWith(Entity.class);
+        Set<Class<?>> entities = new HashSet<>(
+                new Reflections("de.morihofi.certgine.types.database")
+                        .getTypesAnnotatedWith(Entity.class));
+        entities.add(AcmeProvisioner.class);
         HibernateUtil hu = new HibernateUtil(cfg, true, bus, entities);
 
         Path ks = Files.createTempDirectory("ks").resolve("store2.p12");
