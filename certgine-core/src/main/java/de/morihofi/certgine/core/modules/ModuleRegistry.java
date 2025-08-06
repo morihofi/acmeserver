@@ -88,6 +88,32 @@ public class ModuleRegistry implements IModuleRegistry {
     }
 
     /**
+     * Unregisters a previously loaded module and removes its provided classes
+     * from the registry.
+     *
+     * @param moduleName unique name of the module to unload
+     */
+    public void unregisterModule(@NonNull String moduleName) {
+        ModuleInfo info = modules.remove(moduleName);
+        if (info == null) {
+            return;
+        }
+        CertgineModule module = info.getModule();
+
+        // Remove entity classes contributed by the module
+        for (Class<?> entityClass : module.getEntityClasses()) {
+            entityClasses.remove(entityClass);
+        }
+
+        // Remove HTTP servlets contributed by the module
+        for (Class<? extends HttpServlet> servletClass : module.getHttpServlets()) {
+            httpHandlerClasses.remove(servletClass);
+        }
+
+        module.onUnLoad();
+    }
+
+    /**
      * Retrieves a service implementation by its interface type.
      *
      * @param serviceInterface the service interface class

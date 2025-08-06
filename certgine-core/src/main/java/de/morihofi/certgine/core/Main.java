@@ -10,7 +10,7 @@ import de.morihofi.certgine.types.json.GsonFactory;
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.core.impl.NonceManager;
 import de.morihofi.certgine.core.impl.ServerInstance;
-import de.morihofi.certgine.core.modules.ModuleLoader;
+import de.morihofi.certgine.core.modules.ModuleManager;
 import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.core.web.JettySslHelper;
 import de.morihofi.certgine.core.web.WebServer;
@@ -220,7 +220,25 @@ public class Main {
         };
 
         log.info("Loading modules ...");
-        ModuleRegistry moduleRegistry = new ModuleLoader().loadModules();
+        ModuleManager moduleManager = new ModuleManager();
+        moduleManager.loadModulesFromClasspath();
+
+        Path modulesDir = FILES_DIR.resolve("modules");
+        if (Files.isDirectory(modulesDir)) {
+            try (var paths = Files.list(modulesDir)) {
+                paths.filter(p -> p.toString().endsWith(".jar")).forEach(p -> {
+                    try {
+                        moduleManager.loadModule(p);
+                    } catch (IOException ex) {
+                        log.warn("Failed to load module from {}", p, ex);
+                    }
+                });
+            } catch (IOException e) {
+                log.warn("Failed to scan modules directory", e);
+            }
+        }
+
+        ModuleRegistry moduleRegistry = moduleManager.getModuleRegistry();
 
         log.info("Initializing database ...");
         HibernateUtil hibernateUtil = new HibernateUtil(config, debug, eventBus,
