@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServlet;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -37,10 +38,10 @@ public class TsaModule extends CertgineModule {
 
     @Override
     public void onModuleInitialize(IServerInstance serverInstance) {
-        CertificateRenewScheduler scheduler =
+        Optional<CertificateRenewScheduler> scheduler =
                 serverInstance.getModuleRegistry().getService(CertificateRenewScheduler.class);
-        if (scheduler != null) {
-            TsaRenewSubscriber subscriber = new TsaRenewSubscriber(serverInstance, scheduler);
+        if (scheduler.isPresent()) {
+            TsaRenewSubscriber subscriber = new TsaRenewSubscriber(serverInstance, scheduler.get());
             serverInstance.getEventBus().register(subscriber);
             subscriber.initialize();
         } else {

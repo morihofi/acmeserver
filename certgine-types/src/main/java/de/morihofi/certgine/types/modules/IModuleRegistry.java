@@ -8,6 +8,7 @@ import lombok.NonNull;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public interface IModuleRegistry {
@@ -38,9 +39,9 @@ public interface IModuleRegistry {
      *
      * @param serviceInterface the interface class
      * @param <T>              type of the service
-     * @return the implementation instance, or null if not registered
+     * @return optional containing the implementation instance if registered
      */
-    <T> T getService(Class<T> serviceInterface);
+    <T> Optional<T> getService(Class<T> serviceInterface);
 
     /**
      * Returns all registered service interfaces.

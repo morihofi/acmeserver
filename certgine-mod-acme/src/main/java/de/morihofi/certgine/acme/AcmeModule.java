@@ -23,6 +23,7 @@ import org.hibernate.Transaction;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -68,10 +69,10 @@ public class AcmeModule extends CertgineModule {
 
     @Override
     public void onModuleInitialize(IServerInstance serverInstance) {
-        CertificateRenewScheduler scheduler =
+        Optional<CertificateRenewScheduler> scheduler =
                 serverInstance.getModuleRegistry().getService(CertificateRenewScheduler.class);
-        if (scheduler != null) {
-            ProvisionerRenewSubscriber sub = new ProvisionerRenewSubscriber(serverInstance, scheduler);
+        if (scheduler.isPresent()) {
+            ProvisionerRenewSubscriber sub = new ProvisionerRenewSubscriber(serverInstance, scheduler.get());
             serverInstance.getEventBus().register(sub);
             sub.initialize();
         } else {

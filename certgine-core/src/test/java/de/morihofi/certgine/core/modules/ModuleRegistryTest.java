@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServlet;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,20 +28,20 @@ class ModuleRegistryTest {
 
         assertEquals(1, registry.getEntityClasses().size());
         assertEquals(1, registry.getHttpHandlerClasses().size());
-        assertNotNull(registry.getService(SampleService.class));
+        assertTrue(registry.getService(SampleService.class).isPresent());
 
         // Reload the module to ensure unloading and loading works in one step
         registry.reloadModule("test");
         assertEquals(1, registry.getEntityClasses().size());
         assertEquals(1, registry.getHttpHandlerClasses().size());
-        assertNotNull(registry.getService(SampleService.class));
+        assertTrue(registry.getService(SampleService.class).isPresent());
 
         // Finally unregister the module and ensure artifacts are removed
         registry.unregisterModule("test");
         assertTrue(module.unloaded);
         assertTrue(registry.getEntityClasses().isEmpty());
         assertTrue(registry.getHttpHandlerClasses().isEmpty());
-        assertNull(registry.getService(SampleService.class));
+        assertTrue(registry.getService(SampleService.class).isEmpty());
     }
 
     @Test
@@ -108,13 +109,17 @@ class ModuleRegistryTest {
         SampleServiceImpl impl = new SampleServiceImpl();
         registry.registerService("dyn", SampleService.class, impl);
 
-        assertSame(impl, registry.getService(SampleService.class));
+        Optional<SampleService> service = registry.getService(SampleService.class);
+        assertTrue(service.isPresent());
+        assertSame(impl, service.get());
 
         registry.unregisterModule("dyn");
-        assertNull(registry.getService(SampleService.class));
+        assertTrue(registry.getService(SampleService.class).isEmpty());
 
         registry.registerModule(info);
-        assertSame(impl, registry.getService(SampleService.class));
+        Optional<SampleService> reloaded = registry.getService(SampleService.class);
+        assertTrue(reloaded.isPresent());
+        assertSame(impl, reloaded.get());
     }
 
     @Test

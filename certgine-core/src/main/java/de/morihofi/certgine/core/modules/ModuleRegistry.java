@@ -216,14 +216,11 @@ public class ModuleRegistry implements IModuleRegistry {
      *
      * @param serviceInterface the service interface class
      * @param <T>              interface type
-     * @return implementation instance or {@code null} if none registered
+     * @return optional containing implementation instance if registered
      */
-    public <T> T getService(@NonNull Class<T> serviceInterface) {
+    public <T> Optional<T> getService(@NonNull Class<T> serviceInterface) {
         Object impl = services.get(serviceInterface);
-        if (impl == null) {
-            return null;
-        }
-        return serviceInterface.cast(impl);
+        return Optional.ofNullable(serviceInterface.cast(impl));
     }
 
     /**

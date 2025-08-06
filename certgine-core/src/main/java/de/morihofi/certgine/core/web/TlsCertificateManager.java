@@ -34,10 +34,10 @@ public class TlsCertificateManager implements EventSubscriber {
         this.serverInstance = serverInstance;
         this.server = server;
         this.certificateRenewScheduler =
-                serverInstance.getModuleRegistry().getService(CertificateRenewScheduler.class);
-        if (certificateRenewScheduler == null) {
-            throw new IllegalStateException("CertificateRenewScheduler service is not available");
-        }
+                serverInstance.getModuleRegistry()
+                        .getService(CertificateRenewScheduler.class)
+                        .orElseThrow(() ->
+                                new IllegalStateException("CertificateRenewScheduler service is not available"));
 
         certificateRenewScheduler.registerNewCertificateRenewWatcher(
                 CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_SERVER,

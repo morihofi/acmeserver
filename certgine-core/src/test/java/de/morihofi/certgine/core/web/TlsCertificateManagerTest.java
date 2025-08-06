@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509Certificate;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -89,10 +90,10 @@ class TlsCertificateManagerTest {
         Server jetty = new Server();
 
         TlsCertificateManager mgr = new TlsCertificateManager(server, jetty);
-        CertificateRenewScheduler sched =
+        Optional<CertificateRenewScheduler> sched =
                 server.getModuleRegistry().getService(CertificateRenewScheduler.class);
-        assertNotNull(sched);
-        assertTrue(sched.isWatcherRegistered(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_SERVER));
+        assertTrue(sched.isPresent());
+        assertTrue(sched.get().isWatcherRegistered(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_SERVER));
     }
 
     @Test
