@@ -55,13 +55,13 @@ public class OkHttpDnsLookupHandler implements Dns {
         if (dnsConfig.getDohEnabled()) {
             // Use DoH
             log.info("Lookup for {} using DNS over HTTPS (DoH)", hostname);
-            return DNSLookup.lookupHostnameUsingDoH(hostname, doHClient);
+            return DNSLookup.lookupHostname(hostname, new DohResolver(doHClient));
         }
 
         if (!dnsConfig.getDnsServers().isEmpty()) {
             // Use configured Servers
             log.info("Lookup for {} using configured DNS Servers", hostname);
-            return DNSLookup.lookupHostnameUsingDnsServerList(hostname, dnsConfig.getDnsServers());
+            return DNSLookup.lookupHostname(hostname, new DnsServerResolver(dnsConfig.getDnsServers()));
         }
 
         // Otherwise use system configured DNS

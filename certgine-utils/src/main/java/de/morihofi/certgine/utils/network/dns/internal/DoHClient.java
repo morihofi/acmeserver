@@ -7,6 +7,7 @@ package de.morihofi.certgine.utils.network.dns.internal;
 
 import de.morihofi.certgine.types.intf.network.dns.IDoHClient;
 import de.morihofi.certgine.utils.network.dns.DNSLookup;
+import de.morihofi.certgine.utils.network.dns.DnsServerResolver;
 import de.morihofi.certgine.utils.network.http.NetworkClient;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -42,7 +43,7 @@ public class DoHClient implements IDoHClient {
         this.client = new OkHttpClient.Builder()
                 .proxy(netClient.getProxy())
                 // Needed to resolve DoH DNS Host
-                .dns(hostname -> DNSLookup.lookupHostnameUsingDnsServerList(hostname, netClient.getDnsServer()))
+                .dns(hostname -> DNSLookup.lookupHostname(hostname, new DnsServerResolver(netClient.getDnsServer())))
                 .build();
     }
 
