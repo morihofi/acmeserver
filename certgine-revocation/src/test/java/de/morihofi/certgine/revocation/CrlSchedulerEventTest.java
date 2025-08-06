@@ -16,7 +16,6 @@ import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
-import de.morihofi.certgine.utils.scheduler.TimedScheduler;
 import lombok.NonNull;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
@@ -78,9 +77,8 @@ class CrlSchedulerEventTest {
     void testUpdatesOnEvents() {
         CryptoStoreManager mgr = Mockito.mock(CryptoStoreManager.class);
         EventBus bus = new EventBus();
-        TimedScheduler ts = new TimedScheduler();
         IServerInstance si = new DummyServer(mgr,bus);
-        CrlScheduler scheduler = new CrlScheduler(si, ts);
+        CrlScheduler scheduler = new CrlScheduler(si);
         bus.register(scheduler);
         AcmeProvisioner prov = new AcmeProvisioner(); prov.setName("p");
         try (MockedStatic<CrlStore> mock = Mockito.mockStatic(CrlStore.class)) {
@@ -89,6 +87,5 @@ class CrlSchedulerEventTest {
             bus.publish(new ProvisionerDeletedEvent(prov));
             mock.verify(() -> CrlStore.updateCachedCRL(CrlScheduler.UPDATE_MINUTES, prov, si), Mockito.times(2));
         }
-        ts.shutdown();
     }
 }

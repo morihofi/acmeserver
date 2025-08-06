@@ -71,7 +71,6 @@ public class TlsCertificateManager implements EventSubscriber {
         serverInstance.getEventBus().register(tsaWatcher);
         tsaWatcher.initialize();
 
-        certificateRenewScheduler.startScheduler();
     }
 
     /**

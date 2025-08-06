@@ -8,6 +8,8 @@ package de.morihofi.certgine.core.modules;
 import de.morihofi.certgine.server.common.intf.ServletMount;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
+import de.morihofi.certgine.types.modules.ModuleScheduledTask;
+import de.morihofi.certgine.utils.scheduler.TimedScheduler;
 import jakarta.persistence.Entity;
 import jakarta.servlet.http.HttpServlet;
 import lombok.Builder;
@@ -15,9 +17,11 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,6 +51,15 @@ public class ModuleRegistry implements IModuleRegistry {
      * Mapping of service interfaces to their implementation instances.
      */
     private final Map<Class<?>, Object> services = new HashMap<>();
+
+    /** Scheduler used for module-provided timed tasks. */
+    private final TimedScheduler timedScheduler = new TimedScheduler();
+
+    /** Handles of scheduled tasks keyed by module name. */
+    private final Map<String, List<TimedScheduler.ScheduledHandle>> scheduledHandles = new HashMap<>();
+
+    /** Original task instances keyed by module name. */
+    private final Map<String, List<ModuleScheduledTask>> moduleTasks = new HashMap<>();
 
     /**
      * Registers a module and adds its provided classes to the registry.
@@ -103,6 +116,19 @@ public class ModuleRegistry implements IModuleRegistry {
         // Register services contributed by the module
         services.putAll(info.getServices());
 
+        // Register scheduled tasks
+        Map<String, ModuleScheduledTask> scheduledTasks = module.getScheduledTasks();
+        if (!scheduledTasks.isEmpty()) {
+            List<TimedScheduler.ScheduledHandle> handles = new ArrayList<>();
+            for (Map.Entry<String, ModuleScheduledTask> entry : scheduledTasks.entrySet()) {
+                TimedScheduler.ScheduledHandle handle =
+                        timedScheduler.schedule(entry.getKey(), entry.getValue().task());
+                handles.add(handle);
+            }
+            scheduledHandles.put(moduleName, handles);
+            moduleTasks.put(moduleName, new ArrayList<>(scheduledTasks.values()));
+        }
+
         modules.put(moduleName, info);
         module.onRegister();
     }
@@ -117,6 +143,16 @@ public class ModuleRegistry implements IModuleRegistry {
         ModuleInfo info = modules.remove(moduleName);
         if (info == null) {
             return;
+        }
+
+        // Cancel scheduled tasks
+        List<TimedScheduler.ScheduledHandle> handles = scheduledHandles.remove(moduleName);
+        if (handles != null) {
+            handles.forEach(TimedScheduler.ScheduledHandle::cancel);
+        }
+        List<ModuleScheduledTask> tasks = moduleTasks.remove(moduleName);
+        if (tasks != null) {
+            tasks.forEach(ModuleScheduledTask::cancel);
         }
 
         // Remove entity classes contributed by the module
@@ -173,6 +209,15 @@ public class ModuleRegistry implements IModuleRegistry {
      */
     public Set<Class<?>> getServiceInterfaces() {
         return Collections.unmodifiableSet(services.keySet());
+    }
+
+    /**
+     * Shuts down all scheduled tasks and clears the scheduler.
+     */
+    public void shutdownScheduler() {
+        timedScheduler.shutdown();
+        scheduledHandles.clear();
+        moduleTasks.clear();
     }
 }
 

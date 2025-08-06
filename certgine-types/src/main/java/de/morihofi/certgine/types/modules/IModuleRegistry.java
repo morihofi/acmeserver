@@ -71,6 +71,14 @@ public interface IModuleRegistry {
     Map<String, ModuleInfo> getModules();
 
     /**
+     * Shuts down any resources associated with the registry, such as scheduled tasks.
+     * Default implementation is a no-op and may be overridden by implementations.
+     */
+    default void shutdownScheduler() {
+        // default no-op
+    }
+
+    /**
      * Metadata about a loaded module.
      */
     @Data

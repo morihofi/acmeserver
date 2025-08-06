@@ -12,7 +12,6 @@ import de.morihofi.certgine.types.intf.ICryptoStoreManager;
 import de.morihofi.certgine.utils.lambda.TriFunction;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.acme.types.events.ProvisionerCertificateRenewedEvent;
-import de.morihofi.certgine.utils.scheduler.TimedScheduler;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,10 +32,9 @@ import java.util.Map;
  */
 @Slf4j
 public class CertificateRenewScheduler {
-    private static final String DEFAULT_CRON = "0 */6 * * *"; // every six hours
+    public static final String DEFAULT_CRON = "0 */6 * * *"; // every six hours
     private static final int RENEWAL_THRESHOLD_DAYS = 7; // days before expiration for trigger renewal
 
-    private final TimedScheduler scheduler;
     private final ICryptoStoreManager cryptoStoreManager;
     private final EventBus eventBus;
     private final Clock clock;
@@ -51,11 +49,9 @@ public class CertificateRenewScheduler {
     public CertificateRenewScheduler(
             ICryptoStoreManager cryptoStoreManager,
             EventBus eventBus,
-            TimedScheduler scheduler,
             Clock clock) {
         this.cryptoStoreManager = cryptoStoreManager;
         this.eventBus = eventBus;
-        this.scheduler = scheduler;
         this.clock = clock;
     }
 
@@ -64,13 +60,11 @@ public class CertificateRenewScheduler {
      *
      * @param cryptoStoreManager The CryptoStoreManager instance used for key and certificate management.
      * @param eventBus           Event bus for publishing renewal events.
-     * @param scheduler          Scheduler used for periodic execution.
      */
     public CertificateRenewScheduler(
             ICryptoStoreManager cryptoStoreManager,
-            EventBus eventBus,
-            TimedScheduler scheduler) {
-        this(cryptoStoreManager, eventBus, scheduler, Clock.systemUTC());
+            EventBus eventBus) {
+        this(cryptoStoreManager, eventBus, Clock.systemUTC());
     }
 
     /**
@@ -123,23 +117,6 @@ public class CertificateRenewScheduler {
     }
 
     /**
-     * Starts the scheduler that periodically checks for certificates that need to be renewed.
-     */
-    public void startScheduler() {
-        startScheduler(DEFAULT_CRON);
-    }
-
-    /**
-     * Starts the scheduler with the given cron expression.
-     *
-     * @param cron cron expression defining the execution times
-     */
-    public void startScheduler(String cron) {
-        log.info("Initialized Certificate Renew Scheduler");
-        scheduler.schedule(cron, this::schedule);
-    }
-
-    /**
      * Determines if the certificate should be renewed based on the configured threshold.
      *
      * @param certificate The X.509 certificate to check.
@@ -157,7 +134,7 @@ public class CertificateRenewScheduler {
      * executed.
      */
     @SuppressFBWarnings("WMI_WRONG_MAP_ITERATOR")
-    private void schedule() {
+    public void schedule() {
         for (Map.Entry<String, RenewEntry> entry : renewMap.entrySet()) {
             String alias = entry.getKey();
             RenewEntry renewEntry = entry.getValue();
@@ -222,7 +199,6 @@ public class CertificateRenewScheduler {
      */
     public void shutdown() {
         log.info("Certificate Renew Watcher is shutting down");
-        scheduler.shutdown();
         renewMap.clear();
     }
 

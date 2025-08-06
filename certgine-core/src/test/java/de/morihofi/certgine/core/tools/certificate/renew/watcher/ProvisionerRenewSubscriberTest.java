@@ -29,7 +29,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import de.morihofi.certgine.utils.scheduler.TimedScheduler;
 
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -99,9 +98,8 @@ class ProvisionerRenewSubscriberTest {
         CryptoStoreManager mgr = new CryptoStoreManager(new PKCS12KeyStoreConfig(ksPath, "pw".toCharArray()));
         EventBus bus = new EventBus();
         IServerInstance si = new DummyServerInstance(mgr, bus);
-        TimedScheduler ts = new TimedScheduler();
         CertificateRenewScheduler renewManager =
-                new CertificateRenewScheduler(mgr, bus, ts, Clock.systemUTC());
+                new CertificateRenewScheduler(mgr, bus, Clock.systemUTC());
 
         ProvisionerRenewSubscriber watcher = new ProvisionerRenewSubscriber(si, renewManager);
         bus.register(watcher);

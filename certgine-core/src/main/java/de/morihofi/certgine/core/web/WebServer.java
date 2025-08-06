@@ -5,9 +5,6 @@
 
 package de.morihofi.certgine.core.web;
 
-import de.morihofi.certgine.revocation.crl.CrlScheduler;
-import de.morihofi.certgine.revocation.crl.CrlUpdateSubscriber;
-import de.morihofi.certgine.utils.scheduler.TimedScheduler;
 import de.morihofi.certgine.core.Main;
 import de.morihofi.certgine.acme.certificate.queue.CertificateIssuanceSubscriber;
 import de.morihofi.certgine.core.tools.certificate.renew.watcher.CertificateRenewScheduler;
@@ -25,7 +22,6 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
 
@@ -34,9 +30,6 @@ import java.util.List;
  */
 @Slf4j
 public class WebServer implements EventSubscriber {
-    /** Shared scheduler instance for timed tasks. */
-    private final TimedScheduler timedScheduler;
-
     /**
      * Instance of IServerInstance providing access to server-related configurations and utilities.
      */
@@ -55,8 +48,6 @@ public class WebServer implements EventSubscriber {
      */
     public WebServer(IServerInstance serverInstance) {
         this.serverInstance = serverInstance;
-        this.timedScheduler = new TimedScheduler();
-
         log.info("Registering WebServer event listener");
         serverInstance.getEventBus().register(this);
 
@@ -68,11 +59,7 @@ public class WebServer implements EventSubscriber {
         this.server = new Server(threadPool);
 
         CertificateRenewScheduler scheduler =
-                new CertificateRenewScheduler(
-                        serverInstance.getCryptoStoreManager(),
-                        serverInstance.getEventBus(),
-                        timedScheduler,
-                        Clock.systemUTC());
+                serverInstance.getModuleRegistry().getService(CertificateRenewScheduler.class);
         this.tlsManager = new TlsCertificateManager(serverInstance, server, scheduler);
         this.servletRegistrar = new ServletRegistrar(serverInstance, serverInstance.getModuleRegistry());
         serverInstance.getEventBus().register(tlsManager);
@@ -108,12 +95,6 @@ public class WebServer implements EventSubscriber {
 
         server.start();
 
-        log.info("Starting the CRL generation Scheduler");
-        CrlScheduler crlScheduler = new CrlScheduler(serverInstance, timedScheduler);
-        crlScheduler.startScheduler();
-        serverInstance.getEventBus().register(crlScheduler);
-        serverInstance.getEventBus().register(new CrlUpdateSubscriber(serverInstance));
-
         tlsManager.initialize();
 
         if (serverInstance.getStartupFlags().contains(StartupFlag.USE_ASYNC_CERTIFICATE_ISSUING)) {
@@ -141,7 +122,7 @@ public class WebServer implements EventSubscriber {
         if (event instanceof ServerShutdownEvent) {
             log.info("Received ServerShutdownEvent, shutting down WebServer...");
             server.stop();
-            timedScheduler.shutdown();
+            serverInstance.getModuleRegistry().shutdownScheduler();
         }
     }
 

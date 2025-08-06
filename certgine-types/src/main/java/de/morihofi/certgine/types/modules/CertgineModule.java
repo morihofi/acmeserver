@@ -8,6 +8,7 @@ package de.morihofi.certgine.types.modules;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import jakarta.servlet.http.HttpServlet;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -49,5 +50,18 @@ public interface CertgineModule {
      * @param serverInstance server instance object
      */
     default void onModuleInitialize(IServerInstance serverInstance){}
+
+    /**
+     * Scheduled tasks contributed by this module.
+     *
+     * <p>The returned map must contain cron expressions as keys and
+     * corresponding {@link ModuleScheduledTask} instances. Each task will be
+     * scheduled by the core runtime according to the provided cron expression.</p>
+     *
+     * @return immutable map of cron expression to scheduled task
+     */
+    default Map<String, ModuleScheduledTask> getScheduledTasks() {
+        return Map.of();
+    }
 }
 

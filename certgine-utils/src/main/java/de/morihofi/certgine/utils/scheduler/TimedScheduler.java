@@ -35,16 +35,21 @@ public class TimedScheduler {
      *
      * @param cronExpression cron expression following the UNIX format
      * @param task           runnable to execute
+     * @return handle for the scheduled task which can be used to cancel future executions
      */
-    public void schedule(String cronExpression, Runnable task) {
+    public ScheduledHandle schedule(String cronExpression, Runnable task) {
         Cron cron = parser.parse(cronExpression);
         cron.validate();
         ScheduledTask scheduled = new ScheduledTask(cron, task);
         tasks.add(scheduled);
         scheduleNextExecution(scheduled);
+        return scheduled;
     }
 
     private void scheduleNextExecution(ScheduledTask task) {
+        if (task.cancelled) {
+            return;
+        }
         ExecutionTime executionTime = ExecutionTime.forCron(task.cron());
         Optional<ZonedDateTime> next = executionTime.nextExecution(ZonedDateTime.now());
         if (next.isEmpty()) {
@@ -69,6 +74,34 @@ public class TimedScheduler {
         tasks.clear();
     }
 
-    private record ScheduledTask(Cron cron, Runnable task) {
+    /** Handle allowing cancellation of a scheduled task. */
+    public interface ScheduledHandle {
+        /** Cancel future executions of the task. */
+        void cancel();
+    }
+
+    private class ScheduledTask implements ScheduledHandle {
+        private final Cron cron;
+        private final Runnable task;
+        private volatile boolean cancelled = false;
+
+        ScheduledTask(Cron cron, Runnable task) {
+            this.cron = cron;
+            this.task = task;
+        }
+
+        Cron cron() {
+            return cron;
+        }
+
+        Runnable task() {
+            return task;
+        }
+
+        @Override
+        public void cancel() {
+            cancelled = true;
+            tasks.remove(this);
+        }
     }
 }
