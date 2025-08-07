@@ -49,5 +49,10 @@
             <artifactId>certgine-httpserver-intf</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>de.morihofi.certgine</groupId>
+            <artifactId>certgine-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
