@@ -10,23 +10,16 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.cryptography.pem.PemUtil;
-import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
-import de.morihofi.certgine.types.database.entities.authority.RootCa;
-import de.morihofi.certgine.types.events.EventBus;
-import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.core.util.DummyServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
-import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.types.runtime.BuildMetadata;
-import lombok.NonNull;
 import okhttp3.OkHttpClient;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.Security;
@@ -82,7 +75,10 @@ class HTTPChallengeTest {
         String expected = de.morihofi.certgine.cryptography.acme.AcmeTokenCryptography.keyAuthorizationFor(token, kp.getPublic());
         setHandler("/.well-known/acme-challenge/" + token, expected);
 
-        ChallengeResult result = HTTPChallenge.check(token, "localhost:" + port, account, new DummyServerInstance());
+        DummyServerInstance server = new DummyServerInstance();
+        server.networkClient = new DummyNetworkClient();
+        server.buildMetadata = BuildMetadata.builder().buildVersion("test").gitCommit("abc").build();
+        ChallengeResult result = HTTPChallenge.check(token, "localhost:" + port, account, server);
         assertTrue(result.successful());
     }
 
@@ -99,7 +95,10 @@ class HTTPChallengeTest {
 
         setHandler("/.well-known/acme-challenge/" + token, "wrong");
 
-        ChallengeResult result = HTTPChallenge.check(token, "localhost:" + port, account, new DummyServerInstance());
+        DummyServerInstance server = new DummyServerInstance();
+        server.networkClient = new DummyNetworkClient();
+        server.buildMetadata = BuildMetadata.builder().buildVersion("test").gitCommit("abc").build();
+        ChallengeResult result = HTTPChallenge.check(token, "localhost:" + port, account, server);
         assertFalse(result.successful());
         assertNotNull(result.errorReason());
     }
@@ -120,79 +119,6 @@ class HTTPChallengeTest {
         @Override
         public java.util.List<String> getDnsServer() {
             return Collections.emptyList();
-        }
-    }
-
-    static class DummyServerInstance implements IServerInstance {
-        private final INetworkClient net = new DummyNetworkClient();
-        private final BuildMetadata meta = BuildMetadata.builder().buildVersion("test").gitCommit("abc").build();
-
-        @NotNull
-        @NonNull
-        @Override
-        public String getServerURL() {
-            return "";
-        }
-
-        @NotNull
-        @NonNull
-        @Override
-        public org.hibernate.Session getDatabaseSession() {
-            return null;
-        }
-
-        @NotNull
-        @NonNull
-        @Override
-        public ICryptoStoreManager getCryptoStoreManager() {
-            return null;
-        }
-
-        @NotNull
-        @NonNull
-        @Override
-        public de.morihofi.certgine.types.config.Config getAppConfig() {
-            return null;
-        }
-
-        @NotNull
-        @NonNull
-        @Override
-        public RootCa getRootCa() {
-            return null;
-        }
-
-        @NotNull
-        @NonNull
-        @Override
-        public BuildMetadata getBuildMetadata() {
-            return meta;
-        }
-
-        @NotNull
-        @NonNull
-        @Override
-        public INetworkClient getNetworkClient() {
-            return net;
-        }
-
-        @NotNull
-        @NonNull
-        @Override
-        public EventBus getEventBus() {
-            return new EventBus();
-        }
-
-        @NotNull
-        @NonNull
-        @Override
-        public java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() {
-            return java.util.Collections.emptySet();
-        }
-
-        @Override
-        public @NonNull IModuleRegistry getModuleRegistry() {
-            return null;
         }
     }
 }

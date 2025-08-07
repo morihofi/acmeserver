@@ -18,15 +18,12 @@ import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.server.common.intf.Router;
 import de.morihofi.certgine.server.common.intf.testing.MockRequest;
 import de.morihofi.certgine.server.common.intf.testing.MockResponse;
-import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
-import de.morihofi.certgine.types.database.entities.authority.RootCa;
+import de.morihofi.certgine.core.util.DummyServerInstance;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUnauthorizedException;
 import de.morihofi.certgine.types.intf.IServerInstance;
-import de.morihofi.certgine.types.modules.IModuleRegistry;
 import de.morihofi.certgine.utils.base64.Base64Tools;
-import lombok.NonNull;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.ExtensionsGenerator;
@@ -227,55 +224,4 @@ class FinalizeOrderEndpointTest {
         assertTrue(resp.getBodyAsString().contains("finalize"));
     }
 
-    static class DummyServerInstance implements IServerInstance {
-        @Override
-        public @NonNull String getServerURL() {
-            return "";
-        }
-
-        @Override
-        public @NonNull Session getDatabaseSession() {
-            return null;
-        }
-
-        @Override
-        public @NonNull ICryptoStoreManager getCryptoStoreManager() {
-            return null;
-        }
-
-        @Override
-        public @NonNull de.morihofi.certgine.types.config.Config getAppConfig() {
-            return null;
-        }
-
-        @Override
-        public @NonNull RootCa getRootCa() {
-            return null;
-        }
-
-        @Override
-        public @NonNull de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() {
-            return null;
-        }
-
-        @Override
-        public @NonNull de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() {
-            return null;
-        }
-
-        @Override
-        public @NonNull EventBus getEventBus() {
-            return new EventBus();
-        }
-
-        @Override
-        public @NonNull java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() {
-            return java.util.Collections.emptySet();
-        }
-
-        @Override
-        public @NonNull IModuleRegistry getModuleRegistry() {
-            return null;
-        }
-    }
 }

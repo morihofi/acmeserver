@@ -9,12 +9,8 @@ import de.morihofi.certgine.acme.AcmeModule;
 import de.morihofi.certgine.acme.AcmeModuleInstance;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier;
-import de.morihofi.certgine.types.events.EventBus;
+import de.morihofi.certgine.core.util.DummyServerInstance;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;
-import de.morihofi.certgine.types.intf.IServerInstance;
-import de.morihofi.certgine.types.modules.IModuleRegistry;
-import lombok.NonNull;
-import org.hibernate.Session;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -83,55 +79,4 @@ class OrderInfoEndpointTest {
         }
     }
 
-    static class DummyServerInstance implements IServerInstance {
-        @Override
-        public @NonNull String getServerURL() {
-            return "";
-        }
-
-        @Override
-        public @NonNull Session getDatabaseSession() {
-            return null;
-        }
-
-        @Override
-        public @NonNull de.morihofi.certgine.types.cryptography.ICryptoStoreManager getCryptoStoreManager() {
-            return null;
-        }
-
-        @Override
-        public @NonNull de.morihofi.certgine.types.config.Config getAppConfig() {
-            return null;
-        }
-
-        @Override
-        public @NonNull de.morihofi.certgine.types.database.entities.authority.RootCa getRootCa() {
-            return null;
-        }
-
-        @Override
-        public @NonNull de.morihofi.certgine.types.runtime.BuildMetadata getBuildMetadata() {
-            return null;
-        }
-
-        @Override
-        public @NonNull de.morihofi.certgine.types.intf.network.INetworkClient getNetworkClient() {
-            return null;
-        }
-
-        @Override
-        public @NonNull EventBus getEventBus() {
-            return new EventBus();
-        }
-
-        @Override
-        public @NonNull java.util.Set<de.morihofi.certgine.types.server.StartupFlag> getStartupFlags() {
-            return java.util.Collections.emptySet();
-        }
-
-        @Override
-        public @NonNull IModuleRegistry getModuleRegistry() {
-            return null;
-        }
-    }
 }
