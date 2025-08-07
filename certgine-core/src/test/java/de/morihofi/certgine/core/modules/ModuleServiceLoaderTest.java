@@ -5,10 +5,9 @@
 
 package de.morihofi.certgine.core.modules;
 
-import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.core.util.DummyServerInstance;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -20,11 +19,12 @@ class ModuleServiceLoaderTest {
 
     @Test
     void loadModules_passesServerInstance() {
-        IServerInstance serverInstance = Mockito.mock(IServerInstance.class);
+        DummyServerInstance serverInstance = new DummyServerInstance();
         ModuleRegistry registry = ModuleServiceLoader.loadModules(Optional.of(serverInstance));
 
         assertTrue(registry.getModules().containsKey("serverAware"));
-        ServerAwareModule module = (ServerAwareModule) registry.getModules().get("serverAware").getModule();
+        ServerAwareModule module =
+                (ServerAwareModule) registry.getModules().get("serverAware").getModule();
         assertSame(serverInstance, module.getServerInstance());
     }
 }

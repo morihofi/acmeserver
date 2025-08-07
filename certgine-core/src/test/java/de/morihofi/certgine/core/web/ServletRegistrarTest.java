@@ -3,10 +3,9 @@ package de.morihofi.certgine.core.web;
 import de.morihofi.certgine.core.modules.DummyModule;
 import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.core.modules.ModuleWithInstance;
-import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.core.util.DummyServerInstance;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -24,7 +23,7 @@ class ServletRegistrarTest {
                 .module(new DummyModule())
                 .build());
 
-        ServletRegistrar registrar = new ServletRegistrar(Mockito.mock(IServerInstance.class), registry);
+        ServletRegistrar registrar = new ServletRegistrar(new DummyServerInstance(), registry);
         ServletContextHandler context = new ServletContextHandler();
         registrar.addBundledServlets(context);
 
@@ -43,7 +42,7 @@ class ServletRegistrarTest {
                 .build();
         registry.registerModule(info);
 
-        IServerInstance serverInstance = Mockito.mock(IServerInstance.class);
+        DummyServerInstance serverInstance = new DummyServerInstance();
         module.setServerInstance(serverInstance);
         info.setModuleInstance(module.getModuleInstance());
 
