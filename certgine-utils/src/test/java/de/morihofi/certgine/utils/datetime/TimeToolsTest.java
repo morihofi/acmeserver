@@ -13,7 +13,6 @@ import java.time.Instant;
 import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for {@link TimeTools} verifying correct timezone handling.
@@ -31,20 +30,6 @@ class TimeToolsTest {
     @AfterEach
     void tearDown() {
         TimeZone.setDefault(originalTz);
-    }
-
-    @Test
-    void formatInstantForAcmeAlwaysReturnsUtc() {
-        Instant instant = Instant.parse("2024-08-20T10:15:30Z");
-        String formatted = TimeTools.formatInstantForAcme(instant);
-        assertEquals("2024-08-20T10:15:30Z", formatted);
-        assertTrue(formatted.endsWith("Z"));
-    }
-
-    @Test
-    void testFormatInstantForAcme() {
-        Instant instant = Instant.parse("2021-03-15T10:15:30Z");
-        assertEquals("2021-03-15T10:15:30Z", TimeTools.formatInstantForAcme(instant));
     }
 
     @Test
@@ -109,17 +94,7 @@ class TimeToolsTest {
                 TimeTools.makeInstantForOutliveIntermediateCertificate(intermediate, proposedAfter));
     }
 
-    @Test
-    void testFormatInstantForAcmeAlwaysUtc() {
-        TimeZone original = TimeZone.getDefault();
-        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Tokyo"));
-        try {
-            Instant instant = Instant.parse("2021-03-15T10:15:30Z");
-            assertEquals("2021-03-15T10:15:30Z", TimeTools.formatInstantForAcme(instant));
-        } finally {
-            TimeZone.setDefault(original);
-        }
-    }
+
 
     @Test
     void testAddToInstantIgnoresDefaultTimeZone() {

@@ -24,17 +24,6 @@ public final class TimeTools {
     private static final ZoneId UTC = ZoneId.of("UTC");
 
     /**
-     * Formats an {@link Instant} as a string in the ACME date format.
-     *
-     * @param instant the {@link Instant} to be formatted
-     * @return a string representing the instant in ISO-8601 format with a trailing {@code Z}
-     */
-    @NonNull
-    public static String formatInstantForAcme(@NonNull Instant instant) {
-        return DateTimeFormatter.ISO_INSTANT.format(instant);
-    }
-
-    /**
      * Adds the specified number of years, months and days to the given instant.
      * Calculations are performed using {@link ZoneId#of(String)} with {@code UTC}.
      *

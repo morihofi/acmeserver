@@ -20,6 +20,7 @@ import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeOrderState;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.acme.types.events.AcmeCertificateIssuanceRequestedEvent;
+import de.morihofi.certgine.acme.util.AcmeTimeHelper;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.ACMEBadCsrException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEUnauthorizedException;
@@ -162,8 +163,8 @@ public class FinalizeOrderEndpoint extends AbstractAcmeEndpoint {
             }
         } else {
             response.setStatus(AcmeStatus.VALID.getRfcName());
-            response.setExpires(TimeTools.formatInstantForAcme(order.getCertificateExpires()));
-            response.setIssued(TimeTools.formatInstantForAcme(order.getCertificateIssued()));
+            response.setExpires(AcmeTimeHelper.formatInstantForAcme(order.getCertificateExpires()));
+            response.setIssued(AcmeTimeHelper.formatInstantForAcme(order.getCertificateIssued()));
         }
 
         return response;

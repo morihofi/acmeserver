@@ -16,6 +16,7 @@ import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifierChallenge;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.acme.util.AcmeTimeHelper;
 import de.morihofi.certgine.cryptography.randomness.RandomGenerator;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;
@@ -171,7 +172,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
 
         AuthzResponse response = new AuthzResponse();
         response.setStatus(identifier.getChallengeStatus().getRfcName());
-        response.setExpires(TimeTools.formatInstantForAcme(getAuthorizationExpiration(identifier)));
+        response.setExpires(AcmeTimeHelper.formatInstantForAcme(getAuthorizationExpiration(identifier)));
         response.setIdentifier(idObj);
         response.setChallenges(challengeResponses);
 
@@ -203,7 +204,7 @@ public class AuthzOwnershipEndpoint extends AbstractAcmeEndpoint {
         challengeResponse.setToken(identifierChallenge.getAuthorizationToken());
         if (identifierChallenge.getStatus() == AcmeStatus.VALID) {
             challengeResponse.setStatus(AcmeStatus.VALID.getRfcName());
-            challengeResponse.setValidated(TimeTools.formatInstantForAcme(identifierChallenge.getVerifiedTime()));
+            challengeResponse.setValidated(AcmeTimeHelper.formatInstantForAcme(identifierChallenge.getVerifiedTime()));
         } else {
             challengeResponse.setStatus(identifierChallenge.getStatus().getRfcName());
         }

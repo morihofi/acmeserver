@@ -19,6 +19,7 @@ import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.acme.types.events.AfterChallengeEvent;
 import de.morihofi.certgine.acme.types.events.BeforeChallengeEvent;
+import de.morihofi.certgine.acme.util.AcmeTimeHelper;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.ACMEConnectionErrorException;
 import de.morihofi.certgine.types.exception.exceptions.ACMEMalformedException;
@@ -131,7 +132,7 @@ public class ChallengeCallbackEndpoint extends AbstractAcmeEndpoint {
         response.setType(challengeType);
         if (identifierChallenge.getStatus() == AcmeStatus.VALID) {
             response.setStatus(AcmeStatus.VALID.getRfcName());
-            response.setValidated(TimeTools.formatInstantForAcme(identifierChallenge.getVerifiedTime()));
+            response.setValidated(AcmeTimeHelper.formatInstantForAcme(identifierChallenge.getVerifiedTime()));
         } else {
             response.setStatus(AcmeStatus.PENDING.getRfcName());
         }

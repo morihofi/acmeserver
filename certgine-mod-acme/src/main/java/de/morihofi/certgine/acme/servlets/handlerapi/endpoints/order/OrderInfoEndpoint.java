@@ -16,6 +16,7 @@ import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.acme.util.AcmeTimeHelper;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.ACMEResourceNotFoundException;
 import de.morihofi.certgine.types.modules.CertgineModuleInstance;
@@ -95,7 +96,7 @@ public class OrderInfoEndpoint extends AbstractAcmeEndpoint {
         }
 
         AcmeOrderResponse response = new AcmeOrderResponse();
-        response.setExpires(TimeTools.formatInstantForAcme(getOrderExpiration(order)));
+        response.setExpires(AcmeTimeHelper.formatInstantForAcme(getOrderExpiration(order)));
 
         if (order.getCertificatePem() != null) {
             response.setStatus(AcmeStatus.VALID.getRfcName());

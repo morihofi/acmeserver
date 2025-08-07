@@ -18,6 +18,7 @@ import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
 import de.morihofi.certgine.acme.types.events.NewAcmeOrderEvent;
+import de.morihofi.certgine.acme.util.AcmeTimeHelper;
 import de.morihofi.certgine.cryptography.randomness.RandomGenerator;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.ACMEAccountNotFoundException;
@@ -221,9 +222,9 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
         NewOrderResponse response = new NewOrderResponse();
         response.setStatus(AcmeStatus.PENDING.getRfcName());
-        response.setExpires(TimeTools.formatInstantForAcme(order.getExpires()));
-        response.setNotBefore(TimeTools.formatInstantForAcme(order.getNotBefore()));
-        response.setNotAfter(TimeTools.formatInstantForAcme(order.getNotAfter()));
+        response.setExpires(AcmeTimeHelper.formatInstantForAcme(order.getExpires()));
+        response.setNotBefore(AcmeTimeHelper.formatInstantForAcme(order.getNotBefore()));
+        response.setNotAfter(AcmeTimeHelper.formatInstantForAcme(order.getNotAfter()));
         response.setIdentifiers(respIdentifiers);
         response.setAuthorizations(respAuthorizations);
         response.setFinalize(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId + "/finalize");
