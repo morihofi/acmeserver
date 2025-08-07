@@ -35,6 +35,8 @@ public class CertificateRenewScheduler {
     private final ICryptoStoreManager cryptoStoreManager;
     private final Clock clock;
     private final Map<String, RenewEntry> renewMap = Collections.synchronizedMap(new HashMap<>());
+    private final TimedScheduler timedScheduler;
+    private final TimedScheduler.ScheduledHandle scheduleHandle;
 
     /**
      * Constructs a new scheduler instance.
@@ -47,6 +49,8 @@ public class CertificateRenewScheduler {
             Clock clock) {
         this.cryptoStoreManager = cryptoStoreManager;
         this.clock = clock;
+        this.timedScheduler = new TimedScheduler();
+        this.scheduleHandle = this.timedScheduler.schedule(DEFAULT_CRON, this::schedule);
     }
 
     /**
@@ -123,6 +127,48 @@ public class CertificateRenewScheduler {
         return daysUntilExpiry <= RENEWAL_THRESHOLD_DAYS;
     }
 
+    private X509Certificate fetchCertificate(String alias) throws Exception {
+        X509Certificate certificate = cryptoStoreManager.getCertificate(alias);
+        if (certificate == null) {
+            log.warn("Certificate for alias {} does not exist", alias);
+        }
+        return certificate;
+    }
+
+    private void performRenewal(String alias, RenewEntry renewEntry, X509Certificate certificate) throws Exception {
+        CertificateData newCertificateData =
+                renewEntry.renewFunction().apply(certificate, cryptoStoreManager.getKeyPairForAlias(alias));
+
+        if (newCertificateData.certificateChain() == null || newCertificateData.keyPair() == null) {
+            log.warn(
+                    "Certificate for alias {} hasn't saved, because returned certificate chain or keypair is null",
+                    alias);
+            return;
+        }
+
+        log.info("Saving certificate and key for alias {} in keystore", alias);
+        if (alias.startsWith(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA)) {
+            String id = alias.substring(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA.length());
+            cryptoStoreManager.addIntermediateCertificateAuthority(
+                    newCertificateData.certificateChain(), newCertificateData.keyPair(), id);
+        } else if (alias.startsWith(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA)) {
+            String id = alias.substring(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA.length());
+            cryptoStoreManager.addTimestampAuthority(
+                    newCertificateData.certificateChain(), newCertificateData.keyPair(), id);
+        } else {
+            cryptoStoreManager.addServerCertificate(
+                    newCertificateData.certificateChain(), newCertificateData.keyPair(), alias);
+        }
+        postRenewalActions(alias, renewEntry);
+    }
+
+    private void postRenewalActions(String alias, RenewEntry renewEntry) {
+        if (renewEntry.triggerAfterRegeneration != null) {
+            log.info("Running post configuration runnable for alias {}", alias);
+            renewEntry.triggerAfterRegeneration.run();
+        }
+    }
+
     /**
      * Checks if the certificate needs to be renewed based on the configured threshold. If renewal is needed, the provided runnable is
      * executed.
@@ -133,46 +179,18 @@ public class CertificateRenewScheduler {
             String alias = entry.getKey();
             RenewEntry renewEntry = entry.getValue();
 
-            BiFunctionWithException<X509Certificate, KeyPair, CertificateData> function = renewEntry.renewFunction();
-
             log.info("Checking if certificate for alias {} needs to be renewed", alias);
             try {
-                X509Certificate certificateFromKeyStore = cryptoStoreManager.getCertificate(alias);
-
-                if (certificateFromKeyStore == null) {
-                    log.warn("Certificate for alias {} does not exist", alias);
+                X509Certificate certificate = fetchCertificate(alias);
+                if (certificate == null) {
                     continue;
                 }
 
-                if (shouldRenew(certificateFromKeyStore)) {
+                if (shouldRenew(certificate)) {
                     log.info("Certificate for alias {} needs to be renewed, renewing now ...", alias);
-
-                    CertificateData newCertificateData =
-                            function.apply(certificateFromKeyStore, cryptoStoreManager.getKeyPairForAlias(alias));
-
-                    if (newCertificateData.certificateChain() == null || newCertificateData.keyPair() == null) {
-                        log.warn("Certificate for alias {} hasn't saved, because returned certificate chain or keypair is null", alias);
-                        continue;
-                    }
-
-                    log.info("Saving certificate and key for alias {} in keystore", alias);
-                    if (alias.startsWith(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA)) {
-                        String id = alias.substring(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA.length());
-                        cryptoStoreManager.addIntermediateCertificateAuthority(newCertificateData.certificateChain(), newCertificateData.keyPair(), id);
-                    } else if (alias.startsWith(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA)) {
-                        String id = alias.substring(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA.length());
-                        cryptoStoreManager.addTimestampAuthority(newCertificateData.certificateChain(), newCertificateData.keyPair(), id);
-                    } else {
-                        cryptoStoreManager.addServerCertificate(newCertificateData.certificateChain(), newCertificateData.keyPair(), alias);
-                    }
-                    if (renewEntry.triggerAfterRegeneration != null) {
-                        log.info("Running post configuration runnable");
-                        renewEntry.triggerAfterRegeneration.run();
-                    }
+                    performRenewal(alias, renewEntry, certificate);
                 } else {
-                    ZonedDateTime notAfter = certificateFromKeyStore.getNotAfter()
-                            .toInstant()
-                            .atZone(clock.getZone());
+                    ZonedDateTime notAfter = certificate.getNotAfter().toInstant().atZone(clock.getZone());
                     log.info(
                             "Certificate for alias {} doesn't need to be renewed -> NotAfter date {} is more than {} days in the future",
                             alias,
@@ -191,6 +209,8 @@ public class CertificateRenewScheduler {
     public void shutdown() {
         log.info("Certificate Renew Watcher is shutting down");
         renewMap.clear();
+        scheduleHandle.cancel();
+        timedScheduler.shutdown();
     }
 
     /**
