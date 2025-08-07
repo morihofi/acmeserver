@@ -20,8 +20,7 @@ import java.util.regex.Pattern;
 public class Router {
     private final Map<HandlerType, Map<String, Endpoint>> staticHandlers = new HashMap<>();
     private final Map<HandlerType, List<VariableEndpoint>> variableHandlers = new HashMap<>();
-    private final Map<String, Handler> beforeHandlers = new HashMap<>();
-    private final Map<String, Handler> afterHandlers = new HashMap<>();
+    private final MiddlewarePipeline pipeline = new MiddlewarePipeline();
 
     /**
      * Adds a new handler to the router.
@@ -77,12 +76,12 @@ public class Router {
      * @return The corresponding {@code Handler}, or {@code null} if no handler matches.
      */
     public Handler getHandler(String path, HandlerType method, HandlerContext context) throws Exception {
-        invokeHandlers(beforeHandlers, path, context);
+        pipeline.executeBefore(path, context);
 
         // Check for static path
         Endpoint staticEndpoint = staticHandlers.getOrDefault(method, Collections.emptyMap()).get(path);
         if (staticEndpoint != null) {
-            invokeHandlers(afterHandlers, path, context);
+            pipeline.executeAfter(path, context);
             return staticEndpoint.getHandler();
         }
 
@@ -91,47 +90,13 @@ public class Router {
         for (VariableEndpoint variableEndpoint : varEndpoints) {
             Map<String, String> pathVariables = variableEndpoint.match(path);
             if (pathVariables != null) {
-                invokeHandlers(afterHandlers, path, context);
+                pipeline.executeAfter(path, context);
                 return variableEndpoint.endpoint.getHandler();
             }
         }
 
-        invokeHandlers(afterHandlers, path, context);
+        pipeline.executeAfter(path, context);
         return null; // No matching handler
-    }
-
-    /**
-     * Invokes handlers matching the path from a map of prefix handlers.
-     *
-     * @param handlers The map of prefix to handlers.
-     * @param path     The request path.
-     */
-    private void invokeHandlers(Map<String, Handler> handlers, String path, HandlerContext context) throws Exception {
-
-        for (Map.Entry<String, Handler> handlerEntry : handlers.entrySet()) {
-            Handler handler = handlerEntry.getValue();
-            String prefix = handlerEntry.getKey();
-
-
-            if (matchesPrefix(prefix, path)) {
-                handler.handle(context); // Assuming `handle()` is the method to invoke the handler
-            }
-        }
-    }
-
-    /**
-     * Checks if a given path matches a prefix.
-     *
-     * @param prefix The prefix, which may include wildcards (e.g., "/api/*").
-     * @param path   The path to match.
-     * @return {@code true} if the path matches the prefix; otherwise, {@code false}.
-     */
-    private boolean matchesPrefix(String prefix, String path) {
-        if (prefix.endsWith("*")) {
-            String base = prefix.substring(0, prefix.length() - 1); // Remove '*'
-            return path.startsWith(base);
-        }
-        return path.equals(prefix);
     }
 
     /**
@@ -154,52 +119,8 @@ public class Router {
         return null; // Parameter not found
     }
 
-    /**
-     * Adds a beforeHandler for the given prefix.
-     *
-     * @param prefix  The prefix for which the beforeHandler applies.
-     * @param handler The beforeHandler to add.
-     */
-    public void addBeforeHandler(String prefix, Handler handler) {
-        beforeHandlers.put(normalizePrefix(prefix), handler);
-    }
-
-    /**
-     * Adds an afterHandler for the given prefix.
-     *
-     * @param prefix  The prefix for which the afterHandler applies.
-     * @param handler The afterHandler to add.
-     */
-    public void addAfterHandler(String prefix, Handler handler) {
-        afterHandlers.put(normalizePrefix(prefix), handler);
-    }
-
-    /**
-     * Removes a beforeHandler for the given prefix.
-     *
-     * @param prefix The prefix for which the beforeHandler applies.
-     */
-    public void removeBeforeHandler(String prefix) {
-        beforeHandlers.remove(normalizePrefix(prefix));
-    }
-
-    /**
-     * Removes an afterHandler for the given prefix.
-     *
-     * @param prefix The prefix for which the afterHandler applies.
-     */
-    public void removeAfterHandler(String prefix) {
-        afterHandlers.remove(normalizePrefix(prefix));
-    }
-
-    /**
-     * Normalizes a prefix by ensuring it does not end with a trailing slash.
-     *
-     * @param prefix The prefix to normalize.
-     * @return The normalized prefix.
-     */
-    private String normalizePrefix(String prefix) {
-        return prefix.endsWith("/") ? prefix.substring(0, prefix.length() - 1) : prefix;
+    public MiddlewarePipeline getPipeline() {
+        return pipeline;
     }
 
     /**

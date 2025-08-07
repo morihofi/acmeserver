@@ -56,8 +56,8 @@ class RouterTest {
     @DisplayName("before and after handlers")
     void testBeforeAfterHandlers() throws Exception {
         List<String> calls = new ArrayList<>();
-        router.addBeforeHandler("/api/*", c -> calls.add("before"));
-        router.addAfterHandler("/api/*", c -> calls.add("after"));
+        router.getPipeline().before("/api/*", c -> calls.add("before"));
+        router.getPipeline().after("/api/*", c -> calls.add("after"));
         router.addHandler(new Endpoint(HandlerType.GET, "/api/data", handler));
         HandlerContext ctx = dummyContext("/api/data");
         Handler got = router.getHandler("/api/data", "GET", ctx);
