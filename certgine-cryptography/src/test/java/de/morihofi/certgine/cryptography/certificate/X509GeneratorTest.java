@@ -10,16 +10,12 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Method;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class X509GeneratorTest {
 
-    private X500Name invokeToX500(CertificateMetadata meta) throws Exception {
-        Method m = X509Generator.class.getDeclaredMethod("toX500", CertificateMetadata.class, String.class);
-        m.setAccessible(true);
-        return (X500Name) m.invoke(null, meta, "error");
+    private X500Name invokeToX500(CertificateMetadata meta) {
+        return CertificateGeneratorHelper.toX500(meta, "error");
     }
 
     @Test
