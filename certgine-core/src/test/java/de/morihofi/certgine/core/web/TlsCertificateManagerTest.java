@@ -6,6 +6,7 @@ import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
+import de.morihofi.certgine.cryptography.keystore.Pkcs12KeyStoreLoader;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.ServerConfig;
 import de.morihofi.certgine.types.cryptography.CryptoStoreManagerConstants;
@@ -84,7 +85,8 @@ class TlsCertificateManagerTest {
     void schedulerInitialized() throws Exception {
         FileSystem fs = Jimfs.newFileSystem();
         Path ksPath = fs.getPath("store.p12");
-        CryptoStoreManager csm = new CryptoStoreManager(new PKCS12KeyStoreConfig(ksPath, "pw".toCharArray()));
+        PKCS12KeyStoreConfig cfg = new PKCS12KeyStoreConfig(ksPath, "pw".toCharArray());
+        CryptoStoreManager csm = new CryptoStoreManager(cfg, new Pkcs12KeyStoreLoader(cfg));
         RootCa root = createRootCa(csm);
         DummyServer server = createServer(csm, root);
         Server jetty = new Server();
@@ -101,7 +103,8 @@ class TlsCertificateManagerTest {
     void setupTlsWorks() throws Exception {
         FileSystem fs = Jimfs.newFileSystem();
         Path ksPath = fs.getPath("store.p12");
-        CryptoStoreManager csm = new CryptoStoreManager(new PKCS12KeyStoreConfig(ksPath, "pw".toCharArray()));
+        PKCS12KeyStoreConfig cfg2 = new PKCS12KeyStoreConfig(ksPath, "pw".toCharArray());
+        CryptoStoreManager csm = new CryptoStoreManager(cfg2, new Pkcs12KeyStoreLoader(cfg2));
         RootCa root = createRootCa(csm);
         DummyServer server = createServer(csm, root);
         Server jetty = new Server();

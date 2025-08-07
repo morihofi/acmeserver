@@ -9,6 +9,7 @@ import com.google.common.jimfs.Jimfs;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
+import de.morihofi.certgine.cryptography.keystore.Pkcs12KeyStoreLoader;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.ServerConfig;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
@@ -49,7 +50,8 @@ class JettyCertificateHelperTest {
     void testGenerateAcmeApiClientCertificate() throws Exception {
         FileSystem fs = Jimfs.newFileSystem();
         Path ksPath = fs.getPath("store.p12");
-        CryptoStoreManager csm = new CryptoStoreManager(new PKCS12KeyStoreConfig(ksPath, "pw".toCharArray()));
+        PKCS12KeyStoreConfig ksCfg = new PKCS12KeyStoreConfig(ksPath, "pw".toCharArray());
+        CryptoStoreManager csm = new CryptoStoreManager(ksCfg, new Pkcs12KeyStoreLoader(ksCfg));
 
         CertificateMetadata meta = CertificateMetadata.builder()
                 .commonName("root")

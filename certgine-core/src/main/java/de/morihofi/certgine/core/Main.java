@@ -15,6 +15,8 @@ import de.morihofi.certgine.core.web.JettySslHelper;
 import de.morihofi.certgine.core.web.WebServer;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
+import de.morihofi.certgine.cryptography.keystore.Pkcs11KeyStoreLoader;
+import de.morihofi.certgine.cryptography.keystore.Pkcs12KeyStoreLoader;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS11KeyStoreConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.certgine.core.helper.cert.CaInitHelper;
@@ -204,15 +206,19 @@ public class Main {
         log.info("Initializing keystore ...");
 
         CryptoStoreManager cryptoStoreManager = switch (config.getKeyStore()) {
-            case PKCS11KeyStoreParams p11 -> new CryptoStoreManager(new PKCS11KeyStoreConfig(
-                    Paths.get(p11.getLibraryLocation()),
-                    p11.getSlot(),
-                    p11.getPassword()
-            ));
-            case PKCS12KeyStoreParams p12 -> new CryptoStoreManager(new PKCS12KeyStoreConfig(
-                    Paths.get(p12.getLocation()),
-                    p12.getPassword()
-            ));
+            case PKCS11KeyStoreParams p11 -> {
+                PKCS11KeyStoreConfig cfg = new PKCS11KeyStoreConfig(
+                        Paths.get(p11.getLibraryLocation()),
+                        p11.getSlot(),
+                        p11.getPassword());
+                yield new CryptoStoreManager(cfg, new Pkcs11KeyStoreLoader(cfg));
+            }
+            case PKCS12KeyStoreParams p12 -> {
+                PKCS12KeyStoreConfig cfg = new PKCS12KeyStoreConfig(
+                        Paths.get(p12.getLocation()),
+                        p12.getPassword());
+                yield new CryptoStoreManager(cfg, new Pkcs12KeyStoreLoader(cfg));
+            }
             default -> throw new IllegalArgumentException("Unsupported keystore");
         };
 

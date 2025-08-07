@@ -38,7 +38,7 @@ class CryptoStoreManagerTest {
         try (FileSystem fs = Jimfs.newFileSystem()) {
             Path path = fs.getPath("test.p12");
             PKCS12KeyStoreConfig cfg = new PKCS12KeyStoreConfig(path, "pw".toCharArray());
-            CryptoStoreManager mgr = new CryptoStoreManager(cfg);
+            CryptoStoreManager mgr = new CryptoStoreManager(cfg, new Pkcs12KeyStoreLoader(cfg));
             var field = CryptoStoreManager.class.getDeclaredField("keyStore");
             field.setAccessible(true);
             assertNotNull(field.get(mgr));
@@ -53,7 +53,7 @@ class CryptoStoreManagerTest {
         try (FileSystem fs = Jimfs.newFileSystem()) {
             Path path = fs.getPath("test2.p12");
             PKCS12KeyStoreConfig cfg = new PKCS12KeyStoreConfig(path, "pw".toCharArray());
-            CryptoStoreManager mgr = new CryptoStoreManager(cfg);
+            CryptoStoreManager mgr = new CryptoStoreManager(cfg, new Pkcs12KeyStoreLoader(cfg));
             RootCa rc = new RootCa();
             rc.setInternalUuid("root");
 

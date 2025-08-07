@@ -7,6 +7,7 @@ package de.morihofi.certgine.core.helper.cert;
 
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
+import de.morihofi.certgine.cryptography.keystore.Pkcs12KeyStoreLoader;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
@@ -51,7 +52,8 @@ class CaInitHelperTest {
         HibernateUtil hu = new HibernateUtil(cfg, true, bus, entities);
 
         Path ks = Files.createTempDirectory("ks").resolve("store.p12");
-        CryptoStoreManager mgr = new CryptoStoreManager(new PKCS12KeyStoreConfig(ks, "pw".toCharArray()));
+        PKCS12KeyStoreConfig ksCfg = new PKCS12KeyStoreConfig(ks, "pw".toCharArray());
+        CryptoStoreManager mgr = new CryptoStoreManager(ksCfg, new Pkcs12KeyStoreLoader(ksCfg));
 
         RootCa first = CaInitHelper.initializeCA(hu, mgr, bus);
         RootCa second = CaInitHelper.initializeCA(hu, mgr, bus);

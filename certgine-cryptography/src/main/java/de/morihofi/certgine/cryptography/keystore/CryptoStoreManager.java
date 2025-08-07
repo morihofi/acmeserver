@@ -8,7 +8,6 @@ package de.morihofi.certgine.cryptography.keystore;
 import de.morihofi.certgine.types.cryptography.CryptoStoreManagerConstants;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.cryptography.keystore.IKeyStoreConfig;
-import de.morihofi.certgine.types.cryptography.keystore.PKCS11KeyStoreConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -21,7 +20,6 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
@@ -54,7 +52,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     private final KeyStore keyStore;
 
     /**
-     * Constructs a CryptoStoreManager with the specified key store configuration.
+     * Constructs a CryptoStoreManager with the specified key store configuration and loader.
      *
      * @param keyStoreConfig The key store configuration to use.
      * @throws CertificateException      If there is an issue with certificates.
@@ -68,51 +66,35 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * @throws NoSuchMethodException     If a required method is not found.
      * @throws NoSuchProviderException   If a cryptographic provider is not found.
      */
-    public CryptoStoreManager(@NonNull IKeyStoreConfig keyStoreConfig) throws CertificateException, IOException, NoSuchAlgorithmException,
-            KeyStoreException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException,
+    public CryptoStoreManager(@NonNull IKeyStoreConfig keyStoreConfig,
+                               @NonNull KeyStoreLoader keyStoreLoader) throws CertificateException, IOException,
+            NoSuchAlgorithmException, KeyStoreException, ClassNotFoundException,
+            InvocationTargetException, InstantiationException, IllegalAccessException,
             NoSuchMethodException, NoSuchProviderException {
         this.keyStoreConfig = keyStoreConfig;
-
-        switch (keyStoreConfig) {
-            case PKCS11KeyStoreConfig pkcs11Config -> {
-                String libraryLocation = pkcs11Config.getLibraryPath().toAbsolutePath().toString();
-                log.info("Using PKCS#11 KeyStore with native library at {} with slot {}", libraryLocation, pkcs11Config.getSlot());
-                this.keyStorePassword = pkcs11Config.getPassword().clone();
-
-                keyStore = PKCS11KeyStoreLoader.loadPKCS11Keystore(
-                        keyStorePassword,
-                        pkcs11Config.getSlot(),
-                        libraryLocation
-                );
-            }
-            case PKCS12KeyStoreConfig pkcs12Config -> {
-                log.info("Using PKCS#12 KeyStore at {}", pkcs12Config.getPath().toAbsolutePath().toString());
-                this.keyStorePassword = pkcs12Config.getPassword().clone();
-
-                keyStore = KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
-                if (Files.exists(pkcs12Config.getPath())) {
-                    log.info("KeyStore does exist, loading existing into memory");
-                    try (InputStream is = Files.newInputStream(pkcs12Config.getPath())) {
-                        keyStore.load(is, keyStorePassword);
-                    }
-                } else {
-                    log.info("KeyStore does not exist, creating new KeyStore");
-                    keyStore.load(null, keyStorePassword);
-                }
-            }
-            default ->
-                    throw new IllegalArgumentException("Unsupported key store config type: " + keyStoreConfig.getClass());
-        }
-
-        // we cannot wipe the password here, because we won't be able to save it later
-
+        this.keyStorePassword = KeyStoreUtils.clonePassword(keyStoreConfig.getPassword());
+        this.keyStore = keyStoreLoader.load();
     }
 
-    private static boolean isAllZero(char[] array) {
-        for (char c : array) {          // fast & allocation-free
-            if (c != '\0') return false;
-        }
-        return true;
+    /**
+     * Convenience constructor creating the appropriate loader based on the configuration.
+     *
+     * @param keyStoreConfig keystore configuration
+     */
+    public CryptoStoreManager(@NonNull IKeyStoreConfig keyStoreConfig) throws CertificateException,
+            IOException, NoSuchAlgorithmException, KeyStoreException, ClassNotFoundException,
+            InvocationTargetException, InstantiationException, IllegalAccessException,
+            NoSuchMethodException, NoSuchProviderException {
+        this(keyStoreConfig, createLoader(keyStoreConfig));
+    }
+
+    private static KeyStoreLoader createLoader(IKeyStoreConfig config) {
+        return switch (config) {
+            case PKCS12KeyStoreConfig pkcs12 -> new Pkcs12KeyStoreLoader(pkcs12);
+            case de.morihofi.certgine.types.cryptography.keystore.PKCS11KeyStoreConfig pkcs11 ->
+                    new Pkcs11KeyStoreLoader(pkcs11);
+            default -> throw new IllegalArgumentException("Unsupported key store config type: " + config.getClass());
+        };
     }
 
     /**
@@ -125,7 +107,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      */
     @NonNull
     public String getKeyStoreAliasForTimestampAuthority(@NonNull String uuid) {
-        return CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA + uuid;
+        return KeyStoreUtils.getKeyStoreAliasForTimestampAuthority(uuid);
     }
 
     /**
@@ -185,7 +167,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
      * @throws NoSuchAlgorithmException If a required cryptographic algorithm is not available.
      */
     public void saveKeystore() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
-        if (isAllZero(keyStorePassword)) {
+        if (KeyStoreUtils.isAllZero(keyStorePassword)) {
             throw new IllegalStateException("KeyStore password is empty. Cannot save keystore without a password.");
         }
 
@@ -352,7 +334,7 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     @Override
     @NonNull
     public String getKeyStoreAliasForProvisionerIntermediate(@NonNull String uuid) {
-        return CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid;
+        return KeyStoreUtils.getKeyStoreAliasForProvisionerIntermediate(uuid);
     }
 
 }
