@@ -22,4 +22,5 @@ open module certgine.cryptography {
     exports de.morihofi.certgine.cryptography.pem;
     exports de.morihofi.certgine.cryptography.randomness;
     exports de.morihofi.certgine.cryptography.crl;
+    exports de.morihofi.certgine.cryptography.hashing;
 }

@@ -15,7 +15,7 @@ import de.morihofi.certgine.core.util.DummyServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
 import de.morihofi.certgine.types.intf.network.dns.IDoHClient;
 import de.morihofi.certgine.utils.base64.Base64Tools;
-import de.morihofi.certgine.utils.crypto.Hashing;
+import de.morihofi.certgine.cryptography.hashing.Hashing;
 import de.morihofi.certgine.utils.network.dns.DNSLookup;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;

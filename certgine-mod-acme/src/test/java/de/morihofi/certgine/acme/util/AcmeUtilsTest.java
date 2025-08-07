@@ -1,4 +1,4 @@
-package de.morihofi.certgine.utils.crypto;
+package de.morihofi.certgine.acme.util;
 
 import org.junit.jupiter.api.Test;
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.utils.crypto;
+package de.morihofi.certgine.cryptography.hashing;
 
 
 import de.morihofi.certgine.utils.conversion.HexConverter;

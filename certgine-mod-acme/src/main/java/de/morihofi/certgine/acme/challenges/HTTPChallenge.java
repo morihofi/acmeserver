@@ -9,7 +9,7 @@ import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.cryptography.acme.AcmeTokenCryptography;
 import de.morihofi.certgine.cryptography.pem.PemUtil;
 import de.morihofi.certgine.types.intf.IServerInstance;
-import de.morihofi.certgine.utils.crypto.AcmeUtils;
+import de.morihofi.certgine.acme.util.AcmeUtils;
 import de.morihofi.certgine.utils.regex.IpValidator;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

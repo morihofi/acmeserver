@@ -8,6 +8,7 @@ module certgine.utils {
     exports de.morihofi.certgine.utils.network.dns;
     exports de.morihofi.certgine.utils.regex;
     exports de.morihofi.certgine.utils.javaversion;
+    exports de.morihofi.certgine.utils.conversion;
 
     requires certgine.types;
     requires okhttp3;

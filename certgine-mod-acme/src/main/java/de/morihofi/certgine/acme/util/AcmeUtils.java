@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package de.morihofi.certgine.utils.crypto;
+package de.morihofi.certgine.acme.util;
 
 /*
  * acme4j - Java ACME client
