@@ -10,7 +10,9 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 /**
  * Helper class for retrieving application directory and JAR file path. This class provides methods to obtain the application's directory
@@ -22,27 +24,33 @@ public class AppDirectoryHelper {
     /**
      * Gets the application directory where the application is located.
      *
-     * @return The application directory as a string, or null if an error occurs.
+     * @param targetClass a class from the application to resolve its location
+     * @return an {@link Optional} containing the application directory path, or {@link Optional#empty()} if it cannot be
+     *         resolved
      */
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-    public static String getAppDirectory(Class<?> targetClass) {
+    public static Optional<Path> getAppDirectory(Class<?> targetClass) {
         try {
-            return Paths.get(targetClass.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent().toString();
-        } catch (URISyntaxException e) {
-            return null;
+            return Optional.ofNullable(Paths
+                    .get(targetClass.getProtectionDomain().getCodeSource().getLocation().toURI())
+                    .getParent());
+        } catch (URISyntaxException | NullPointerException e) {
+            return Optional.empty();
         }
     }
 
     /**
      * Gets the file path to the application's JAR file.
      *
-     * @return The JAR file path as a string, or null if an error occurs.
+     * @param targetClass a class from the application to resolve its location
+     * @return an {@link Optional} containing the JAR file path, or {@link Optional#empty()} if it cannot be resolved
      */
-    public static String getAppJarFilePath(Class<?> targetClass) {
+    public static Optional<Path> getAppJarFilePath(Class<?> targetClass) {
         try {
-            return Paths.get(targetClass.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
-        } catch (URISyntaxException e) {
-            return null;
+            return Optional.of(Paths
+                    .get(targetClass.getProtectionDomain().getCodeSource().getLocation().toURI()));
+        } catch (URISyntaxException | NullPointerException e) {
+            return Optional.empty();
         }
     }
 }

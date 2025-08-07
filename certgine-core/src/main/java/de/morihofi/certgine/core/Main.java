@@ -70,8 +70,8 @@ public class Main {
         if (envDir != null && !envDir.isBlank()) {
             FILES_DIR = Paths.get(envDir).toAbsolutePath();
         } else {
-            FILES_DIR = Paths
-                    .get(Objects.requireNonNull(AppDirectoryHelper.getAppDirectory(MethodHandles.lookup().lookupClass())))
+            FILES_DIR = AppDirectoryHelper.getAppDirectory(MethodHandles.lookup().lookupClass())
+                    .orElseThrow(() -> new IllegalStateException("Could not determine application directory"))
                     .resolve("serverdata").toAbsolutePath();
         }
     }
