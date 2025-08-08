@@ -18,7 +18,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 /**
  * Generates code signing certificates.
  */
-public class CodeSigningGenerator implements CertificateGenerator {
+public class CodeSigningGenerator implements ICertificateGenerator {
 
     @Override
     public X509Certificate generate(X509Generator.Request req)

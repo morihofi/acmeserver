@@ -15,7 +15,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 /**
  * Generates TLS server certificates.
  */
-public class ServerCertGenerator implements CertificateGenerator {
+public class ServerCertGenerator implements ICertificateGenerator {
 
     @Override
     public X509Certificate generate(X509Generator.Request req)

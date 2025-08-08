@@ -18,7 +18,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 /**
  * Generates timestamp authority certificates.
  */
-public class TimestampAuthorityGenerator implements CertificateGenerator {
+public class TimestampAuthorityGenerator implements ICertificateGenerator {
 
     @Override
     public X509Certificate generate(X509Generator.Request req)

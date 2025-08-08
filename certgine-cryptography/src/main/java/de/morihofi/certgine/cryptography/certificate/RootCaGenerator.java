@@ -17,7 +17,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 /**
  * Generates self-signed root CA certificates.
  */
-public class RootCaGenerator implements CertificateGenerator {
+public class RootCaGenerator implements ICertificateGenerator {
 
     @Override
     public X509Certificate generate(X509Generator.Request req)

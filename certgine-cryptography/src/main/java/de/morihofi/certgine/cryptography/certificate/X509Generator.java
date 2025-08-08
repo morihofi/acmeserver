@@ -27,7 +27,7 @@ import org.bouncycastle.operator.OperatorCreationException;
  */
 public class X509Generator {
 
-    private static final Map<Type, CertificateGenerator> GENERATORS = Map.of(
+    private static final Map<Type, ICertificateGenerator> GENERATORS = Map.of(
             Type.ROOT_CA, new RootCaGenerator(),
             Type.INTERMEDIATE_CA, new IntermediateCaGenerator(),
             Type.SERVER, new ServerCertGenerator(),
@@ -39,7 +39,7 @@ public class X509Generator {
      */
     public static X509Certificate generate(@NonNull Request req)
             throws CertificateException, OperatorCreationException, CertIOException {
-        CertificateGenerator generator = GENERATORS.get(req.getType());
+        ICertificateGenerator generator = GENERATORS.get(req.getType());
         if (generator == null) {
             throw new IllegalArgumentException("Unsupported certificate type: " + req.getType());
         }

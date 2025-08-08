@@ -8,7 +8,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 /**
  * Generates an {@link X509Certificate} based on the given request.
  */
-public interface CertificateGenerator {
+public interface ICertificateGenerator {
     /**
      * Creates a certificate using the provided request parameters.
      *

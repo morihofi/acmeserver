@@ -1,6 +1,5 @@
 package de.morihofi.certgine.cryptography.certificate;
 
-import de.morihofi.certgine.cryptography.certificate.CertificateGeneratorHelper;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
@@ -16,7 +15,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 /**
  * Generates intermediate CA certificates.
  */
-public class IntermediateCaGenerator implements CertificateGenerator {
+public class IntermediateCaGenerator implements ICertificateGenerator {
 
     @Override
     public X509Certificate generate(X509Generator.Request req)
