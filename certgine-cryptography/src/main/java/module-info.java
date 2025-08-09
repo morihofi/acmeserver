@@ -1,8 +1,12 @@
 /*
  * SPDX-FileCopyrightText: 2023-2025 Moritz Hofmann <info@morihofi.de>
  * SPDX-License-Identifier: MIT
- */
+*/
 
+/**
+ * Provides cryptographic utilities such as key handling, hashing and
+ * certificate generation for the certgine project.
+ */
 open module certgine.cryptography {
     requires org.bouncycastle.pkix;
     requires org.bouncycastle.provider;

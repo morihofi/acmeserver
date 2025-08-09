@@ -11,6 +11,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.ECGenParameterSpec;
 
+/**
+ * Utility class for creating public/private key pairs.
+ * <p>
+ * Supports generation of RSA and ECDSA key pairs using the specified
+ * security provider.
+ * </p>
+ */
 public class KeyPairGenerator {
 
     /**

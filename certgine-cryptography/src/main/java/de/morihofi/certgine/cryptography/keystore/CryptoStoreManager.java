@@ -180,11 +180,25 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     }
 
     @Override
+    /**
+     * Retrieves the certificate of the specified intermediate certificate authority.
+     *
+     * @param uuid the internal UUID of the intermediate CA
+     * @return the corresponding {@link X509Certificate}
+     * @throws KeyStoreException if the certificate cannot be accessed
+     */
     public X509Certificate getIntermediateCertificate(@NonNull String uuid) throws KeyStoreException {
         return (X509Certificate) keyStore.getCertificate(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid);
     }
 
     @Override
+    /**
+     * Returns the full certificate chain for the intermediate certificate authority.
+     *
+     * @param internalUuid the UUID of the intermediate CA
+     * @return the full certificate chain, starting with the intermediate certificate
+     * @throws KeyStoreException if the chain cannot be retrieved
+     */
     public X509Certificate[] getFullIntermediateCertificateChain(String internalUuid) throws KeyStoreException {
         return Stream.of(keyStore.getCertificateChain(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + internalUuid))
                 .filter(c -> c instanceof X509Certificate)
@@ -193,11 +207,23 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     }
 
     @Override
+    /**
+     * Returns the name of the underlying {@link KeyStore} provider.
+     *
+     * @return provider name
+     */
     public String getKeyStoreProviderName() {
         return keyStore.getProvider().getName();
     }
 
     @Override
+    /**
+     * Creates an {@link SSLContext} initialized with the certificate and key for the given server.
+     *
+     * @param uuid internal UUID identifying the server certificate
+     * @return initialized SSL context
+     * @throws IOException if the context cannot be created
+     */
     public SSLContext getSslContextForServer(String uuid) throws IOException {
         try {
             KeyPair keyPair = getServerKeyPair(uuid);
@@ -263,67 +289,168 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     }
 
     @Override
+    /**
+     * Retrieves the certificate for the timestamp authority with the given identifier.
+     *
+     * @param internalUuid internal UUID of the timestamp authority
+     * @return the timestamp authority certificate
+     * @throws KeyStoreException if the certificate cannot be accessed
+     */
     public X509Certificate getTimestampAuthorityCertificate(String internalUuid) throws KeyStoreException {
         return (X509Certificate) keyStore.getCertificate(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA + internalUuid);
     }
 
     @Override
+    /**
+     * Retrieves the key pair associated with the specified timestamp authority.
+     *
+     * @param internalUuid internal UUID of the timestamp authority
+     * @return the corresponding {@link KeyPair}
+     * @throws UnrecoverableKeyException if the key cannot be recovered
+     * @throws KeyStoreException         if the keystore cannot be accessed
+     * @throws NoSuchAlgorithmException  if the key algorithm is unsupported
+     */
     public KeyPair getTimestampAuthorityKeyPair(String internalUuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA + internalUuid, keyStore);
     }
 
     @Override
+    /**
+     * Adds or replaces the certificate and key pair for a server.
+     *
+     * @param x509CertificateChain certificate chain for the server
+     * @param keyPair              key pair belonging to the server
+     * @param uuid                 internal UUID of the server
+     * @throws KeyStoreException        if the keystore cannot be written
+     * @throws CertificateException     if certificate handling fails
+     * @throws IOException              if saving the keystore fails
+     * @throws NoSuchAlgorithmException if required algorithms are unavailable
+     */
     public void addServerCertificate(X509Certificate[] x509CertificateChain, KeyPair keyPair, String uuid) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         keyStore.setKeyEntry(uuid, keyPair.getPrivate(), "".toCharArray(), x509CertificateChain);
         saveKeystore();
     }
 
     @Override
+    /**
+     * Checks if the keystore contains the specified alias.
+     *
+     * @param alias alias to look up
+     * @return {@code true} if the alias exists
+     * @throws KeyStoreException if the keystore cannot be queried
+     */
     public boolean containsAlias(@NonNull String alias) throws KeyStoreException {
         return keyStore.containsAlias(alias);
     }
 
     @Override
+    /**
+     * Retrieves the certificate for the given alias.
+     *
+     * @param alias alias of the certificate
+     * @return the corresponding {@link X509Certificate}
+     * @throws KeyStoreException if the certificate cannot be accessed
+     */
     public X509Certificate getCertificate(@NonNull String alias) throws KeyStoreException {
         return (X509Certificate) keyStore.getCertificate(alias);
     }
 
     @Override
+    /**
+     * Retrieves the key pair associated with the given alias.
+     *
+     * @param alias alias of the key pair
+     * @return the corresponding {@link KeyPair}
+     * @throws UnrecoverableKeyException if the key cannot be recovered
+     * @throws KeyStoreException         if the keystore cannot be accessed
+     * @throws NoSuchAlgorithmException  if the key algorithm is unsupported
+     */
     public KeyPair getKeyPairForAlias(@NonNull String alias) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(alias, keyStore);
     }
 
     @Override
+    /**
+     * Checks whether the given root CA already exists in the keystore.
+     *
+     * @param rootCa root CA entity
+     * @return {@code true} if the CA exists
+     * @throws KeyStoreException if the keystore cannot be queried
+     */
     public boolean containsCertificateAuthority(@NonNull RootCa rootCa) throws KeyStoreException {
         return keyStore.containsAlias(rootCa.getInternalUuid());
     }
 
     @Override
+    /**
+     * Checks if the keystore contains an intermediate CA certificate for the given UUID.
+     *
+     * @param uuid internal UUID of the intermediate CA
+     * @return {@code true} if present
+     * @throws KeyStoreException if the keystore cannot be queried
+     */
     public boolean containsIntermediateCaCertificate(@NonNull String uuid) throws KeyStoreException {
         return keyStore.containsAlias(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_INTERMEDIATECA + uuid);
     }
 
     @Override
+    /**
+     * Determines whether a timestamp authority certificate with the given UUID exists.
+     *
+     * @param uuid internal UUID of the timestamp authority
+     * @return {@code true} if present
+     * @throws KeyStoreException if the keystore cannot be queried
+     */
     public boolean containsTimestampAuthorityCertificate(@NonNull String uuid) throws KeyStoreException {
         return keyStore.containsAlias(CryptoStoreManagerConstants.KEYSTORE_ALIASPREFIX_TSA + uuid);
     }
 
     @Override
+    /**
+     * Checks whether a server certificate with the given UUID exists in the keystore.
+     *
+     * @param uuid internal UUID of the server
+     * @return {@code true} if the certificate exists
+     * @throws KeyStoreException if the keystore cannot be queried
+     */
     public boolean containsServerCertificate(@NonNull String uuid) throws KeyStoreException {
         return keyStore.containsAlias(uuid);
     }
 
     @Override
+    /**
+     * Retrieves the server certificate for the given UUID.
+     *
+     * @param uuid internal UUID of the server
+     * @return the server certificate
+     * @throws KeyStoreException if the certificate cannot be accessed
+     */
     public X509Certificate getServerCertificate(@NonNull String uuid) throws KeyStoreException {
         return (X509Certificate) keyStore.getCertificate(uuid);
     }
 
     @Override
+    /**
+     * Retrieves the key pair associated with the specified server.
+     *
+     * @param uuid internal UUID of the server
+     * @return the server's {@link KeyPair}
+     * @throws UnrecoverableKeyException if the key cannot be recovered
+     * @throws KeyStoreException         if the keystore cannot be accessed
+     * @throws NoSuchAlgorithmException  if the key algorithm is unsupported
+     */
     public KeyPair getServerKeyPair(@NonNull String uuid) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         return KeyStoreUtil.getKeyPair(uuid, keyStore);
     }
 
     @Override
+    /**
+     * Retrieves the entire certificate chain for the specified server.
+     *
+     * @param uuid internal UUID of the server
+     * @return array containing the certificate chain
+     * @throws KeyStoreException if the chain cannot be retrieved
+     */
     public X509Certificate[] getFullServerCertificateChain(@NonNull String uuid) throws KeyStoreException {
         return Stream.of(keyStore.getCertificateChain(uuid))
                 .filter(c -> c instanceof X509Certificate)
@@ -332,6 +459,12 @@ public class CryptoStoreManager implements ICryptoStoreManager {
     }
 
     @Override
+    /**
+     * Constructs the alias for a provisioner intermediate certificate based on its UUID.
+     *
+     * @param uuid internal UUID of the provisioner intermediate CA
+     * @return the keystore alias for the provisioner intermediate certificate
+     */
     @NonNull
     public String getKeyStoreAliasForProvisionerIntermediate(@NonNull String uuid) {
         return KeyStoreUtils.getKeyStoreAliasForProvisionerIntermediate(uuid);

@@ -43,6 +43,21 @@ public class Pkcs11KeyStoreLoader implements KeyStoreLoader {
     }
 
     @Override
+    /**
+     * Loads the configured PKCS#11 backed {@link KeyStore} instance.
+     *
+     * @return an initialized {@link KeyStore}
+     * @throws CertificateException      if certificate parsing fails
+     * @throws IOException               if an I/O error occurs
+     * @throws NoSuchAlgorithmException  if a required algorithm is unavailable
+     * @throws KeyStoreException         if the keystore type is unsupported
+     * @throws ClassNotFoundException    if required classes are missing
+     * @throws InvocationTargetException if reflection calls fail
+     * @throws InstantiationException    if providers cannot be instantiated
+     * @throws IllegalAccessException    if access is denied during reflection
+     * @throws NoSuchMethodException     if a required method is absent
+     * @throws NoSuchProviderException   if the requested provider is not found
+     */
     public KeyStore load() throws CertificateException, IOException, NoSuchAlgorithmException,
             KeyStoreException, ClassNotFoundException, InvocationTargetException,
             InstantiationException, IllegalAccessException, NoSuchMethodException,

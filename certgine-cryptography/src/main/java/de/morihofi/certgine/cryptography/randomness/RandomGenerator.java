@@ -12,6 +12,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
+/**
+ * Utility class for producing cryptographically strong random numbers.
+ * <p>
+ * Provides helpers to generate identifiers backed by {@link SecureRandom}.
+ * </p>
+ */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RandomGenerator {

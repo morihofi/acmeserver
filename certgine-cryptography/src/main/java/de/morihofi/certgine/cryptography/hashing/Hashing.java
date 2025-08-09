@@ -16,6 +16,13 @@ import java.security.NoSuchAlgorithmException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+/**
+ * Helper methods for computing cryptographic hashes.
+ * <p>
+ * Provides convenience methods for calculating SHA-256 digests from
+ * strings.
+ * </p>
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Hashing {
 

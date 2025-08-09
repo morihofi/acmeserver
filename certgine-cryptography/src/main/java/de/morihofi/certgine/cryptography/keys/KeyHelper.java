@@ -9,6 +9,13 @@ import lombok.NonNull;
 
 import java.security.PrivateKey;
 
+/**
+ * Utility methods for working with {@link java.security.Key} objects.
+ * <p>
+ * Currently this class exposes helpers for mapping a {@link PrivateKey}
+ * implementation to the corresponding signature algorithm.
+ * </p>
+ */
 public class KeyHelper {
     /**
      * Determines the appropriate signature algorithm based on the type of the provided private key.

@@ -50,10 +50,15 @@ public class X509Generator {
      * Describes the certificate flavour that should be produced.
      */
     public enum Type {
+        /** Root certificate authority. */
         ROOT_CA,
+        /** Intermediate certificate authority. */
         INTERMEDIATE_CA,
+        /** Server certificate. */
         SERVER,
+        /** Timestamp authority certificate. */
         TIMESTAMPING,
+        /** Code signing certificate. */
         CODE_SIGNING
     }
 
