@@ -49,7 +49,7 @@ public class CertificateRenewScheduler {
             Clock clock) {
         this.cryptoStoreManager = cryptoStoreManager;
         this.clock = clock;
-        this.timedScheduler = new TimedScheduler();
+        this.timedScheduler = new TimedScheduler(Clock.systemDefaultZone());
         this.scheduleHandle = this.timedScheduler.schedule(DEFAULT_CRON, this::schedule);
     }
 

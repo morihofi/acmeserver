@@ -12,7 +12,9 @@ import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.concurrent.*;
@@ -26,12 +28,13 @@ public class TimedScheduler {
     private final ScheduledExecutorService executor;
     private final CopyOnWriteArrayList<ScheduledHandle> tasks = new CopyOnWriteArrayList<>();
     private final CronParser parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX));
+    private final Clock clock;
 
     /**
      * Creates a scheduler using a single-threaded executor.
      */
     public TimedScheduler() {
-        this(Executors.newSingleThreadScheduledExecutor());
+        this(Executors.newSingleThreadScheduledExecutor(), Clock.systemDefaultZone());
     }
 
     /**
@@ -40,7 +43,27 @@ public class TimedScheduler {
      * @param executor executor used to schedule tasks
      */
     public TimedScheduler(ScheduledExecutorService executor) {
+        this(executor, Clock.systemDefaultZone());
+    }
+
+    /**
+     * Creates a scheduler using the provided executor and clock.
+     *
+     * @param executor executor used to schedule tasks
+     * @param clock    clock providing the current time
+     */
+    public TimedScheduler(ScheduledExecutorService executor, Clock clock) {
         this.executor = executor;
+        this.clock = clock;
+    }
+
+    /**
+     * Creates a scheduler using a single-threaded executor and the provided clock.
+     *
+     * @param clock clock providing the current time
+     */
+    public TimedScheduler(Clock clock) {
+        this(Executors.newSingleThreadScheduledExecutor(), clock);
     }
 
     /**
@@ -64,13 +87,14 @@ public class TimedScheduler {
             return;
         }
         ExecutionTime executionTime = ExecutionTime.forCron(task.cron());
-        ZonedDateTime now = ZonedDateTime.now();
+        Instant instant = clock.instant();
+        ZonedDateTime now = ZonedDateTime.ofInstant(instant, clock.getZone());
         Optional<ZonedDateTime> next = executionTime.nextExecution(now);
         if (next.isEmpty()) {
             log.warn("Cron expression {} does not yield future execution", task.cron().asString());
             return;
         }
-        Duration delay = Duration.between(now, next.get());
+        Duration delay = Duration.between(instant, next.get().toInstant());
         ScheduledFuture<?> future = executor.schedule(() -> {
             try {
                 task.task().run();

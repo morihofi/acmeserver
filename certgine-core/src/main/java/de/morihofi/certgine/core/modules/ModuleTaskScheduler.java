@@ -7,6 +7,7 @@ package de.morihofi.certgine.core.modules;
 
 import de.morihofi.certgine.types.modules.ModuleScheduledTask;
 import de.morihofi.certgine.utils.scheduler.TimedScheduler;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +39,7 @@ public class ModuleTaskScheduler {
      * @param executor executor used for scheduling module tasks
      */
     public ModuleTaskScheduler(@NonNull ScheduledExecutorService executor) {
-        this.timedScheduler = new TimedScheduler(executor);
+        this.timedScheduler = new TimedScheduler(executor, Clock.systemDefaultZone());
     }
 
     /**
