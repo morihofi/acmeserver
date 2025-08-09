@@ -9,9 +9,19 @@ import lombok.NonNull;
 
 import java.math.BigInteger;
 
+/**
+ * Utility class providing helper methods for converting numeric and byte data to
+ * hexadecimal string representations.
+ */
 public class HexConverter {
 
 
+    /**
+     * Converts the supplied {@link BigInteger} into its hexadecimal string representation.
+     *
+     * @param input the {@link BigInteger} value to convert
+     * @return the hexadecimal string representation of {@code input}
+     */
     @NonNull
     public static String bigIntegerAsHexString(@NonNull BigInteger input) {
         return input.toString(32);

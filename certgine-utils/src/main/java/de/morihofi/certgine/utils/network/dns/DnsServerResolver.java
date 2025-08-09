@@ -22,6 +22,14 @@ public class DnsServerResolver implements ResolverStrategy {
 
     private final List<String> dnsServers;
 
+    /**
+     * Resolves the specified host name using the provided DNS record type against the configured DNS servers.
+     *
+     * @param host       the domain name to look up, such as {@code "example.com"}
+     * @param recordType the DNS record type constant (for example {@link org.xbill.DNS.Type#A} or
+     *                   {@link org.xbill.DNS.Type#AAAA}) that defines which addresses should be retrieved
+     * @return a list of IP addresses returned by the DNS servers; the list will be empty if no records are found
+     */
     @Override
     public List<InetAddress> resolve(String host, int recordType) {
         List<InetAddress> addresses = new ArrayList<>();

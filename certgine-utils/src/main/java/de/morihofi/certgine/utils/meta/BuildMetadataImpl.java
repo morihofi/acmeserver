@@ -16,6 +16,13 @@ import java.lang.invoke.MethodHandles;
 import java.util.Properties;
 import java.util.function.Consumer;
 
+/**
+ * Reads build and Git property resources to expose runtime metadata such as the
+ * build version and source control information.
+ *
+ * <p>The loaded values are used to populate a {@link BuildMetadata} instance
+ * that describes the build at runtime.</p>
+ */
 @Slf4j
 @Getter
 public class BuildMetadataImpl {
