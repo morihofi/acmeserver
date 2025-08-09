@@ -19,20 +19,38 @@ import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
+/**
+ * Schedules periodic generation of Certificate Revocation Lists (CRLs) for all
+ * provisioners and reacts to provisioner lifecycle events to update CRLs on
+ * demand.
+ */
 public class CrlScheduler implements EventSubscriber {
 
     /**
      * Update interval in minutes used for scheduled CRL generation.
      */
     public static final int UPDATE_MINUTES = 720; // 12 hours
+    /**
+     * Cron expression used for scheduling CRL generation.
+     */
     public static final String CRON_EXPRESSION = "0 */12 * * *";
 
     private final IServerInstance serverInstance;
 
+    /**
+     * Creates a new scheduler using the provided server instance.
+     *
+     * @param serverInstance the server instance used to access data and
+     *                       services required for CRL generation
+     */
     public CrlScheduler(@NonNull IServerInstance serverInstance) {
         this.serverInstance = serverInstance;
     }
 
+    /**
+     * Generates CRLs for all provisioners immediately. This method is typically
+     * invoked on a schedule determined by {@link #CRON_EXPRESSION}.
+     */
     public void schedule() {
         log.info("CRL Generation Scheduler is running");
 
@@ -45,11 +63,21 @@ public class CrlScheduler implements EventSubscriber {
         log.info("CRL Scheduler finished execution");
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return classes of events this subscriber can process
+     */
     @Override
     public List<Class<? extends AbstractEvent>> canHandle() {
         return Arrays.asList(ProvisionerCreatedEvent.class, ProvisionerDeletedEvent.class);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param event the event to process
+     */
     @Override
     public void onEvent(AbstractEvent event) {
         if (event instanceof ProvisionerCreatedEvent created) {

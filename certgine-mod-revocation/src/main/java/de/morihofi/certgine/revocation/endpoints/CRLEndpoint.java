@@ -15,6 +15,11 @@ import lombok.NonNull;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+/**
+ * HTTP endpoint that serves the current Certificate Revocation List (CRL) for a
+ * given provisioner. The CRL is retrieved from the {@link CrlStore} and written
+ * to the HTTP response.
+ */
 public class CRLEndpoint implements Handler {
 
     private final IServerInstance serverInstance;

@@ -25,14 +25,27 @@ import java.time.LocalTime;
 import java.util.*;
 
 @Slf4j
+/**
+ * Manages cached Certificate Revocation Lists (CRLs) for all provisioners.
+ * The store allows CRLs to be generated, cached, and retrieved for serving to
+ * clients and for certificate status checks.
+ */
 public class CrlStore {
 
+    /**
+     * Cache of generated CRLs keyed by provisioner name.
+     */
     public static final Map<String, CrlEntry> entryMap = Collections.synchronizedMap(new HashMap<>());
 
     /**
-     * Updates the cache of the Certificate Revocation List (CRL). This method retrieves the list of revoked certificates from the database,
-     * generates a new CRL based on the retrieved data, and updates the current CRL cache. It also logs the time of the last update and
-     * handles any exceptions that occur during the process.
+     * Updates the cache of the Certificate Revocation List (CRL) for the given
+     * provisioner. The revoked certificates are retrieved from the database and a
+     * new CRL is generated and stored.
+     *
+     * @param updateMinutes the validity period of the generated CRL in minutes
+     * @param provisioner   the provisioner for which the CRL should be updated
+     * @param serverInstance the current server instance providing access to the
+     *                      cryptographic material
      */
 
     public static void updateCachedCRL(int updateMinutes, @NonNull AcmeProvisioner provisioner, @NonNull IServerInstance serverInstance) {
@@ -59,6 +72,15 @@ public class CrlStore {
         }
     }
 
+    /**
+     * Retrieves the cached CRL entry for the specified provisioner.
+     *
+     * @param provisionerName the name of the provisioner whose CRL should be
+     *                        returned
+     * @return the cached CRL entry for the provisioner
+     * @throws IllegalArgumentException if no CRL is available for the
+     *                                  provisioner
+     */
     @NonNull
     public static CrlEntry getCrlForProvisioner(@NonNull String provisionerName) {
         if (!entryMap.containsKey(provisionerName)) {
@@ -104,6 +126,12 @@ public class CrlStore {
         return certStatus;
     }
 
+    /**
+     * Represents a cached CRL along with the time it was last generated.
+     *
+     * @param lastUpdate the time the CRL was generated
+     * @param currentCrl the current CRL for the provisioner
+     */
     public record CrlEntry(LocalTime lastUpdate, X509CRL currentCrl) {
         /**
          * Converts a given X509CRL object to its byte array representation. This method is useful for encoding the CRL for storage or
