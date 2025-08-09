@@ -17,6 +17,7 @@ import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.acme.types.entities.enums.AcmeStatus;
+import de.morihofi.certgine.acme.types.events.AcmePendingOrderEvent;
 import de.morihofi.certgine.acme.types.events.NewAcmeOrderEvent;
 import de.morihofi.certgine.acme.util.AcmeTimeHelper;
 import de.morihofi.certgine.cryptography.randomness.RandomGenerator;
@@ -25,6 +26,7 @@ import de.morihofi.certgine.types.exception.exceptions.ACMEAccountNotFoundExcept
 import de.morihofi.certgine.types.exception.exceptions.ACMEInvalidContactException;
 import de.morihofi.certgine.types.exception.exceptions.ACMERejectedIdentifierException;
 import de.morihofi.certgine.types.modules.CertgineModuleInstance;
+import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.utils.conversion.HexConverter;
 import de.morihofi.certgine.utils.datetime.TimeTools;
 import de.morihofi.certgine.utils.regex.DomainValidator;
@@ -83,108 +85,137 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
      * @throws Exception If an error occurs while handling the request.
      */
     @Override
-    public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson, @NonNull ACMERequestBody acmeRequestBody) throws Exception {
+    public void handleRequest(@NonNull HandlerContext ctx, @NonNull AcmeProvisioner provisioner, @NonNull Gson gson,
+                              @NonNull ACMERequestBody acmeRequestBody) throws Exception {
+        IServerInstance serverInstance = getModuleInstance().getModule().getServerInstance();
         String accountId = SignatureCheck.getAccountIdFromProtectedKID(acmeRequestBody.getDecodedProtected());
-        AcmeAccount account = AcmeAccount.getAccount(accountId, getModuleInstance().getModule().getServerInstance());
+        AcmeAccount account = AcmeAccount.getAccount(accountId, serverInstance);
 
-        // Check if account exists
         if (account == null) {
             log.error("Throwing API error: Account {} not found", accountId);
             throw new ACMEAccountNotFoundException("The account id was not found");
         }
 
         log.info("Account {} wants to create a new order", accountId);
-        // Check signature and nonce
         performSignatureAndNonceCheck(ctx, accountId, acmeRequestBody);
 
-        // Convert payload into object
-        NewOrderRequestPayload newOrderRequestPayload = gson.fromJson(acmeRequestBody.getDecodedPayload(), NewOrderRequestPayload.class);
-
-        List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> AcmeOrderIdentifiers = new ArrayList<>();
-
-        for (AcmeOrderIdentifier identifier : newOrderRequestPayload.getIdentifiers()) {
-            String type = identifier.getType();
-            String value = identifier.getValue();
-
-            AcmeOrderIdentifiers.add(new de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier(type, value));
-        }
-
-        // Create order in Database
-        String orderId = UUID.randomUUID().toString();
+        NewOrderRequestPayload newOrderRequestPayload =
+                gson.fromJson(acmeRequestBody.getDecodedPayload(), NewOrderRequestPayload.class);
 
         if (account.getEmails().isEmpty()) {
             throw new ACMEInvalidContactException(
                     "This account doesn't have any E-Mail addresses. Please set at least one E-Mail address and try again.");
         }
 
-        List<de.morihofi.certgine.acme.types.api.dns.AcmeOrderIdentifier> respIdentifiers = new ArrayList<>();
-        List<String> respAuthorizations = new ArrayList<>();
+        String orderId = UUID.randomUUID().toString();
+        IdentifierProcessingResult identifierResult =
+                processIdentifiers(newOrderRequestPayload.getIdentifiers(), provisioner, serverInstance);
 
-        List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> AcmeOrderIdentifiersWithAuthorizationData = new ArrayList<>();
-
-        // Unique certificate id per order
         String certificateId = HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId());
+        Instant startInstant = clock.instant();
+        Instant endInstant = calculateEndInstant(newOrderRequestPayload, provisioner, startInstant);
 
-        for (de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier identifier : AcmeOrderIdentifiers) {
-            // Unique value for each domain
+        AcmeOrder order = persistOrder(orderId, certificateId, account,
+                identifierResult.getEntityIdentifiers(), startInstant, endInstant, serverInstance);
+
+        serverInstance.getEventBus().publish(new AcmePendingOrderEvent(account, order));
+
+        NewOrderResponse response = buildNewOrderResponse(provisioner, serverInstance, order,
+                identifierResult.getResponseIdentifiers(), identifierResult.getAuthorizations());
+
+        ctx.status(HttpURLConnection.HTTP_CREATED);
+        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(serverInstance));
+        ctx.header("Content-Type", "application/json");
+        ctx.header("Location", provisioner.getAcmeApiURL(serverInstance) + "/acme/order/" + orderId);
+
+        ctx.json(response);
+    }
+    
+    /**
+     * Validates the provided identifiers and prepares authorization data for persistence and response.
+     *
+     * @param requestIdentifiers identifiers received in the order request
+     * @param provisioner       current provisioner
+     * @param serverInstance    server instance for URL construction
+     * @return processed identifiers containing entity and response information
+     * @throws ACMERejectedIdentifierException if any identifier is not acceptable
+     */
+    private IdentifierProcessingResult processIdentifiers(List<AcmeOrderIdentifier> requestIdentifiers,
+                                                          AcmeProvisioner provisioner,
+                                                          IServerInstance serverInstance) throws ACMERejectedIdentifierException {
+        List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> entities = new ArrayList<>();
+        List<AcmeOrderIdentifier> responseIdentifiers = new ArrayList<>();
+        List<String> authorizations = new ArrayList<>();
+
+        for (AcmeOrderIdentifier identifier : requestIdentifiers) {
+            de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier entity =
+                    new de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier(identifier.getType(), identifier.getValue());
             String authorizationId = HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId());
 
-            // Only IP and DNS
-            if (!(identifier.getType().equals("dns") || identifier.getType().equals("ip"))) {
-                log.error("Throwing API error: Unknown or not allowed identifier type {} for value {}", identifier.getType(),
-                        identifier.getDataValue());
+            if (!(entity.getType().equals("dns") || entity.getType().equals("ip"))) {
+                log.error("Throwing API error: Unknown or not allowed identifier type {} for value {}", entity.getType(),
+                        entity.getDataValue());
                 throw new ACMERejectedIdentifierException(
-                        "Unknown identifier type \"" + identifier.getType() + "\" for value \"" + identifier.getDataValue() + "\"");
+                        "Unknown identifier type \"" + entity.getType() + "\" for value \"" + entity.getDataValue() + "\"");
             }
 
-            // Check DNS if type is DNS
-            if (identifier.getType().equals("dns")) {
-                if (!DomainValidator.isValidDomain(identifier.getDataValue(), provisioner.isWildcardAllowed())) {
+            if (entity.getType().equals("dns")) {
+                if (!DomainValidator.isValidDomain(entity.getDataValue(), provisioner.isWildcardAllowed())) {
                     throw new ACMERejectedIdentifierException(
-                            "DNS-Identifier \"" + identifier.getDataValue() + "\" is invalid. (Wildcard allowed in provisioner: "
-                                    + provisioner.isWildcardAllowed() + ")" +
-                                    (IpValidator.isIpAddress(identifier.getDataValue())
-                                            ? " It looks like you put an IP Address into a DNS Identifier. Please use an "
-                                            + "\"ip\"-identifier instead, if enabled in current provisioner."
+                            "DNS-Identifier \"" + entity.getDataValue() + "\" is invalid. (Wildcard allowed in provisioner:" +
+                                    provisioner.isWildcardAllowed() + ")" +
+                                    (IpValidator.isIpAddress(entity.getDataValue())
+                                            ? " It looks like you put an IP Address into a DNS Identifier. Please use an " +
+                                            "\"ip\"-identifier instead, if enabled in current provisioner."
                                             : ""));
                 }
-
-                if (!checkIfDomainIsAllowed(identifier.getDataValue(), provisioner)) {
-                    throw new ACMERejectedIdentifierException("Domain identifier \"" + identifier.getDataValue() + "\" is not allowed");
+                if (!checkIfDomainIsAllowed(entity.getDataValue(), provisioner)) {
+                    throw new ACMERejectedIdentifierException("Domain identifier \"" + entity.getDataValue() + "\" is not allowed");
                 }
             }
 
-            // Check IP if type is IP
-            if (identifier.getType().equals("ip")) {
-                if (!provisioner.isIpAllowed()) { // IP Address issuing is not allowed
+            if (entity.getType().equals("ip")) {
+                if (!provisioner.isIpAllowed()) {
                     throw new ACMERejectedIdentifierException("Issuing for IP Addresses has been disabled for this provisioner");
                 }
-                if (!IpValidator.isIpAddress(identifier.getDataValue())) { // Not an IP Address
-                    throw new ACMERejectedIdentifierException("IP-Identifier \"" + identifier.getDataValue() + "\" is invalid");
+                if (!IpValidator.isIpAddress(entity.getDataValue())) {
+                    throw new ACMERejectedIdentifierException("IP-Identifier \"" + entity.getDataValue() + "\" is invalid");
                 }
             }
 
-            identifier.setAuthorizationId(authorizationId);
+            entity.setAuthorizationId(authorizationId);
 
-            AcmeOrderIdentifier identifierObj = new AcmeOrderIdentifier();
-            identifierObj.setType(identifier.getType());
-            identifierObj.setValue(identifier.getDataValue());
-            respIdentifiers.add(identifierObj);
+            AcmeOrderIdentifier respId = new AcmeOrderIdentifier();
+            respId.setType(entity.getType());
+            respId.setValue(entity.getDataValue());
 
-            AcmeOrderIdentifiersWithAuthorizationData.add(identifier);
-
-            respAuthorizations.add(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/authz/" + authorizationId);
+            entities.add(entity);
+            responseIdentifiers.add(respId);
+            authorizations.add(provisioner.getAcmeApiURL(serverInstance) + "/acme/authz/" + authorizationId);
         }
 
-        AcmeOrder order;
+        return new IdentifierProcessingResult(entities, responseIdentifiers, authorizations);
+    }
 
-        try (Session session = getModuleInstance().getModule().getServerInstance().getDatabaseSession()) {
+    /**
+     * Persists the ACME order and its identifiers in the database.
+     *
+     * @param orderId      unique order identifier
+     * @param certificateId unique certificate id
+     * @param account      owning account
+     * @param identifiers  prepared identifiers to persist
+     * @param startInstant start time of the order
+     * @param endInstant   expiration time of the order
+     * @param serverInstance server instance providing database access
+     * @return persisted {@link AcmeOrder}
+     */
+    private AcmeOrder persistOrder(String orderId, String certificateId, AcmeAccount account,
+                                   List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> identifiers,
+                                   Instant startInstant, Instant endInstant, IServerInstance serverInstance) {
+        AcmeOrder order;
+        try (Session session = serverInstance.getDatabaseSession()) {
             Transaction transaction = session.beginTransaction();
 
-            Instant startInstant = clock.instant(); // Starts now
-            Instant endInstant = calculateEndInstant(newOrderRequestPayload, provisioner, startInstant);
-
-            // Create order
             order = new AcmeOrder();
             order.setOrderId(orderId);
             order.setAccount(account);
@@ -197,29 +228,38 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
 
             log.info("Created new order {}", orderId);
 
-            // Create order identifiers
-            for (de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier identifier : AcmeOrderIdentifiersWithAuthorizationData) {
+            for (de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier identifier : identifiers) {
                 identifier.setIdentifierId(HexConverter.bigIntegerAsHexString(RandomGenerator.generateRandomId()));
                 identifier.setOrder(order);
-                identifier.setAuthorizationId(identifier.getAuthorizationId());
-
                 session.persist(identifier);
 
                 log.info("Added identifier {} of type {} to order {} (authorizationId: {})",
                         identifier.getDataValue(),
                         identifier.getType(),
                         orderId,
-                        identifier.getAuthorizationId()
-                );
+                        identifier.getAuthorizationId());
             }
 
             transaction.commit();
-            getModuleInstance().getModule().getServerInstance().getEventBus().publish(new NewAcmeOrderEvent(order));
+            serverInstance.getEventBus().publish(new NewAcmeOrderEvent(order));
         }
+        return order;
+    }
 
-        // FIXME Send E-Mail/Notification if order was created
-
-
+    /**
+     * Builds the response object for a newly created order.
+     *
+     * @param provisioner       current provisioner
+     * @param serverInstance    server instance for URL construction
+     * @param order             persisted order
+     * @param respIdentifiers   identifiers to include in response
+     * @param respAuthorizations authorization URLs
+     * @return prepared {@link NewOrderResponse}
+     */
+    private NewOrderResponse buildNewOrderResponse(AcmeProvisioner provisioner, IServerInstance serverInstance,
+                                                   AcmeOrder order,
+                                                   List<AcmeOrderIdentifier> respIdentifiers,
+                                                   List<String> respAuthorizations) {
         NewOrderResponse response = new NewOrderResponse();
         response.setStatus(AcmeStatus.PENDING.getRfcName());
         response.setExpires(AcmeTimeHelper.formatInstantForAcme(order.getExpires()));
@@ -227,14 +267,35 @@ public class NewOrderEndpoint extends AbstractAcmeEndpoint {
         response.setNotAfter(AcmeTimeHelper.formatInstantForAcme(order.getNotAfter()));
         response.setIdentifiers(respIdentifiers);
         response.setAuthorizations(respAuthorizations);
-        response.setFinalize(provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId + "/finalize");
+        response.setFinalize(provisioner.getAcmeApiURL(serverInstance) + "/acme/order/" + order.getOrderId() + "/finalize");
+        return response;
+    }
 
-        ctx.status(HttpURLConnection.HTTP_CREATED);
-        ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(getModuleInstance().getModule().getServerInstance()));
-        ctx.header("Content-Type", "application/json");
-        ctx.header("Location", provisioner.getAcmeApiURL(getModuleInstance().getModule().getServerInstance()) + "/acme/order/" + orderId);
+    static class IdentifierProcessingResult {
+        private final List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> entityIdentifiers;
+        private final List<AcmeOrderIdentifier> responseIdentifiers;
+        private final List<String> authorizations;
 
-        ctx.json(response);
+        IdentifierProcessingResult(
+                List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> entityIdentifiers,
+                List<AcmeOrderIdentifier> responseIdentifiers,
+                List<String> authorizations) {
+            this.entityIdentifiers = entityIdentifiers;
+            this.responseIdentifiers = responseIdentifiers;
+            this.authorizations = authorizations;
+        }
+
+        List<de.morihofi.certgine.acme.types.entities.AcmeOrderIdentifier> getEntityIdentifiers() {
+            return entityIdentifiers;
+        }
+
+        List<AcmeOrderIdentifier> getResponseIdentifiers() {
+            return responseIdentifiers;
+        }
+
+        List<String> getAuthorizations() {
+            return authorizations;
+        }
     }
 
     /**
