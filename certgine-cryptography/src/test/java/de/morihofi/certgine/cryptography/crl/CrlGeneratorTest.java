@@ -7,6 +7,7 @@ package de.morihofi.certgine.cryptography.crl;
 
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
+import de.morihofi.certgine.types.cryptography.revoke.RevocationReason;
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
@@ -60,7 +61,8 @@ class CrlGeneratorTest {
                         .ownKeyPair(kp)
                         .build());
 
-        RevokedCertificate rc = new RevokedCertificate(BigInteger.ONE, clock.instant(), 0);
+        RevokedCertificate rc = new RevokedCertificate(BigInteger.ONE, clock.instant(),
+                RevocationReason.UNSPECIFIED);
 
         X509CRL crl = CrlGenerator.generate(
                 CrlGenerator.Request.builder()

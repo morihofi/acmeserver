@@ -7,8 +7,8 @@ package de.morihofi.certgine.acme.types.entities;
 
 
 import de.morihofi.certgine.acme.types.entities.enums.AcmeOrderState;
+import de.morihofi.certgine.revocation.RevocationStore;
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
-import de.morihofi.certgine.types.exception.exceptions.ACMEServerInternalException;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
@@ -22,9 +22,6 @@ import org.hibernate.query.Query;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -115,16 +112,6 @@ public class AcmeOrder implements Serializable {
      */
     @Column(name = "certificateSerialNumber", precision = 50)
     private BigInteger certificateSerialNumber;
-    /**
-     * Revokation status of the certificate. Defaults to null if not revoked
-     */
-    @Column(name = "revokeStatusCode")
-    private Integer revokeStatusCode;
-    /**
-     * Revokation timestamp of the certificate. Defaults to null if not revoked
-     */
-    @Column(name = "revokeTimestamp", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private Instant revokeTimestamp;
 
     /**
      * Retrieves an ACME (Automated Certificate Management Environment) identifier by its associated certificate serial number.
@@ -187,122 +174,15 @@ public class AcmeOrder implements Serializable {
     }
 
     /**
-     * Retrieves a list of revoked certificates from the database. Revoked certificates are identified by having both a revoke status code
-     * and a revoke timestamp in their associated ACME identifiers.
-     *
-     * @param provisionerName Provisioner to get revoked certificates for.
-     * @param serverInstance  The server instance for database connection.
-     * @return A list of {@link RevokedCertificate} objects representing the revoked certificates.
-     */
-    public static List<RevokedCertificate> getRevokedCertificates(String provisionerName, IServerInstance serverInstance) {
-        List<RevokedCertificate> certificates = new ArrayList<>();
-
-        try (Session session = serverInstance.getDatabaseSession()) {
-            Transaction transaction = session.beginTransaction();
-
-            // Certificates are revoked when they have a statusCode and a timestamp
-            Query<AcmeOrder> query = session.createQuery(
-                    "FROM AcmeOrder a WHERE revokeStatusCode IS NOT NULL AND revokeTimestamp IS NOT NULL "
-                            + "AND a.account.acmeProvisioner.name = :provisionerName",
-                    AcmeOrder.class);
-            query.setParameter("provisionerName", provisionerName);
-            List<AcmeOrder> result = query.getResultList();
-
-            if (!result.isEmpty()) {
-                DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC"));
-                for (AcmeOrder revokedIdentifier : result) {
-                    certificates.add(new RevokedCertificate(
-                            revokedIdentifier.getCertificateSerialNumber(),
-                            revokedIdentifier.getRevokeTimestamp(),
-                            revokedIdentifier.getRevokeStatusCode()
-                    ));
-                    log.debug("Loaded revoked certificate {} at {}", revokedIdentifier.getCertificateSerialNumber(),
-                            formatter.format(revokedIdentifier.getRevokeTimestamp()));
-                }
-            }
-
-            transaction.commit();
-        } catch (Exception e) {
-            log.error("Unable to get revoked certificates", e);
-        }
-
-        return certificates;
-    }
-
-    /**
      * Retrieves the revocation information for a specific certificate serial
-     * number. If the certificate is revoked, a {@link RevokedCertificate}
-     * instance containing the revocation date and reason is returned. Otherwise
-     * {@code null} is returned.
+     * number from the central revocation store.
      *
-     * @param serialNumber    Serial number of the certificate.
-     * @param provisionerName Name of the provisioner issuing the certificate.
-     * @param serverInstance  Server instance for database access.
-     * @return Revocation data or {@code null} if the certificate is not revoked
-     * or could not be found.
+     * @param serialNumber   serial number of the certificate
+     * @param serverInstance server instance for database access
+     * @return revocation data or {@code null} if the certificate is not revoked
      */
     public static RevokedCertificate getRevokedCertificate(BigInteger serialNumber,
-                                                           String provisionerName,
                                                            IServerInstance serverInstance) {
-        RevokedCertificate rc = null;
-
-        try (Session session = serverInstance.getDatabaseSession()) {
-            Transaction transaction = session.beginTransaction();
-
-            Query<AcmeOrder> query = session.createQuery(
-                    "FROM AcmeOrder a WHERE a.certificateSerialNumber = :serialNumber "
-                            + "AND a.account.acmeProvisioner.name = :provisionerName",
-                    AcmeOrder.class);
-            query.setParameter("serialNumber", serialNumber);
-            query.setParameter("provisionerName", provisionerName);
-            AcmeOrder result = query.setMaxResults(1).uniqueResult();
-
-            if (result != null
-                    && result.getRevokeStatusCode() != null
-                    && result.getRevokeTimestamp() != null) {
-                rc = new RevokedCertificate(
-                        result.getCertificateSerialNumber(),
-                        result.getRevokeTimestamp(),
-                        result.getRevokeStatusCode());
-                DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC"));
-                log.debug("Loaded revoked certificate {} at {}", serialNumber,
-                        formatter.format(result.getRevokeTimestamp()));
-            }
-
-            transaction.commit();
-        } catch (Exception e) {
-            log.error("Unable to get revoked certificate for serial number {}", serialNumber, e);
-        }
-
-        return rc;
+        return RevocationStore.getRevokedCertificate(serialNumber, serverInstance);
     }
-
-    /**
-     * Revokes an ACME (Automated Certificate Management Environment) certificate associated with an ACME identifier.
-     *
-     * @param order          The ACME order for which the certificate is to be revoked.
-     * @param reason         The reason code for revoking the certificate.
-     * @param serverInstance The server instance for database connection.
-     * @throws ACMEServerInternalException If an error occurs while revoking the certificate.
-     */
-    public static void revokeCertificate(AcmeOrder order, int reason, IServerInstance serverInstance) {
-        order.setRevokeTimestamp(Instant.now());
-        order.setRevokeStatusCode(reason);
-
-        Transaction transaction;
-        try (Session session = serverInstance.getDatabaseSession()) {
-            transaction = session.beginTransaction();
-
-            session.merge(order);
-
-            transaction.commit();
-            log.info("Revoked certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(),
-                    order.getAccount().getAcmeProvisioner());
-        } catch (Exception e) {
-            log.error("Unable to revoke certificate with serial number {} (Provisioner {})", order.getCertificateSerialNumber(),
-                    order.getAccount().getAcmeProvisioner(), e);
-            throw new ACMEServerInternalException("Unable to revoke certificate");
-        }
-    }
-
 }

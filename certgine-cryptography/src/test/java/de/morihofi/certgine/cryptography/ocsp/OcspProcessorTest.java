@@ -2,6 +2,7 @@ package de.morihofi.certgine.cryptography.ocsp;
 
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
+import de.morihofi.certgine.types.cryptography.revoke.RevocationReason;
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
@@ -56,7 +57,8 @@ class OcspProcessorTest {
         KeyPair kp = KeyPairGenerator.generateRSAKeyPair(512, BouncyCastleProvider.PROVIDER_NAME);
         X509Certificate caCert = createCaCert(kp);
         BigInteger serial = BigInteger.ONE;
-        RevokedCertificate rc = new RevokedCertificate(serial, clock.instant(), 0);
+        RevokedCertificate rc = new RevokedCertificate(serial, clock.instant(),
+                RevocationReason.UNSPECIFIED);
         OCSPResp resp = OcspProcessor.processOCSPRequest(serial, rc, caCert, kp);
         assertEquals(OCSPRespBuilder.SUCCESSFUL, resp.getStatus());
         BasicOCSPResp basic = (BasicOCSPResp) resp.getResponseObject();

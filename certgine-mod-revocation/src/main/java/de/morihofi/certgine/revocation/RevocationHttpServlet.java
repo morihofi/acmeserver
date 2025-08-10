@@ -25,8 +25,8 @@ public class RevocationHttpServlet extends RoutableHttpServlet {
 
     public RevocationHttpServlet(IServerInstance serverInstance) {
         this.serverInstance = serverInstance;
-        getRouter().addHandler(new Endpoint(HandlerType.GET, "/revocation/{provisioner}/crl/certs-revoked.crl", new CRLEndpoint(serverInstance)));
-        getRouter().addHandler(new Endpoint(HandlerType.POST, "/revocation/{provisioner}/ocsp", new OcspEndpointPost(serverInstance)));
-        getRouter().addHandler(new Endpoint(HandlerType.GET, "/revocation/{provisioner}/ocsp/{ocspRequest}", new OcspEndpointGet(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.GET, "/revocation/crl/certs-revoked.crl", new CRLEndpoint(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.POST, "/revocation/ocsp", new OcspEndpointPost(serverInstance)));
+        getRouter().addHandler(new Endpoint(HandlerType.GET, "/revocation/ocsp/{ocspRequest}", new OcspEndpointGet(serverInstance)));
     }
 }

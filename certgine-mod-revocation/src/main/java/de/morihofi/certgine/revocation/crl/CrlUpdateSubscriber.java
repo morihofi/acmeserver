@@ -5,11 +5,10 @@
 
 package de.morihofi.certgine.revocation.crl;
 
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.acme.types.events.AcmeCertificateRevokedEvent;
 import de.morihofi.certgine.types.events.AbstractEvent;
 import de.morihofi.certgine.types.events.EventSubscriber;
 import de.morihofi.certgine.types.intf.IServerInstance;
+import de.morihofi.certgine.types.events.CertificateRevokedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,14 +24,13 @@ public class CrlUpdateSubscriber implements EventSubscriber {
 
     @Override
     public List<Class<? extends AbstractEvent>> canHandle() {
-        return List.of(AcmeCertificateRevokedEvent.class);
+        return List.of(CertificateRevokedEvent.class);
     }
 
     @Override
     public void onEvent(AbstractEvent event) {
-        if (event instanceof AcmeCertificateRevokedEvent ev) {
-            AcmeProvisioner prov = ev.getOrder().getAccount().getAcmeProvisioner();
-            CrlStore.updateCachedCRL(CrlScheduler.UPDATE_MINUTES, prov, serverInstance);
+        if (event instanceof CertificateRevokedEvent) {
+            CrlStore.updateCachedCRL(CrlScheduler.UPDATE_MINUTES, serverInstance);
         }
     }
 }

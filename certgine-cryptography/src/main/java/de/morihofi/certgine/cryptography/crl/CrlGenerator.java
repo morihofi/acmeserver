@@ -57,7 +57,8 @@ public class CrlGenerator {
         log.debug("CRL thisUpdate {} nextUpdate {}", formatter.format(now), formatter.format(nextUpdate));
 
         for (RevokedCertificate rc : req.getRevokedCertificates()) {
-            crlBuilder.addCRLEntry(rc.serialNumber(), Date.from(rc.revocationDate()), rc.revocationReason());
+            crlBuilder.addCRLEntry(rc.serialNumber(), Date.from(rc.revocationDate()),
+                    rc.revocationReason().getCode());
             log.debug("Added revoked certificate {} at {}", rc.serialNumber(), formatter.format(rc.revocationDate()));
         }
 

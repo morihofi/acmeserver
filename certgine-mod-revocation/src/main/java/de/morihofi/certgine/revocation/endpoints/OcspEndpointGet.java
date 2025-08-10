@@ -5,13 +5,10 @@
 
 package de.morihofi.certgine.revocation.endpoints;
 
-
-import de.morihofi.certgine.acme.types.entities.AcmeOrder;
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
 import de.morihofi.certgine.cryptography.ocsp.OcspProcessor;
+import de.morihofi.certgine.revocation.RevocationStore;
 import de.morihofi.certgine.server.common.intf.Handler;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
-import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -35,7 +32,7 @@ public class OcspEndpointGet implements Handler {
     final IServerInstance serverInstance;
 
     /**
-     * Constructor for OcspEndpointGet class. Processes GET Requests Creates an instance with specified Provisioner and CRL generator.
+     * Creates a new OCSP GET endpoint.
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public OcspEndpointGet(IServerInstance serverInstance) {
@@ -52,8 +49,6 @@ public class OcspEndpointGet implements Handler {
      */
     @Override
     public void handle(@NonNull HandlerContext ctx) throws Exception {
-        String provisionerName = ctx.pathParam("provisioner");
-
 
         String ocspRequestEncoded = ctx.pathParam("ocspRequest");
         if (ocspRequestEncoded.isEmpty()) {
@@ -79,12 +74,12 @@ public class OcspEndpointGet implements Handler {
         log.info("Checking revocation status for serial number {}", serialNumber);
 
         // Processing the request and creating the OCSP response
-        AcmeProvisioner provisioner = AcmeProvisioner.getForName(serverInstance, provisionerName);
-        ICryptoStoreManager crypto = serverInstance.getCryptoStoreManager();
-        RevokedCertificate rc = AcmeOrder.getRevokedCertificate(serialNumber, provisioner.getName(), serverInstance);
+        RevokedCertificate rc = RevocationStore.getRevokedCertificate(serialNumber, serverInstance);
         OCSPResp ocspResponse = OcspProcessor.processOCSPRequest(serialNumber, rc,
-                crypto.getIntermediateCertificate(provisioner.getInternalUuid()),
-                crypto.getIntermediateCertificateAuthorityKeyPair(provisioner.getInternalUuid()));
+                serverInstance.getCryptoStoreManager()
+                        .getCertificateAuthorityX509Certificate(serverInstance.getRootCa()),
+                serverInstance.getCryptoStoreManager()
+                        .getCertificateAuthorityKeyPair(serverInstance.getRootCa()));
 
         // Sending the OCSP response
         ctx.contentType("application/ocsp-response");

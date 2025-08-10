@@ -53,7 +53,7 @@ public final class OcspProcessor {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC"));
         if (revokedCertificate != null) {
             certStatus = new RevokedStatus(Date.from(revokedCertificate.revocationDate()),
-                    revokedCertificate.revocationReason());
+                    revokedCertificate.revocationReason().getCode());
             log.debug("Certificate {} revoked at {}", serialNumber,
                     formatter.format(revokedCertificate.revocationDate()));
         } else {

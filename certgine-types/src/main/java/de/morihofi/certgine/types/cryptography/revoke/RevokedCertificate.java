@@ -18,7 +18,8 @@ import java.time.format.DateTimeFormatter;
  * @param revocationDate   Instant when the certificate was revoked, in UTC
  * @param revocationReason The reason why the certificate was revoked
  */
-public record RevokedCertificate(BigInteger serialNumber, Instant revocationDate, int revocationReason) {
+public record RevokedCertificate(BigInteger serialNumber, Instant revocationDate,
+                                 RevocationReason revocationReason) {
 
     /**
      * Formats the revocation date as an ISO-8601 string in UTC.

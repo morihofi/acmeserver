@@ -2,6 +2,7 @@ package de.morihofi.certgine.revocation;
 
 import de.morihofi.certgine.revocation.crl.CrlScheduler;
 import de.morihofi.certgine.revocation.crl.CrlUpdateSubscriber;
+import de.morihofi.certgine.revocation.entities.RevokedCertificateEntity;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.ModuleDescriptor;
@@ -27,7 +28,7 @@ public class RevocationModule extends CertgineModule {
 
     @Override
     public Set<Class<?>> getEntityClasses() {
-        return Set.of();
+        return Set.of(RevokedCertificateEntity.class);
     }
 
     @Override
@@ -40,14 +41,12 @@ public class RevocationModule extends CertgineModule {
         this.serverInstance = serverInstance;
         this.crlScheduler = new CrlScheduler(serverInstance);
         this.updateSubscriber = new CrlUpdateSubscriber(serverInstance);
-        serverInstance.getEventBus().register(crlScheduler);
         serverInstance.getEventBus().register(updateSubscriber);
     }
 
     @Override
     public void onUnLoad() {
         if (serverInstance != null) {
-            serverInstance.getEventBus().unregister(crlScheduler);
             serverInstance.getEventBus().unregister(updateSubscriber);
         }
     }

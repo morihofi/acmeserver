@@ -65,15 +65,15 @@ class CRLEndpointTest {
     void testGet() throws Exception {
         Router router = new Router();
         CRLEndpoint handler = new CRLEndpoint(Mockito.mock(IServerInstance.class));
-        router.addHandler(new Endpoint(HandlerType.GET, "/revocation/{provisioner}/crl", handler));
-        MockRequest req = new MockRequest().path("/revocation/p/crl");
+        router.addHandler(new Endpoint(HandlerType.GET, "/revocation/crl/certs-revoked.crl", handler));
+        MockRequest req = new MockRequest().path("/revocation/crl/certs-revoked.crl");
         MockResponse resp = new MockResponse();
         HandlerContext ctx = new HandlerContext(req, resp, router);
         X509CRL crl = sampleCrl();
         byte[] expected = crl.getEncoded();
         CrlStore.CrlEntry entry = new CrlStore.CrlEntry(LocalTime.now(), crl);
         try (MockedStatic<CrlStore> mock = Mockito.mockStatic(CrlStore.class)) {
-            mock.when(() -> CrlStore.getCrlForProvisioner("p")).thenReturn(entry);
+            mock.when(CrlStore::getCrl).thenReturn(entry);
             handler.handle(ctx);
         }
         assertEquals("application/pkix-crl", resp.getHeader("Content-Type"));
@@ -86,12 +86,12 @@ class CRLEndpointTest {
     void testUnknownProvisioner() {
         Router router = new Router();
         CRLEndpoint handler = new CRLEndpoint(Mockito.mock(IServerInstance.class));
-        router.addHandler(new Endpoint(HandlerType.GET, "/revocation/{provisioner}/crl", handler));
-        MockRequest req = new MockRequest().path("/revocation/unknown/crl");
+        router.addHandler(new Endpoint(HandlerType.GET, "/revocation/crl/certs-revoked.crl", handler));
+        MockRequest req = new MockRequest().path("/revocation/crl/certs-revoked.crl");
         MockResponse resp = new MockResponse();
         HandlerContext ctx = new HandlerContext(req, resp, router);
         try (MockedStatic<CrlStore> mock = Mockito.mockStatic(CrlStore.class)) {
-            mock.when(() -> CrlStore.getCrlForProvisioner("unknown")).thenThrow(new IllegalArgumentException("unknown"));
+            mock.when(CrlStore::getCrl).thenThrow(new IllegalArgumentException("unknown"));
             assertThrows(IllegalArgumentException.class, () -> handler.handle(ctx));
         }
     }

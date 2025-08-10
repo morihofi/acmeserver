@@ -5,10 +5,8 @@
 
 package de.morihofi.certgine.revocation.crl;
 
-import de.morihofi.certgine.acme.types.entities.AcmeOrder;
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
+import de.morihofi.certgine.revocation.RevocationStore;
 import de.morihofi.certgine.cryptography.crl.CrlGenerator;
-import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.NonNull;
@@ -22,20 +20,21 @@ import java.security.cert.CRLException;
 import java.security.cert.X509CRL;
 import java.security.cert.X509CRLEntry;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 @Slf4j
 /**
- * Manages cached Certificate Revocation Lists (CRLs) for all provisioners.
- * The store allows CRLs to be generated, cached, and retrieved for serving to
- * clients and for certificate status checks.
+ * Manages a cached Certificate Revocation List (CRL) for the CA. The store
+ * allows the CRL to be generated, cached and retrieved for serving to clients
+ * and for certificate status checks.
  */
 public class CrlStore {
 
     /**
-     * Cache of generated CRLs keyed by provisioner name.
+     * Cached CRL entry.
      */
-    public static final Map<String, CrlEntry> entryMap = Collections.synchronizedMap(new HashMap<>());
+    public static CrlEntry entry;
 
     /**
      * Updates the cache of the Certificate Revocation List (CRL) for the given
@@ -43,29 +42,28 @@ public class CrlStore {
      * new CRL is generated and stored.
      *
      * @param updateMinutes the validity period of the generated CRL in minutes
-     * @param provisioner   the provisioner for which the CRL should be updated
      * @param serverInstance the current server instance providing access to the
      *                      cryptographic material
      */
 
-    public static void updateCachedCRL(int updateMinutes, @NonNull AcmeProvisioner provisioner, @NonNull IServerInstance serverInstance) {
+    public static void updateCachedCRL(int updateMinutes, @NonNull IServerInstance serverInstance) {
         try {
 
-            ICryptoStoreManager csm = serverInstance.getCryptoStoreManager();
-
-            // Get the list of revoked certificates from the database
-            List<RevokedCertificate> revokedCertificates = AcmeOrder.getRevokedCertificates(provisioner.getName(), serverInstance);
+            // Get the list of revoked certificates from the store
+            List<RevokedCertificate> revokedCertificates = RevocationStore.getRevokedCertificates(serverInstance);
             // Generate a new CRL
             X509CRL crl = CrlGenerator.generate(
                     CrlGenerator.Request.builder()
                             .revokedCertificates(revokedCertificates)
-                            .caCert(csm.getIntermediateCertificate(provisioner.getInternalUuid()))
-                            .caPrivateKey(csm.getIntermediateCertificateAuthorityKeyPair(provisioner.getInternalUuid()).getPrivate())
+                            .caCert(serverInstance.getCryptoStoreManager()
+                                    .getCertificateAuthorityX509Certificate(serverInstance.getRootCa()))
+                            .caPrivateKey(serverInstance.getCryptoStoreManager()
+                                    .getCertificateAuthorityKeyPair(serverInstance.getRootCa()).getPrivate())
                             .updateMinutes(updateMinutes)
                             .build());
 
             // Update cache
-            entryMap.put(provisioner.getName(), new CrlEntry(LocalTime.now(), crl));
+            entry = new CrlEntry(LocalTime.now(), crl);
         } catch (Exception e) {
             // Handle exceptions
             log.error("Unable to update CRL revocation list", e);
@@ -73,20 +71,17 @@ public class CrlStore {
     }
 
     /**
-     * Retrieves the cached CRL entry for the specified provisioner.
+     * Retrieves the cached CRL entry.
      *
-     * @param provisionerName the name of the provisioner whose CRL should be
-     *                        returned
-     * @return the cached CRL entry for the provisioner
-     * @throws IllegalArgumentException if no CRL is available for the
-     *                                  provisioner
+     * @return the cached CRL entry
+     * @throws IllegalArgumentException if no CRL is available
      */
     @NonNull
-    public static CrlEntry getCrlForProvisioner(@NonNull String provisionerName) {
-        if (!entryMap.containsKey(provisionerName)) {
-            throw new IllegalArgumentException(provisionerName + " has not an CRL available");
+    public static CrlEntry getCrl() {
+        if (entry == null) {
+            throw new IllegalArgumentException("No CRL available");
         }
-        return entryMap.get(provisionerName);
+        return entry;
     }
 
     /**
@@ -100,15 +95,14 @@ public class CrlStore {
      * the revoked certificate entry has extensions; if so, it uses the ordinal of the {@link CRLReason} enum value. If there are no
      * extensions, the reason defaults to {@code CRLReason.unspecified}.
      *
-     * @param serialNumber    The serial number of the certificate to check the status for.
-     * @param provisionerName The provisioner instance used to obtain the current CRL.
+     * @param serialNumber The serial number of the certificate to check the status for.
      * @return A {@link CertificateStatus} indicating whether the certificate is valid or revoked. If revoked, additional details such as
      * the revocation date and reason are provided.
      * @throws CRLException If there is an issue obtaining the current CRL from the {@code crlGenerator}.
      */
     @NonNull
-    static CertificateStatus getCertificateStatus(BigInteger serialNumber, @NonNull String provisionerName) throws CRLException {
-        X509CRL crl = getCrlForProvisioner(provisionerName).currentCrl(); // Current CRL
+    static CertificateStatus getCertificateStatus(BigInteger serialNumber) throws CRLException {
+        X509CRL crl = getCrl().currentCrl(); // Current CRL
 
         CertificateStatus certStatus;
         X509CRLEntry revokedCertificate = crl.getRevokedCertificate(serialNumber);

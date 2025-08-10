@@ -16,17 +16,15 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 /**
- * HTTP endpoint that serves the current Certificate Revocation List (CRL) for a
- * given provisioner. The CRL is retrieved from the {@link CrlStore} and written
- * to the HTTP response.
+ * HTTP endpoint that serves the current Certificate Revocation List (CRL). The
+ * CRL is retrieved from the {@link CrlStore} and written to the HTTP response.
  */
 public class CRLEndpoint implements Handler {
 
     private final IServerInstance serverInstance;
 
     /**
-     * Constructor for the CRLEndpoint class. Initializes a new instance with a given Provisioner and CRL (Certificate Revocation List)
-     * object.
+     * Creates a new CRLEndpoint.
      *
      * @param serverInstance the instance to be associated with this endpoint
      */
@@ -46,10 +44,8 @@ public class CRLEndpoint implements Handler {
     @Override
     public void handle(@NonNull HandlerContext ctx) throws Exception {
 
-        String provisionerName = ctx.pathParam("provisioner");
-
         ctx.status(200);
-        ByteBuffer buffer = ByteBuffer.wrap(CrlStore.getCrlForProvisioner(provisionerName).getCrlAsBytes());
+        ByteBuffer buffer = ByteBuffer.wrap(CrlStore.getCrl().getCrlAsBytes());
 
         ctx.header("Content-Type", "application/pkix-crl");
         ctx.header("Content-Length", String.valueOf(buffer.capacity()));

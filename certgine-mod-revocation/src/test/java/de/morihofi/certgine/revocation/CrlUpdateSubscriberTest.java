@@ -5,10 +5,6 @@
 
 package de.morihofi.certgine.revocation;
 
-import de.morihofi.certgine.acme.types.entities.AcmeAccount;
-import de.morihofi.certgine.acme.types.entities.AcmeOrder;
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.acme.types.events.AcmeCertificateRevokedEvent;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.revocation.crl.CrlScheduler;
 import de.morihofi.certgine.revocation.crl.CrlStore;
@@ -16,6 +12,7 @@ import de.morihofi.certgine.revocation.crl.CrlUpdateSubscriber;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
 import de.morihofi.certgine.types.database.entities.authority.RootCa;
+import de.morihofi.certgine.types.events.CertificateRevokedEvent;
 import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.intf.network.INetworkClient;
@@ -29,6 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.math.BigInteger;
+
 
 class CrlUpdateSubscriberTest {
     @Test
@@ -39,15 +38,9 @@ class CrlUpdateSubscriberTest {
         IServerInstance si = new DummyServer(mgr, bus);
         CrlUpdateSubscriber sub = new CrlUpdateSubscriber(si);
         bus.register(sub);
-        AcmeProvisioner prov = new AcmeProvisioner();
-        prov.setName("p");
-        AcmeAccount acc = new AcmeAccount();
-        acc.setAcmeProvisioner(prov);
-        AcmeOrder order = new AcmeOrder();
-        order.setAccount(acc);
         try (MockedStatic<CrlStore> mock = Mockito.mockStatic(CrlStore.class)) {
-            bus.publish(new AcmeCertificateRevokedEvent(order));
-            mock.verify(() -> CrlStore.updateCachedCRL(CrlScheduler.UPDATE_MINUTES, prov, si));
+            bus.publish(new CertificateRevokedEvent(BigInteger.ONE));
+            mock.verify(() -> CrlStore.updateCachedCRL(CrlScheduler.UPDATE_MINUTES, si));
         }
     }
 

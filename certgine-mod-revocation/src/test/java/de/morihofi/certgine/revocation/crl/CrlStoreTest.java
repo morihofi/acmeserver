@@ -8,6 +8,7 @@ package de.morihofi.certgine.revocation.crl;
 import de.morihofi.certgine.cryptography.certificate.X509Generator;
 import de.morihofi.certgine.cryptography.crl.CrlGenerator;
 import de.morihofi.certgine.cryptography.keys.KeyPairGenerator;
+import de.morihofi.certgine.types.cryptography.revoke.RevocationReason;
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import de.morihofi.certgine.types.database.entities.authority.CertificateConfig;
 import de.morihofi.certgine.types.database.entities.authority.CertificateExpiration;
@@ -59,25 +60,26 @@ class CrlStoreTest {
                 .build());
         Instant now = Instant.parse("2024-01-01T00:00:00Z");
         Clock clock = Clock.fixed(now, ZoneOffset.UTC);
-        RevokedCertificate rc = new RevokedCertificate(BigInteger.ONE, clock.instant(), 0);
+        RevokedCertificate rc = new RevokedCertificate(BigInteger.ONE, clock.instant(),
+                RevocationReason.UNSPECIFIED);
         X509CRL crl = CrlGenerator.generate(CrlGenerator.Request.builder()
                 .revokedCertificate(rc)
                 .caCert(caCert)
                 .caPrivateKey(kp.getPrivate())
                 .updateMinutes(5)
                 .build());
-        CrlStore.entryMap.put("p", new CrlStore.CrlEntry(LocalTime.now(clock), crl));
+        CrlStore.entry = new CrlStore.CrlEntry(LocalTime.now(clock), crl);
 
-        CertificateStatus status = CrlStore.getCertificateStatus(BigInteger.ONE, "p");
+        CertificateStatus status = CrlStore.getCertificateStatus(BigInteger.ONE);
         assertTrue(status instanceof RevokedStatus);
-        CertificateStatus good = CrlStore.getCertificateStatus(BigInteger.TEN, "p");
+        CertificateStatus good = CrlStore.getCertificateStatus(BigInteger.TEN);
         assertEquals(CertificateStatus.GOOD, good);
     }
 
     @Test
     @DisplayName("getCrlForProvisioner throws when missing")
     void testMissing() {
-        CrlStore.entryMap.clear();
-        assertThrows(IllegalArgumentException.class, () -> CrlStore.getCrlForProvisioner("missing"));
+        CrlStore.entry = null;
+        assertThrows(IllegalArgumentException.class, CrlStore::getCrl);
     }
 }

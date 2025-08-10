@@ -5,26 +5,15 @@
 
 package de.morihofi.certgine.revocation.crl;
 
-
-import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.acme.types.events.ProvisionerCreatedEvent;
-import de.morihofi.certgine.acme.types.events.ProvisionerDeletedEvent;
-import de.morihofi.certgine.types.events.AbstractEvent;
-import de.morihofi.certgine.types.events.EventSubscriber;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
-import java.util.List;
-
-@Slf4j
 /**
- * Schedules periodic generation of Certificate Revocation Lists (CRLs) for all
- * provisioners and reacts to provisioner lifecycle events to update CRLs on
- * demand.
+ * Schedules periodic generation of Certificate Revocation Lists (CRLs).
  */
-public class CrlScheduler implements EventSubscriber {
+@Slf4j
+public class CrlScheduler {
 
     /**
      * Update interval in minutes used for scheduled CRL generation.
@@ -48,48 +37,12 @@ public class CrlScheduler implements EventSubscriber {
     }
 
     /**
-     * Generates CRLs for all provisioners immediately. This method is typically
-     * invoked on a schedule determined by {@link #CRON_EXPRESSION}.
+     * Generates the CRL immediately. This method is typically invoked on a schedule
+     * determined by {@link #CRON_EXPRESSION}.
      */
     public void schedule() {
         log.info("CRL Generation Scheduler is running");
-
-        for (AcmeProvisioner provisioner : AcmeProvisioner.getAllProvisioners(serverInstance)) {
-            log.info("Generating CRL for {} provisioner", provisioner.getName());
-
-            CrlStore.updateCachedCRL(UPDATE_MINUTES, provisioner, serverInstance);
-        }
-
+        CrlStore.updateCachedCRL(UPDATE_MINUTES, serverInstance);
         log.info("CRL Scheduler finished execution");
     }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @return classes of events this subscriber can process
-     */
-    @Override
-    public List<Class<? extends AbstractEvent>> canHandle() {
-        return Arrays.asList(ProvisionerCreatedEvent.class, ProvisionerDeletedEvent.class);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param event the event to process
-     */
-    @Override
-    public void onEvent(AbstractEvent event) {
-        if (event instanceof ProvisionerCreatedEvent created) {
-            handleProvisionerChange(created.getProvisioner());
-        } else if (event instanceof ProvisionerDeletedEvent deleted) {
-            handleProvisionerChange(deleted.getProvisioner());
-        }
-    }
-
-    private void handleProvisionerChange(AcmeProvisioner prov) {
-        log.info("Updating CRL cache for provisioner {} due to configuration change", prov.getName());
-        CrlStore.updateCachedCRL(UPDATE_MINUTES, prov, serverInstance);
-    }
-
 }

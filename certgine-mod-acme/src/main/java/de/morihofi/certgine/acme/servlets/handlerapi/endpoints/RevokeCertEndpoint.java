@@ -16,7 +16,9 @@ import de.morihofi.certgine.acme.types.entities.AcmeAccount;
 import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.acme.types.entities.AcmeOrder;
 import de.morihofi.certgine.acme.types.entities.AcmeProvisioner;
-import de.morihofi.certgine.acme.types.events.AcmeCertificateRevokedEvent;
+import de.morihofi.certgine.revocation.RevocationStore;
+import de.morihofi.certgine.types.cryptography.revoke.RevocationReason;
+import de.morihofi.certgine.types.events.CertificateRevokedEvent;
 import de.morihofi.certgine.server.common.intf.HandlerContext;
 import de.morihofi.certgine.types.exception.exceptions.*;
 import de.morihofi.certgine.types.intf.IServerInstance;
@@ -171,8 +173,9 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
             throw new ACMEServerInternalException("Rejected: You cannot revoke a certificate, that belongs to another account.");
         }
 
-        // Check if already revoked
-        if (order.getRevokeStatusCode() != null && order.getRevokeTimestamp() != null) {
+        IServerInstance serverInstance = getModuleInstance().getModule().getServerInstance();
+        // Check if already revoked via central store
+        if (RevocationStore.getRevokedCertificate(order.getCertificateSerialNumber(), serverInstance) != null) {
             throw new ACMEAlreadyRevokedException("Error revoking certificate: The specified certificate is already revoked");
         }
 
@@ -188,18 +191,19 @@ public class RevokeCertEndpoint extends AbstractAcmeEndpoint {
         7: (Unspecified)
         8: Remove From CRL - The certificate was mistakenly placed on the revocation list.
      */
-        int reason = reqBodyPayloadObj.get("reason").getAsInt();
-
-        // Check reason code
-        if (reason < 0 || reason > 8 || reason == 7) {
-            throw new ACMEBadRevocationReasonException("Invalid revocation reason: " + reason);
+        int reasonCode = reqBodyPayloadObj.get("reason").getAsInt();
+        RevocationReason reason;
+        try {
+            reason = RevocationReason.fromCode(reasonCode);
+        } catch (IllegalArgumentException e) {
+            throw new ACMEBadRevocationReasonException("Invalid revocation reason: " + reasonCode);
         }
 
         log.info("Revoking certificate for reason {}", reason);
 
-        // Revoke it
-        AcmeOrder.revokeCertificate(order, reason, getModuleInstance().getModule().getServerInstance());
-        getModuleInstance().getModule().getServerInstance().getEventBus().publish(new AcmeCertificateRevokedEvent(order));
+        // Persist revocation information centrally
+        RevocationStore.revokeCertificate(order.getCertificateSerialNumber(), reason, serverInstance);
+        serverInstance.getEventBus().publish(new CertificateRevokedEvent(order.getCertificateSerialNumber()));
 
         ctx.status(HttpURLConnection.HTTP_OK);
         ctx.header("Replay-Nonce", AcmeHttpNonce.createNonce(getModuleInstance().getModule().getServerInstance()));

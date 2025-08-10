@@ -6,6 +6,7 @@
 package de.morihofi.certgine.types.json;
 
 import com.google.gson.Gson;
+import de.morihofi.certgine.types.cryptography.revoke.RevocationReason;
 import de.morihofi.certgine.types.cryptography.revoke.RevokedCertificate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +72,7 @@ class GsonFactoryTest {
     void testRevokedCertificateSerialization() {
         Gson gson = GsonFactory.createGson();
         RevokedCertificate cert = new RevokedCertificate(BigInteger.ONE,
-                Instant.parse("2021-03-15T10:15:30Z"), 0);
+                Instant.parse("2021-03-15T10:15:30Z"), RevocationReason.UNSPECIFIED);
         String json = gson.toJson(cert);
         assertTrue(json.contains("\"revocationDate\":\"2021-03-15T10:15:30Z\""));
     }
@@ -79,9 +80,10 @@ class GsonFactoryTest {
     @Test
     void testRevokedCertificateDeserialization() {
         Gson gson = GsonFactory.createGson();
-        String json = "{\"serialNumber\":1,\"revocationDate\":\"2021-03-15T10:15:30Z\",\"revocationReason\":0}";
+        String json = "{\"serialNumber\":1,\"revocationDate\":\"2021-03-15T10:15:30Z\",\"revocationReason\":\"UNSPECIFIED\"}";
         RevokedCertificate cert = gson.fromJson(json, RevokedCertificate.class);
         assertEquals(Instant.parse("2021-03-15T10:15:30Z"), cert.revocationDate());
+        assertEquals(RevocationReason.UNSPECIFIED, cert.revocationReason());
     }
 
 }

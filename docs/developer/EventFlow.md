@@ -33,7 +33,7 @@ sequenceDiagram
     API->>EventBus: AcmeCertificateIssuanceRequestedEvent
     API->>EventBus: BeforeAcmeCertificateCreatedEvent
     API->>EventBus: AcmeCertificateCreatedEvent
-    API->>EventBus: AcmeCertificateRevokedEvent
+     API->>EventBus: CertificateRevokedEvent
     API->>EventBus: AcmeNonceRedeemedEvent
 ```
 
