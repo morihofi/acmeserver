@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import de.morihofi.certgine.core.util.DummyServerInstance;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import de.morihofi.certgine.types.events.EventBus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -50,7 +51,7 @@ class ModuleManagerTest {
      */
     @Test
     void loadModulesFromClasspath_passesServerInstance() {
-        ModuleManager manager = new ModuleManager();
+        ModuleManager manager = new ModuleManager(new EventBus());
         DummyServerInstance serverInstance = new DummyServerInstance();
 
         manager.loadModulesFromClasspath(serverInstance);

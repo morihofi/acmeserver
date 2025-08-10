@@ -8,6 +8,7 @@ package de.morihofi.certgine.core.helper.cert;
 import de.morihofi.certgine.core.database.HibernateUtil;
 import de.morihofi.certgine.cryptography.keystore.CryptoStoreManager;
 import de.morihofi.certgine.cryptography.keystore.Pkcs12KeyStoreLoader;
+import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
 import de.morihofi.certgine.types.cryptography.keystore.PKCS12KeyStoreConfig;
@@ -49,7 +50,9 @@ class CaInitHelperTest {
         Set<Class<?>> entities = new HashSet<>(
                 new Reflections("de.morihofi.certgine.types.database")
                         .getTypesAnnotatedWith(Entity.class));
-        HibernateUtil hu = new HibernateUtil(cfg, true, bus, entities);
+        ModuleRegistry registry = new ModuleRegistry(bus);
+        registry.getEntityClasses().addAll(entities);
+        HibernateUtil hu = new HibernateUtil(cfg, true, bus, registry);
 
         Path ks = Files.createTempDirectory("ks").resolve("store.p12");
         PKCS12KeyStoreConfig ksCfg = new PKCS12KeyStoreConfig(ks, "pw".toCharArray());

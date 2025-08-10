@@ -6,6 +6,7 @@
 package de.morihofi.certgine.core.modules;
 
 import de.morihofi.certgine.core.util.DummyServerInstance;
+import de.morihofi.certgine.types.events.EventBus;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +21,7 @@ class ModuleServiceLoaderTest {
     @Test
     void loadModules_passesServerInstance() {
         DummyServerInstance serverInstance = new DummyServerInstance();
-        ModuleRegistry registry = ModuleServiceLoader.loadModules(Optional.of(serverInstance));
+        ModuleRegistry registry = ModuleServiceLoader.loadModules(Optional.of(serverInstance), new EventBus());
 
         assertTrue(registry.getModules().containsKey("serverAware"));
         ServerAwareModule module =

@@ -5,6 +5,7 @@
 
 package de.morihofi.certgine.core.modules;
 
+import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.CertgineModuleFactory;
@@ -32,16 +33,23 @@ import java.util.ServiceLoader;
 @Slf4j
 public class ModuleManager {
 
+    private final EventBus eventBus;
+
     /**
      * Registry containing metadata about the loaded modules.
      */
     @Getter
-    private ModuleRegistry moduleRegistry = new ModuleRegistry();
+    private ModuleRegistry moduleRegistry;
 
     /**
      * Class loaders keyed by module name.
      */
     private final Map<String, URLClassLoader> loaders = new HashMap<>();
+
+    public ModuleManager(@NonNull EventBus eventBus) {
+        this.eventBus = eventBus;
+        this.moduleRegistry = new ModuleRegistry(eventBus);
+    }
 
     /**
      * Loads a module from the given JAR file or directory.
@@ -80,7 +88,7 @@ public class ModuleManager {
      * classpath using {@link ServiceLoader}.
      */
     public void loadModulesFromClasspath(IServerInstance serverInstance) {
-        moduleRegistry = ModuleServiceLoader.loadModules(Optional.ofNullable(serverInstance));
+        moduleRegistry = ModuleServiceLoader.loadModules(Optional.ofNullable(serverInstance), eventBus);
     }
 
     /**

@@ -5,6 +5,7 @@
 
 package de.morihofi.certgine.core.modules;
 
+import de.morihofi.certgine.types.events.EventBus;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -19,7 +20,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 public class ModuleLifecycleExtension implements BeforeEachCallback, AfterEachCallback {
 
     private final Path modulePath;
-    private final ModuleManager moduleManager = new ModuleManager();
+    private final ModuleManager moduleManager = new ModuleManager(new EventBus());
     private String moduleName;
 
     private ModuleLifecycleExtension(Path modulePath) {

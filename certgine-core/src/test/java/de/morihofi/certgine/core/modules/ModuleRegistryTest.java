@@ -1,6 +1,7 @@
 package de.morihofi.certgine.core.modules;
 
 import de.morihofi.certgine.core.modules.MissingDependencyException;
+import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import jakarta.servlet.http.HttpServlet;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ class ModuleRegistryTest {
 
     @Test
     void unregisterAndReloadModuleRemovesAndRestoresArtifacts() {
-        ModuleRegistry registry = new ModuleRegistry();
+        ModuleRegistry registry = new ModuleRegistry(new EventBus());
         ReloadableModule module = new ReloadableModule();
 
         registry.registerModule(ModuleRegistry.ModuleInfo.builder()
@@ -49,7 +50,7 @@ class ModuleRegistryTest {
 
     @Test
     void duplicateModulesAreRejected() {
-        ModuleRegistry registry = new ModuleRegistry();
+        ModuleRegistry registry = new ModuleRegistry(new EventBus());
         FlagModule first = new FlagModule();
         FlagModule second = new FlagModule();
 
@@ -69,7 +70,7 @@ class ModuleRegistryTest {
 
     @Test
     void modulesRespectDependencyOrder() {
-        ModuleRegistry registry = new ModuleRegistry();
+        ModuleRegistry registry = new ModuleRegistry(new EventBus());
         FlagModule moduleA = new FlagModule();
         FlagModule moduleB = new FlagModule();
 
@@ -100,7 +101,7 @@ class ModuleRegistryTest {
 
     @Test
     void validateDependenciesThrowsForMissing() throws Exception {
-        ModuleRegistry registry = new ModuleRegistry();
+        ModuleRegistry registry = new ModuleRegistry(new EventBus());
         ModuleRegistry.ModuleInfo info = ModuleRegistry.ModuleInfo.builder()
                 .moduleName("B")
                 .module(new FlagModule())
@@ -119,7 +120,7 @@ class ModuleRegistryTest {
 
     @Test
     void validateDependenciesPassesWhenSatisfied() throws Exception {
-        ModuleRegistry registry = new ModuleRegistry();
+        ModuleRegistry registry = new ModuleRegistry(new EventBus());
         registry.registerModule(ModuleRegistry.ModuleInfo.builder()
                 .moduleName("A")
                 .module(new FlagModule())
@@ -142,7 +143,7 @@ class ModuleRegistryTest {
 
     @Test
     void dynamicServicesSurviveReloadAndUnregister() {
-        ModuleRegistry registry = new ModuleRegistry();
+        ModuleRegistry registry = new ModuleRegistry(new EventBus());
         FlagModule module = new FlagModule();
 
         ModuleRegistry.ModuleInfo info = ModuleRegistry.ModuleInfo.builder()
@@ -169,7 +170,7 @@ class ModuleRegistryTest {
 
     @Test
     void moduleInstanceCanBeAssignedLater() {
-        ModuleRegistry registry = new ModuleRegistry();
+        ModuleRegistry registry = new ModuleRegistry(new EventBus());
         ModuleWithInstance module = new ModuleWithInstance();
         ModuleRegistry.ModuleInfo info = ModuleRegistry.ModuleInfo.builder()
                 .moduleName("inst")

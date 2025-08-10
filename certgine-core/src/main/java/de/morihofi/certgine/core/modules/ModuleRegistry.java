@@ -6,6 +6,8 @@
 package de.morihofi.certgine.core.modules;
 
 import de.morihofi.certgine.server.common.intf.ServletMount;
+import de.morihofi.certgine.types.events.EventBus;
+import de.morihofi.certgine.types.events.ModuleEntityChangeEvent;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
 import jakarta.persistence.Entity;
@@ -21,6 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class ModuleRegistry implements IModuleRegistry {
+
+    @NonNull
+    private final EventBus eventBus;
 
     /**
      * Loaded modules keyed by their unique name.
@@ -102,6 +107,8 @@ public class ModuleRegistry implements IModuleRegistry {
 
         modules.put(moduleName, info);
         module.onRegister();
+
+        eventBus.publish(new ModuleEntityChangeEvent(Set.copyOf(entityClasses)));
     }
 
     /**
@@ -158,6 +165,8 @@ public class ModuleRegistry implements IModuleRegistry {
         }
 
         info.getModule().onUnLoad();
+
+        eventBus.publish(new ModuleEntityChangeEvent(Set.copyOf(entityClasses)));
     }
 
     /**

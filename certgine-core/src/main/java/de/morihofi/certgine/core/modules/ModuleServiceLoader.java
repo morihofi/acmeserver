@@ -5,6 +5,7 @@
 
 package de.morihofi.certgine.core.modules;
 
+import de.morihofi.certgine.types.events.EventBus;
 import de.morihofi.certgine.types.intf.IServerInstance;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.CertgineModuleFactory;
@@ -29,10 +30,13 @@ public final class ModuleServiceLoader {
      * Loads all {@link CertgineModuleFactory} implementations from the classpath.
      *
      * @param serverInstance optional server instance passed to module factories
+     * @param eventBus       event bus for publishing module change events
      * @return registry populated with discovered modules
      */
-    public static ModuleRegistry loadModules(@NonNull Optional<IServerInstance> serverInstance) {
-        ModuleRegistry registry = new ModuleRegistry();
+    public static ModuleRegistry loadModules(
+            @NonNull Optional<IServerInstance> serverInstance,
+            @NonNull EventBus eventBus) {
+        ModuleRegistry registry = new ModuleRegistry(eventBus);
         ServiceLoader<CertgineModuleFactory> serviceLoader =
                 ServiceLoader.load(CertgineModuleFactory.class);
         for (CertgineModuleFactory factory : serviceLoader) {

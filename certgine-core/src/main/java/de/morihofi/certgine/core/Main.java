@@ -223,7 +223,7 @@ public class Main {
         };
 
         log.info("Loading modules ...");
-        ModuleManager moduleManager = new ModuleManager();
+        ModuleManager moduleManager = new ModuleManager(eventBus);
         // Modules are initially loaded without a server instance. The instance is
         // injected once the server is fully constructed further below.
         moduleManager.loadModulesFromClasspath(null);
@@ -247,7 +247,7 @@ public class Main {
 
         log.info("Initializing database ...");
         HibernateUtil hibernateUtil = new HibernateUtil(config, debug, eventBus,
-                moduleRegistry.getEntityClasses());
+                moduleRegistry);
         hibernateUtil.initDatabase();
 
         log.info("Initializing certificate authority ...");

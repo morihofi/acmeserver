@@ -6,6 +6,7 @@
 package de.morihofi.certgine.core.entities;
 
 import de.morihofi.certgine.core.database.HibernateUtil;
+import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
 import de.morihofi.certgine.types.cryptography.ICryptoStoreManager;
@@ -47,7 +48,9 @@ class RootCaGetForUuidTest {
         EventBus bus = new EventBus();
         Set<Class<?>> entities = new Reflections("de.morihofi.certgine.types.database")
                 .getTypesAnnotatedWith(Entity.class);
-        HibernateUtil hu = new HibernateUtil(cfg, true, bus, entities);
+        ModuleRegistry registry = new ModuleRegistry(bus);
+        registry.getEntityClasses().addAll(entities);
+        HibernateUtil hu = new HibernateUtil(cfg, true, bus, registry);
 
         RootCa ca = new RootCa();
         ca.setInternalUuid("abc");

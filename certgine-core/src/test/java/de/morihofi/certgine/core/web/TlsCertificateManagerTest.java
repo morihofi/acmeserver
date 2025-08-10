@@ -49,7 +49,7 @@ class TlsCertificateManagerTest {
         Config cfg = new Config();
         cfg.setServer(new ServerConfig());
         EventBus bus = new EventBus();
-        ModuleRegistry registry = new ModuleRegistry();
+        ModuleRegistry registry = new ModuleRegistry(bus);
         CoreModule core = new CoreModule(null);
         registry.registerModule(ModuleRegistry.ModuleInfo.builder()
                 .moduleName("core")

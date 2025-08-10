@@ -7,7 +7,9 @@ package de.morihofi.certgine.core.database;
 
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
+import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.types.events.EventBus;
+import de.morihofi.certgine.types.events.ModuleEntityChangeEvent;
 import de.morihofi.certgine.types.events.ServerShutdownEvent;
 import lombok.Getter;
 import lombok.NonNull;
@@ -28,16 +30,18 @@ public class HibernateUtil {
     private final Config appConfig;
     private final boolean debug;
     private final EventBus eventBus;
-    private final Collection<Class<?>> entityClasses;
+    private final ModuleRegistry moduleRegistry;
     @Getter
     private SessionFactory sessionFactory;
 
     public HibernateUtil(@NonNull Config appConfig, boolean debug, EventBus eventBus,
-                         @NonNull Collection<Class<?>> entityClasses) {
+                         @NonNull ModuleRegistry moduleRegistry) {
         this.appConfig = appConfig;
         this.debug = debug;
         this.eventBus = eventBus;
-        this.entityClasses = entityClasses;
+        this.moduleRegistry = moduleRegistry;
+        eventBus.subscribe(ModuleEntityChangeEvent.class,
+                event -> refreshSessionFactory(moduleRegistry.getEntityClasses()));
         initDatabase();
     }
 
@@ -52,7 +56,7 @@ public class HibernateUtil {
             try {
                 Configuration configuration = getConfigurationFor(databaseConfig);
 
-                for (Class<?> clazz : entityClasses) {
+                for (Class<?> clazz : moduleRegistry.getEntityClasses()) {
                     configuration.addAnnotatedClass(clazz);
                 }
 
@@ -67,6 +71,30 @@ public class HibernateUtil {
                 Thread.currentThread().setName("Database Shutdown Thread");
                 shutdown();
             });
+        }
+    }
+
+    /**
+     * Rebuilds the {@link SessionFactory} with the provided entity classes.
+     *
+     * @param classes updated entity classes
+     */
+    public synchronized void refreshSessionFactory(@NonNull Collection<Class<?>> classes) {
+        if (sessionFactory != null) {
+            sessionFactory.close();
+        }
+
+        DatabaseConfig databaseConfig = appConfig.getDatabase();
+        try {
+            Configuration configuration = getConfigurationFor(databaseConfig);
+            for (Class<?> clazz : classes) {
+                configuration.addAnnotatedClass(clazz);
+            }
+            StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder()
+                    .applySettings(configuration.getProperties());
+            sessionFactory = configuration.buildSessionFactory(registryBuilder.build());
+        } catch (Exception e) {
+            throw new ExceptionInInitializerError(e);
         }
     }
 

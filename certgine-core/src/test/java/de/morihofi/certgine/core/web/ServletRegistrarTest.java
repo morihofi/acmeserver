@@ -4,6 +4,7 @@ import de.morihofi.certgine.core.modules.DummyModule;
 import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.core.modules.ModuleWithInstance;
 import de.morihofi.certgine.core.util.DummyServerInstance;
+import de.morihofi.certgine.types.events.EventBus;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +18,7 @@ class ServletRegistrarTest {
 
     @Test
     void addBundledServlets_registersModuleServlets() throws Exception {
-        ModuleRegistry registry = new ModuleRegistry();
+        ModuleRegistry registry = new ModuleRegistry(new EventBus());
         registry.registerModule(ModuleRegistry.ModuleInfo.builder()
                 .moduleName("dummy")
                 .module(new DummyModule())
@@ -34,7 +35,7 @@ class ServletRegistrarTest {
 
     @Test
     void servletConstructorReceivesModuleInstance() throws Exception {
-        ModuleRegistry registry = new ModuleRegistry();
+        ModuleRegistry registry = new ModuleRegistry(new EventBus());
         ModuleWithInstance module = new ModuleWithInstance();
         ModuleRegistry.ModuleInfo info = ModuleRegistry.ModuleInfo.builder()
                 .moduleName("inst")

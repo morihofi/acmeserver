@@ -3,6 +3,7 @@ package de.morihofi.certgine.core.impl;
 import de.morihofi.certgine.acme.security.NonceManager;
 import de.morihofi.certgine.acme.types.entities.AcmeHttpNonce;
 import de.morihofi.certgine.core.database.HibernateUtil;
+import de.morihofi.certgine.core.modules.ModuleRegistry;
 import de.morihofi.certgine.types.config.Config;
 import de.morihofi.certgine.types.config.DatabaseConfig;
 import de.morihofi.certgine.types.events.EventBus;
@@ -33,7 +34,10 @@ class NonceManagerTest {
                 new Reflections("de.morihofi.certgine.types.database")
                         .getTypesAnnotatedWith(Entity.class));
         entities.add(AcmeHttpNonce.class);
-        return new HibernateUtil(cfg, true, new EventBus(), entities);
+        EventBus bus = new EventBus();
+        ModuleRegistry registry = new ModuleRegistry(bus);
+        registry.getEntityClasses().addAll(entities);
+        return new HibernateUtil(cfg, true, bus, registry);
     }
 
     @Test

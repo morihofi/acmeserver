@@ -5,6 +5,7 @@
 
 package de.morihofi.certgine.core.modules;
 
+import de.morihofi.certgine.types.events.EventBus;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,7 +20,7 @@ class ModuleLoaderTest {
      */
     @Test
     void loadModules_collectsClasses() {
-        ModuleLoader loader = new ModuleLoader();
+        ModuleLoader loader = new ModuleLoader(new EventBus());
         ModuleRegistry registry = loader.loadModules();
 
         assertTrue(registry.getModules().containsKey("dummy"));
