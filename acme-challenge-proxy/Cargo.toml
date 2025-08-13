@@ -1,0 +1,15 @@
+[package]
+name = "acme-challenge-proxy"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1.37", features = ["full"] }
+tonic = { version = "0.11", features = ["tls"] }
+prost = "0.12"
+clap = { version = "4.5", features = ["derive"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+trust-dns-resolver = { version = "0.23", default-features = false, features = ["tokio-runtime"] }
+
+[build-dependencies]
+tonic-build = "0.11"

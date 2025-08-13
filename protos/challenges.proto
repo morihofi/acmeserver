@@ -1,0 +1,39 @@
+syntax = "proto3";
+package de.morihofi.certgine.rpc.proto.acme.challenge;
+
+// Type of ACME challenge
+enum ChallengeType {
+  CHALLENGE_TYPE_UNSPECIFIED = 0;
+  HTTP = 1;
+  DNS = 2;
+}
+
+// Request for checking an HTTP challenge
+message HttpChallengeRequest {
+  ChallengeType type = 1; // always HTTP
+  string domain = 2;
+  string token = 3;
+  string account_key = 4;
+  string expected_value = 5;
+}
+
+// Request for checking a DNS challenge
+message DnsChallengeRequest {
+  ChallengeType type = 1; // always DNS
+  string domain = 2;
+  string token = 3;
+  string account_key = 4;
+  string expected_value = 5;
+}
+
+// Generic response for challenge checks
+message ChallengeResponse {
+  bool ok = 1;
+  string details = 2;
+}
+
+// Service to verify ACME challenges
+service ChallengeChecker {
+  rpc CheckHttpChallenge(HttpChallengeRequest) returns (ChallengeResponse);
+  rpc CheckDnsChallenge(DnsChallengeRequest) returns (ChallengeResponse);
+}

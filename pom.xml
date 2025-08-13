@@ -18,6 +18,7 @@
         <module>certgine-cryptography</module>
         <module>certgine-httpserver-intf</module>
         <module>certgine-acme</module>
+        <module>certgine-acme-challenge-proxy-client</module>
         <module>certgine-web-legacy</module>
         <module>certgine-tsa</module>
         <module>certgine-web-ui</module>

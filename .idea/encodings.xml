@@ -5,6 +5,10 @@
     <file url="file://$PROJECT_DIR$/acmeserver-httpserver-types/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-plugin-notification/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/acmeserver-plugin-notification/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-acme-challenge-proxy-client/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-acme-challenge-proxy-client/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-acme-types/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/certgine-acme-types/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/certgine-acme/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/certgine-acme/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/certgine-core/src/main/java" charset="UTF-8" />
