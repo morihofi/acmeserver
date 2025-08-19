@@ -17,8 +17,10 @@ public interface IModuleRegistry {
      * Registers a module and its contents.
      *
      * @param info module metadata and instance
+     * @return {@code true} if the module was successfully registered
+     * @throws RuntimeException if the registration fails
      */
-    void registerModule(ModuleInfo info);
+    boolean registerModule(ModuleInfo info);
 
     /**
      * Unregisters a module and removes all of its contributions.

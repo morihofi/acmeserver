@@ -55,7 +55,8 @@ public class ModuleManager {
      * Loads a module from the given JAR file or directory.
      *
      * @param jar location of the module JAR or directory
-     * @throws IOException if the module cannot be read
+     * @throws IOException      if the module cannot be read
+     * @throws RuntimeException if the module cannot be registered
      */
     public void loadModule(@NonNull Path jar) throws IOException {
         URL url = jar.toUri().toURL();
@@ -77,9 +78,19 @@ public class ModuleManager {
                     .module(module)
                     .build();
 
-            moduleRegistry.registerModule(info);
-            loaders.put(descriptor.moduleName(), cl);
-            log.info("Loaded module {} from {}", descriptor.moduleName(), jar);
+            try {
+                if (moduleRegistry.registerModule(info)) {
+                    loaders.put(descriptor.moduleName(), cl);
+                    log.info("Loaded module {} from {}", descriptor.moduleName(), jar);
+                }
+            } catch (RuntimeException e) {
+                try {
+                    cl.close();
+                } catch (IOException closeException) {
+                    log.warn("Failed to close class loader for module {}", descriptor.moduleName(), closeException);
+                }
+                throw e;
+            }
         }
     }
 

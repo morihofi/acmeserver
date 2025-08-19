@@ -60,13 +60,11 @@ public class ModuleRegistry implements IModuleRegistry {
      * annotated with {@link ServletMount}.
      *
      * @param info module metadata and instance
+     * @return {@code true} if the module was registered
+     * @throws MissingDependencyException if the module is already registered or a dependency is missing
      */
-    public void registerModule(@NonNull ModuleInfo info) {
-        try {
-            validateDependencies(info);
-        } catch (MissingDependencyException e) {
-            return;
-        }
+    public boolean registerModule(@NonNull ModuleInfo info) {
+        validateDependencies(info);
 
         String moduleName = info.getModuleName();
         CertgineModule module = info.getModule();
@@ -109,6 +107,7 @@ public class ModuleRegistry implements IModuleRegistry {
         module.onRegister();
 
         eventBus.publish(new ModuleEntityChangeEvent(Set.copyOf(entityClasses)));
+        return true;
     }
 
     /**

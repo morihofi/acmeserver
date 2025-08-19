@@ -20,8 +20,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 public class ModuleLifecycleExtension implements BeforeEachCallback, AfterEachCallback {
 
     private final Path modulePath;
-    private final ModuleManager moduleManager = new ModuleManager(new EventBus());
-    private String moduleName;
+    private ModuleManager moduleManager;
 
     private ModuleLifecycleExtension(Path modulePath) {
         this.modulePath = modulePath;
@@ -54,18 +53,11 @@ public class ModuleLifecycleExtension implements BeforeEachCallback, AfterEachCa
      */
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        Set<String> before = new HashSet<>(moduleManager.getModuleRegistry().getModules().keySet());
+        moduleManager = new ModuleManager(new EventBus());
         try {
             moduleManager.loadModule(modulePath);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load module", e);
-        }
-        Set<String> after = moduleManager.getModuleRegistry().getModules().keySet();
-        for (String name : after) {
-            if (!before.contains(name)) {
-                moduleName = name;
-                break;
-            }
         }
     }
 
@@ -76,9 +68,15 @@ public class ModuleLifecycleExtension implements BeforeEachCallback, AfterEachCa
      */
     @Override
     public void afterEach(ExtensionContext context) {
-        if (moduleName != null) {
-            moduleManager.unloadModule(moduleName);
-            moduleName = null;
+        if (moduleManager != null) {
+            for (String name : new HashSet<>(moduleManager.getModuleRegistry().getModules().keySet())) {
+                try {
+                    moduleManager.unloadModule(name);
+                } catch (Exception ignored) {
+                    // Ignore unload failures in tests
+                }
+            }
+            moduleManager = null;
         }
     }
 }

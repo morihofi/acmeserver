@@ -58,10 +58,12 @@ class ModuleRegistryTest {
                 .moduleName("dup")
                 .module(first)
                 .build());
-        registry.registerModule(ModuleRegistry.ModuleInfo.builder()
-                .moduleName("dup")
-                .module(second)
-                .build());
+        assertThrows(MissingDependencyException.class, () -> {
+            registry.registerModule(ModuleRegistry.ModuleInfo.builder()
+                    .moduleName("dup")
+                    .module(second)
+                    .build());
+        });
 
         assertTrue(first.registered);
         assertFalse(second.registered);
@@ -81,7 +83,9 @@ class ModuleRegistryTest {
                 .build();
 
         // Attempt to register B before A should be rejected
-        registry.registerModule(infoB);
+        assertThrows(MissingDependencyException.class, () -> {
+            registry.registerModule(infoB);
+        });
         assertEquals(0, registry.getModules().size());
         assertFalse(moduleB.registered);
 
