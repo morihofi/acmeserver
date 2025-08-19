@@ -122,5 +122,45 @@ public class ModuleManager {
             }
         }
     }
+
+    /**
+     * Reloads a module from the given JAR file or directory.
+     *
+     * <p>This method first unloads any existing instance of the module to ensure
+     * that a fresh {@link URLClassLoader} and module instance are created.</p>
+     *
+     * @param jar location of the module JAR or directory
+     * @throws IOException if the module cannot be read
+     */
+    public synchronized void reloadModule(@NonNull Path jar) throws IOException {
+        String moduleName = resolveModuleName(jar);
+        unloadModule(moduleName);
+        loadModule(jar);
+    }
+
+    /**
+     * Determines the module name contained in the supplied JAR without
+     * registering it with the {@link ModuleRegistry}.
+     *
+     * @param jar location of the module JAR or directory
+     * @return module name declared by the module descriptor
+     * @throws IOException              if the JAR cannot be read
+     * @throws IllegalArgumentException if no module descriptor is present
+     */
+    private String resolveModuleName(@NonNull Path jar) throws IOException {
+        URL url = jar.toUri().toURL();
+        try (URLClassLoader cl = new URLClassLoader(new URL[]{url}, getClass().getClassLoader())) {
+            ServiceLoader<CertgineModuleFactory> loader =
+                    ServiceLoader.load(CertgineModuleFactory.class, cl);
+            for (CertgineModuleFactory factory : loader) {
+                CertgineModule module = factory.create(null);
+                ModuleDescriptor descriptor = module.getClass().getAnnotation(ModuleDescriptor.class);
+                if (descriptor != null) {
+                    return descriptor.moduleName();
+                }
+            }
+        }
+        throw new IllegalArgumentException("No module descriptor found in " + jar);
+    }
 }
 
