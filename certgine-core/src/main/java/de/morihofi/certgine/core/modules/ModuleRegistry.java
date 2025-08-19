@@ -171,6 +171,7 @@ public class ModuleRegistry implements IModuleRegistry {
         }
 
         info.getModule().onUnLoad();
+        eventBus.unregisterAll(info.getModule());
 
         eventBus.publish(new ModuleEntityChangeEvent(Set.copyOf(entityClasses)));
     }

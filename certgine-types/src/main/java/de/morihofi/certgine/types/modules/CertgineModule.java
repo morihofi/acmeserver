@@ -71,7 +71,11 @@ public abstract class CertgineModule {
     }
 
     /**
-     * Runs on module gets unloaded
+     * Called when the module is unloaded.
+     *
+     * <p>Implementations must deregister any custom event listeners or other
+     * resources that were registered during {@link #onRegister()} to avoid
+     * memory leaks.</p>
      */
     public void onUnLoad() {
     }

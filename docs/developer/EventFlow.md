@@ -38,3 +38,10 @@ sequenceDiagram
 ```
 
 Each event is dispatched to all registered listeners via the server instance's `EventBus`.
+
+## Module cleanup
+
+Modules that register custom event listeners must deregister them in their
+`onUnLoad()` method. The `EventBus` offers `unregisterAll(Object)` and the
+module registry invokes it during module unloading to ensure no stale
+listeners remain.

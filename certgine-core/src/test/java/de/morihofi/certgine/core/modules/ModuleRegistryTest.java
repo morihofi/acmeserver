@@ -1,7 +1,7 @@
 package de.morihofi.certgine.core.modules;
 
 import de.morihofi.certgine.core.modules.MissingDependencyException;
-import de.morihofi.certgine.types.events.EventBus;
+import de.morihofi.certgine.types.events.*;
 import de.morihofi.certgine.types.modules.CertgineModule;
 import jakarta.servlet.http.HttpServlet;
 import org.junit.jupiter.api.Test;
@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -190,6 +191,26 @@ class ModuleRegistryTest {
                 registry.getModules().get("inst").getModuleInstance());
     }
 
+    @Test
+    void unregisterModuleRemovesEventListeners() {
+        EventBus bus = new EventBus();
+        ModuleRegistry registry = new ModuleRegistry(bus);
+        ListeningModule module = new ListeningModule(bus);
+
+        ModuleRegistry.ModuleInfo info = ModuleRegistry.ModuleInfo.builder()
+                .moduleName("listen")
+                .module(module)
+                .build();
+
+        registry.registerModule(info);
+        bus.publish(new DummyEvent());
+        assertEquals(1, module.sub.count);
+
+        registry.unregisterModule("listen");
+        bus.publish(new DummyEvent());
+        assertEquals(1, module.sub.count);
+    }
+
     interface SampleService {
     }
 
@@ -218,6 +239,52 @@ class ModuleRegistryTest {
             unloaded = true;
         }
     }
+
+    static class ListeningModule extends CertgineModule {
+        final EventBus bus;
+        final DummySubscriber sub = new DummySubscriber();
+
+        ListeningModule(EventBus bus) {
+            super(null);
+            this.bus = bus;
+        }
+
+        @Override
+        public Set<Class<?>> getEntityClasses() {
+            return Set.of();
+        }
+
+        @Override
+        public Set<Class<? extends HttpServlet>> getHttpServlets() {
+            return Set.of();
+        }
+
+        @Override
+        public void onRegister() {
+            bus.register(this, sub);
+        }
+
+        @Override
+        public void onUnLoad() {
+            // Intentionally left blank to test automatic cleanup
+        }
+    }
+
+    static class DummySubscriber implements EventSubscriber {
+        int count;
+
+        @Override
+        public List<Class<? extends AbstractEvent>> canHandle() {
+            return List.of(DummyEvent.class);
+        }
+
+        @Override
+        public void onEvent(AbstractEvent event) {
+            count++;
+        }
+    }
+
+    static class DummyEvent extends AbstractEvent {}
 
     static class FlagModule extends CertgineModule {
         boolean registered = false;

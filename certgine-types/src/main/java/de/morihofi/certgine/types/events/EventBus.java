@@ -22,6 +22,18 @@ public class EventBus {
 
     private final Map<Class<?>, List<EventListener<?>>> listeners = new ConcurrentHashMap<>();
 
+    private static class OwnedListener {
+        final Class<?> eventType;
+        final EventListener<?> listener;
+
+        OwnedListener(Class<?> eventType, EventListener<?> listener) {
+            this.eventType = eventType;
+            this.listener = listener;
+        }
+    }
+
+    private final Map<Object, List<OwnedListener>> ownedListeners = new ConcurrentHashMap<>();
+
     /**
      * Registers an {@link EventSubscriber} for all event types returned by its {@link EventSubscriber#canHandle()} method.
      *
@@ -36,6 +48,25 @@ public class EventBus {
     }
 
     /**
+     * Registers an {@link EventSubscriber} owned by the specified module or component.
+     *
+     * <p>The registration is tracked so that all listeners for the given owner can be
+     * removed in one operation via {@link #unregisterAll(Object)}.</p>
+     *
+     * @param owner      owning module or component
+     * @param subscriber subscriber instance
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void register(Object owner, EventSubscriber subscriber) {
+        register(subscriber);
+        if (owner != null) {
+            for (Class<? extends AbstractEvent> type : subscriber.canHandle()) {
+                track(owner, type, (EventListener) subscriber);
+            }
+        }
+    }
+
+    /**
      * Unregisters an {@link EventSubscriber} from all events it handles.
      *
      * @param subscriber subscriber instance
@@ -46,6 +77,7 @@ public class EventBus {
             log.debug("Unregistering subscriber {} from event type {}", subscriber.getClass().getName(), type.getName());
             unsubscribe((Class) type, (EventListener) subscriber);
         }
+        ownedListeners.values().forEach(list -> list.removeIf(l -> l.listener.equals(subscriber)));
     }
 
     /**
@@ -61,6 +93,21 @@ public class EventBus {
     }
 
     /**
+     * Registers a listener for the given event type and associates it with the specified owner.
+     *
+     * @param owner     owning module or component
+     * @param eventType event class
+     * @param listener  listener to register
+     * @param <T>       type of the event
+     */
+    public <T> void subscribe(Object owner, Class<T> eventType, EventListener<? super T> listener) {
+        subscribe(eventType, listener);
+        if (owner != null) {
+            track(owner, eventType, listener);
+        }
+    }
+
+    /**
      * Unregisters a listener from the given event type.
      *
      * @param eventType event class
@@ -73,6 +120,27 @@ public class EventBus {
         if (list != null) {
             list.remove(listener);
         }
+        ownedListeners.values().forEach(l -> l.removeIf(o -> o.listener.equals(listener) && o.eventType.equals(eventType)));
+    }
+
+    /**
+     * Unregisters all listeners owned by the specified object.
+     *
+     * @param owner owning module or component
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void unregisterAll(Object owner) {
+        List<OwnedListener> list = ownedListeners.remove(owner);
+        if (list != null) {
+            for (OwnedListener holder : list) {
+                unsubscribe((Class) holder.eventType, (EventListener) holder.listener);
+            }
+        }
+    }
+
+    private void track(Object owner, Class<?> type, EventListener<?> listener) {
+        ownedListeners.computeIfAbsent(owner, k -> new CopyOnWriteArrayList<>())
+                .add(new OwnedListener(type, listener));
     }
 
     /**

@@ -39,6 +39,21 @@ class EventBusTest {
         assertEquals(2, sub.count);
     }
 
+    @Test
+    void unregisterAllRemovesOwnedSubscribers() {
+        EventBus bus = new EventBus();
+        DummySubscriber sub = new DummySubscriber();
+        Object owner = new Object();
+        bus.register(owner, sub);
+
+        bus.publish(new ServerStartedEvent(null));
+        assertEquals(1, sub.count);
+
+        bus.unregisterAll(owner);
+        bus.publish(new ServerStartedEvent(null));
+        assertEquals(1, sub.count);
+    }
+
     static class DummySubscriber implements EventSubscriber {
         int count;
         AbstractEvent last;
