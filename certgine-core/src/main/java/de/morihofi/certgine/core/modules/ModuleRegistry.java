@@ -12,13 +12,20 @@ import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.IModuleRegistry;
 import jakarta.persistence.Entity;
 import jakarta.servlet.http.HttpServlet;
-import java.util.*;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Registry containing all loaded modules and the classes they expose.
+ *
+ * <p>This implementation is thread-safe. Concurrent registration and
+ * unregistration of modules is supported by synchronizing mutation
+ * operations and using concurrent collections.</p>
  */
 @Data
 @Slf4j
@@ -30,22 +37,22 @@ public class ModuleRegistry implements IModuleRegistry {
     /**
      * Loaded modules keyed by their unique name.
      */
-    private final Map<String, ModuleInfo> modules = new HashMap<>();
+    private final ConcurrentHashMap<String, ModuleInfo> modules = new ConcurrentHashMap<>();
 
     /**
      * Collected JPA entity classes from all modules.
      */
-    private final Set<Class<?>> entityClasses = new HashSet<>();
+    private final Set<Class<?>> entityClasses = ConcurrentHashMap.newKeySet();
 
     /**
      * Collected HTTP handler classes from all modules.
      */
-    private final Set<Class<? extends HttpServlet>> httpHandlerClasses = new HashSet<>();
+    private final Set<Class<? extends HttpServlet>> httpHandlerClasses = ConcurrentHashMap.newKeySet();
 
     /**
      * Mapping of service interfaces to their implementation instances.
      */
-    private final Map<Class<?>, Object> services = new HashMap<>();
+    private final ConcurrentHashMap<Class<?>, Object> services = new ConcurrentHashMap<>();
 
     /**
      * Scheduler managing all module-provided timed tasks.
@@ -63,7 +70,7 @@ public class ModuleRegistry implements IModuleRegistry {
      * @return {@code true} if the module was registered
      * @throws MissingDependencyException if the module is already registered or a dependency is missing
      */
-    public boolean registerModule(@NonNull ModuleInfo info) {
+    public synchronized boolean registerModule(@NonNull ModuleInfo info) {
         validateDependencies(info);
 
         String moduleName = info.getModuleName();
@@ -139,7 +146,7 @@ public class ModuleRegistry implements IModuleRegistry {
      *
      * @param moduleName unique name of the module to unload
      */
-    public void unregisterModule(@NonNull String moduleName) {
+    public synchronized void unregisterModule(@NonNull String moduleName) {
         ModuleInfo info = modules.remove(moduleName);
         if (info == null) {
             return;
@@ -173,7 +180,7 @@ public class ModuleRegistry implements IModuleRegistry {
      *
      * @param moduleName unique name of the module to reload
      */
-    public void reloadModule(@NonNull String moduleName) {
+    public synchronized void reloadModule(@NonNull String moduleName) {
         ModuleInfo info = modules.get(moduleName);
         if (info == null) {
             return;
@@ -194,7 +201,7 @@ public class ModuleRegistry implements IModuleRegistry {
      * @param impl       service implementation instance
      * @param <T>        type of the service
      */
-    public <T> void registerService(
+    public synchronized <T> void registerService(
             @NonNull String moduleName,
             @NonNull Class<T> iface,
             @NonNull T impl) {
@@ -214,7 +221,7 @@ public class ModuleRegistry implements IModuleRegistry {
      * @param <T>              interface type
      * @return optional containing implementation instance if registered
      */
-    public <T> Optional<T> getService(@NonNull Class<T> serviceInterface) {
+    public synchronized <T> Optional<T> getService(@NonNull Class<T> serviceInterface) {
         Object impl = services.get(serviceInterface);
         return Optional.ofNullable(serviceInterface.cast(impl));
     }
@@ -224,14 +231,14 @@ public class ModuleRegistry implements IModuleRegistry {
      *
      * @return immutable set of service interface classes
      */
-    public Set<Class<?>> getServiceInterfaces() {
+    public synchronized Set<Class<?>> getServiceInterfaces() {
         return Collections.unmodifiableSet(services.keySet());
     }
 
     /**
      * Shuts down all scheduled tasks managed by the registry.
      */
-    public void shutdownScheduler() {
+    public synchronized void shutdownScheduler() {
         taskScheduler.shutdown();
     }
 }

@@ -18,10 +18,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Manager responsible for loading and unloading modules.
@@ -29,6 +29,10 @@ import java.util.ServiceLoader;
  * <p>Every module is loaded through its own {@link URLClassLoader}. The loaded
  * module is registered in a shared {@link ModuleRegistry} which exposes the
  * collected classes to the rest of the application.</p>
+ *
+ * <p>This class is thread-safe. Calls to {@link #loadModule(Path)} and
+ * {@link #unloadModule(String)} are synchronized to allow concurrent
+ * module management from multiple threads.</p>
  */
 @Slf4j
 public class ModuleManager {
@@ -44,7 +48,7 @@ public class ModuleManager {
     /**
      * Class loaders keyed by module name.
      */
-    private final Map<String, URLClassLoader> loaders = new HashMap<>();
+    private final ConcurrentMap<String, URLClassLoader> loaders = new ConcurrentHashMap<>();
 
     public ModuleManager(@NonNull EventBus eventBus) {
         this.eventBus = eventBus;
@@ -58,7 +62,7 @@ public class ModuleManager {
      * @throws IOException      if the module cannot be read
      * @throws RuntimeException if the module cannot be registered
      */
-    public void loadModule(@NonNull Path jar) throws IOException {
+    public synchronized void loadModule(@NonNull Path jar) throws IOException {
         URL url = jar.toUri().toURL();
         URLClassLoader cl = new URLClassLoader(new URL[]{url}, getClass().getClassLoader());
 
@@ -107,7 +111,7 @@ public class ModuleManager {
      *
      * @param moduleName unique name of the module to unload
      */
-    public void unloadModule(@NonNull String moduleName) {
+    public synchronized void unloadModule(@NonNull String moduleName) {
         moduleRegistry.unregisterModule(moduleName);
         URLClassLoader cl = loaders.remove(moduleName);
         if (cl != null) {

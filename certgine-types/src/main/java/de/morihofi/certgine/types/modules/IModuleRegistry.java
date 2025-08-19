@@ -5,11 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public interface IModuleRegistry {
 
@@ -109,25 +108,25 @@ public interface IModuleRegistry {
          */
         @Builder.Default
         @NonNull
-        private final Set<String> dependencies = new HashSet<>();
+        private final Set<String> dependencies = ConcurrentHashMap.newKeySet();
         /**
          * Entity classes contributed by this module.
          */
         @Builder.Default
         @NonNull
-        private final Set<Class<?>> entityClasses = new HashSet<>();
+        private final Set<Class<?>> entityClasses = ConcurrentHashMap.newKeySet();
         /**
          * HTTP handler classes contributed by this module.
          */
         @Builder.Default
         @NonNull
-        private final Set<Class<? extends HttpServlet>> httpHandlerClasses = new HashSet<>();
+        private final Set<Class<? extends HttpServlet>> httpHandlerClasses = ConcurrentHashMap.newKeySet();
         /**
          * Service implementations contributed by this module keyed by their interface.
          */
         @Builder.Default
         @NonNull
-        private final Map<Class<?>, Object> services = new HashMap<>();
+        private final Map<Class<?>, Object> services = new ConcurrentHashMap<>();
         /**
          * Instance object returned by {@link CertgineModule#getModuleInstance()} for
          * module specific interactions. May be {@code null} if the module does not

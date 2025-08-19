@@ -9,9 +9,9 @@ import de.morihofi.certgine.types.modules.ModuleScheduledTask;
 import de.morihofi.certgine.utils.scheduler.TimedScheduler;
 import java.time.Clock;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import lombok.NonNull;
@@ -23,8 +23,8 @@ public class ModuleTaskScheduler {
 
     private final TimedScheduler timedScheduler;
     private final Map<String, List<TimedScheduler.ScheduledHandle>> scheduledHandles =
-            new HashMap<>();
-    private final Map<String, List<ModuleScheduledTask>> moduleTasks = new HashMap<>();
+            new ConcurrentHashMap<>();
+    private final Map<String, List<ModuleScheduledTask>> moduleTasks = new ConcurrentHashMap<>();
 
     /**
      * Creates a task scheduler using a thread pool sized for the available processors.
