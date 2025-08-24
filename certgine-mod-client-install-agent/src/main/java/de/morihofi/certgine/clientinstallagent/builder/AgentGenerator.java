@@ -6,9 +6,11 @@ import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.zip.GZIPOutputStream;
 
 @AllArgsConstructor
 public class AgentGenerator {
@@ -19,14 +21,18 @@ public class AgentGenerator {
     public ByteBuffer generateAgent(AgentConfig configObj) throws IOException {
 
         // Load and patch a PE file from resources
-        byte[] config = new Gson()
+        byte[] jsonConfig = new Gson()
                 .toJson(configObj)
                 .getBytes(StandardCharsets.UTF_8);
 
-        // Read configuration back from patched PE
-        //Optional<String> configJson = WinPeResourceLoader.readConfigFromPeBuffer(patchedPe);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzip = new GZIPOutputStream(baos)) {
+            gzip.write(jsonConfig);
+        }
 
-        return WinPeResourceLoader.loadAndPatchPe("stub.exe", config);
+        byte[] compressedConfig = baos.toByteArray();
+
+        return WinPeResourceLoader.loadAndPatchPe("stub.exe", compressedConfig);
     }
 
 

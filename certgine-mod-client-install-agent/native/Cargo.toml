@@ -22,6 +22,7 @@ crc32fast = "1.5.0"
 thiserror = "2.0"
 reqwest = {version = "0.12", features = ["rustls-tls", "blocking", "system-proxy", "trust-dns", "json", "gzip"]}
 rustls = {version = "0.23", features = ["logging", "ring"]}
+flate2 = "1.0"
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.61.3", features = ["Win32", "Win32_Security", "Win32_Security_Cryptography", "Win32_System", "Win32_System_Diagnostics", "Win32_System_Diagnostics_Debug", "Win32_System_Threading"] }
@@ -44,3 +45,6 @@ path = "src/main.rs"
 [[bin]]
 name = "agentstubw"
 path = "src/main.rs"
+
+[dev-dependencies]
+tempfile = "3.9"

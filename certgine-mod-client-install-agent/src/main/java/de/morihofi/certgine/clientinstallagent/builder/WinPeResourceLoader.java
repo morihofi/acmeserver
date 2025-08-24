@@ -1,5 +1,6 @@
 package de.morihofi.certgine.clientinstallagent.builder;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.zip.CRC32;
+import java.util.zip.GZIPInputStream;
 
 public class WinPeResourceLoader {
 
@@ -128,20 +130,24 @@ public class WinPeResourceLoader {
             throw new IOException("Content corrupted (negative start).");
         }
 
-        // Read JSON bytes
+        // Read compressed configuration bytes
         buffer.position(jsonStart);
-        byte[] jsonBytes = new byte[len];
-        buffer.get(jsonBytes);
+        byte[] configBytes = new byte[len];
+        buffer.get(configBytes);
 
-        // Verify CRC
+        // Verify CRC on compressed bytes
         CRC32 crc = new CRC32();
-        crc.update(jsonBytes);
+        crc.update(configBytes);
         int calculatedCrc = (int) crc.getValue();
         if (calculatedCrc != crc32) {
             throw new IOException("CRC incorrect");
         }
 
-        return Optional.of(new String(jsonBytes, java.nio.charset.StandardCharsets.UTF_8));
+        // Decompress and return as JSON string
+        try (GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(configBytes))) {
+            byte[] jsonBytes = gis.readAllBytes();
+            return Optional.of(new String(jsonBytes, java.nio.charset.StandardCharsets.UTF_8));
+        }
     }
 
     /**

@@ -1,6 +1,8 @@
-use std::env;
 use serde::Deserialize;
 use tracing::debug;
+use std::env;
+use std::io::Read;
+use flate2::read::GzDecoder;
 
 mod peoverlay;
 
@@ -56,9 +58,12 @@ pub fn read_config() -> Result<AgentConfig, anyhow::Error> {
     debug!("Reading configuration (using overlay) ...");
     let overlay_config = peoverlay::read_overlay(&current_exe)?;
 
+    let mut decoder = GzDecoder::new(&overlay_config[..]);
+    let mut json = String::new();
+    decoder.read_to_string(&mut json)?;
 
     debug!("Parsing configuration ...");
-    let config: AgentConfig = serde_json::from_str::<AgentConfig>(overlay_config.as_str())?;
+    let config: AgentConfig = serde_json::from_str::<AgentConfig>(json.as_str())?;
     debug!("Configuration loaded!");
 
     Ok(config)

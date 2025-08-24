@@ -1,7 +1,5 @@
-use serde::Deserialize;
-use std::{collections::HashMap, fs::File, io::{Read, Seek, SeekFrom}, path::PathBuf};
+use std::{fs::File, io::{Read, Seek, SeekFrom}};
 use std::path::Path;
-use crate::config::AgentConfig;
 const MAGIC: &[u8] = b"CGJOCFGv1"; // stands for CertGineJsonObjectConFiG Version 1
 
 #[derive(thiserror::Error, Debug)]
@@ -12,19 +10,17 @@ pub enum OverlayError {
     Corrupt(&'static str),
     #[error(transparent)]
     Io(#[from] std::io::Error),
-    #[error(transparent)]
-    Utf8(#[from] std::string::FromUtf8Error),
 }
 
 
 
-/// Liest das JSON-Overlay. Erkennt signierte EXEs (Certificate Table am Dateiende)
-/// und betrachtet deren Anfang als "Dateiende" für den Trailer-Scan.
-pub fn read_overlay<P: AsRef<Path>>(path: P) -> Result<String, OverlayError> {
+/// Reads the configuration overlay. Detects signed executables (certificate table at the file end)
+/// and treats the start of that table as the end of file for trailer scanning.
+pub fn read_overlay<P: AsRef<Path>>(path: P) -> Result<Vec<u8>, OverlayError> {
     let mut f = File::open(path)?;
     let file_len = f.metadata()?.len();
 
-    // Falls signiert: Security-Directory-Start als "Scan-Ende" nutzen
+    // If signed: use the security directory start as the scan end
     let scan_end = find_security_directory_start(&mut f)?.unwrap_or(file_len);
 
     let trailer_min = MAGIC.len() as u64 + 4 + 4; // magic + len + crc
@@ -32,7 +28,7 @@ pub fn read_overlay<P: AsRef<Path>>(path: P) -> Result<String, OverlayError> {
         return Err(OverlayError::NotFound);
     }
 
-    // MAGIC prüfen (liegt direkt vor scan_end)
+    // Verify MAGIC marker (directly before scan_end)
     f.seek(SeekFrom::Start(scan_end - MAGIC.len() as u64))?;
     let mut magic = vec![0u8; MAGIC.len()];
     f.read_exact(&mut magic)?;
@@ -40,51 +36,84 @@ pub fn read_overlay<P: AsRef<Path>>(path: P) -> Result<String, OverlayError> {
         return Err(OverlayError::NotFound);
     }
 
-    // LEN (4B LE) direkt vor MAGIC
+    // LEN (4 bytes LE) directly before MAGIC
     f.seek(SeekFrom::Start(scan_end - MAGIC.len() as u64 - 4))?;
     let len = read_u32_le(&mut f)? as u64;
 
-    // CRC32 (4B LE) vor LEN
+    // CRC32 (4 bytes LE) before LEN
     f.seek(SeekFrom::Start(scan_end - MAGIC.len() as u64 - 4 - 4))?;
     let crc_stored = read_u32_le(&mut f)?;
 
-    // JSON-Start berechnen (relativ zu scan_end, nicht Dateiende!)
+    // Calculate JSON start (relative to scan_end, not file end)
     let json_start = scan_end
         .checked_sub(MAGIC.len() as u64 + 4 + 4)
         .and_then(|x| x.checked_sub(len))
-        .ok_or(OverlayError::Corrupt("negativer JSON-Start"))?;
+        .ok_or(OverlayError::Corrupt("negative JSON start"))?;
 
-    // JSON lesen
+    // Read configuration bytes
     f.seek(SeekFrom::Start(json_start))?;
-    let mut json_bytes = vec![0u8; len as usize];
-    f.read_exact(&mut json_bytes)?;
+    let mut config_bytes = vec![0u8; len as usize];
+    f.read_exact(&mut config_bytes)?;
 
-    // CRC prüfen
+    // Validate CRC
     let mut hasher = crc32fast::Hasher::new();
-    hasher.update(&json_bytes);
+    hasher.update(&config_bytes);
     let crc_calc = hasher.finalize();
     if crc_calc != crc_stored {
-        return Err(OverlayError::Corrupt("CRC stimmt nicht"));
+        return Err(OverlayError::Corrupt("CRC mismatch"));
     }
 
-    Ok(String::from_utf8(json_bytes)?)
+    Ok(config_bytes)
 }
 
-/// Ermittelt den Dateioffset (nicht RVA!) des Security Directory (Certificate Table),
-/// falls vorhanden. Liefert `Ok(None)`, wenn keins existiert oder Header unplausibel sind.
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use flate2::{write::GzEncoder, read::GzDecoder, Compression};
+    use std::io::{Write, Read};
+    use tempfile::NamedTempFile;
+
+    #[test]
+    fn read_overlay_returns_gzip_data() {
+        let json = r#"{"foo":"bar"}"#;
+        let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+        encoder.write_all(json.as_bytes()).unwrap();
+        let compressed = encoder.finish().unwrap();
+
+        let mut file = NamedTempFile::new().unwrap();
+        file.write_all(&compressed).unwrap();
+        let mut hasher = crc32fast::Hasher::new();
+        hasher.update(&compressed);
+        let crc = hasher.finalize();
+        file.write_all(&crc.to_le_bytes()).unwrap();
+        file.write_all(&(compressed.len() as u32).to_le_bytes()).unwrap();
+        file.write_all(MAGIC).unwrap();
+        file.flush().unwrap();
+
+        let data = read_overlay(file.path()).unwrap();
+
+        let mut decoder = GzDecoder::new(&data[..]);
+        let mut decoded = String::new();
+        decoder.read_to_string(&mut decoded).unwrap();
+        assert_eq!(decoded, json);
+    }
+}
+
+/// Determines the file offset (not RVA) of the Security Directory (certificate table),
+/// if present. Returns `Ok(None)` if none exists or headers are invalid.
 fn find_security_directory_start(f: &mut File) -> Result<Option<u64>, OverlayError> {
-    // --- DOS Header: e_lfanew bei 0x3C ---
+    // DOS header: e_lfanew at 0x3C
     let mut mz = [0u8; 2];
     f.seek(SeekFrom::Start(0))?;
     f.read_exact(&mut mz)?;
     if &mz != b"MZ" {
-        // Kein PE -> kein Zertifikat
+        // Not a PE file -> no certificate
         return Ok(None);
     }
     f.seek(SeekFrom::Start(0x3C))?;
     let e_lfanew = read_u32_le(f)? as u64;
 
-    // --- NT Headers Signatur ---
+    // NT headers signature
     f.seek(SeekFrom::Start(e_lfanew))?;
     let mut pe_sig = [0u8; 4];
     f.read_exact(&mut pe_sig)?;
@@ -92,21 +121,21 @@ fn find_security_directory_start(f: &mut File) -> Result<Option<u64>, OverlayErr
         return Ok(None);
     }
 
-    // --- COFF Header (20 B) ---
+    // COFF header (20 B)
     let mut coff = [0u8; 20];
     f.read_exact(&mut coff)?;
-    // Offset 16..18 im COFF: SizeOfOptionalHeader (u16)
+    // Offset 16..18 in COFF: SizeOfOptionalHeader (u16)
     let size_opt = u16::from_le_bytes([coff[16], coff[17]]) as usize;
 
-    // --- Optional Header (variabel) ---
+    // Optional header (variable size)
     let mut opt = vec![0u8; size_opt];
     f.read_exact(&mut opt)?;
     if size_opt < 2 {
         return Ok(None);
     }
-    let magic = u16::from_le_bytes([opt[0], opt[1]]); // 0x10B (PE32) oder 0x20B (PE32+)
+    let magic = u16::from_le_bytes([opt[0], opt[1]]); // 0x10B (PE32) or 0x20B (PE32+)
 
-    // Start der Data Directories innerhalb des Optional Headers
+    // Start of data directories within the optional header
     let (dd_start, needed_before_dd) = match magic {
         0x10B => (96usize, 96usize),  // PE32: 28 + 68
         0x20B => (112usize, 112usize), // PE32+: 24 + 88
@@ -116,7 +145,7 @@ fn find_security_directory_start(f: &mut File) -> Result<Option<u64>, OverlayErr
         return Ok(None);
     }
 
-    // NumberOfRvaAndSizes steht direkt vor Data Directories
+    // NumberOfRvaAndSizes resides directly before data directories
     if dd_start < 4 {
         return Ok(None);
     }
@@ -127,10 +156,10 @@ fn find_security_directory_start(f: &mut File) -> Result<Option<u64>, OverlayErr
         opt[dd_start - 1],
     ]);
     if num_dirs < 5 {
-        return Ok(None); // kein Security-Eintrag
+        return Ok(None); // no security entry
     }
 
-    // Directory #4 = Security (FileOffset statt RVA!)
+    // Directory #4 = Security (file offset instead of RVA)
     let off = dd_start + 8 * 4;
     let va = u32::from_le_bytes([opt[off], opt[off + 1], opt[off + 2], opt[off + 3]]) as u64;
     let sz = u32::from_le_bytes([
@@ -144,8 +173,8 @@ fn find_security_directory_start(f: &mut File) -> Result<Option<u64>, OverlayErr
         return Ok(None);
     }
 
-    // Plausibilitätscheck: Certificate Table liegt i. d. R. am Dateiende.
-    // Wir geben den Startoffset zurück; der Reader nutzt das als Scan-Ende.
+    // Sanity check: certificate table is usually located at the end of the file.
+    // Return the start offset; the reader uses this as the scan end.
     Ok(Some(va))
 }
 
