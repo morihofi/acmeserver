@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.zip.CRC32;
@@ -26,8 +25,8 @@ public class WinPeResourceLoader {
         // Create in-memory output stream to build modified PE
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        // Write original PE content
-        outputStream.write(peBuffer.array());
+        // Write original PE content up to the actual PE size
+        outputStream.write(peBuffer.array(), 0, peBuffer.limit());
 
         // Append configuration and trailer
         appendConfigAndTrailer(outputStream, configBytes);
