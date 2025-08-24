@@ -21,6 +21,8 @@ public class AgentConfig {
         private String type;
         private boolean enforce_elevated;
         private boolean unattended_mode;
+        private boolean silent_mode;
+        private String title;
     }
 
     @Data

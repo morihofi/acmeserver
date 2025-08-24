@@ -23,6 +23,8 @@ pub struct Client {
     pub r#type: String,           // "type" is a Rust keyword; use raw identifier
     pub enforce_elevated: bool,
     pub unattended_mode: bool,
+    pub silent_mode: bool,
+    pub title: Option<String>
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -68,4 +70,25 @@ pub fn read_config() -> Result<AgentConfig, anyhow::Error> {
 
     Ok(config)
 
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn deserialize_client_with_silent_and_titles() {
+        let json = r#"{
+            "type":"gui",
+            "enforce_elevated":false,
+            "unattended_mode":false,
+            "silent_mode":true,
+            "title":"Custom",
+            "help_link":"https://example.com"
+        }"#;
+
+        let client: Client = serde_json::from_str(json).expect("deserialization failed");
+        assert!(client.silent_mode);
+        assert_eq!(client.title.unwrap(), "Custom");
+    }
 }

@@ -33,9 +33,10 @@ public class DownloadEndpoint implements Handler {
 
         AgentConfig config = AgentConfig.builder()
                 .client(AgentConfig.Client.builder()
-                        .type("cli")
+                        .type("gui")
                         .enforce_elevated(true)
-                        .unattended_mode(true)
+                        .unattended_mode(false)
+                        .silent_mode(false)
                         .build())
                 .service(AgentConfig.Service.builder()
                         .host(serverInstance.getAppConfig().getServer().getDnsName())

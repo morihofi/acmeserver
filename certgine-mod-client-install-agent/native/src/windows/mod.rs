@@ -1,4 +1,5 @@
 mod helper;
+pub mod ui;
 
 use windows::core::w;
 use windows::Win32::Foundation::GetLastError;
