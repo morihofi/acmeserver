@@ -21,6 +21,7 @@
         <module>certgine-mod-web-legacy</module>
         <module>certgine-mod-tsa</module>
         <module>certgine-mod-web-ui</module>
+        <module>certgine-mod-client-install-agent</module>
     </modules>
 
     <licenses>

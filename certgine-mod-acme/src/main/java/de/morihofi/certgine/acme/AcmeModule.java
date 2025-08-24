@@ -19,6 +19,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
@@ -147,6 +148,7 @@ public class AcmeModule extends CertgineModule {
         }
     }
 
+    @NotNull
     @Override
     public @NonNull CertgineModuleInstance getModuleInstance() {
         return new AcmeModuleInstance(this);

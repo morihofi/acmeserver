@@ -9,6 +9,7 @@ import de.morihofi.certgine.types.intf.IServerInstance;
 import jakarta.servlet.http.HttpServlet;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.util.Map;
 import java.util.Set;
@@ -26,7 +27,15 @@ public abstract class CertgineModule {
      * Reference to the active server instance. This may initially be {@code null}
      * when modules are loaded before the server has been fully constructed and
      * is populated later once the server instance becomes available.
+     * -- SETTER --
+     *  Updates the server instance reference once the server has been
+     *  constructed. Called by the core during startup to provide modules with the
+     *  fully initialised
+     * .
+     *
+     * @param serverInstance active server instance
      */
+    @Setter
     @Getter
     private IServerInstance serverInstance;
 
@@ -40,29 +49,22 @@ public abstract class CertgineModule {
     }
 
     /**
-     * Updates the server instance reference once the server has been
-     * constructed. Called by the core during startup to provide modules with the
-     * fully initialised {@link IServerInstance}.
-     *
-     * @param serverInstance active server instance
-     */
-    public void setServerInstance(IServerInstance serverInstance) {
-        this.serverInstance = serverInstance;
-    }
-
-    /**
      * Entity classes contributed by this module.
      *
      * @return immutable set of entity classes
      */
-    public abstract Set<Class<?>> getEntityClasses();
+    public Set<Class<?>> getEntityClasses() {
+        return Set.of();
+    }
 
     /**
      * HTTP handler classes contributed by this module.
      *
      * @return immutable set of HTTP handler classes
      */
-    public abstract Set<Class<? extends HttpServlet>> getHttpServlets();
+    public Set<Class<? extends HttpServlet>> getHttpServlets() {
+        return Set.of();
+    }
 
     /**
      * Runs on module gets registered

@@ -1,0 +1,6 @@
+[target.x86_64-pc-windows-gnu]
+[bin.agentstub]
+rustflags = ["-C", "link-args=-Wl,--subsystem,console"]
+
+[bin.agentstubw]
+rustflags = ["-C", "link-args=-Wl,--subsystem,windows"]

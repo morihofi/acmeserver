@@ -5,6 +5,7 @@ import de.morihofi.certgine.types.modules.CertgineModule;
 import de.morihofi.certgine.types.modules.CertgineModuleInstance;
 import de.morihofi.certgine.types.modules.ModuleDescriptor;
 import jakarta.servlet.http.HttpServlet;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -32,6 +33,7 @@ public class ModuleWithInstance extends CertgineModule {
         return Set.of(TestServlet.class);
     }
 
+    @NotNull
     @Override
     public CertgineModuleInstance getModuleInstance() {
         return instance;
